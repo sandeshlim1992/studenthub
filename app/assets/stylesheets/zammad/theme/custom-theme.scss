@@ -1,0 +1,1733 @@
+// Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
+
+// Custom modern theme override for the legacy UI (target: /#dashboard).
+// Pure CSS/SCSS overrides on top of zammad.scss - no markup or JS changes.
+// Palette, spacing and typography follow .claude/ui-rules.md.
+
+// ---------------------------------------------------------------------------
+// Palette (see .claude/ui-rules.md)
+// ---------------------------------------------------------------------------
+$theme-primary: #1e293b;
+$theme-secondary: #334155;
+$theme-accent: #3b82f6;
+$theme-accent-hover: #2563eb;
+$theme-bg: #f1f5f9;
+$theme-sidebar-bg: #0f172a;
+$theme-sidebar-text: #94a3b8;
+$theme-sidebar-active: #3b82f6;
+$theme-text-primary: #0f172a;
+$theme-text-secondary: #64748b;
+$theme-border: #e2e8f0;
+$theme-success: #10b981;
+$theme-warning: #f59e0b;
+$theme-danger: #ef4444;
+$theme-white: #fff;
+
+$theme-radius-card: 12px;
+$theme-radius-button: 8px;
+$theme-radius-input: 8px;
+$theme-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.08);
+$theme-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+$theme-transition: all 150ms ease;
+
+body {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 1. Sidebar (#navigation)
+// ---------------------------------------------------------------------------
+.navigation {
+  background: $theme-sidebar-bg;
+  border-color: $theme-secondary;
+  overflow: visible; // DO NOT use overflow:hidden (allows drawer panels to pop out)
+
+  // core width (0.2s) still switches between $navigationWidth/$mobileNavigationWidth
+  // (zammad.scss) on #app.navigation-collapsed - only the timing changes here.
+  transition: width 250ms ease;
+}
+
+.navigation .search {
+  background-color: rgba($theme-white, 0.03);
+  border-bottom-color: rgba($theme-white, 0.08);
+}
+
+.navigation .search input[type='search'] {
+  border: 1px solid rgba($theme-white, 0.08);
+  font-size: 14px;
+}
+
+// floating pill nav items: outer margin (not full-bleed) is what makes the
+// border-radius actually visible, so dividers become gaps instead of lines.
+.menu-item {
+  color: $theme-sidebar-text;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  margin: 2px 8px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border-bottom: none;
+  transition: background-color 150ms ease, color 150ms ease;
+
+  &:hover {
+    background: #ffffff10;
+    color: $theme-white;
+  }
+
+  &.is-active,
+  &.is-hovered {
+    background: $theme-sidebar-active;
+    color: $theme-white;
+  }
+}
+
+// stock quick-add "+" in the footer (App.Config 'New', class: 'add' -
+// app/controllers/_default_navbar.coffee:14, rendered by
+// navigation/personal.jst.eco into .user-menu > li.settings.add) duplicates
+// the .new-ticket-btn at the top of the sidebar. Hidden here, CSS-only - the
+// route/controller entry stays registered, just not shown in this rail.
+.user-menu > li.add,
+.user-menu > li.settings.add {
+  display: none !important;
+}
+
+.tasks-navigation .nav-tab {
+  color: $theme-sidebar-text;
+
+  &.is-active {
+    background: $theme-sidebar-active;
+    color: $theme-white;
+  }
+}
+
+.user-menu > li {
+  background: rgba($theme-white, 0.03);
+}
+
+.user-menu-icon {
+  fill: $theme-sidebar-text;
+}
+
+// core hover/active indicator (zammad.scss) is a 4px-inset rectangle sized
+// to the parent <li> - not square, so border-radius:50% on it draws an
+// ellipse. Fix the box to a true 40px circle, centered independent of the
+// li's own width, so every footer icon gets a consistent round hover state.
+.user-menu > li:hover .list-button::before,
+.user-menu > li.open .list-button::before,
+.user-menu > li.is-active .list-button::before,
+.user-menu > li.is-hovered .list-button::before {
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  transition: background-color 150ms ease;
+  pointer-events: none;
+}
+
+.navigation .avatar {
+  width: 36px;
+  height: 36px;
+}
+
+// "+ New Ticket" (ui-rules.md priority #1: large, blue, very visible, top of
+// sidebar). Real markup, a direct flex sibling of .search in
+// navigation.jst.eco - not a repositioned footer element. Normal document
+// flow handles the top-of-sidebar placement, so collapse/expand just resize
+// "+ New Ticket" (ui-rules.md priority #1: large, emerald green CTA, very visible).
+// Vibrant Emerald/Mint gradient to contrast cleanly against blue active tabs (#3b82f6).
+.new-ticket-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 42px;
+  margin: 14px 12px 10px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+  box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.4);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  position: relative;
+
+  @extend %clickable;
+
+  .icon {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    fill: $theme-white;
+    transition: transform 250ms ease;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+    box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.58);
+    transform: translateY(-1px);
+    text-decoration: none;
+
+    .icon {
+      transform: rotate(90deg) scale(1.1);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    box-shadow: 0 2px 8px 0 rgba(16, 185, 129, 0.4);
+  }
+}
+
+.new-ticket-btn-label {
+  color: $theme-white;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+// ---------------------------------------------------------------------------
+// Collapsed Sidebar (50px width for JS compatibility, centered 20px icons, 36px + button)
+// ---------------------------------------------------------------------------
+#app.navigation-collapsed .navigation,
+.sidebar-is-close,
+.navigation.is-collapsed {
+  width: 50px;
+
+  &,
+  .menu,
+  .tasks-navigation,
+  .user-menu,
+  .user-menu > li {
+    overflow: visible !important;
+  }
+
+  // Logo & Search aligned horizontally-centered with all other icons
+  .search {
+    width: 50px;
+    margin: 0 auto;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    .logo {
+      width: 50px;
+      height: 40px;
+      margin: 0 auto 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+
+      .icon-logo,
+      .icon {
+        width: 24px;
+        height: 24px;
+        margin: 0 auto;
+        fill: $theme-white;
+      }
+
+      .activity-counter {
+        position: absolute;
+        top: 2px;
+        right: 6px;
+      }
+    }
+
+    .search-holder {
+      width: 50px;
+      height: 40px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      input[type='search'] {
+        display: none;
+      }
+
+      .icon,
+      .icon-magnifier {
+        position: static;
+        width: 20px;
+        height: 20px;
+        margin: 0 auto;
+        fill: #94a3b8;
+      }
+    }
+  }
+
+  // Red dot / notification badge position
+  .logo .activity-counter,
+  .activity-counter {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+  }
+
+  // + New Ticket Button in collapsed state (Vibrant Emerald CTA)
+  .new-ticket-btn {
+    width: 36px;
+    height: 36px;
+    margin: 10px auto;
+    padding: 0;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      margin: 0 auto;
+      fill: $theme-white;
+      transition: transform 250ms ease;
+    }
+
+    .new-ticket-btn-label {
+      display: none;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, #34d399 0%, #10b981 50%, #059669 100%);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);
+      transform: translateY(-1px) scale(1.05);
+
+      .icon {
+        transform: rotate(90deg) scale(1.1);
+      }
+    }
+
+    &:active {
+      transform: translateY(0) scale(0.95);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+    }
+  }
+
+  // Nav items in collapsed state
+  .menu-item,
+  .tasks-navigation .nav-tab {
+    width: 50px;
+    margin: 2px auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    .menu-item-name,
+    .nav-tab-name {
+      display: none;
+    }
+
+    .icon,
+    .nav-tab-icon .icon {
+      width: 20px;
+      height: 20px;
+      margin: 0 auto;
+      fill: #94a3b8;
+    }
+
+    &:hover .icon,
+    &.is-hovered .icon {
+      fill: $theme-white;
+    }
+
+    &.is-active,
+    &.active {
+      background: rgba($theme-accent, 0.15);
+
+      .icon {
+        fill: #3b82f6;
+      }
+    }
+  }
+
+  // Bottom Icons squished fix (margin-top: auto, 44px height, 32px avatar)
+  .user-menu {
+    width: 50px;
+    margin-top: auto;
+    margin-left: auto;
+    margin-right: auto;
+    padding-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    > li {
+      width: 50px;
+      height: 44px;
+      line-height: 44px;
+      display: block;
+      text-align: center;
+      margin: 0 auto;
+      background: transparent;
+      position: relative;
+
+      .list-button {
+        width: 50px;
+        height: 44px;
+        line-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0;
+        margin: 0 auto;
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .user-menu-icon {
+        width: 20px;
+        height: 20px;
+        margin: 0 auto;
+        fill: #94a3b8;
+      }
+
+      .avatar {
+        width: 32px;
+        height: 32px;
+        margin: 4px auto;
+        border-radius: 50%;
+        display: block;
+      }
+
+      &:hover .user-menu-icon,
+      &.open .user-menu-icon {
+        fill: $theme-white;
+      }
+
+      &.is-active,
+      &.active {
+        .user-menu-icon {
+          fill: #3b82f6;
+        }
+      }
+    }
+  }
+
+  // Chevron << icon: 44px height centered
+  .menu-item-navigation-toggle-button {
+    width: 50px;
+    height: 44px;
+    line-height: 44px;
+    margin: 0 auto;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      margin: 0 auto;
+      fill: #94a3b8;
+    }
+  }
+
+  // Drawer panel absolute positioning & state toggle
+  .dropdown-menu,
+  .menu .dropdown-menu,
+  .user-menu .dropdown-menu,
+  .global-search-menu {
+    position: absolute !important;
+    left: 100% !important;
+    top: 0 !important;
+    bottom: auto !important;
+    z-index: 99999 !important;
+    min-width: 220px !important;
+    background: $theme-sidebar-bg !important;
+    border: 1px solid $theme-secondary !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  .open > .dropdown-menu,
+  .is-open > .dropdown-menu,
+  .open .dropdown-menu,
+  .is-open .dropdown-menu,
+  .dropdown-menu.open,
+  .dropdown-menu.is-open,
+  .global-search-menu.open,
+  .global-search-menu.is-open {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}
+
+@include phone {
+  .navigation {
+    width: 50px;
+    overflow: visible !important;
+
+    .search {
+      width: 50px;
+
+      .logo {
+        width: 50px;
+        margin-bottom: 4px;
+      }
+
+      .search-holder {
+        width: 50px;
+      }
+    }
+
+    .new-ticket-btn {
+      width: 36px;
+      height: 36px;
+      margin: 8px auto;
+      padding: 0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        margin: 0 auto;
+        fill: $theme-white;
+      }
+    }
+
+    .new-ticket-btn-label {
+      display: none;
+    }
+
+    .menu-item,
+    .tasks-navigation .nav-tab {
+      width: 50px;
+      margin: 2px auto;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        margin: 0 auto;
+        fill: #94a3b8;
+      }
+
+      &.is-active,
+      &.active {
+        .icon {
+          fill: #3b82f6;
+        }
+      }
+    }
+
+    .user-menu {
+      width: 50px;
+      margin-top: auto;
+      margin-left: auto;
+      margin-right: auto;
+      padding-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+
+      > li {
+        width: 50px;
+        height: 44px;
+        line-height: 44px;
+        display: block;
+        text-align: center;
+        margin: 0 auto;
+
+        .user-menu-icon {
+          width: 20px;
+          height: 20px;
+          margin: 0 auto;
+          fill: #94a3b8;
+        }
+
+        .avatar {
+          width: 32px;
+          height: 32px;
+          margin: 4px auto;
+          border-radius: 50%;
+        }
+
+        &.is-active,
+        &.active {
+          .user-menu-icon {
+            fill: #3b82f6;
+          }
+        }
+      }
+    }
+
+    .menu-item-navigation-toggle-button {
+      height: 44px;
+      line-height: 44px;
+    }
+
+    .dropdown-menu,
+    .menu .dropdown-menu,
+    .user-menu .dropdown-menu,
+    .global-search-menu {
+      position: absolute !important;
+      left: 100% !important;
+      top: 0 !important;
+      bottom: auto !important;
+      z-index: 99999 !important;
+    }
+
+    .open > .dropdown-menu,
+    .is-open > .dropdown-menu,
+    .open .dropdown-menu,
+    .is-open .dropdown-menu,
+    .dropdown-menu.open,
+    .dropdown-menu.is-open {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 2. Top navbar
+// ---------------------------------------------------------------------------
+// NOTE: the legacy UI has no separate global top navbar element - #navigation
+// (styled above) is a persistent, full-height left sidebar, and each content
+// view (dashboard, ticket zoom, overviews) draws its own local header instead
+// of sharing one global bar. The closest universal element across the app is
+// the avatar circle (sidebar footer, ticket requester/owner, popovers),
+// themed here so it reads clean and modern wherever it appears.
+.avatar {
+  box-shadow: $theme-shadow-sm;
+}
+
+// ---------------------------------------------------------------------------
+// 3. Dashboard (Analytix Premium SaaS Redesign - Matching dashbaord.jpg)
+// ---------------------------------------------------------------------------
+.content {
+  background-color: #f8fafc;
+}
+
+// ===========================================================================
+// Analytics Dashboard Isolated Namespace (ad-*)
+// ===========================================================================
+.ad-dashboard {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
+
+  .ad-tabs {
+    order: 1 !important;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #e2e8f0;
+
+    .ad-tab {
+      font-size: 15px;
+      font-weight: 600;
+      color: #64748b;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 180ms ease;
+      margin-bottom: -1px;
+
+      &:hover {
+        color: #0f172a;
+        border-bottom-color: #cbd5e1;
+      }
+
+      &.active {
+        color: #2563eb;
+        border-bottom-color: #2563eb;
+        font-weight: 700;
+      }
+    }
+  }
+
+  .first-steps-widgets {
+    order: 2 !important; /* First steps content positioned below top tabs */
+  }
+
+  .ad-grid {
+    order: 2 !important; /* Stat tiles grid rendered FIRST below tabs */
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    margin-bottom: 24px !important;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    @media (max-width: 640px) {
+      grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    }
+  }
+
+  .ad-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+      border-color: #cbd5e1;
+    }
+  }
+
+  .ad-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .ad-card-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #0f172a;
+    text-transform: none;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .ad-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+
+    svg, .icon {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+  }
+
+  .ad-card-value {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin: 8px 0;
+  }
+
+  .ad-card-subtitle {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #334155;
+    margin-top: 6px;
+  }
+
+  .ad-card-detail {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #475569;
+    margin-top: 3px;
+  }
+
+  /* Channel Distribution Specific Styles */
+  .ad-channel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .ad-channel-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 2px 0;
+  }
+
+  .ad-channel-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 100px;
+  }
+
+  .ad-channel-icon {
+    width: 22px !important;
+    height: 22px !important;
+    fill: #475569;
+    flex-shrink: 0;
+  }
+
+  .ad-channel-name {
+    font-weight: 600;
+    color: #1e293b;
+    text-transform: capitalize;
+    font-size: 14.5px;
+  }
+
+  .ad-channel-bar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .ad-channel-track {
+    height: 8px;
+    background-color: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+    width: 110px;
+    display: flex;
+  }
+
+  .ad-channel-fill-inbound {
+    background-color: #2563eb;
+    height: 100%;
+    border-top-left-radius: 9999px;
+    border-bottom-left-radius: 9999px;
+    transition: width 300ms ease;
+  }
+
+  .ad-channel-fill-outbound {
+    background-color: #0f172a;
+    height: 100%;
+    border-top-right-radius: 9999px;
+    border-bottom-right-radius: 9999px;
+    transition: width 300ms ease;
+  }
+
+  .ad-channel-percentage {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 14px;
+    min-width: 42px;
+    text-align: right;
+  }
+
+  /* Interactive Charts Section */
+  .ad-charts-row {
+    order: 3 !important; /* Graphs section positioned at bottom below KPI tiles */
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
+
+  .ad-chart-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    position: relative;
+  }
+
+  .ad-chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .ad-chart-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .ad-chart-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ad-chart-pill {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 150ms ease;
+
+    &:hover {
+      color: #0f172a;
+      background: #f1f5f9;
+    }
+
+    &.active {
+      color: #fff;
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+  }
+
+  .ad-chart-tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 4px 10px;
+  }
+
+  .ad-chart-legend {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 16px;
+
+    .ad-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+      transition: opacity 150ms ease;
+
+      &:hover {
+        color: #0f172a;
+      }
+
+      &.is-dimmed {
+        opacity: 0.35;
+      }
+    }
+
+    .ad-legend-indicator {
+      display: inline-block;
+      border-radius: 9999px;
+    }
+
+    .ad-legend-line--primary {
+      width: 14px;
+      height: 3px;
+      background: #2563eb;
+    }
+
+    .ad-legend-line--secondary {
+      width: 14px;
+      height: 3px;
+      background: #38bdf8;
+    }
+
+    .ad-legend-box--primary {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: #2563eb;
+    }
+
+    .ad-legend-box--secondary {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      background: #0f172a;
+    }
+  }
+
+  .ad-chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+  }
+
+  .ad-chart-svg {
+    width: 100%;
+    height: 200px;
+    border-bottom: 1px solid #e2e8f0;
+    overflow: visible;
+  }
+
+  .ad-chart-point {
+    fill: #2563eb;
+    stroke: #fff;
+    stroke-width: 2px;
+    cursor: pointer;
+    transition: r 150ms ease, fill 150ms ease;
+
+    &:hover,
+    &.active {
+      r: 7px;
+      fill: #1d4ed8;
+      stroke-width: 3px;
+    }
+  }
+
+  .ad-chart-tooltip {
+    position: absolute;
+    z-index: 20;
+    background: #0f172a;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    transition: left 120ms ease, top 120ms ease;
+    white-space: nowrap;
+
+    .ad-tooltip-date {
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .ad-tooltip-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      line-height: 1.4;
+
+      strong {
+        color: #fff;
+        font-weight: 700;
+      }
+    }
+
+    .ad-tooltip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+
+      &.ad-bg-primary { background: #3b82f6; }
+      &.ad-bg-secondary { background: #38bdf8; }
+    }
+  }
+
+  .ad-bar-visual {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 200px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: relative;
+
+    .ad-bar-group {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 2px;
+      width: 18px !important;
+      max-width: 18px !important;
+      height: 100%;
+      cursor: pointer;
+      transition: transform 150ms ease;
+
+      .ad-bar-top {
+        width: 100%;
+        background-color: #2563eb;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+        transition: background-color 150ms ease, opacity 150ms ease;
+      }
+
+      .ad-bar-bottom {
+        width: 100%;
+        background-color: #0f172a;
+        border-radius: 3px;
+        transition: background-color 150ms ease, opacity 150ms ease;
+      }
+
+      &:hover {
+        transform: scaleY(1.03);
+
+        .ad-bar-top { background-color: #1d4ed8; }
+        .ad-bar-bottom { background-color: #1e293b; }
+      }
+    }
+  }
+
+  .ad-dimmed {
+    opacity: 0.15 !important;
+  }
+
+  .ad-x-axis {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-top: 12px;
+    padding: 0 4px;
+  }
+}
+
+// Middle Row: Massive 32px Bold Typography Number
+.stat-amount,
+.time.stat-widget .stat-amount {
+  color: #0f172a;
+  font-size: 3.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-shadow: none;
+  margin: 8px 0;
+}
+
+// Bottom Row: Trend Badges ((+12.4%) Green / (-4.1%) Red)
+.stat-label,
+.stat-detail {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 6px;
+
+  &.is-positive,
+  &[data-trend='up'] {
+    color: #10b981;
+  }
+
+  &.is-negative,
+  &[data-trend='down'] {
+    color: #ef4444;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Channel Distribution Widget Layout
+// ---------------------------------------------------------------------------
+.ticket_channel_distribution {
+  .stat-graphic {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-around;
+    min-height: 90px;
+    margin-top: 12px;
+  }
+
+  .stats-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 4px;
+    flex: 1;
+
+    .stat-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 54px;
+      width: 100%;
+      justify-content: center;
+      margin: 6px 0;
+
+      .stat-bar {
+        width: 8px;
+        min-height: 2px;
+        border-radius: 3px;
+        background-color: #3b82f6;
+
+        &--outbound {
+          background-color: #0f172a;
+          opacity: 0.8;
+        }
+      }
+    }
+
+    .stat-detail {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #64748b;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Charts & Bar Visualizations (Matching "Revenue Breakdown" Stacked Bars)
+// ---------------------------------------------------------------------------
+.stats-row {
+  border-radius: 8px;
+  padding: 6px;
+  transition: background-color 150ms ease;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+}
+
+.stat-bars {
+  background: transparent;
+
+  .stat-bar {
+    border-radius: 3px;
+    background: #3b82f6; // Vibrant Blue Top Bar
+    transition: opacity 150ms ease, height 200ms ease;
+
+    &--outbound,
+    &--secondary {
+      background: #0f172a; // Dark Stacked Bottom Bar (Matching dashbaord.jpg)
+      opacity: 0.9;
+    }
+  }
+}
+
+.stat-legend {
+  margin-top: 16px;
+  display: flex;
+  gap: 16px;
+
+  .stat-legendEntry {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stat-circle {
+    width: 8px;
+    height: 8px;
+    border-radius: 3px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bell Toggle Button in Top Tab Bar
+// ---------------------------------------------------------------------------
+.ad-tabs {
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  .ad-tab-group {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+}
+
+.ad-bell-wrapper {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.ad-bell-toggle-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 16px !important;
+  background: #fff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
+  color: #475569 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 200ms ease !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+
+  .ad-bell-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ad-bell-icon {
+    width: 16px;
+    height: 16px;
+    fill: #64748b;
+    transition: fill 200ms ease;
+  }
+
+  .ad-bell-pulse {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 7px;
+    height: 7px;
+    background: #10b981;
+    border-radius: 50%;
+    border: 1.5px solid #fff;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+    animation: adPulse 2s infinite;
+  }
+
+  &:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    transform: translateY(-1px);
+
+    .ad-bell-icon {
+      fill: #2563eb;
+    }
+  }
+
+  &.active {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+
+    .ad-bell-icon {
+      fill: #fff !important;
+    }
+
+    .ad-bell-pulse {
+      background: #34d399;
+      border-color: #2563eb;
+    }
+  }
+}
+
+@keyframes adPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+// ---------------------------------------------------------------------------
+// Activity Feed Sidebar & Live Colorized Cards
+// ---------------------------------------------------------------------------
+.sidebar.optional,
+.activity.sidebar,
+.js-activity-sidebar {
+  background-color: #f8fafc;
+  border-left: 1px solid #e2e8f0;
+  padding: 24px 20px;
+  width: 320px;
+  box-sizing: border-box;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: visible;
+
+  &.is-collapsed {
+    display: none !important;
+    width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .ad-activity-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+
+    .ad-activity-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      h2 {
+        font-size: 16px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+        letter-spacing: -0.015em;
+      }
+    }
+
+    .ad-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #059669;
+      letter-spacing: 0.03em;
+
+      .ad-live-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #10b981;
+        animation: adPulse 2s infinite;
+      }
+    }
+
+    .ad-activity-close-btn {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 8px !important;
+      border: 1px solid #cbd5e1 !important;
+      background: #e2e8f0 !important;
+      color: #0f172a !important;
+      font-size: 22px !important;
+      font-weight: 800 !important;
+      line-height: 1 !important;
+      cursor: pointer !important;
+      transition: all 150ms ease !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+
+      &:hover {
+        background: #ef4444 !important;
+        color: #fff !important;
+        border-color: #ef4444 !important;
+        transform: scale(1.08) !important;
+      }
+    }
+  }
+
+  .activity-entries {
+    margin: 0;
+
+    .activity-entry {
+      position: relative !important;
+      padding: 2px 0 2px 16px !important;
+      margin-bottom: 3px !important;
+      border: none !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      border-left: none !important;
+      transition: opacity 150ms ease;
+
+      /* Status indicator dot positioned at exact line center */
+      &::before {
+        content: '' !important;
+        position: absolute !important;
+        left: 2px !important;
+        top: 8px !important;
+        width: 7px !important;
+        height: 7px !important;
+        border-radius: 50% !important;
+        background-color: #3b82f6 !important; /* Default blue dot */
+        margin: 0 !important;
+        transform: none !important;
+      }
+
+      &:hover {
+        transform: none !important;
+        opacity: 0.85;
+      }
+
+      .activity-body {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+        text-decoration: none !important;
+      }
+
+      .activity-message {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+        width: 100% !important;
+      }
+
+      .activity-text {
+        display: block !important;
+        color: #334155 !important;
+        font-size: 13px !important;
+        line-height: 1.4 !important;
+        overflow-wrap: anywhere !important;
+        white-space: normal !important;
+        overflow: visible !important;
+
+        strong,
+        a {
+          color: #0f172a !important;
+          font-weight: 700 !important;
+        }
+
+        a:hover {
+          color: #2563eb !important;
+          text-decoration: underline !important;
+        }
+      }
+
+      .activity-time {
+        display: block !important;
+        font-size: 11.5px !important;
+        font-weight: 500 !important;
+        color: #94a3b8 !important;
+        margin-top: 2px !important;
+      }
+    }
+
+    /* Live Session Entries (Green Dot) */
+    .activity-entry:has(.activity-text:contains('session')),
+    .activity-entry:has(.activity-text:contains('started')) {
+      &::before {
+        background-color: #10b981 !important;
+      }
+    }
+
+    /* Switched Entries (Violet Dot) */
+    .activity-entry:has(.activity-text:contains('switch')),
+    .activity-entry:has(.activity-text:contains('switched')) {
+      &::before {
+        background-color: #8b5cf6 !important;
+      }
+    }
+
+    /* Alert / Escalated Entries (Red Dot) */
+    .activity-entry.is-alert,
+    .activity-entry.alert,
+    .activity-entry:has(.activity-text:contains('escalat')) {
+      &::before {
+        background-color: #ef4444 !important;
+      }
+    }
+  }
+}
+
+// form panels (ticket create, admin object edit) are wrapped in .box
+// (zammad.scss:9322, e.g. .box.box--newTicket in agent_ticket_create.jst.eco)
+// - the real "form section" card, not a made-up wrapper class.
+.box {
+  background: $theme-white;
+  border: none;
+  border-radius: $theme-radius-card;
+  padding: 20px;
+  box-shadow: $theme-shadow-sm;
+}
+
+// ---------------------------------------------------------------------------
+// 4. Buttons
+// ---------------------------------------------------------------------------
+:root {
+  --button-primary-background: #{$theme-accent};
+  --button-primary-background-active: #{$theme-accent-hover};
+}
+
+.btn {
+  border-radius: $theme-radius-button;
+  transition: $theme-transition;
+}
+
+.btn--primary {
+  background: $theme-accent;
+  border-color: $theme-accent;
+  color: $theme-white;
+
+  &:hover {
+    background: $theme-accent-hover;
+    border-color: $theme-accent-hover;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 5. Ticket list
+// ---------------------------------------------------------------------------
+.table > thead > tr > th {
+  background: $theme-white;
+  color: $theme-text-secondary;
+  border-top-color: $theme-border;
+}
+
+.table-striped > tbody > tr:nth-child(2n + 1) {
+  background-color: rgba($theme-primary, 0.03);
+}
+
+.table-hover > tbody > tr:hover,
+.table-hover > tbody > tr.is-hover {
+  background-color: rgba($theme-accent, 0.06);
+}
+
+.table > tbody > tr > td {
+  border-color: $theme-border;
+  color: $theme-text-primary;
+}
+
+// priority is exposed as a dynamic row class (Ticket#rowClass -> "item--#{ui_color}",
+// see app/assets/javascripts/app/models/ticket.coffee) rendered on <tr class="item ...">
+// in generic/table_row.jst.eco - styled here as a coloured left accent stripe.
+.table > tbody > tr.item--high-priority {
+  box-shadow: inset 3px 0 0 $theme-danger;
+
+  a {
+    color: $theme-danger;
+    font-weight: 600;
+  }
+}
+
+.table > tbody > tr.item--low-priority {
+  box-shadow: inset 3px 0 0 $theme-text-secondary;
+}
+
+.badge {
+  border-radius: 9px;
+  font-weight: 600;
+}
+
+// ---------------------------------------------------------------------------
+// 6. Forms / inputs
+// ---------------------------------------------------------------------------
+// core groups .form-control with the actual input elements the dynamic form
+// system (form.coffee) renders directly - input[type=...]/textarea, not just
+// .form-control (zammad.scss:2496) - so the override targets the same list,
+// or most real fields in the app (ticket create, admin, object forms) would
+// keep the old 3px/borderless look while only literal .form-control got 8px.
+input[type='text'],
+input[type='password'],
+input[type='email'],
+input[type='date'],
+input[type='url'],
+textarea,
+.form-control {
+  border-radius: $theme-radius-input;
+  border-color: $theme-border;
+  background: $theme-white;
+  color: $theme-text-primary;
+  transition: $theme-transition;
+
+  &:focus {
+    border-color: $theme-accent;
+    box-shadow: 0 0 0 3px rgba($theme-accent, 0.25);
+  }
+}
+
+// core label (zammad.scss:2036) is already uppercase/letter-spaced - only
+// size and color move to match the tighter Linear/Notion scale.
+label,
+.controls-label,
+.label {
+  font-size: 11px;
+  color: $theme-text-secondary;
+}
+
+/* ==========================================================================
+   Full Horizontal Width Override for Top Tabs (My Stats / First Steps)
+   ========================================================================== */
+
+/* 1. Full horizontal container with distinct darker track background */
+.dashboard .tabs,
+.ad-tabs,
+ul.tabs {
+  display: flex !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background-color: #e2e8f0 !important; /* Darker slate track so tabs are clearly defined */
+  border: 1px solid #cbd5e1 !important;
+  padding: 6px !important;
+  border-radius: 14px !important;
+  margin: 0 0 24px !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06) !important;
+  gap: 6px !important;
+}
+
+/* 2. List items share horizontal width evenly */
+.dashboard .tabs li,
+.dashboard .tabs .tab,
+.ad-tabs .ad-tab,
+ul.tabs li {
+  display: block !important;
+  flex: 1 1 0% !important; /* Spans full horizontal width evenly */
+  margin: 0 !important;
+  border: none !important;
+  background: transparent !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+/* 3. Style the clickable tab items (Bigger, extra bold, very prominent text) */
+.dashboard .tabs li a,
+.dashboard .tabs .tab,
+.ad-tabs .ad-tab,
+ul.tabs li a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  padding: 14px 32px !important;
+  font-size: 1.25rem !important; /* Significantly larger text (20px) */
+  font-weight: 800 !important; /* Extra Bold */
+  color: #1e293b !important; /* Deep slate, high contrast text */
+  border-radius: 10px !important;
+  text-decoration: none !important;
+  border: none !important;
+  background: transparent !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* 4. Hover state for inactive tabs */
+.dashboard .tabs li:not(.active) a:hover,
+.dashboard .tabs .tab:not(.active):hover,
+.ad-tabs .ad-tab:not(.active):hover {
+  color: #0f172a !important; /* Darker text on hover */
+  background-color: rgba(255, 255, 255, 0.6) !important; /* Soft hover highlight */
+}
+
+/* 5. The Active Tab (Pure White Pill with Drop Shadow and Bold Blue Accent) */
+.dashboard .tabs li.active,
+.dashboard .tabs li.active a,
+.dashboard .tabs .tab.active,
+.ad-tabs .ad-tab.active {
+  background-color: #fff !important;
+  color: #2563eb !important; /* Vibrant electric blue */
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+

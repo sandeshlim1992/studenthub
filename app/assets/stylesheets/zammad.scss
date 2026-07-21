@@ -3052,6 +3052,15 @@ input.has-error {
   position: relative;
   background-color: var(--background-primary);
 
+  // the desktop sidebar pushes via its own (animated) flex width,
+  // so undo the phone-mixin margin hack it would otherwise inherit
+  @media screen and (min-width: 768px) {
+    #app.navigation-collapsed & {
+      margin: 0;
+      transform: none;
+    }
+  }
+
   @include phone {
     @include bidi-style(margin-left, $mobileNavigationWidth, margin-right, 0);
 
@@ -4667,6 +4676,20 @@ footer {
   position: relative;
   container-name: navigation;
   container-type: inline-size;
+  transition: width 0.2s ease;
+
+  // keep the desktop sidebar as a normal flex item (not the absolute
+  // overlay used on phone) so the width change above can animate smoothly
+  @media screen and (min-width: 768px) {
+    #app.navigation-collapsed & {
+      position: relative;
+      top: auto;
+      left: auto;
+      right: auto;
+      z-index: auto;
+      width: $mobileNavigationWidth;
+    }
+  }
 
   @include phone {
     position: absolute;
@@ -4819,10 +4842,6 @@ footer {
     justify-content: center;
     border-top: 1px solid rgba(213, 213, 216, 0.05);
     border-bottom: none;
-
-    @include desktop {
-      display: none;
-    }
 
     @container navigation (width > 50px) {
       justify-content: flex-end;
@@ -5073,6 +5092,44 @@ footer {
   align-items: center;
 
   @include phone {
+    visibility: visible;
+  }
+}
+
+// task tabs in the sidebar footer: when collapsed to the icon rail (mobile
+// default, or desktop toggled via .js-navigation-toggle-button), show only
+// the icon - name/close would otherwise overflow the 50px rail since .nav-tab
+// itself is forced to $mobileNavigationWidthOpen above. Only widen back out
+// and reveal name/close when the sidebar is genuinely expanded
+// (.is-not-collapsed), which only happens on real phone widths.
+.tasks-navigation .nav-tab {
+  @include phone {
+    width: $mobileNavigationWidth;
+  }
+}
+
+.tasks-navigation .nav-tab-name {
+  @include phone {
+    display: none;
+  }
+}
+
+.tasks-navigation .nav-tab-close {
+  @include phone {
+    visibility: hidden;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .navigation.is-not-collapsed .tasks-navigation .nav-tab {
+    width: $mobileNavigationWidthOpen;
+  }
+
+  .navigation.is-not-collapsed .tasks-navigation .nav-tab-name {
+    display: block;
+  }
+
+  .navigation.is-not-collapsed .tasks-navigation .nav-tab-close {
     visibility: visible;
   }
 }
@@ -16221,3 +16278,11 @@ div.accounted-time-value {
     padding: 0;
   }
 }
+
+// intentionally a Sass @import (not @use) and placed last: it needs to compile
+// inline at this exact point so its override rules win the cascade against
+// same-specificity selectors earlier in this file. @use is restricted to the
+// top of the file (defeating that), and the CSS url() form stylelint expects
+// for plain @import would skip Sass compilation of the partial entirely.
+/* stylelint-disable-next-line no-invalid-position-at-import-rule, import-notation */
+@import 'zammad/theme/custom-theme';

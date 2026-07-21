@@ -9699,7 +9699,7 @@ snapshots:
       '@vue/shared': 3.5.39
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.16
+      postcss: 8.5.19
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.39':
@@ -12141,16 +12141,16 @@ snapshots:
     dependencies:
       htmlparser2: 8.0.2
       js-tokens: 9.0.1
-      postcss: 8.5.16
-      postcss-safe-parser: 6.0.0(postcss@8.5.16)
+      postcss: 8.5.19
+      postcss-safe-parser: 6.0.0(postcss@8.5.19)
 
   postcss-media-query-parser@0.2.3: {}
 
   postcss-resolve-nested-selector@0.1.6: {}
 
-  postcss-safe-parser@6.0.0(postcss@8.5.16):
+  postcss-safe-parser@6.0.0(postcss@8.5.19):
     dependencies:
-      postcss: 8.5.16
+      postcss: 8.5.19
 
   postcss-safe-parser@7.0.1(postcss@8.5.16):
     dependencies:

@@ -1,0 +1,52 @@
+@import "./tokens.css";
+
+@theme {
+  /* ---- BRAND COLORS ---- */
+  --color-blue-800: #2563eb;
+  --color-blue-700: #3b82f6;
+  --color-blue-600: #60a5fa;
+  --color-blue-500: #93c5fd;
+  --color-blue-400: #bfdbfe;
+  --color-blue-350: #dbeafe;
+  --color-blue-300: #eff6ff;
+
+  /* ---- BACKGROUNDS (Light theme) ---- */
+  --color-gray-900: #ffffff;
+  --color-gray-800: #ffffff;
+  --color-gray-700: #ffffff;
+  --color-gray-600: #f8fafc;
+  --color-gray-500: #f1f5f9;
+  --color-gray-400: #e2e8f0;
+  --color-gray-300: #cbd5e1;
+  --color-gray-200: #94a3b8;
+  --color-gray-100: #64748b;
+
+  /* ---- STONE (sidebar/panels) ---- */
+  --color-stone-700: #0f172a;
+  --color-stone-500: #1e293b;
+  --color-stone-400: #334155;
+  --color-stone-200: #94a3b8;
+
+  /* ---- NEUTRAL ---- */
+  --color-neutral-950: #0f172a;
+  --color-neutral-800: #334155;
+  --color-neutral-700: #64748b;
+  --color-neutral-500: #94a3b8;
+  --color-neutral-400: #cbd5e1;
+  --color-neutral-300: #e2e8f0;
+  --color-neutral-200: #f1f5f9;
+  --color-neutral-100: #f8fafc;
+  --color-neutral-75: #f8fafc;
+  --color-neutral-50: #ffffff;
+}
+
+/* Global font override */
+*, body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

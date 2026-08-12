@@ -46,7 +46,7 @@ const buildOrganizationEditFormChangeFields = (): Record<string, Partial<FormSch
 
 export const openOrganizationEditFlyout = async (
   organization: EditableOrganization,
-  options?: { title: string },
+  options?: { title?: string; onSuccess?: (data: unknown) => void },
 ) => {
   const formChangeFields = buildOrganizationEditFormChangeFields()
 
@@ -61,6 +61,7 @@ export const openOrganizationEditFlyout = async (
     formChangeFields,
     formUpdaterId: EnumFormUpdaterId.FormUpdaterUpdaterOrganizationEdit,
     errorNotificationMessage: __('Organization could not be updated.'),
+    onSuccess: options?.onSuccess,
   })
 }
 

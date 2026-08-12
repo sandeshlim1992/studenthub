@@ -7,8 +7,8 @@ default: &default
   pool: 50
   encoding: utf8
   adapter: postgresql
-  # username: zammad
-  # password:
+  username: zammad
+  password: zammad
 
   # If the database server is not on localhost, you can set hostname and port:
   # host:

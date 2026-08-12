@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia'
 import { watch, useTemplateRef, nextTick, onMounted, shallowRef } from 'vue'
 
 import { useTouchDevice } from '#shared/composables/useTouchDevice.ts'
-import { EnumTaskbarEntityAccess } from '#shared/graphql/types.ts'
+import { EnumTaskbarEntity, EnumTaskbarEntityAccess } from '#shared/graphql/types.ts'
 import { MutationHandler } from '#shared/server/apollo/handler/index.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
@@ -258,10 +258,14 @@ const { isTouchDevice } = useTouchDevice()
         <CommonSectionCollapse
           id="user-taskbar-tabs"
           class="gap-0! px-2 py-0.5"
-          :title="__('Tabs')"
           no-negative-margin
           scrollable
         >
+          <template #title>
+            <span class="text-[10px] font-semibold text-[#334155] uppercase tracking-widest px-3 mb-1">
+              {{ __('Tabs') }}
+            </span>
+          </template>
           <div id="taskbarTabListExpanded" ref="taskbar-tab-list" />
         </CommonSectionCollapse>
       </template>
@@ -276,10 +280,10 @@ const { isTouchDevice } = useTouchDevice()
             :aria-label="$t('User taskbar tabs')"
             :aria-activedescendant="focusedItemId"
             :aria-describedby="messageNodeId"
-            :class="{
-              'flex flex-col gap-1.5 overflow-y-auto p-1': !collapsed,
-            }"
             class="rounded-lg focus-visible-app-default focus-visible:-outline-offset-1!"
+            :class="{
+              'flex flex-col gap-1 overflow-y-auto p-1': !collapsed,
+            }"
             @focus="handleFocus"
             @blur="handleBlur"
             @keydown="handleKeydown"
@@ -297,6 +301,16 @@ const { isTouchDevice } = useTouchDevice()
               }"
               :draggable="!collapsed ? 'true' : undefined"
             >
+              <span
+                v-if="!collapsed && taskbarTabListByTabEntityKey[tabEntityKey].type === EnumTaskbarEntity.TicketZoom && taskbarTabListByTabEntityKey[tabEntityKey].entity"
+                class="absolute left-2.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full z-10 pointer-events-none"
+                :class="{
+                  'bg-[#3b82f6]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'open' || (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'new',
+                  'bg-[#f59e0b]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'pending remainder' || (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'pending close',
+                  'bg-[#10b981]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'closed',
+                }"
+              ></span>
+
               <UserTaskbarTabRemove
                 v-if="taskbarTabListByTabEntityKey[tabEntityKey].taskbarTabId"
                 class="peer"
@@ -312,8 +326,9 @@ const { isTouchDevice } = useTouchDevice()
                 :taskbar-tab-link="getTaskbarTabLink(tabEntityKey)"
                 :collapsed="collapsed"
                 :is-active="index === selectedItemIndex"
-                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) focus-visible-app-default [--tab-remove-bar-button-width:2rem] group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width)"
+                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) focus-visible-app-default [--tab-remove-bar-button-width:2rem] group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width) text-[12px] text-[#64748b] hover:text-[#94a3b8] hover:bg-[#1e293b] rounded-lg transition-colors duration-150 py-1.5 px-3"
                 :class="{
+                  'pl-6!': !collapsed && taskbarTabListByTabEntityKey[tabEntityKey].type === EnumTaskbarEntity.TicketZoom,
                   'rounded-none group-first/tab:rounded-t-[10px] group-last/tab:rounded-b-[10px] focus-visible:-outline-offset-1!':
                     collapsed,
                   'rounded-t-lg!': collapsed && index === 0,

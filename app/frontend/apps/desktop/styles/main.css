@@ -1,5 +1,6 @@
 /* stylelint-disable import-notation */
 @import 'tailwindcss';
+@import './custom-theme.css';
 @import './tokens.css';
 @import './transitions.css';
 @import '../../../shared/styles/utilities.css';
@@ -10,6 +11,10 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] * ));
 
 @layer base {
+  *, body {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
   :root {
     /* LIMITED support -> opt-in modern browsers @see https://developer.mozilla.org/en-US/docs/Web/CSS/interpolate-size */
 

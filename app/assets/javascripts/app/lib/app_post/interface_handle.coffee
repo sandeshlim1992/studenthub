@@ -8,8 +8,13 @@ class App.Run extends App.Controller
     # browser check
     return if !App.Browser.check()
 
-    # hide splash screen
-    $('.splash').hide()
+    # hide splash screen with smooth fade-out to prevent glitch
+    splashEl = document.querySelector('.splash')
+    if splashEl
+      splashEl.style.transition = 'opacity 300ms ease'
+      splashEl.style.opacity = '0'
+      splashEl.style.pointerEvents = 'none'
+      setTimeout(( -> splashEl.style.display = 'none'), 320)
 
     # init collections
     App.Collection.init()

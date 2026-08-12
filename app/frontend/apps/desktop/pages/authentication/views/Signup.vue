@@ -15,6 +15,10 @@ import { i18n } from '#shared/i18n.ts'
 import { MutationHandler } from '#shared/server/apollo/handler/index.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 
+import lsstImg from '#desktop/assets/images/lsst.png'
+import fsbImg from '#desktop/assets/images/fsb.png'
+import ukbcImg from '#desktop/assets/images/ukbc.png'
+
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonPublicLinks from '#desktop/components/CommonPublicLinks/CommonPublicLinks.vue'
 import LayoutPublicPage from '#desktop/components/layout/LayoutPublicPage/LayoutPublicPage.vue'
@@ -107,7 +111,7 @@ const goToLogin = () => {
 </script>
 
 <template>
-  <LayoutPublicPage box-size="medium" :show-logo="false" :title="pageTitle">
+  <LayoutPublicPage box-size="medium" show-logo :title="pageTitle">
     <Form
       v-if="!signupSent"
       id="signup"
@@ -135,35 +139,118 @@ const goToLogin = () => {
         {{ $t('Cancel & go back') }}
       </CommonButton>
 
-      <CommonButton
+      <button
         v-if="!signupSent"
-        variant="submit"
         type="submit"
-        size="medium"
         form="signup"
         :disabled="isDisabled"
+        class="py-3.5 px-6 rounded-xl text-white font-semibold text-sm bg-blue-600 hover:bg-blue-700 active:scale-[0.99] transition-all duration-200 shadow-md shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
       >
         {{ $t('Create my account') }}
-      </CommonButton>
-      <CommonButton v-else variant="submit" size="medium" @click="resendVerifyEmail()">
+      </button>
+      <button
+        v-else
+        type="button"
+        :disabled="isDisabled"
+        class="py-3.5 px-6 rounded-xl text-white font-semibold text-sm bg-blue-600 hover:bg-blue-700 active:scale-[0.99] transition-all duration-200 shadow-md shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        @click="resendVerifyEmail()"
+      >
         {{ $t('Resend verification email') }}
-      </CommonButton>
+      </button>
     </template>
 
     <template #bottomContent>
       <div class="inline-flex flex-wrap items-center justify-center p-2 text-sm">
-        <CommonLabel class="max-w-90 text-center text-stone-200 dark:text-neutral-500">
+        <CommonLabel class="max-w-90 text-center text-slate-400">
           {{
             $t(
               "You're already registered with your email address if you've been in touch with our Support team.",
             )
           }}
         </CommonLabel>
-        <CommonLink v-if="$c.user_lost_password" link="/reset-password" size="medium">
+        <CommonLink v-if="$c.user_lost_password" link="/reset-password" size="medium" class="text-slate-300 hover:text-white">
           {{ $t('You can request your password here.') }}
         </CommonLink>
       </div>
-      <CommonPublicLinks :screen="EnumPublicLinksScreen.Signup" />
+
+      <!-- INSTITUTION LOGOS SECTION (ENLARGED WHITE CARD) -->
+      <div class="mt-4 bg-white rounded-2xl px-6 py-4 shadow-sm border border-gray-100 w-full max-w-[400px] mx-auto">
+        <p class="text-center text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">
+          Supported Institutions
+        </p>
+        <div class="flex items-center justify-center gap-6">
+          <a href="https://www.lsst.ac/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+            <img :src="lsstImg" class="h-10 sm:h-11 w-auto object-contain" alt="LSST" />
+          </a>
+          <div class="w-px h-6 bg-gray-200"></div>
+          <a href="https://fsb.ac.uk/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+            <img :src="fsbImg" class="h-10 sm:h-11 w-auto object-contain" alt="FSB" />
+          </a>
+          <div class="w-px h-6 bg-gray-200"></div>
+          <a href="https://ukbusinesscollege.org/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+            <img :src="ukbcImg" class="h-10 sm:h-11 w-auto object-contain rounded-lg" alt="UKBC" />
+          </a>
+        </div>
+      </div>
     </template>
   </LayoutPublicPage>
 </template>
+
+<style scoped>
+:deep(.formkit-inner) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  position: relative !important;
+  width: 100% !important;
+}
+
+:deep(.formkit-input),
+:deep(input[type='text']),
+:deep(input[type='password']),
+:deep(input[type='email']) {
+  width: 100% !important;
+  height: 2.75rem !important;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.75rem !important;
+  padding-left: 1rem !important;
+  padding-right: 2.5rem !important;
+  font-size: 0.875rem !important;
+  color: #0f172a !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: all 150ms ease !important;
+}
+
+:deep(.formkit-input:focus),
+:deep(input[type='text']:focus),
+:deep(input[type='password']:focus),
+:deep(input[type='email']:focus) {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+:deep(input[type='text']::placeholder),
+:deep(input[type='password']::placeholder),
+:deep(input[type='email']::placeholder) {
+  color: #94a3b8 !important;
+}
+
+:deep(label) {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+}
+
+/* Hide required dots */
+:deep(.text-orange-500),
+:deep(.text-red-500),
+:deep(span[class*='text-orange']),
+:deep(span[class*='text-red']),
+:deep(label::after),
+:deep(span.required) {
+  display: none !important;
+}
+</style>

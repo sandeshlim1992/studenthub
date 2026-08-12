@@ -130,7 +130,12 @@ export const useApplicationStore = defineStore(
       }
 
       const loadingAppElement = document.getElementById('loading-app')
-      loadingAppElement?.remove()
+      if (loadingAppElement) {
+        loadingAppElement.style.transition = 'opacity 300ms ease'
+        loadingAppElement.style.opacity = '0'
+        loadingAppElement.style.pointerEvents = 'none'
+        setTimeout(() => loadingAppElement.remove(), 320)
+      }
     }
 
     return {

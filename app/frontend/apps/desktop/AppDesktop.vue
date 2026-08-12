@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { onBeforeMount, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import Button from './components/ui/button/Button.vue'
 
 import CommonImageViewer from '#shared/components/CommonImageViewer/CommonImageViewer.vue'
 import CommonNotifications from '#shared/components/CommonNotifications/CommonNotifications.vue'
@@ -35,6 +36,8 @@ import { useBetaUi } from './components/BetaUi/composables/useBetaUi.ts'
 import { useBetaUiFeedbackRouteGuard } from './components/BetaUi/composables/useBetaUiFeedbackRouteGuard.ts'
 import { useMobileDetection } from './composables/responsiveness/useMobileDetection.ts'
 
+import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
+
 const router = useRouter()
 
 const authentication = useAuthenticationStore()
@@ -46,7 +49,6 @@ const application = useApplicationStore()
 onBeforeMount(() => {
   application.setLoaded()
 })
-
 useAppMaintenanceCheck()
 usePushMessages()
 
@@ -128,3 +130,4 @@ useConnection()
     <DynamicInitializer name="flyout" />
   </template>
 </template>
+

@@ -48,7 +48,10 @@ const buildUserEditFormChangeFields = (): Record<string, Partial<FormSchemaField
   }
 }
 
-export const openUserEditFlyout = async (user: EditableUser, options?: { title: string }) => {
+export const openUserEditFlyout = async (
+  user: EditableUser,
+  options?: { title?: string; onSuccess?: (data: unknown) => void },
+) => {
   const application = useApplicationStore()
 
   const formChangeFields = buildUserEditFormChangeFields()
@@ -83,6 +86,7 @@ export const openUserEditFlyout = async (user: EditableUser, options?: { title: 
       formChangeFields.organization_id.helpClass = helpClass
     },
     errorNotificationMessage: __('User could not be updated.'),
+    onSuccess: options?.onSuccess,
   })
 }
 

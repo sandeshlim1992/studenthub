@@ -38,7 +38,12 @@ const permittedRoutes = computed(() =>
 
 <template>
   <div>
-    <CommonSectionCollapse id="page-navigation" :title="__('Navigation')" :no-header="collapsed">
+    <CommonSectionCollapse id="page-navigation" :no-header="collapsed">
+      <template #title>
+        <span class="text-[10px] font-semibold text-[#334155] uppercase tracking-widest px-3 mb-1">
+          {{ __('Navigation') }}
+        </span>
+      </template>
       <template #default="{ headerId }">
         <nav :aria-labelledby="headerId">
           <ul class="flex basis-full flex-col" :class="{ 'gap-1': collapsed }">
@@ -69,12 +74,12 @@ const permittedRoutes = computed(() =>
               />
               <CommonLink
                 v-else
-                class="flex grow gap-2 rounded-lg px-2 py-3 text-neutral-400 focus-visible-app-default hover:bg-blue-900 hover:text-white! hover:no-underline! focus-visible:rounded-lg!"
+                class="flex grow gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#94a3b8] focus-visible-app-default hover:bg-[#1e293b] hover:text-[#f1f5f9]! hover:no-underline! transition-colors duration-150 focus-visible:rounded-xl!"
                 :class="{
-                  'bg-blue-800! text-white!': router.currentRoute.value.name === route.name, // $route.name is not detected by ts
+                  'bg-[#1e3a5f]! text-[#f1f5f9]! font-semibold': router.currentRoute.value.name === route.name,
                 }"
                 :link="route.path.replace(/\/:\w+/, '')"
-                exact-active-class="bg-blue-800! w-full text-white!"
+                exact-active-class="bg-[#1e3a5f]! w-full text-[#f1f5f9]!"
                 internal
               >
                 <CommonLabel

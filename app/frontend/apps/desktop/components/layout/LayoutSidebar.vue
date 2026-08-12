@@ -68,7 +68,7 @@ const backgroundVariantClass = computed(() => {
       return 'bg-blue-50 dark:bg-gray-800'
     case 'primary':
     default:
-      return 'bg-neutral-950'
+      return 'bg-[#0f172a]'
   }
 })
 
@@ -123,11 +123,10 @@ const { isTouchDevice } = useTouchDevice()
 <template>
   <aside
     :id="id"
-    class="relative flex max-h-screen flex-col overflow-y-clip border-neutral-100 dark:border-gray-900 print:hidden"
+    class="relative flex max-h-screen flex-col overflow-y-clip border-r border-[#1e293b] drop-shadow-[1px_0_0_rgba(255,255,255,0.04)] print:hidden"
     :class="[
       {
         'py-3': isSidebarCollapsed && !noPadding,
-        'border-s': position === SidebarPosition.End,
       },
       backgroundVariantClass,
     ]"

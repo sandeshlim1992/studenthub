@@ -3,8 +3,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-import CommonLogo from '#shared/components/CommonLogo/CommonLogo.vue'
-
+import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 import { useTransitionConfig } from '#desktop/composables/useTransitionConfig.ts'
 
 import LayoutPublicPageBoxActions from './LayoutPublicPageBoxActions.vue'
@@ -39,16 +38,29 @@ const { transitions } = useTransitionConfig()
 
 <template>
   <div
-    class="flex min-h-screen flex-col items-center bg-neutral-950 text-stone-200 dark:text-neutral-500"
+    class="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#0F1729] font-sans text-white p-4 sm:p-6 select-none"
   >
-    <div :class="boxSizeClass" class="m-auto w-full">
+    <!-- Background gradients -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+      <div class="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-blue-500/20 rounded-full blur-[120px]"></div>
+      <div class="absolute -bottom-1/2 -left-1/4 w-[600px] h-[600px] bg-blue-400/20 rounded-full blur-[100px]"></div>
+    </div>
+
+    <div :class="boxSizeClass" class="relative z-10 m-auto w-full flex flex-col items-center justify-center">
       <main
-        class="flex flex-col gap-2.5 rounded-3xl bg-neutral-50 p-5 text-black dark:bg-gray-500 dark:text-white"
+        class="flex flex-col gap-3.5 rounded-2xl bg-white p-6 sm:p-9 text-slate-900 border border-slate-100 shadow-2xl shadow-black/50 transition-all duration-300 w-full relative overflow-hidden"
       >
-        <div v-if="showLogo" class="flex justify-center">
-          <CommonLogo />
+        <!-- TOP ACCENT LINE -->
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+
+        <div v-if="showLogo" class="flex justify-center mb-3">
+          <img
+            :src="studentHubLogo"
+            class="w-28 h-28 sm:w-32 sm:h-32 object-contain mx-auto transition-transform hover:scale-105 duration-200"
+            alt="Student Hub"
+          />
         </div>
-        <h1 v-if="title" class="mb-5 text-center text-xl">
+        <h1 v-if="title" class="mb-4 text-center text-2xl font-bold tracking-tight text-slate-900">
           {{ $t(title) }}
         </h1>
         <slot />
@@ -61,39 +73,10 @@ const { transitions } = useTransitionConfig()
       <section
         v-if="$slots.bottomContent"
         :aria-label="$t('Additional information and links')"
-        class="flex w-full flex-col items-center justify-center space-y-3 py-3 align-middle text-xs"
+        class="flex w-full flex-col items-center justify-center space-y-3 py-4 text-xs"
       >
         <slot name="bottomContent" />
       </section>
-      <footer
-        v-if="!hideFooter"
-        class="flex w-full items-center justify-center py-3 align-middle text-xs"
-      >
-        <span class="ltr:mr-1 rtl:ml-1">{{ $t('Powered by') }}</span>
-        <CommonLink
-          link="https://zammad.org"
-          open-in-new-tab
-          external
-          class="flex items-center gap-1 text-neutral-500 hover:text-neutral-500!"
-          @focus="hoverPoweredByLogo = true"
-          @blur="hoverPoweredByLogo = false"
-          @mouseover="hoverPoweredByLogo = true"
-          @mouseleave="hoverPoweredByLogo = false"
-        >
-          <div class="relative">
-            <CommonIcon name="logo-flat" size="base" />
-            <Transition :name="transitions.fade">
-              <CommonIcon
-                v-if="hoverPoweredByLogo"
-                class="absolute top-0"
-                name="logo"
-                size="base"
-              />
-            </Transition>
-          </div>
-          {{ $t('Zammad') }}
-        </CommonLink>
-      </footer>
     </div>
   </div>
 </template>

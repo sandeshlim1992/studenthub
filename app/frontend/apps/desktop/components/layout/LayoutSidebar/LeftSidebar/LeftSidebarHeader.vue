@@ -42,7 +42,7 @@ const isTicketAgent = computed(() => hasPermission('ticket.agent') ?? false)
       v-if="!collapsed"
       v-model="searchValue"
       v-model:search-active="isSearchActive"
-      class="grow"
+      class="grow [&_.rounded-lg]:bg-[#162d4a]! [&_.rounded-lg]:border! [&_.rounded-lg]:border-[#2d4f7c]! [&_input]:bg-[#162d4a]! [&_input]:text-[#93b5d4]! [&_input::placeholder]:text-[#4d7aaa]! [&_svg]:fill-[#93b5d4]!"
     />
 
     <component
@@ -56,3 +56,22 @@ const isTicketAgent = computed(() => hasPermission('ticket.agent') ?? false)
     </component>
   </header>
 </template>
+
+<style scoped>
+:deep([role="searchbox"]),
+:deep(input[type="text"]) {
+  background-color: #162d4a !important;
+  color: #93b5d4 !important;
+}
+:deep([role="searchbox"]::placeholder),
+:deep(input[type="text"]::placeholder) {
+  color: #4d7aaa !important;
+}
+:deep(.rounded-lg) {
+  background-color: #162d4a !important;
+  border: 1px solid #2d4f7c !important;
+}
+:deep(.inline-flex.grow.items-center svg) {
+  fill: #93b5d4 !important;
+}
+</style>

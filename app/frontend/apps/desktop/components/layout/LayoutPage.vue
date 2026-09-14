@@ -3,13 +3,18 @@
 <script setup lang="ts">
 import { type MaybeElementRef, useCurrentElement, type VueInstance } from '@vueuse/core'
 import { delay } from 'lodash-es'
-import { onBeforeMount, ref, toRef, useTemplateRef, watch } from 'vue'
+import { computed, onBeforeMount, ref, toRef, useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { useReducedMotion } from '#shared/composables/useReducedMotion.ts'
 import { useTrapTab } from '#shared/composables/useTrapTab.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
+import { useSessionStore } from '#shared/stores/session.ts'
+import hasPermission from '#shared/utils/hasPermission.ts'
 import emitter from '#shared/utils/emitter.ts'
 
+import CustomerHeader from '#desktop/components/Customer/CustomerHeader.vue'
+import CustomerSidebar from '#desktop/components/Customer/CustomerSidebar.vue'
 import LeftSidebarFooterMenu from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarFooterMenu.vue'
 import LeftSidebarHeader from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarHeader.vue'
 import LayoutSidebar from '#desktop/components/layout/LayoutSidebar.vue'
@@ -91,10 +96,70 @@ onBeforeMount(() => {
 })
 
 const { hasReducedMotion } = useReducedMotion()
+
+const user = toRef(useSessionStore(), 'user')
+const isCustomer = computed(
+  () =>
+    hasPermission('ticket.customer', user.value?.permissions?.names ?? []) &&
+    !hasPermission('ticket.agent', user.value?.permissions?.names ?? []),
+)
+
+const route = useRoute()
+
+const showCustomerSidebar = computed(() => {
+  const routeName = route.name
+  const path = route.path
+  if (routeName === 'TicketOverview' || path === '/' || path.startsWith('/tickets/view')) {
+    return false
+  }
+  if (
+    routeName === 'TicketDetailView' ||
+    routeName === 'TicketCreate' ||
+    path.startsWith('/tickets/') ||
+    path.startsWith('/ticket/')
+  ) {
+    return true
+  }
+  return false
+})
 </script>
 
 <template>
+  <!-- CUSTOMER REDESIGNED PORTAL WRAPPER -->
+  <div v-if="isCustomer" class="flex flex-col h-full w-full bg-[#f8fafc] overflow-hidden">
+    <!-- Persistent Customer Top Bar with Brand Logo & Profile Dropdown -->
+    <CustomerHeader />
+
+    <!-- Main Customer Body -->
+    <div class="flex flex-1 min-h-0 overflow-hidden relative">
+      <!-- Left Sidebar with Recent Tickets (rendered on ticket detail / ticket create views) -->
+      <CustomerSidebar v-if="showCustomerSidebar" />
+
+      <!-- Center Content Area -->
+      <div id="customer-content" class="flex-1 min-w-0 h-full overflow-y-auto relative">
+        <RouterView #default="{ Component, route: currentRoute }">
+          <KeepAlive :exclude="['ErrorTab']" :max="config.ui_task_mananger_max_task_count">
+            <component
+              :is="Component"
+              v-if="!currentRoute.meta.permanentItem"
+              :key="currentRoute.meta.pageKey || currentRoute.path"
+            />
+          </KeepAlive>
+          <KeepAlive :max="numberOfPermanentItems">
+            <component
+              :is="Component"
+              v-if="currentRoute.meta.permanentItem"
+              :key="currentRoute.meta.pageKey || currentRoute.path"
+            />
+          </KeepAlive>
+        </RouterView>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENT & ADMIN INTERFACE (UNTOUCHED) -->
   <div
+    v-else
     :style="{
       '--grid-columns': gridColumns,
     }"
@@ -102,6 +167,7 @@ const { hasReducedMotion } = useReducedMotion()
     class="grid h-full max-h-full grid-cols-(--grid-columns) overflow-y-clip duration-100 print:h-auto print:max-h-none print:grid-cols-1 print:overflow-visible"
   >
     <LayoutSidebar
+      v-if="!isCustomer"
       id="primary-sidebar"
       ref="layout-sidebar"
       :name="SidebarName.Primary"

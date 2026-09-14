@@ -23,15 +23,14 @@ if (import.meta.env.DEV || VITE_TEST_MODE) {
   route.push({
     path: '/dashboard',
     name: 'Dashboard',
-    alias: '/',
     props: true,
     component: () => import('./views/Dashboard.vue'),
     meta: {
       title: __('Dashboard'),
       requiresAuth: true,
       icon: 'speedometer2',
-      requiredPermission: ['*'],
-      order: 0,
+      requiredPermission: ['ticket.agent', 'admin'],
+      order: 1,
       level: 1,
       permanentItem: true,
     },

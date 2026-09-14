@@ -2,7 +2,10 @@
 
 <script setup lang="ts">
 import { until } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed, toRef } from 'vue'
+
+import { useSessionStore } from '#shared/stores/session.ts'
+import hasPermission from '#shared/utils/hasPermission.ts'
 
 import CommonEmptyMessage from '#desktop/components/CommonEmptyMessage/CommonEmptyMessage.vue'
 import type { NavigationTab } from '#desktop/components/CommonTabs/types.ts'
@@ -111,12 +114,22 @@ const {
   checkedTicketIds,
   bulkSelector,
 })
+
+const user = toRef(useSessionStore(), 'user')
+const isCustomer = computed(
+  () =>
+    hasPermission('ticket.customer', user.value?.permissions?.names ?? []) &&
+    !hasPermission('ticket.agent', user.value?.permissions?.names ?? []),
+)
 </script>
 
 <template>
-  <div class="h-full" :class="{ 'grid grid-cols-1 lg:grid-cols-[260px_1fr]': hasOverviews }">
+  <div
+    class="h-full"
+    :class="{ 'grid grid-cols-1 lg:grid-cols-[260px_1fr]': hasOverviews && !isCustomer }"
+  >
     <LayoutSidebar
-      v-if="hasOverviews"
+      v-if="hasOverviews && !isCustomer"
       id="ticket-overviews"
       class="hidden lg:flex"
       :aria-label="$t('second level navigation sidebar')"
@@ -129,13 +142,15 @@ const {
     <LayoutContent
       class="relative"
       :active-tab="activeTab"
-      :breadcrumb-items="currentOverview ? breadcrumbItems : undefined"
-      :tabs="overviewsTabs"
+      :breadcrumb-items="isCustomer ? undefined : (currentOverview ? breadcrumbItems : undefined)"
+      :tabs="isCustomer ? undefined : overviewsTabs"
       no-scrollable
-      content-padding
+      :no-padding="isCustomer"
+      :content-padding="!isCustomer"
     >
       <template #headerRight>
         <TicketBulkEditButton
+          v-if="!isCustomer"
           :checked-ticket-ids="checkedTicketIds"
           :total-count="currentOverviewCount"
           @open-flyout="openBulkEditFlyout"
@@ -143,7 +158,7 @@ const {
       </template>
       <TicketList
         v-if="currentOverview"
-        class="px-4 pb-4"
+        :class="{ 'px-4 pb-4': !isCustomer, 'h-full w-full': isCustomer }"
         :overview-id="currentOverview.id"
         :overview-name="currentOverview.name"
         :headers="currentOverview.viewColumnsRaw"

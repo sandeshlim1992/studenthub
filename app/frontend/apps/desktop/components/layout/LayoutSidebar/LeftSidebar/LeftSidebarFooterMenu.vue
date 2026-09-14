@@ -104,3 +104,52 @@ const { isTouchDevice } = useTouchDevice()
     </div>
   </section>
 </template>
+
+<style scoped>
+:deep([aria-label*="New ticket" i]),
+:deep([href*="/tickets/create"]),
+:deep(a[href="/tickets/create"]) {
+  background-color: #16a34a !important;
+  color: #ffffff !important;
+  border-radius: 0.5rem;
+  padding: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 150ms ease;
+}
+:deep([aria-label*="New ticket" i]:hover),
+:deep([href*="/tickets/create"]:hover),
+:deep(a[href="/tickets/create"]:hover) {
+  background-color: #15803d !important;
+}
+:deep([aria-label*="New ticket" i] svg),
+:deep([href*="/tickets/create"] svg),
+:deep(a[href="/tickets/create"] svg) {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+:deep([aria-label*="Administration" i]),
+:deep([aria-label*="admin" i]),
+:deep([aria-label*="Manage" i]),
+:deep(button[aria-label*="Administration" i]),
+:deep(button[aria-label*="Admin" i]) {
+  color: #93b5d4 !important;
+  transition: color 150ms ease;
+}
+:deep([aria-label*="Administration" i]:hover),
+:deep([aria-label*="admin" i]:hover),
+:deep([aria-label*="Manage" i]:hover),
+:deep(button[aria-label*="Administration" i]:hover),
+:deep(button[aria-label*="Admin" i]:hover) {
+  color: #ffffff !important;
+}
+:deep([aria-label*="Administration" i] svg),
+:deep([aria-label*="admin" i] svg),
+:deep([aria-label*="Manage" i] svg),
+:deep(button[aria-label*="Administration" i] svg),
+:deep(button[aria-label*="Admin" i] svg) {
+  fill: currentColor !important;
+}
+</style>

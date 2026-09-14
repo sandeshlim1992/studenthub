@@ -88,6 +88,21 @@
   --color-purple-250: #c76ad2;
   --color-purple-700: #64116e;
 
+  --color-brand-primary: #1e3a5f;
+  --color-brand-primary-hover: #162d4a;
+  --color-brand-primary-light: #e8f0f9;
+  --color-brand-accent: #16a34a;
+  --color-brand-accent-hover: #15803d;
+  --color-brand-accent-light: #f0fdf4;
+  --color-brand-bg: #f8fafc;
+  --color-brand-card: #ffffff;
+  --color-brand-border: #e2e8f0;
+  --color-brand-text: #0f172a;
+  --color-brand-muted: #64748b;
+  --color-brand-subtle: #94a3b8;
+  --color-brand-warning: #d97706;
+  --color-brand-danger: #dc2626;
+
   --width-150: 600px;
 
   --min-width-58: 232px;

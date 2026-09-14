@@ -40,7 +40,7 @@ const permittedRoutes = computed(() =>
   <div>
     <CommonSectionCollapse id="page-navigation" :no-header="collapsed">
       <template #title>
-        <span class="text-[10px] font-semibold text-[#334155] uppercase tracking-widest px-3 mb-1">
+        <span class="text-[10px] font-semibold text-[#93b5d4] uppercase tracking-widest px-3 mb-1">
           {{ __('Navigation') }}
         </span>
       </template>
@@ -74,12 +74,12 @@ const permittedRoutes = computed(() =>
               />
               <CommonLink
                 v-else
-                class="flex grow gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#94a3b8] focus-visible-app-default hover:bg-[#1e293b] hover:text-[#f1f5f9]! hover:no-underline! transition-colors duration-150 focus-visible:rounded-xl!"
+                class="flex grow gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#93b5d4] focus-visible-app-default hover:bg-[#162d4a] hover:text-white! hover:no-underline! transition-colors duration-150 focus-visible:rounded-xl!"
                 :class="{
-                  'bg-[#1e3a5f]! text-[#f1f5f9]! font-semibold': router.currentRoute.value.name === route.name,
+                  'bg-[#16a34a]! text-white! font-semibold': router.currentRoute.value.name === route.name,
                 }"
                 :link="route.path.replace(/\/:\w+/, '')"
-                exact-active-class="bg-[#1e3a5f]! w-full text-[#f1f5f9]!"
+                exact-active-class="bg-[#16a34a]! w-full text-white!"
                 internal
               >
                 <CommonLabel

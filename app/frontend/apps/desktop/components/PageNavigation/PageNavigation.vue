@@ -34,13 +34,21 @@ const openSearch = () => {
 const permittedRoutes = computed(() =>
   sortedFirstLevelRoutes.filter((route) => hasPermission(route.meta.requiredPermission)),
 )
+
+const isRouteActive = (route: any) => {
+  const current = router.currentRoute.value
+  if (current.name === route.name) return true
+  const cleanPath = route.path.replace(/\/:\w+/, '')
+  if (cleanPath !== '/' && current.path.startsWith(cleanPath)) return true
+  return false
+}
 </script>
 
 <template>
   <div>
     <CommonSectionCollapse id="page-navigation" :no-header="collapsed">
       <template #title>
-        <span class="text-[10px] font-semibold text-[#93b5d4] uppercase tracking-widest px-3 mb-1">
+        <span class="text-[11px] font-black uppercase tracking-wider text-sky-300 px-3 mb-1.5 block">
           {{ __('Navigation') }}
         </span>
       </template>
@@ -51,7 +59,7 @@ const permittedRoutes = computed(() =>
               <CommonButton
                 v-if="collapsed"
                 v-tooltip="$t('Open quick search')"
-                class="shrink-0 text-neutral-400 hover:outline-blue-900"
+                class="shrink-0 text-slate-300 hover:outline-blue-900"
                 size="large"
                 variant="neutral"
                 icon="search"
@@ -66,7 +74,7 @@ const permittedRoutes = computed(() =>
             >
               <CommonButton
                 v-if="collapsed"
-                class="shrink-0 text-neutral-400 focus-visible-app-default hover:outline-blue-900"
+                class="shrink-0 text-slate-300 focus-visible-app-default hover:outline-blue-900"
                 size="large"
                 variant="neutral"
                 :icon="route.meta.icon"
@@ -74,16 +82,16 @@ const permittedRoutes = computed(() =>
               />
               <CommonLink
                 v-else
-                class="flex grow gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium text-[#93b5d4] focus-visible-app-default hover:bg-[#162d4a] hover:text-white! hover:no-underline! transition-colors duration-150 focus-visible:rounded-xl!"
+                class="flex grow gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-200 focus-visible-app-default hover:bg-white/10 hover:text-white! hover:no-underline! transition-all duration-150 focus-visible:rounded-xl! group"
                 :class="{
-                  'bg-[#16a34a]! text-white! font-semibold': router.currentRoute.value.name === route.name,
+                  'bg-[#16a34a]! text-white! font-extrabold shadow-sm ring-1 ring-emerald-400/30': isRouteActive(route),
                 }"
                 :link="route.path.replace(/\/:\w+/, '')"
                 exact-active-class="bg-[#16a34a]! w-full text-white!"
                 internal
               >
                 <CommonLabel
-                  class="gap-2 text-sm! text-current!"
+                  class="gap-3 text-sm! text-current! font-bold"
                   size="medium"
                   :prefix-icon="route.meta.icon"
                 >
@@ -97,3 +105,22 @@ const permittedRoutes = computed(() =>
     </CommonSectionCollapse>
   </div>
 </template>
+
+<style scoped>
+:deep(svg) {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  color: #38bdf8 !important;
+  fill: currentColor !important;
+  transition: all 150ms ease !important;
+}
+:deep(a:hover svg) {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+:deep([class*="bg-[#16a34a]"] svg),
+:deep(.bg-\[\#16a34a\] svg) {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+</style>

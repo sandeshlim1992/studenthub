@@ -262,7 +262,7 @@ const { isTouchDevice } = useTouchDevice()
           scrollable
         >
           <template #title>
-            <span class="text-[10px] font-semibold text-[#334155] uppercase tracking-widest px-3 mb-1">
+            <span class="text-[11px] font-black uppercase tracking-wider text-sky-300 px-3 mb-1.5 block">
               {{ __('Tabs') }}
             </span>
           </template>
@@ -303,7 +303,7 @@ const { isTouchDevice } = useTouchDevice()
             >
               <span
                 v-if="!collapsed && taskbarTabListByTabEntityKey[tabEntityKey].type === EnumTaskbarEntity.TicketZoom && taskbarTabListByTabEntityKey[tabEntityKey].entity"
-                class="absolute left-2.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full z-10 pointer-events-none"
+                class="absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full z-10 pointer-events-none ring-2 ring-white/20"
                 :class="{
                   'bg-[#3b82f6]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'open' || (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'new',
                   'bg-[#f59e0b]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'pending remainder' || (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'pending close',
@@ -326,9 +326,9 @@ const { isTouchDevice } = useTouchDevice()
                 :taskbar-tab-link="getTaskbarTabLink(tabEntityKey)"
                 :collapsed="collapsed"
                 :is-active="index === selectedItemIndex"
-                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) focus-visible-app-default [--tab-remove-bar-button-width:2rem] group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width) text-[12px] text-[#64748b] hover:text-[#94a3b8] hover:bg-[#1e293b] rounded-lg transition-colors duration-150 py-1.5 px-3"
+                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) focus-visible-app-default [--tab-remove-bar-button-width:2rem] group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width) text-sm font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 py-2 px-3"
                 :class="{
-                  'pl-6!': !collapsed && taskbarTabListByTabEntityKey[tabEntityKey].type === EnumTaskbarEntity.TicketZoom,
+                  'pl-6.5!': !collapsed && taskbarTabListByTabEntityKey[tabEntityKey].type === EnumTaskbarEntity.TicketZoom,
                   'rounded-none group-first/tab:rounded-t-[10px] group-last/tab:rounded-b-[10px] focus-visible:-outline-offset-1!':
                     collapsed,
                   'rounded-t-lg!': collapsed && index === 0,
@@ -336,8 +336,8 @@ const { isTouchDevice } = useTouchDevice()
                   'active:cursor-grabbing': !collapsed,
                   'ltr:pr-(--tab-remove-bar-button-width) rtl:pl-(--tab-remove-bar-button-width)':
                     isTouchDevice,
-                  'outline outline-offset-1 outline-blue-900': index == focusedItemIndex,
-                  'outline outline-offset-1 outline-blue-800!': index == selectedItemIndex,
+                  'bg-white/10 text-white!': index == focusedItemIndex,
+                  'bg-white/15! text-white! font-bold shadow-xs ring-1 ring-white/25': index == selectedItemIndex,
                 }"
               />
             </li>

@@ -56,7 +56,7 @@ const { popover, popoverTarget, toggle, isOpen: popoverIsOpen } = usePopover()
       v-if="user"
       aria-hidden="true"
       :entity="user"
-      class="flex!"
+      class="flex! ring-2 ring-white/30 rounded-full shadow-xs"
       :size="avatarSize"
       personal
     />

@@ -42,6 +42,7 @@ import { TicketSidebarScreenType, type TicketSidebarContext } from '../../types/
 import TicketSidebar from '../TicketSidebar.vue'
 
 import ApplyTemplate from './ApplyTemplate.vue'
+import CustomerTicketCreateCard from './CustomerTicketCreateCard.vue'
 import TicketDuplicateDetectionAlert from './TicketDuplicateDetectionAlert.vue'
 
 interface Props {
@@ -109,7 +110,7 @@ const applyNewlyCreatedCustomer = async (data: unknown) => {
   customerNode.input(user.internalId, false)
 }
 
-const formSchema = defineFormSchema([
+const agentSchema = [
   {
     isLayout: true,
     component: 'CommonContentPanel',
@@ -273,7 +274,113 @@ const formSchema = defineFormSchema([
       },
     ],
   },
-])
+]
+
+const customerSchema = [
+  {
+    isLayout: true,
+    component: 'CustomerTicketCreateCard',
+    children: [
+      {
+        if: '$values.ticket_duplicate_detection.count > 0',
+        isLayout: true,
+        component: 'TicketDuplicateDetectionAlert',
+        props: {
+          tickets: '$values.ticket_duplicate_detection.items',
+        },
+        children: '',
+      },
+      {
+        isLayout: true,
+        element: 'div',
+        attrs: {
+          class: 'grid grid-cols-1 gap-5',
+        },
+        children: [
+          {
+            screen: 'create_top',
+            object: EnumObjectManagerObjects.Ticket,
+          },
+          {
+            name: 'body',
+            screen: 'create_top',
+            object: EnumObjectManagerObjects.TicketArticle,
+            required: true,
+            props: {
+              meta: {
+                mentionText: {
+                  customerNodeName: 'customer_id',
+                  groupNodeName: 'group_id',
+                },
+                mentionUser: {
+                  groupNodeName: 'group_id',
+                },
+                mentionKnowledgeBase: {
+                  attachmentsNodeName: 'attachments',
+                },
+                [TEXT_TOOL_EXTENSION_NAME]: {
+                  groupNodeName: 'group_id',
+                  ticketNodeName: 'ticket_id',
+                  customerNodeName: 'customer_id',
+                  organizationNodeName: 'organization_id',
+                },
+              },
+            },
+          },
+          {
+            type: 'file',
+            name: 'attachments',
+            label: __('Attachment'),
+            labelSrOnly: true,
+            props: {
+              multiple: true,
+            },
+          },
+          {
+            isLayout: true,
+            element: 'div',
+            attrs: {
+              class:
+                'grid @md:grid-cols-2-uneven gap-4 pt-3 border-t border-slate-100 dark:border-neutral-700/80',
+            },
+            children: [
+              {
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+              {
+                screen: 'create_bottom',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'ticket_duplicate_detection',
+        type: 'hidden',
+        value: {
+          count: 0,
+          items: [],
+        },
+      },
+      {
+        name: 'link_ticket_id',
+        type: 'hidden',
+      },
+      {
+        name: 'shared_draft_id',
+        type: 'hidden',
+      },
+      {
+        name: 'externalReferences',
+        type: 'hidden',
+      },
+    ],
+  },
+]
+
+const formSchema = defineFormSchema(isTicketCustomer.value ? customerSchema : agentSchema)
 
 const securityIntegration = computed<boolean>(
   () => (application.config.smime_integration || application.config.pgp_integration) ?? false,
@@ -297,7 +404,7 @@ const schemaData = reactive({
   },
 })
 
-const changedFields = reactive({
+const changedFields = reactive<Record<string, any>>({
   // Workaround until the object attribute for body is required so core worklow is returning it correctly.
   body: {
     required: true,
@@ -324,6 +431,14 @@ const changedFields = reactive({
     },
   },
 })
+
+if (isTicketCustomer.value) {
+  Object.assign(changedFields, {
+    title: {
+      placeholder: __('e.g. Unable to access student portal, timetable inquiry...'),
+    },
+  })
+}
 
 const { signatureHandling } = useTicketSignature()
 
@@ -399,7 +514,10 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
     :show-sidebar="hasSidebar"
     no-padding
   >
-    <div class="w-full max-w-270 px-4 py-7.5">
+    <div
+      class="w-full max-w-270 px-4 py-7.5"
+      :class="{ 'max-w-5xl! py-8!': isTicketCustomer }"
+    >
       <Form
         id="ticket-create"
         ref="form"
@@ -408,6 +526,7 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
         :schema="formSchema"
         :schema-component-library="{
           CommonContentPanel: markRaw(CommonContentPanel),
+          CustomerTicketCreateCard: markRaw(CustomerTicketCreateCard),
           TicketDuplicateDetectionAlert: markRaw(TicketDuplicateDetectionAlert),
         }"
         :schema-data="schemaData"
@@ -438,7 +557,7 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
         }}</CommonButton>
       </template>
 
-      <ApplyTemplate @select-template="applyTemplate" />
+      <ApplyTemplate v-if="!isTicketCustomer" @select-template="applyTemplate" />
 
       <CommonButton
         size="large"
@@ -446,7 +565,12 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
         type="submit"
         :form="formNodeId"
         :disabled="isDisabled"
-        >{{ $t('Create') }}</CommonButton
+        class="min-w-36 font-bold"
+        :class="{
+          'bg-gradient-to-r from-emerald-600 to-[#15803d] hover:from-emerald-700 hover:to-[#166534] text-white shadow-md shadow-emerald-700/20 rounded-xl px-6':
+            isTicketCustomer,
+        }"
+        >{{ isTicketCustomer ? $t('Submit Request') : $t('Create') }}</CommonButton
       >
     </template>
   </LayoutContent>

@@ -7,7 +7,7 @@ export interface AvatarMenuPlugin extends MenuItem {
 }
 
 const pluginModules = import.meta.glob<AvatarMenuPlugin>(
-  ['./**/*.ts', '!./**/index.ts', '!./__tests__/**/*.ts'],
+  ['./**/*.ts', '!./**/index.ts', '!./appearance.ts', '!./__tests__/**/*.ts'],
   {
     eager: true,
     import: 'default',

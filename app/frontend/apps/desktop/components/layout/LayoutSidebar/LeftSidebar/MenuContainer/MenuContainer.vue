@@ -12,7 +12,7 @@ const { isSidebarCollapsed } = useSidebarDisplay(SidebarName.Primary)
 <template>
   <div
     role="list"
-    class="flex items-center gap-1.5 rounded-xl bg-[#162d4a] p-1.5 border border-[#2d4f7c]/60 shadow-2xs empty:hidden"
+    class="flex items-center gap-1.5 rounded-xl bg-slate-900/60 p-1.5 border border-white/10 shadow-2xs empty:hidden"
     :class="{ 'flex-col bg-transparent border-none': isSidebarCollapsed }"
   >
     <AdminMenu role="listitem" />

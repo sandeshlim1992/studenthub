@@ -96,7 +96,7 @@ const navigateToTicket = (ticket: any) => {
 
 <template>
   <aside
-    class="w-80 lg:w-88 xl:w-96 h-full bg-white border-r border-slate-200 flex flex-col shrink-0 z-30 select-none shadow-xs transition-all duration-300"
+    class="hidden md:flex md:w-80 lg:w-88 xl:w-96 h-full bg-white border-r border-slate-200 flex-col shrink-0 z-30 select-none shadow-xs transition-all duration-300"
   >
     <!-- Top Action Bar (Enlarged Buttons) -->
     <div class="p-4 border-b border-slate-100 flex flex-col gap-3 bg-slate-50/80 shrink-0">
@@ -117,15 +117,25 @@ const navigateToTicket = (ticket: any) => {
         <span>{{ $t('Back to Dashboard') }}</span>
       </button>
 
-      <!-- Raise New Ticket Button -->
+      <!-- Raise New Ticket Button / Active Drafting State -->
+      <div
+        v-if="isCreateView"
+        class="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs select-none"
+      >
+        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
+        </svg>
+        <span>{{ $t('Drafting New Ticket') }}</span>
+      </div>
       <button
+        v-else
         type="button"
-        class="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl text-sm font-bold text-white transition-all duration-150 cursor-pointer shadow-sm hover:shadow-md active:scale-98"
-        :class="
-          isCreateView
-            ? 'bg-[#15803d] ring-2 ring-emerald-400/60'
-            : 'bg-[#16a34a] hover:bg-[#15803d] hover:scale-[1.01]'
-        "
+        class="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl text-sm font-bold text-white bg-[#16a34a] hover:bg-[#15803d] hover:scale-[1.01] transition-all duration-150 cursor-pointer shadow-sm hover:shadow-md active:scale-98"
         @click="router.push({ name: 'TicketCreate' })"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

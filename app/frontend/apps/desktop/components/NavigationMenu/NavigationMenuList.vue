@@ -40,9 +40,9 @@ const paddingClasses = computed(() =>
       <li v-for="entry in availableItems" :key="entry.id || entry.label">
         <slot v-bind="{ entry, paddingClasses, countSize, countVariant }">
           <CommonLink
-            class="flex items-center gap-1 rounded-lg! text-sm text-gray-100 focus-visible-app-default hover:bg-blue-600 hover:text-black! hover:no-underline! dark:text-neutral-400 dark:hover:bg-blue-900 dark:hover:text-white!"
+            class="flex items-center gap-2 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 hover:no-underline! transition-all duration-150 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
             :class="[paddingClasses]"
-            exact-active-class="bg-blue-800! w-full text-white! hover:text-white!"
+            exact-active-class="active-overview-item bg-emerald-50! text-emerald-800! font-bold ring-1 ring-emerald-500/25 shadow-2xs hover:bg-emerald-100/60! hover:text-emerald-800!"
             internal
             :link="entry.route"
           >
@@ -52,7 +52,7 @@ const paddingClasses = computed(() =>
                 size="small"
                 aria-hidden="true"
                 class="h-4 shrink-0"
-                :class="entry.iconColor"
+                :class="isActive ? 'text-[#16a34a]!' : entry.iconColor"
                 :name="entry.icon"
               />
               <CommonLabel
@@ -63,11 +63,12 @@ const paddingClasses = computed(() =>
               </CommonLabel>
               <CommonBadge
                 v-if="entry.count !== undefined"
-                class="leading-snug font-bold"
+                class="leading-snug font-bold transition-colors"
                 :size="countSize"
                 :variant="countVariant"
                 :class="{
-                  'bg-transparent! text-white!': isActive,
+                  'bg-emerald-100! text-emerald-800! border border-emerald-200/80 font-bold': isActive,
+                  'bg-slate-100! text-slate-600! border border-slate-200/60': !isActive,
                   'cursor-pointer': !!entry.route,
                 }"
                 rounded

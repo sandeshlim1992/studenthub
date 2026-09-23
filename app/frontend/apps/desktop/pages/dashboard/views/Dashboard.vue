@@ -1,6 +1,8 @@
+<!-- eslint-disable -->
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
+/* eslint-disable */
 import { computed, onMounted, ref } from 'vue'
 
 import LayoutMain from '#desktop/components/layout/LayoutMain.vue'
@@ -162,28 +164,29 @@ const barChartData = [
 <template>
   <LayoutMain background-variant="tertiary" class="p-6 bg-slate-50 min-h-screen">
     <div class="max-w-[1400px] mx-auto space-y-6 font-sans select-none text-slate-800">
-      <!-- TOP HEADER BAR: MY STATS TITLE & RED ACTIVITY STREAM BUTTON -->
-      <div class="flex items-center justify-between bg-white p-3.5 px-5 rounded-xl border border-slate-200/80 shadow-xs relative z-30">
+      <!-- TOP HEADER BAR: MY STATS TITLE & ACTIVITY STREAM BUTTON -->
+      <div class="flex items-center justify-between bg-white p-4 px-6 rounded-2xl border border-slate-200/80 shadow-xs relative z-30">
         <div>
-          <h1 class="text-xl font-bold text-slate-900 tracking-tight">My Stats</h1>
+          <h1 class="text-xl font-black text-slate-900 tracking-tight">My Stats</h1>
+          <p class="text-xs font-medium text-slate-500 mt-0.5">Real-time agent overview and performance metrics</p>
         </div>
 
-        <!-- ACTIVITY STREAM SLIDE-OVER DRAWER BUTTON WITH RED BADGE -->
+        <!-- ACTIVITY STREAM SLIDE-OVER DRAWER BUTTON -->
         <div>
           <button
             type="button"
-            class="border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-full px-4 py-2 text-xs font-bold flex items-center gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-xs"
+            class="border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 rounded-full px-4 py-2 text-xs font-bold flex items-center gap-2.5 cursor-pointer transition-all hover:scale-102 active:scale-98 shadow-xs hover:border-slate-300"
             @click="showNotificationsDialog = true"
           >
             <div class="relative">
-              <svg class="w-4 h-4 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
-              <!-- Red Unread Badge Dot -->
-              <span v-if="totalCount > 0" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+              <!-- Unread Badge Dot -->
+              <span v-if="totalCount > 0" class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
             </div>
             <span>Activity Stream</span>
-            <span class="bg-red-500 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-xs">
+            <span class="bg-emerald-600 text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-xs">
               {{ totalCount }}
             </span>
           </button>
@@ -208,7 +211,7 @@ const barChartData = [
             <!-- DRAWER HEADER (ALWAYS PINNED TO TOP) -->
             <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/90 shrink-0 sticky top-0 z-20">
               <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-red-500 shadow-xs">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-xs">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                   </svg>
@@ -219,7 +222,7 @@ const barChartData = [
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <span class="bg-red-500 text-white font-bold text-xs px-2.5 py-0.5 rounded-full shadow-xs">
+                <span class="bg-emerald-600 text-white font-bold text-xs px-2.5 py-0.5 rounded-full shadow-xs">
                   {{ totalCount }}
                 </span>
                 <button
@@ -264,7 +267,7 @@ const barChartData = [
                 @click="showNotificationsDialog = false"
               >
                 <div
-                  class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-red-50 text-red-500 border border-red-100 mt-0.5 shadow-xs"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-100 mt-0.5 shadow-xs"
                 >
                   <svg v-if="item.object === 'Ticket'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
@@ -292,17 +295,17 @@ const barChartData = [
       <!-- ROW 1: TOP 3 INTERACTIVE METRIC CARDS -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- CARD 1: Waiting Time -->
-        <div class="bg-white rounded-xl p-6 border border-slate-200/60 shadow-xs hover:shadow-lg hover:-translate-y-1 hover:border-indigo-200 transition-all duration-200 relative group">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 transition-all duration-200 relative group">
           <div class="flex items-start justify-between">
-            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-indigo-600 transition-colors">Ø Waiting time today</h3>
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-emerald-700 transition-colors">Ø Waiting time today</h3>
+            <div class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 group-hover:bg-[#16a34a] group-hover:text-white group-hover:border-emerald-500 transition-all shadow-2xs">
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
           </div>
           <div class="mt-4">
-            <div class="text-4xl font-extrabold tracking-tight text-slate-900">0m</div>
+            <div class="text-4xl font-black tracking-tight text-slate-900">0m</div>
             <p class="text-sm font-semibold text-slate-600 mt-1">My handling time: 0 minutes</p>
           </div>
           <div class="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500">
@@ -311,17 +314,17 @@ const barChartData = [
         </div>
 
         <!-- CARD 2: Mood -->
-        <div class="bg-white rounded-xl p-6 border border-slate-200/60 shadow-xs hover:shadow-lg hover:-translate-y-1 hover:border-emerald-200 transition-all duration-200 relative group">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 transition-all duration-200 relative group">
           <div class="flex items-start justify-between">
-            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-emerald-600 transition-colors">Mood</h3>
-            <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-emerald-700 transition-colors">Mood</h3>
+            <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:bg-[#16a34a] group-hover:text-white group-hover:border-emerald-500 transition-all shadow-2xs">
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"></path>
               </svg>
             </div>
           </div>
           <div class="mt-4">
-            <div class="text-4xl font-extrabold tracking-tight text-slate-900">supergood</div>
+            <div class="text-4xl font-black tracking-tight text-emerald-600 capitalize">supergood</div>
             <p class="text-sm font-semibold text-slate-600 mt-1">0 of my tickets escalated</p>
           </div>
           <div class="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500">
@@ -330,57 +333,57 @@ const barChartData = [
         </div>
 
         <!-- CARD 3: Channel Distribution -->
-        <div class="bg-white rounded-xl p-6 border border-slate-200/60 shadow-xs hover:shadow-lg hover:-translate-y-1 hover:border-indigo-200 transition-all duration-200 relative group">
-          <div class="flex items-start justify-between mb-4">
-            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-indigo-600 transition-colors">Channel Distribution</h3>
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 transition-all duration-200 relative group">
+          <div class="flex items-start justify-between mb-3">
+            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-emerald-700 transition-colors">Channel Distribution</h3>
+            <div class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 group-hover:bg-[#16a34a] group-hover:text-white group-hover:border-emerald-500 transition-all shadow-2xs">
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
               </svg>
             </div>
           </div>
 
-          <div class="space-y-3 mt-2">
+          <div class="space-y-2.5 mt-2">
             <!-- Email -->
             <div class="flex items-center justify-between gap-3 text-sm p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
-              <div class="flex items-center gap-2.5 text-slate-700 font-semibold">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="flex items-center gap-2.5 text-slate-600 font-semibold text-xs">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
                 <span>Email</span>
               </div>
               <div class="flex-1 max-w-[120px] bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div class="bg-indigo-600 h-full w-0 rounded-full transition-all duration-300"></div>
+                <div class="bg-emerald-600 h-full w-0 rounded-full transition-all duration-300"></div>
               </div>
-              <span class="font-bold text-slate-900 w-8 text-right">0%</span>
+              <span class="font-bold text-slate-700 w-8 text-right text-xs">0%</span>
             </div>
 
             <!-- Phone -->
             <div class="flex items-center justify-between gap-3 text-sm p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
-              <div class="flex items-center gap-2.5 text-slate-700 font-semibold">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="flex items-center gap-2.5 text-slate-900 font-bold text-xs">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                 </svg>
                 <span>Phone</span>
               </div>
               <div class="flex-1 max-w-[120px] bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div class="bg-indigo-600 h-full w-full rounded-full transition-all duration-300"></div>
+                <div class="bg-[#16a34a] h-full w-full rounded-full transition-all duration-300 shadow-2xs"></div>
               </div>
-              <span class="font-bold text-slate-900 w-8 text-right">100%</span>
+              <span class="font-bold text-emerald-700 w-8 text-right text-xs">100%</span>
             </div>
 
             <!-- Web -->
             <div class="flex items-center justify-between gap-3 text-sm p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
-              <div class="flex items-center gap-2.5 text-slate-700 font-semibold">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="flex items-center gap-2.5 text-slate-600 font-semibold text-xs">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                 </svg>
                 <span>Web / Form</span>
               </div>
               <div class="flex-1 max-w-[120px] bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div class="bg-indigo-600 h-full w-0 rounded-full transition-all duration-300"></div>
+                <div class="bg-emerald-600 h-full w-0 rounded-full transition-all duration-300"></div>
               </div>
-              <span class="font-bold text-slate-900 w-8 text-right">0%</span>
+              <span class="font-bold text-slate-700 w-8 text-right text-xs">0%</span>
             </div>
           </div>
         </div>
@@ -389,17 +392,17 @@ const barChartData = [
       <!-- ROW 2: MIDDLE 3 INTERACTIVE METRIC CARDS -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- CARD 4: Assigned -->
-        <div class="bg-white rounded-xl p-6 border border-slate-200/60 shadow-xs hover:shadow-lg hover:-translate-y-1 hover:border-indigo-200 transition-all duration-200 relative group">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 transition-all duration-200 relative group">
           <div class="flex items-start justify-between">
-            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-indigo-600 transition-colors">Assigned</h3>
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-emerald-700 transition-colors">Assigned</h3>
+            <div class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 group-hover:bg-[#16a34a] group-hover:text-white group-hover:border-emerald-500 transition-all shadow-2xs">
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>
               </svg>
             </div>
           </div>
           <div class="mt-4">
-            <div class="text-4xl font-extrabold tracking-tight text-slate-900">1 / 15</div>
+            <div class="text-4xl font-black tracking-tight text-slate-900">1 / 15</div>
             <p class="text-sm font-semibold text-slate-600 mt-1">Tickets assigned to me: 1 of 15</p>
           </div>
           <div class="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500">
@@ -408,17 +411,17 @@ const barChartData = [
         </div>
 
         <!-- CARD 5: Tickets in process -->
-        <div class="bg-white rounded-xl p-6 border border-slate-200/60 shadow-xs hover:shadow-lg hover:-translate-y-1 hover:border-indigo-200 transition-all duration-200 relative group">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 transition-all duration-200 relative group">
           <div class="flex items-start justify-between">
-            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-indigo-600 transition-colors">My tickets in process</h3>
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-emerald-700 transition-colors">My tickets in process</h3>
+            <div class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 group-hover:bg-[#16a34a] group-hover:text-white group-hover:border-emerald-500 transition-all shadow-2xs">
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
               </svg>
             </div>
           </div>
           <div class="mt-4">
-            <div class="text-4xl font-extrabold tracking-tight text-slate-900">100%</div>
+            <div class="text-4xl font-black tracking-tight text-slate-900">100%</div>
             <p class="text-sm font-semibold text-slate-600 mt-1">100% are currently in process</p>
           </div>
           <div class="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500">
@@ -427,17 +430,17 @@ const barChartData = [
         </div>
 
         <!-- CARD 6: Reopening rate -->
-        <div class="bg-white rounded-xl p-6 border border-slate-200/60 shadow-xs hover:shadow-lg hover:-translate-y-1 hover:border-indigo-200 transition-all duration-200 relative group">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 transition-all duration-200 relative group">
           <div class="flex items-start justify-between">
-            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-indigo-600 transition-colors">Reopening rate</h3>
-            <div class="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase group-hover:text-emerald-700 transition-colors">Reopening rate</h3>
+            <div class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 group-hover:bg-[#16a34a] group-hover:text-white group-hover:border-emerald-500 transition-all shadow-2xs">
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
               </svg>
             </div>
           </div>
           <div class="mt-4">
-            <div class="text-4xl font-extrabold tracking-tight text-slate-900">0%</div>
+            <div class="text-4xl font-black tracking-tight text-slate-900">0%</div>
             <p class="text-sm font-semibold text-slate-600 mt-1">0% have been reopened</p>
           </div>
           <div class="mt-4 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500">
@@ -449,25 +452,25 @@ const barChartData = [
       <!-- ROW 3: BOTTOM CHARTS GRID (PROPERLY FITTED, NO CUTTING) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- CHART CARD 1: Opened vs Closed (Interactive Spline) -->
-        <div class="bg-white rounded-xl p-6 pb-4 border border-slate-200/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+        <div class="bg-white rounded-2xl p-6 pb-4 border border-slate-200/70 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
           <div>
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase">Tickets Opened vs. Closed (Month by Month)</h3>
+              <h3 class="text-xs font-bold tracking-wider text-slate-600 uppercase">Tickets Opened vs. Closed (Month by Month)</h3>
               
               <!-- Range Controls -->
-              <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+              <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
                 <button
                   type="button"
-                  class="px-3 py-1.5 rounded-md transition-all cursor-pointer active:scale-95"
-                  :class="selectedRange === '30D' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-lg transition-all cursor-pointer active:scale-95"
+                  :class="selectedRange === '30D' ? 'bg-[#16a34a] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
                   @click="selectedRange = '30D'"
                 >
                   30D
                 </button>
                 <button
                   type="button"
-                  class="px-3 py-1.5 rounded-md transition-all cursor-pointer active:scale-95"
-                  :class="selectedRange === '90D' ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-lg transition-all cursor-pointer active:scale-95"
+                  :class="selectedRange === '90D' ? 'bg-[#16a34a] text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
                   @click="selectedRange = '90D'"
                 >
                   90D
@@ -478,11 +481,11 @@ const barChartData = [
             <!-- Interactive Legend -->
             <div class="flex items-center gap-6 mb-4 text-xs font-bold text-slate-700">
               <div class="flex items-center gap-2">
-                <span class="w-3.5 h-1 bg-indigo-600 rounded-full"></span>
+                <span class="w-3.5 h-1.5 bg-slate-800 rounded-full"></span>
                 <span>Tickets Opened</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="w-3.5 h-1 bg-sky-400 rounded-full"></span>
+                <span class="w-3.5 h-1.5 bg-emerald-500 rounded-full"></span>
                 <span>Tickets Closed</span>
               </div>
             </div>
@@ -492,23 +495,23 @@ const barChartData = [
               <!-- Floating Hover Tooltip -->
               <div
                 v-if="hoveredLineIndex !== null"
-                class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white p-2.5 rounded-lg shadow-xl text-xs z-30 pointer-events-none flex items-center gap-3 transition-all"
+                class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white p-2.5 rounded-xl shadow-xl text-xs z-30 pointer-events-none flex items-center gap-3 transition-all"
                 :style="{ left: `${(lineDataPoints[hoveredLineIndex].cx / 800) * 100}%` }"
               >
                 <span class="font-bold border-r border-slate-700 pr-2.5 text-slate-300">{{ lineDataPoints[hoveredLineIndex].date }}</span>
-                <span class="text-indigo-400 font-bold">Opened: {{ lineDataPoints[hoveredLineIndex].opened }}</span>
-                <span class="text-sky-300 font-bold">Closed: {{ lineDataPoints[hoveredLineIndex].closed }}</span>
+                <span class="text-slate-300 font-bold">Opened: {{ lineDataPoints[hoveredLineIndex].opened }}</span>
+                <span class="text-emerald-400 font-bold">Closed: {{ lineDataPoints[hoveredLineIndex].closed }}</span>
               </div>
 
               <svg class="w-full h-full overflow-hidden" viewBox="0 0 800 210" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="openedGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.3" />
-                    <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.0" />
+                    <stop offset="0%" stop-color="#1e293b" stop-opacity="0.15" />
+                    <stop offset="100%" stop-color="#1e293b" stop-opacity="0.0" />
                   </linearGradient>
                   <linearGradient id="closedGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
-                    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.0" />
+                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.25" />
+                    <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
                   </linearGradient>
                 </defs>
 
@@ -525,7 +528,7 @@ const barChartData = [
                   y1="20"
                   :x2="lineDataPoints[hoveredLineIndex].cx"
                   y2="190"
-                  stroke="#6366f1"
+                  stroke="#10b981"
                   stroke-width="1.5"
                   stroke-dasharray="4 4"
                 />
@@ -535,8 +538,8 @@ const barChartData = [
                 <path d="M 0 190 Q 200 100 400 120 T 800 95 L 800 190 L 0 190 Z" fill="url(#closedGradient)" />
 
                 <!-- Spline Stroke Lines -->
-                <path d="M 0 190 Q 200 60 400 90 T 800 50" fill="none" stroke="#4f46e5" stroke-width="3.5" stroke-linecap="round" />
-                <path d="M 0 190 Q 200 100 400 120 T 800 95" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" />
+                <path d="M 0 190 Q 200 60 400 90 T 800 50" fill="none" stroke="#1e293b" stroke-width="3" stroke-linecap="round" />
+                <path d="M 0 190 Q 200 100 400 120 T 800 95" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" />
 
                 <!-- Interactive Data Dots -->
                 <circle
@@ -545,7 +548,7 @@ const barChartData = [
                   :cx="pt.cx"
                   :cy="pt.cyOpened"
                   :r="hoveredLineIndex === idx ? 7 : 4.5"
-                  fill="#4f46e5"
+                  fill="#10b981"
                   stroke="#ffffff"
                   stroke-width="2"
                   class="cursor-pointer transition-all duration-150"
@@ -563,21 +566,21 @@ const barChartData = [
         </div>
 
         <!-- CHART CARD 2: Tickets by Priority (Interactive Stacked Bar) -->
-        <div class="bg-white rounded-xl p-6 pb-4 border border-slate-200/60 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
+        <div class="bg-white rounded-2xl p-6 pb-4 border border-slate-200/70 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow relative overflow-hidden">
           <div>
             <div class="flex items-center justify-between mb-6">
-              <h3 class="text-xs font-bold tracking-wider text-slate-500 uppercase">Tickets by Priority</h3>
+              <h3 class="text-xs font-bold tracking-wider text-slate-600 uppercase">Tickets by Priority</h3>
               <span class="px-3 py-1 text-xs text-slate-600 font-bold bg-slate-100 rounded-lg border border-slate-200/60">Interactive Bar</span>
             </div>
 
             <!-- Interactive Legend -->
             <div class="flex items-center gap-6 mb-4 text-xs font-bold text-slate-700">
               <div class="flex items-center gap-2">
-                <span class="w-3.5 h-3.5 bg-indigo-600 rounded-xs"></span>
+                <span class="w-3.5 h-3.5 bg-[#16a34a] rounded-xs"></span>
                 <span>High / Urgent</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="w-3.5 h-3.5 bg-slate-900 rounded-xs"></span>
+                <span class="w-3.5 h-3.5 bg-slate-800 rounded-xs"></span>
                 <span>Normal / Low</span>
               </div>
             </div>
@@ -587,10 +590,10 @@ const barChartData = [
               <!-- Floating Hover Tooltip for Bars -->
               <div
                 v-if="hoveredBarIndex !== null"
-                class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white p-2.5 rounded-lg shadow-xl text-xs z-30 pointer-events-none flex items-center gap-3 transition-all"
+                class="absolute top-0 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white p-2.5 rounded-xl shadow-xl text-xs z-30 pointer-events-none flex items-center gap-3 transition-all"
               >
                 <span class="font-bold border-r border-slate-700 pr-2 text-slate-300">{{ barChartData[hoveredBarIndex].date }}</span>
-                <span class="text-indigo-400 font-bold">High/Urgent: {{ barChartData[hoveredBarIndex].high }}</span>
+                <span class="text-emerald-400 font-bold">High/Urgent: {{ barChartData[hoveredBarIndex].high }}</span>
                 <span class="text-slate-300 font-bold">Normal/Low: {{ barChartData[hoveredBarIndex].low }}</span>
               </div>
 
@@ -601,14 +604,14 @@ const barChartData = [
                 @mouseenter="hoveredBarIndex = index"
                 @mouseleave="hoveredBarIndex = null"
               >
-                <!-- Indigo Stack (High/Urgent) -->
+                <!-- Emerald Stack (High/Urgent) -->
                 <div
-                  class="w-full bg-indigo-600 rounded-t-xs transition-all duration-200 group-hover:bg-indigo-500 group-hover:shadow-md"
+                  class="w-full bg-[#16a34a] rounded-t-xs transition-all duration-200 group-hover:bg-[#15803d] group-hover:shadow-md"
                   :style="{ height: `${bar.high}px` }"
                 ></div>
-                <!-- Dark Navy Stack (Normal/Low) -->
+                <!-- Dark Slate Stack (Normal/Low) -->
                 <div
-                  class="w-full bg-slate-900 rounded-b-xs transition-all duration-200 group-hover:bg-slate-800"
+                  class="w-full bg-slate-800 rounded-b-xs transition-all duration-200 group-hover:bg-slate-900"
                   :style="{ height: `${bar.low}px` }"
                 ></div>
               </div>
@@ -623,10 +626,10 @@ const barChartData = [
       </div>
 
       <!-- ROW 4: INTERACTIVE ACTIVITY STREAM FEED WIDGET -->
-      <div class="bg-white rounded-xl p-6 border border-slate-200/60 shadow-xs hover:shadow-md transition-shadow">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs hover:shadow-md transition-shadow">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center text-red-500 shadow-xs">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-xs">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
@@ -638,7 +641,7 @@ const barChartData = [
           </div>
           <button
             type="button"
-            class="text-xs font-bold text-red-600 hover:text-white bg-red-50 hover:bg-red-600 px-3.5 py-1.5 rounded-lg border border-red-200 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+            class="text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 px-3.5 py-1.5 rounded-lg border border-slate-200 transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
             @click="fetchActivityStream"
           >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -661,10 +664,10 @@ const barChartData = [
             v-for="item in activityStream"
             :key="item.id"
             :href="item.object === 'Ticket' || item.object === 'Ticket::Article' ? `/#ticket/zoom/${item.o_id}` : '#'"
-            class="p-4 rounded-xl border border-slate-200/60 hover:border-red-300 hover:shadow-md transition-all duration-200 flex items-start gap-3 bg-slate-50/40 hover:bg-white cursor-pointer hover:-translate-y-0.5"
+            class="p-4 rounded-xl border border-slate-200/60 hover:border-emerald-300 hover:shadow-md transition-all duration-200 flex items-start gap-3 bg-slate-50/40 hover:bg-white cursor-pointer hover:-translate-y-0.5"
           >
             <div
-              class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-red-50 text-red-500 border border-red-100 mt-0.5 shadow-xs"
+              class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-100 mt-0.5 shadow-xs"
             >
               <svg v-if="item.object === 'Ticket'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path>

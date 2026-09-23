@@ -19,7 +19,13 @@ const route: RouteRecordRaw[] = [
       pageKey: 'personal-setting',
       permanentItem: true,
     },
-    children: personalSettingRoutes,
+    children: [
+      ...personalSettingRoutes,
+      {
+        path: 'appearance',
+        redirect: '/personal-setting/avatar',
+      },
+    ],
     redirect: () => ({
       path: usePersonalSettingStore().previousPersonalSettingPath,
     }),

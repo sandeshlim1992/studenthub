@@ -433,10 +433,10 @@ const goToChildPage = ({ option, noFocus }: { option: AutoCompleteOption; noFocu
       >
         <div class="w-full" role="menu">
           <div
-            class="flex h-full flex-col items-start border-x border-slate-200/90 bg-white shadow-xl dark:border-gray-900 dark:bg-gray-800"
+            class="flex h-full flex-col items-start border-x border-neutral-100 bg-neutral-50 dark:border-gray-900 dark:bg-gray-500"
             :class="{
-              'rounded-t-xl border-t': hasDirectionUp,
-              'rounded-b-xl border-b': !hasDirectionUp,
+              'rounded-t-lg border-t': hasDirectionUp,
+              'rounded-b-lg border-b': !hasDirectionUp,
             }"
           >
             <div

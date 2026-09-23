@@ -135,7 +135,7 @@ const { isTouchDevice } = useTouchDevice()
 :deep([aria-label*="Manage" i]),
 :deep(button[aria-label*="Administration" i]),
 :deep(button[aria-label*="Admin" i]) {
-  color: #93b5d4 !important;
+  color: #94a3b8 !important;
   transition: color 150ms ease;
 }
 :deep([aria-label*="Administration" i]:hover),

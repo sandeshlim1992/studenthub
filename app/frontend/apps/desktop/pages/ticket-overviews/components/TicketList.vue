@@ -510,12 +510,12 @@ defineExpose({ tickets: readonly(tickets) })
 
 <template>
   <!-- CUSTOMER REDESIGNED PORTAL VIEW (2-COLUMN RESPONSIVE DASHBOARD) -->
-  <div v-if="isCustomer" class="overflow-y-auto h-full w-full bg-[#f8fafc]">
-    <main class="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  <div v-if="isCustomer" class="w-full min-h-full bg-slate-50">
+    <main class="mx-auto w-full max-w-[1600px] px-3.5 sm:px-6 lg:px-8 py-5 sm:py-8">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
         <!-- LEFT COLUMN: MY TICKETS (Narrower & sleek: 4 columns on desktop) -->
         <section
-          class="lg:col-span-4 xl:col-span-4 order-2 lg:order-1 flex flex-col bg-white rounded-3xl border border-slate-200/90 p-5 shadow-xs lg:h-[calc(100vh-140px)] lg:sticky lg:top-6"
+          class="lg:col-span-4 xl:col-span-4 order-2 lg:order-1 flex flex-col bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 sm:p-5.5 lg:h-[calc(100vh-140px)] lg:sticky lg:top-6"
         >
           <!-- Header: Title & Count Badge -->
           <div class="mb-4 flex items-center justify-between shrink-0">
@@ -582,8 +582,8 @@ defineExpose({ tickets: readonly(tickets) })
             </button>
           </div>
 
-          <!-- Dedicated Scrollable Tickets List -->
-          <div class="flex-1 overflow-y-auto px-1.5 pt-3 pb-4 space-y-3 min-h-0 -mx-1.5">
+          <!-- Dedicated Tickets List (Scrollable on desktop, inline flowing on mobile) -->
+          <div class="flex-1 lg:overflow-y-auto px-1 pt-2 pb-2 space-y-3 min-h-0 -mx-1">
             <template v-if="filteredCustomerTickets.length > 0">
               <div
                 v-for="(ticket, idx) in filteredCustomerTickets"
@@ -689,16 +689,15 @@ defineExpose({ tickets: readonly(tickets) })
 
         <!-- RIGHT COLUMN: HERO & QUICK ACTION CARDS (Bigger: 8 columns on desktop) -->
         <section class="lg:col-span-8 xl:col-span-8 order-1 lg:order-2 flex flex-col gap-6 w-full">
-          <!-- HERO CARD (Enlarged) -->
-          <div class="rounded-3xl bg-[#1e3a5f] p-8 sm:p-10 lg:p-11 text-center shadow-lg border border-blue-900/40 relative overflow-hidden">
-            <!-- Subtle Background Glow -->
-            <div class="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
-            <div class="absolute -left-20 -bottom-20 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
-
-            <!-- Logo Section with Clean White Background -->
-            <div class="mx-auto mb-5 flex items-center justify-center">
+          <!-- HERO CARD (Luxury Dark Aesthetic - Sleek Height & Balanced Proportions) -->
+          <div
+            class="relative overflow-hidden rounded-[28px] sm:rounded-[32px] py-6 px-4.5 sm:py-9 sm:px-10 lg:py-10 lg:px-12 text-center shadow-[0_20px_50px_rgba(15,23,42,0.12)] border border-white/[0.08]"
+            style="background: radial-gradient(circle at 92% 85%, rgba(22, 163, 74, 0.35) 0%, rgba(16, 185, 129, 0.18) 35%, transparent 65%), radial-gradient(circle at 12% 18%, rgba(30, 58, 95, 0.3) 0%, transparent 55%), #0e151c;"
+          >
+            <!-- Brand Logo in Crisp White Badge for 100% High-Contrast Visibility -->
+            <div class="mb-3.5 flex items-center justify-center">
               <div
-                class="h-20 w-20 sm:h-22 sm:w-22 rounded-3xl bg-white p-3 shadow-xl flex items-center justify-center ring-4 ring-white/30 transition-transform duration-300 hover:scale-105"
+                class="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white p-2 sm:p-2.5 shadow-lg ring-2 ring-white/60 flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105"
               >
                 <img
                   src="/assets/images/branding/student_hub_logo.png"
@@ -708,113 +707,129 @@ defineExpose({ tickets: readonly(tickets) })
               </div>
             </div>
 
-            <h1 class="text-3xl sm:text-4xl lg:text-4xl font-black text-white tracking-tight">
+            <!-- Eyebrow Tag with Pulsing Green Accent Beacon -->
+            <div class="mb-2 sm:mb-2.5 flex items-center justify-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-[#16a34a] shadow-[0_0_8px_#22c55e] animate-pulse"></span>
+              <span class="text-xs sm:text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">
+                {{ $t('Begin Your Journey') }}
+              </span>
+            </div>
+
+            <!-- Headline (Editorial Serif Aesthetic - Compact, Elegant & Impactful) -->
+            <h1 class="font-editorial text-2xl sm:text-4xl lg:text-[42px] font-medium text-[#fcfbf7] tracking-normal leading-tight">
               {{ $t('How can we help?') }}
             </h1>
-            <p class="mt-2.5 text-base sm:text-lg font-semibold text-[#93b5d4]">
-              {{ $t('Support for LSST, FSB & UKBC students') }}
+
+            <!-- Subtitle (Proportional & Clear) -->
+            <p class="mt-2 sm:mt-2.5 text-xs sm:text-sm md:text-base font-light text-slate-300/85 max-w-xl mx-auto leading-relaxed">
+              {{ $t('Speak with our support team. We’ll help you find the right answers, resolve technical issues, and guide you through every step.') }}
             </p>
 
-            <!-- Raise ticket button (Enlarged & High Visibility) -->
-            <button
-              type="button"
-              class="mt-7 inline-flex cursor-pointer items-center gap-3 rounded-2xl bg-[#16a34a] px-10 py-4 text-base sm:text-lg font-extrabold text-white shadow-xl hover:shadow-2xl transition-all duration-200 hover:bg-[#15803d] hover:scale-105 active:scale-98"
-              @click="router.push({ name: 'TicketCreate' })"
-            >
-              <span class="text-xl font-black leading-none">+</span>
-              <span>{{ $t('Raise a New Ticket') }}</span>
-            </button>
-          </div>
-
-          <!-- QUICK CATEGORY CARDS (Enlarged) -->
-          <div>
-            <h3 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 px-1">
-              {{ $t('Choose a Category') }}
-            </h3>
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-              <!-- Card 1 - IT Support -->
-              <div
-                class="group cursor-pointer rounded-2xl border-2 border-slate-200/90 bg-white p-6 sm:p-7 text-center transition-all duration-200 hover:border-[#1e3a5f] hover:shadow-xl hover:-translate-y-1 flex flex-col items-center shadow-xs"
+            <!-- Dual Action Buttons matching the reference image with Brand Green Theme -->
+            <div class="mt-5 sm:mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 max-w-sm sm:max-w-none mx-auto">
+              <!-- Primary: Brand Green Theme (#16a34a) -->
+              <button
+                type="button"
+                class="w-full sm:w-auto inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-[#16a34a] hover:bg-[#15803d] px-6 sm:px-8 py-3 text-sm sm:text-base font-semibold text-white shadow-md shadow-emerald-950/25 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 select-none"
                 @click="router.push({ name: 'TicketCreate' })"
               >
-                <div class="mb-3.5 rounded-2xl bg-blue-50 p-3 text-[#1e3a5f] group-hover:bg-[#1e3a5f] group-hover:text-white transition-colors duration-200">
-                  <svg
-                    class="h-9 w-9"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
+                <span>{{ $t('Raise a New Ticket') }}</span>
+                <span class="text-base leading-none">→</span>
+              </button>
+
+              <!-- Secondary: Frosted Glass / Translucent with Subtle Green Hover -->
+              <button
+                type="button"
+                class="w-full sm:w-auto inline-flex cursor-pointer items-center justify-center rounded-xl sm:rounded-2xl border border-white/20 hover:border-emerald-400/50 bg-white/5 hover:bg-emerald-950/20 px-6 sm:px-8 py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 select-none"
+                @click="router.push({ name: 'TicketCreate' })"
+              >
+                <span>{{ $t('Talk to Student Support') }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- QUICK CATEGORY CARDS (Clean, Professional & Restrained Luxury Hover) -->
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 px-1">
+              {{ $t('Choose a Category') }}
+            </h3>
+            <div class="grid grid-cols-1 gap-3.5 sm:gap-5 sm:grid-cols-3">
+              <!-- Card 1 - IT Support -->
+              <div
+                class="group cursor-pointer rounded-2xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.07)] hover:border-emerald-200/60 flex flex-col items-center select-none"
+                @click="router.push({ name: 'TicketCreate' })"
+              >
+                <div class="mb-3.5 rounded-2xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
+                  <!-- Duotone IT Icon: Navy + Brand Green Accent -->
+                  <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="4" y="6" width="28" height="17" rx="3" fill="#16a34a" fill-opacity="0.18" />
+                    <path d="M18 10L16 14H20L18 18" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="4" y="6" width="28" height="17" rx="3" stroke="#0f233d" stroke-width="2.2" />
+                    <path d="M2 27H34M14 23V27M22 23V27" stroke="#0f233d" stroke-width="2.2" stroke-linecap="round" />
                   </svg>
                 </div>
-                <div class="text-lg font-extrabold text-[#0f172a] group-hover:text-[#1e3a5f] transition-colors">
+                <div class="text-base font-bold text-slate-900 group-hover:text-[#16a34a] transition-colors duration-150">
                   {{ $t('IT Support') }}
                 </div>
-                <div class="mt-1.5 text-xs sm:text-sm font-medium text-slate-500 leading-snug">
+                <div class="mt-1.5 text-xs sm:text-sm font-normal text-slate-500 leading-snug">
                   {{ $t('Hardware, software & accounts') }}
                 </div>
               </div>
 
               <!-- Card 2 - Account Help -->
               <div
-                class="group cursor-pointer rounded-2xl border-2 border-slate-200/90 bg-white p-6 sm:p-7 text-center transition-all duration-200 hover:border-[#1e3a5f] hover:shadow-xl hover:-translate-y-1 flex flex-col items-center shadow-xs"
+                class="group cursor-pointer rounded-2xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.07)] hover:border-emerald-200/60 flex flex-col items-center select-none"
                 @click="router.push({ name: 'TicketCreate' })"
               >
-                <div class="mb-3.5 rounded-2xl bg-indigo-50 p-3 text-[#1e3a5f] group-hover:bg-[#1e3a5f] group-hover:text-white transition-colors duration-200">
-                  <svg
-                    class="h-9 w-9"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
+                <div class="mb-3.5 rounded-2xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
+                  <!-- Duotone Account Icon: Navy + Brand Green Accent -->
+                  <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="26" cy="12" r="5" fill="#16a34a" fill-opacity="0.22" />
+                    <path d="M26 10V14M24 12H28" stroke="#16a34a" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="15" cy="11" r="5" stroke="#0f233d" stroke-width="2.2" />
+                    <path d="M6 26C6 21.5817 9.58172 18 14 18H16C20.4183 18 24 21.5817 24 26" stroke="#0f233d" stroke-width="2.2" stroke-linecap="round" />
+                    <rect x="22" y="20" width="8" height="6" rx="2" stroke="#0f233d" stroke-width="2" />
                   </svg>
                 </div>
-                <div class="text-lg font-extrabold text-[#0f172a] group-hover:text-[#1e3a5f] transition-colors">
+                <div class="text-base font-bold text-slate-900 group-hover:text-[#16a34a] transition-colors duration-150">
                   {{ $t('Account Help') }}
                 </div>
-                <div class="mt-1.5 text-xs sm:text-sm font-medium text-slate-500 leading-snug">
+                <div class="mt-1.5 text-xs sm:text-sm font-normal text-slate-500 leading-snug">
                   {{ $t('Passwords & email access') }}
                 </div>
               </div>
 
               <!-- Card 3 - General Enquiry -->
               <div
-                class="group cursor-pointer rounded-2xl border-2 border-slate-200/90 bg-white p-6 sm:p-7 text-center transition-all duration-200 hover:border-[#1e3a5f] hover:shadow-xl hover:-translate-y-1 flex flex-col items-center shadow-xs"
+                class="group cursor-pointer rounded-2xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.07)] hover:border-emerald-200/60 flex flex-col items-center select-none"
                 @click="router.push({ name: 'TicketCreate' })"
               >
-                <div class="mb-3.5 rounded-2xl bg-sky-50 p-3 text-[#1e3a5f] group-hover:bg-[#1e3a5f] group-hover:text-white transition-colors duration-200">
-                  <svg
-                    class="h-9 w-9"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
+                <div class="mb-3.5 rounded-2xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
+                  <!-- Duotone Chat Icon: Navy + Brand Green Accent -->
+                  <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path
-                      stroke-linecap="round"
+                      d="M20 18C20 15.7909 22.2386 14 25 14C27.7614 14 30 15.7909 30 18C30 19.3456 29.1706 20.5284 27.882 21.2467L28 24L25.334 22.4282C25.224 22.4332 25.112 22.436 25 22.436C22.2386 22.436 20 20.6451 20 18Z"
+                      fill="#16a34a"
+                      fill-opacity="0.22"
+                      stroke="#16a34a"
+                      stroke-width="1.8"
                       stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                     />
+                    <path
+                      d="M6 15C6 10.5817 10.4772 7 16 7C21.5228 7 26 10.5817 26 15C26 19.4183 21.5228 23 16 23C14.3312 23 12.7663 22.449 11.4589 21.493L6 23L7.75549 19.1415C6.66699 17.9255 6 16.3986 6 15Z"
+                      stroke="#0f233d"
+                      stroke-width="2.2"
+                      stroke-linejoin="round"
+                    />
+                    <circle cx="11.5" cy="15" r="1.2" fill="#0f233d" />
+                    <circle cx="16" cy="15" r="1.2" fill="#0f233d" />
+                    <circle cx="20.5" cy="15" r="1.2" fill="#0f233d" />
                   </svg>
                 </div>
-                <div class="text-lg font-extrabold text-[#0f172a] group-hover:text-[#1e3a5f] transition-colors">
+                <div class="text-base font-bold text-slate-900 group-hover:text-[#16a34a] transition-colors duration-150">
                   {{ $t('General Enquiry') }}
                 </div>
-                <div class="mt-1.5 text-xs sm:text-sm font-medium text-slate-500 leading-snug">
+                <div class="mt-1.5 text-xs sm:text-sm font-normal text-slate-500 leading-snug">
                   {{ $t('Any other questions') }}
                 </div>
               </div>
@@ -883,6 +898,12 @@ defineExpose({ tickets: readonly(tickets) })
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap');
+
+.font-editorial {
+  font-family: 'Playfair Display', Georgia, Cambria, 'Times New Roman', Times, serif;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

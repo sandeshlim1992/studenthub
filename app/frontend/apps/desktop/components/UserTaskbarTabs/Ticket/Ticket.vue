@@ -53,14 +53,14 @@ const currentStateColorCode = computed(
 const activeBackgroundColor = computed(() => {
   switch (currentStateColorCode.value) {
     case EnumTicketStateColorCode.Closed:
-      return '!bg-green-400 text-white dark:text-white'
+      return 'bg-emerald-500/15! text-white! ring-1 ring-emerald-400/35 shadow-2xs font-bold'
     case EnumTicketStateColorCode.Pending:
-      return '!bg-stone-400 text-white dark:text-white'
+      return 'bg-amber-500/15! text-white! ring-1 ring-amber-400/35 shadow-2xs font-bold'
     case EnumTicketStateColorCode.Escalating:
-      return '!bg-red-300 text-white dark:text-white'
+      return 'bg-rose-500/15! text-white! ring-1 ring-rose-400/35 shadow-2xs font-bold'
     case EnumTicketStateColorCode.Open:
     default:
-      return '!bg-yellow-500 text-white dark:text-white'
+      return 'bg-emerald-500/15! text-white! ring-1 ring-emerald-400/35 shadow-2xs font-bold'
   }
 })
 
@@ -75,30 +75,32 @@ const currentViewTitle = computed(
     ref="tabLinkInstance"
     v-tooltip="currentViewTitle"
     :aria-current="isActive ? 'page' : undefined"
-    class="flex grow items-center gap-2 px-2 py-3 hover:no-underline! group-hover/tab:dark:bg-blue-900"
+    class="flex grow items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.08] hover:no-underline! transition-all duration-150 rounded-xl outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
     :link="taskbarTabLink"
     :class="{
       [activeBackgroundColor]: taskbarTabActive,
-      'group-hover/tab:bg-blue-60': collapsed,
-      'rounded-lg!': !collapsed,
+      'group-hover/tab:bg-white/10': collapsed,
+      'rounded-xl!': !collapsed,
     }"
     internal
   >
-    <div class="relative">
+    <div
+      class="relative shrink-0 flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-white/5 border border-white/10 transition-colors"
+      :class="{
+        'bg-emerald-500/20! border-emerald-400/40! shadow-xs': taskbarTabActive,
+      }"
+    >
       <CommonUpdateIndicator v-if="isTicketUpdated" />
       <CommonTicketStateIndicatorIcon
-        :class="{
-          'text-white!': taskbarTabActive,
-        }"
         :color-code="currentStateColorCode"
         :label="currentState"
         icon-size="tiny"
       />
     </div>
     <CommonLabel
-      class="block! truncate text-gray-300 dark:text-neutral-400 group-hover/tab:dark:text-white"
+      class="block! truncate text-sm! text-current font-medium"
       :class="{
-        'text-white!': taskbarTabActive,
+        'text-white! font-bold': taskbarTabActive,
       }"
     >
       {{ currentTitle }}

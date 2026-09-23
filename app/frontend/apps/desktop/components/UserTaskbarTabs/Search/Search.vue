@@ -25,26 +25,30 @@ const { searchTitle: currentTitle } = useSearchTitle(currentSearchTerm, filterCo
   <CommonLink
     v-if="taskbarTabLink"
     ref="tabLinkInstance"
-    class="flex grow items-center gap-2 rounded-md px-2 py-3 group-hover/tab:bg-blue-600 hover:no-underline! focus-visible:rounded-md focus-visible:outline-hidden group-hover/tab:dark:bg-blue-900"
+    class="flex grow items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.08] hover:no-underline! transition-all duration-150 rounded-xl outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
     :link="taskbarTabLink"
     :aria-current="isActive ? 'page' : undefined"
     :class="{
-      'bg-blue-800!': taskbarTabActive,
+      'bg-emerald-500/15! text-white! font-bold ring-1 ring-emerald-400/35 shadow-2xs': taskbarTabActive,
     }"
     internal
   >
-    <CommonIcon
-      class="shrink-0 text-neutral-500 group-focus-visible/link:text-white!"
+    <div
+      class="relative shrink-0 flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-slate-400 transition-colors"
       :class="{
-        'text-white!': taskbarTabActive,
+        'bg-emerald-500/20! border-emerald-400/40! text-emerald-300! shadow-xs': taskbarTabActive,
       }"
-      size="tiny"
-      name="search-detail"
-    />
+    >
+      <CommonIcon
+        size="tiny"
+        name="search-detail"
+        decorative
+      />
+    </div>
     <CommonLabel
-      class="block! truncate text-gray-300 group-focus-visible/link:text-white dark:text-neutral-400 group-hover/tab:dark:text-white"
+      class="block! truncate text-sm! text-current font-medium"
       :class="{
-        'text-white!': taskbarTabActive,
+        'text-white! font-bold': taskbarTabActive,
       }"
     >
       {{ currentTitle }}

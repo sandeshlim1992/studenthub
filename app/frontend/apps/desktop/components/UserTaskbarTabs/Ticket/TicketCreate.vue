@@ -31,30 +31,34 @@ const { currentViewTitle } = useTicketCreateTitle(currentTitle, currentArticleTy
     v-if="taskbarTabLink"
     ref="tabLinkInstance"
     v-tooltip="currentViewTitle"
-    class="flex grow items-center gap-2 px-2 py-3 group-hover/tab:bg-blue-600 hover:no-underline! group-hover/tab:dark:bg-blue-900"
+    class="flex grow items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.08] hover:no-underline! transition-all duration-150 rounded-xl outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
     :class="{
-      ['bg-blue-800! text-white']: taskbarTabActive,
-      'group-focus-visible/link:text-white': collapsed,
-      'rounded-lg!': !collapsed,
+      'bg-emerald-500/15! text-white! font-bold ring-1 ring-emerald-400/35 shadow-2xs': taskbarTabActive,
+      'group-hover/tab:bg-white/10': collapsed,
+      'rounded-xl!': !collapsed,
     }"
     :aria-current="isActive ? 'page' : undefined"
     :link="taskbarTabLink"
     internal
   >
-    <CommonIcon
-      class="shrink-0 text-stone-200 dark:text-neutral-500"
+    <div
+      class="relative shrink-0 flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-white/5 border border-white/10 transition-colors"
       :class="{
-        'text-white!': taskbarTabActive,
+        'bg-emerald-500/20! border-emerald-400/40! shadow-xs': taskbarTabActive,
       }"
-      name="pencil"
-      size="tiny"
-      decorative
-    />
+    >
+      <CommonIcon
+        class="shrink-0 text-emerald-400"
+        name="pencil"
+        size="tiny"
+        decorative
+      />
+    </div>
 
     <CommonLabel
-      class="block! truncate text-gray-300 group-hover/tab:text-white dark:text-neutral-400"
+      class="block! truncate text-sm! text-current font-medium"
       :class="{
-        'text-white!': taskbarTabActive,
+        'text-white! font-bold': taskbarTabActive,
       }"
     >
       {{ currentViewTitle }}

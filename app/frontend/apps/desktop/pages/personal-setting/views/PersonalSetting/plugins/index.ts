@@ -5,7 +5,7 @@ import type { NavigationMenuCategory } from '#desktop/components/NavigationMenu/
 import type { PersonalSettingPlugin } from './types.ts'
 
 const plugins = import.meta.glob<PersonalSettingPlugin>(
-  ['./**/*.ts', '!./**/index.ts', '!./types.ts', '!./__tests__/**/*.ts'],
+  ['./**/*.ts', '!./**/index.ts', '!./appearance.ts', '!./types.ts', '!./__tests__/**/*.ts'],
   {
     eager: true,
     import: 'default',

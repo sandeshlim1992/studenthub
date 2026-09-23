@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia'
 import { watch, useTemplateRef, nextTick, onMounted, shallowRef } from 'vue'
 
 import { useTouchDevice } from '#shared/composables/useTouchDevice.ts'
-import { EnumTaskbarEntity, EnumTaskbarEntityAccess } from '#shared/graphql/types.ts'
+import { EnumTaskbarEntityAccess } from '#shared/graphql/types.ts'
 import { MutationHandler } from '#shared/server/apollo/handler/index.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
@@ -240,7 +240,7 @@ const { isTouchDevice } = useTouchDevice()
           id="user-taskbar-tabs-popover-button"
           ref="popoverTarget"
           v-tooltip="$t('List of all user taskbar tabs')"
-          class="text-neutral-400 hover:outline-blue-900"
+          class="text-neutral-400 hover:outline-emerald-900"
           icon="card-list"
           size="large"
           variant="neutral"
@@ -248,7 +248,7 @@ const { isTouchDevice } = useTouchDevice()
           aria-haspopup="true"
           :aria-expanded="popoverIsOpen"
           :class="{
-            'bg-blue-800! text-white!': popoverIsOpen,
+            'bg-emerald-600! text-white!': popoverIsOpen,
           }"
           @click="toggle(true)"
         />
@@ -262,8 +262,8 @@ const { isTouchDevice } = useTouchDevice()
           scrollable
         >
           <template #title>
-            <span class="text-[11px] font-black uppercase tracking-wider text-sky-300 px-3 mb-1.5 block">
-              {{ __('Tabs') }}
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400/80 px-3.5 mb-1.5 block select-none">
+              {{ __('Tickets') }}
             </span>
           </template>
           <div id="taskbarTabListExpanded" ref="taskbar-tab-list" />
@@ -301,16 +301,6 @@ const { isTouchDevice } = useTouchDevice()
               }"
               :draggable="!collapsed ? 'true' : undefined"
             >
-              <span
-                v-if="!collapsed && taskbarTabListByTabEntityKey[tabEntityKey].type === EnumTaskbarEntity.TicketZoom && taskbarTabListByTabEntityKey[tabEntityKey].entity"
-                class="absolute left-2.5 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full z-10 pointer-events-none ring-2 ring-white/20"
-                :class="{
-                  'bg-[#3b82f6]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'open' || (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'new',
-                  'bg-[#f59e0b]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'pending remainder' || (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'pending close',
-                  'bg-[#10b981]': (taskbarTabListByTabEntityKey[tabEntityKey].entity as any).state?.name === 'closed',
-                }"
-              ></span>
-
               <UserTaskbarTabRemove
                 v-if="taskbarTabListByTabEntityKey[tabEntityKey].taskbarTabId"
                 class="peer"
@@ -326,18 +316,17 @@ const { isTouchDevice } = useTouchDevice()
                 :taskbar-tab-link="getTaskbarTabLink(tabEntityKey)"
                 :collapsed="collapsed"
                 :is-active="index === selectedItemIndex"
-                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) focus-visible-app-default [--tab-remove-bar-button-width:2rem] group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width) text-sm font-semibold text-slate-200 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-150 py-2 px-3"
+                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) outline-none focus:outline-none focus-visible:outline-none [--tab-remove-bar-button-width:2rem] group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width) text-sm font-semibold text-slate-200 hover:text-white hover:bg-white/8 rounded-xl transition-all duration-150 py-2 px-3"
                 :class="{
-                  'pl-6.5!': !collapsed && taskbarTabListByTabEntityKey[tabEntityKey].type === EnumTaskbarEntity.TicketZoom,
-                  'rounded-none group-first/tab:rounded-t-[10px] group-last/tab:rounded-b-[10px] focus-visible:-outline-offset-1!':
+                  'rounded-none group-first/tab:rounded-t-[10px] group-last/tab:rounded-b-[10px]':
                     collapsed,
                   'rounded-t-lg!': collapsed && index === 0,
                   'rounded-b-lg!': collapsed && index === dndTaskbarTabListOrder.length - 1,
                   'active:cursor-grabbing': !collapsed,
                   'ltr:pr-(--tab-remove-bar-button-width) rtl:pl-(--tab-remove-bar-button-width)':
                     isTouchDevice,
-                  'bg-white/10 text-white!': index == focusedItemIndex,
-                  'bg-white/15! text-white! font-bold shadow-xs ring-1 ring-white/25': index == selectedItemIndex,
+                  'bg-white/8 text-white!': index == focusedItemIndex,
+                  'bg-white/12! text-white! font-bold shadow-2xs ring-1 ring-white/15': index == selectedItemIndex,
                 }"
               />
             </li>

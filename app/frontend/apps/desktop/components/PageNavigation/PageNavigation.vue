@@ -4,6 +4,7 @@
 import { nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
+import CommonIcon from '#shared/components/CommonIcon/CommonIcon.vue'
 import { useSessionStore } from '#shared/stores/session.ts'
 import emitter from '#shared/utils/emitter.ts'
 
@@ -48,7 +49,7 @@ const isRouteActive = (route: any) => {
   <div>
     <CommonSectionCollapse id="page-navigation" :no-header="collapsed">
       <template #title>
-        <span class="text-[11px] font-black uppercase tracking-wider text-sky-300 px-3 mb-1.5 block">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400/80 px-3.5 mb-1.5 block select-none">
           {{ __('Navigation') }}
         </span>
       </template>
@@ -82,21 +83,30 @@ const isRouteActive = (route: any) => {
               />
               <CommonLink
                 v-else
-                class="flex grow gap-3 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-200 focus-visible-app-default hover:bg-white/10 hover:text-white! hover:no-underline! transition-all duration-150 focus-visible:rounded-xl! group"
+                class="flex grow items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-300 hover:bg-white/[0.08] hover:text-white! hover:no-underline! transition-all duration-150 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 group"
                 :class="{
-                  'bg-[#16a34a]! text-white! font-extrabold shadow-sm ring-1 ring-emerald-400/30': isRouteActive(route),
+                  'active-nav-item bg-emerald-500/15! text-white! font-bold ring-1 ring-emerald-400/30 shadow-2xs': isRouteActive(route),
                 }"
                 :link="route.path.replace(/\/:\w+/, '')"
-                exact-active-class="bg-[#16a34a]! w-full text-white!"
+                exact-active-class="active-nav-item bg-emerald-500/15! text-white! font-bold ring-1 ring-emerald-400/30 shadow-2xs"
                 internal
               >
-                <CommonLabel
-                  class="gap-3 text-sm! text-current! font-bold"
-                  size="medium"
-                  :prefix-icon="route.meta.icon"
+                <div
+                  class="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-slate-400 transition-all duration-150 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/30 group-hover:text-emerald-300"
+                  :class="{
+                    'bg-emerald-500/20! border-emerald-400/40! text-emerald-300! shadow-xs': isRouteActive(route),
+                  }"
                 >
+                  <CommonIcon
+                    :name="route.meta.icon"
+                    size="small"
+                    class="transition-transform duration-150 group-hover:scale-110"
+                    decorative
+                  />
+                </div>
+                <span class="truncate text-sm font-semibold tracking-tight text-current">
                   {{ $t(route.meta.title) }}
-                </CommonLabel>
+                </span>
               </CommonLink>
             </li>
           </ul>
@@ -107,20 +117,12 @@ const isRouteActive = (route: any) => {
 </template>
 
 <style scoped>
-:deep(svg) {
-  width: 1.25rem !important;
-  height: 1.25rem !important;
-  color: #38bdf8 !important;
-  fill: currentColor !important;
-  transition: all 150ms ease !important;
+:deep(a) {
+  outline: none !important;
+  text-decoration: none !important;
 }
-:deep(a:hover svg) {
-  color: #ffffff !important;
-  fill: #ffffff !important;
-}
-:deep([class*="bg-[#16a34a]"] svg),
-:deep(.bg-\[\#16a34a\] svg) {
-  color: #ffffff !important;
-  fill: #ffffff !important;
+:deep(a:focus),
+:deep(a:focus-visible) {
+  outline: none !important;
 }
 </style>

@@ -23,7 +23,7 @@ const hasOverviewSortingPreference = computed(() =>
       link="/personal-setting/ticket-overviews"
     >
       <CommonLabel
-        class="text-blue-800! hover:text-blue-850! hover:dark:text-blue-600!"
+        class="text-emerald-700! hover:text-emerald-800! hover:dark:text-emerald-400! font-semibold"
         prefix-icon="list-columns-reverse"
         size="small"
       >

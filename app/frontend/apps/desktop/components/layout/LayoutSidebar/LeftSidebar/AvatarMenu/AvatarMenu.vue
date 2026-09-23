@@ -43,9 +43,9 @@ const { popover, popoverTarget, toggle, isOpen: popoverIsOpen } = usePopover()
     id="user-menu"
     ref="popoverTarget"
     v-tooltip="user?.fullname || user?.email || $t('User menu')"
-    class="rounded-full outline-2 outline-transparent hover:outline-blue-900 focus-visible:outline-blue-800 hover:focus-visible:outline-blue-800"
+    class="rounded-full transition-transform duration-150 hover:scale-105 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
     :class="{
-      'outline-blue-800! hover:outline-blue-800!': popoverIsOpen,
+      'ring-2 ring-emerald-400!': popoverIsOpen,
     }"
     :aria-label="user?.fullname || user?.email || $t('User menu')"
     aria-controls="user-menu-popover"

@@ -398,6 +398,13 @@ const getStatusBadge = (
   }
 }
 
+const isClosedTicket = (
+  state?: { name?: string | null; stateType?: { name?: string | null } } | null,
+) => {
+  const name = (state?.name || state?.stateType?.name || '').toLowerCase()
+  return name.includes('closed') || name.includes('resolved') || name.includes('merged')
+}
+
 const filteredCustomerTickets = computed(() => {
   if (!tickets.value) return []
   return tickets.value.filter((ticket) => {
@@ -576,33 +583,75 @@ defineExpose({ tickets: readonly(tickets) })
           </div>
 
           <!-- Dedicated Scrollable Tickets List -->
-          <div class="flex-1 overflow-y-auto pr-1 space-y-3 min-h-0">
+          <div class="flex-1 overflow-y-auto px-1.5 pt-3 pb-4 space-y-3 min-h-0 -mx-1.5">
             <template v-if="filteredCustomerTickets.length > 0">
               <div
                 v-for="(ticket, idx) in filteredCustomerTickets"
                 :key="ticket.id"
-                class="ticket-card cursor-pointer rounded-2xl border-2 border-slate-200/80 bg-white p-4 transition-all duration-200 hover:border-[#1e3a5f] hover:shadow-md hover:-translate-y-0.5 group"
+                class="ticket-card cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 hover:-translate-y-0.5 group will-change-transform"
+                :class="
+                  isClosedTicket(ticket.state)
+                    ? 'border-slate-200/70 bg-gradient-to-b from-slate-50/90 to-slate-100/75 shadow-2xs hover:border-slate-300 hover:bg-white hover:shadow-xs'
+                    : 'border-slate-200/90 bg-white shadow-2xs hover:border-[#1e3a5f] hover:shadow-md'
+                "
                 :style="idx < 3 ? undefined : { animationDelay: `${Math.min(idx * 50, 300)}ms` }"
                 @click="navigateToTicket(ticket)"
               >
                 <!-- Top: Ticket # and Status Pill -->
                 <div class="flex items-center justify-between gap-3 mb-1.5">
-                  <span class="font-mono text-xs font-bold text-slate-400 group-hover:text-[#1e3a5f] transition-colors">
+                  <span
+                    class="font-mono text-xs font-bold transition-colors"
+                    :class="
+                      isClosedTicket(ticket.state)
+                        ? 'text-slate-400 group-hover:text-slate-600'
+                        : 'text-slate-400 group-hover:text-[#1e3a5f]'
+                    "
+                  >
                     #{{ ticket.number || ticket.internalId || getIdFromGraphQLId(ticket.id) }}
                   </span>
-                  <span class="shrink-0 font-bold" :class="getStatusBadge(ticket.state).class">
+                  <span
+                    class="shrink-0 font-bold inline-flex items-center gap-1"
+                    :class="getStatusBadge(ticket.state).class"
+                  >
+                    <svg
+                      v-if="isClosedTicket(ticket.state)"
+                      class="h-3.5 w-3.5 text-emerald-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
                     {{ getStatusBadge(ticket.state).label }}
                   </span>
                 </div>
 
                 <!-- Title -->
-                <div class="text-sm sm:text-base font-bold leading-snug text-slate-900 group-hover:text-[#1e3a5f] transition-colors line-clamp-2 mb-2">
+                <div
+                  class="text-sm sm:text-base leading-snug line-clamp-2 mb-2 transition-colors"
+                  :class="
+                    isClosedTicket(ticket.state)
+                      ? 'font-medium text-slate-600 group-hover:text-slate-900'
+                      : 'font-bold text-slate-900 group-hover:text-[#1e3a5f]'
+                  "
+                >
                   {{ ticket.title }}
                 </div>
 
                 <!-- Bottom Row: Group & Date -->
-                <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                  <span class="font-semibold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200/60">
+                <div
+                  class="flex items-center justify-between gap-2 pt-2 border-t text-xs"
+                  :class="isClosedTicket(ticket.state) ? 'border-slate-200/50' : 'border-slate-100'"
+                >
+                  <span
+                    class="font-semibold px-2 py-0.5 rounded-md border"
+                    :class="
+                      isClosedTicket(ticket.state)
+                        ? 'bg-white/80 text-slate-500 border-slate-200/50'
+                        : 'bg-slate-50 text-slate-500 border-slate-200/60'
+                    "
+                  >
                     {{ ticket.group?.name || $t('General Enquiry') }}
                   </span>
                   <span class="text-slate-400 font-medium">

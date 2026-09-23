@@ -32,18 +32,41 @@ const filteredTickets = computed(() => {
   })
 })
 
+const isClosedTicket = (ticket: any) => {
+  const name = (ticket.state?.name || ticket.state?.stateType?.name || '').toLowerCase()
+  return name.includes('closed') || name.includes('resolved') || name.includes('merged')
+}
+
 const getStateBadge = (ticket: any) => {
   const name = (ticket.state?.name || ticket.state?.stateType?.name || 'open').toLowerCase()
-  if (name.includes('new')) {
-    return { label: 'New', class: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+  if (name.includes('closed') || name.includes('resolved') || name.includes('merged')) {
+    return {
+      label: ticket.state?.name || __('Resolved'),
+      class: 'bg-[#f0fdf4] text-[#15803d] border border-emerald-200 shadow-2xs',
+    }
+  }
+  if (name.includes('waiting')) {
+    return {
+      label: ticket.state?.name || __('Waiting for Reply'),
+      class: 'bg-[#fff7ed] text-[#c2410c] border border-orange-200 shadow-2xs',
+    }
   }
   if (name.includes('pending')) {
-    return { label: 'Pending', class: 'bg-amber-50 text-amber-700 border-amber-200' }
+    return {
+      label: ticket.state?.name || __('Pending'),
+      class: 'bg-[#fef9c3] text-[#854d0e] border border-yellow-200 shadow-2xs',
+    }
   }
-  if (name.includes('closed') || name.includes('resolved') || name.includes('merged')) {
-    return { label: 'Resolved', class: 'bg-slate-100 text-slate-600 border-slate-200' }
+  if (name.includes('new')) {
+    return {
+      label: ticket.state?.name || __('New'),
+      class: 'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs',
+    }
   }
-  return { label: ticket.state?.name || 'Open', class: 'bg-blue-50 text-blue-700 border-blue-200' }
+  return {
+    label: ticket.state?.name || __('Open'),
+    class: 'bg-[#e8f0f9] text-[#1e3a5f] border border-blue-200 shadow-2xs',
+  }
 }
 
 const formatRelativeTime = (dateStr?: string | null) => {
@@ -52,7 +75,7 @@ const formatRelativeTime = (dateStr?: string | null) => {
     const date = new Date(dateStr)
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    if (diffInSeconds < 60) return 'Just now'
+    if (diffInSeconds < 60) return __('Just now')
     const diffInMinutes = Math.floor(diffInSeconds / 60)
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`
     const diffInHours = Math.floor(diffInMinutes / 60)
@@ -118,11 +141,12 @@ const navigateToTicket = (ticket: any) => {
         <input
           v-model="searchQuery"
           type="text"
-          class="w-full h-11 bg-slate-50 border border-slate-200/90 rounded-xl pl-10 pr-4 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/15 transition-all"
           :placeholder="$t('Filter recent tickets...')"
+          :aria-label="$t('Filter recent tickets...')"
+          class="w-full ltr:pl-10 rtl:pr-10 ltr:pr-4 rtl:pl-4 py-2.5 text-sm bg-slate-50/80 border border-slate-200/90 rounded-xl focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/15 outline-none transition-all placeholder:text-slate-400"
         />
         <svg
-          class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"
+          class="w-4 h-4 text-slate-400 absolute ltr:left-3.5 rtl:right-3.5 top-3.5"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -142,8 +166,8 @@ const navigateToTicket = (ticket: any) => {
       </span>
     </div>
 
-    <!-- Scrollable Tickets List (Bigger Cards & Text) -->
-    <div class="flex-1 overflow-y-auto p-3 space-y-2.5">
+    <!-- Scrollable Tickets List (Bigger Cards & Text) with breathing room -->
+    <div class="flex-1 overflow-y-auto px-3.5 pt-3 pb-4 space-y-2.5 min-h-0">
       <div v-if="loading && filteredTickets.length === 0" class="p-6 text-center text-sm text-slate-400">
         <div class="space-y-2.5 animate-pulse">
           <div class="h-16 bg-slate-100 rounded-xl"></div>
@@ -167,31 +191,54 @@ const navigateToTicket = (ticket: any) => {
         <span class="font-medium">{{ $t('No tickets found') }}</span>
       </div>
 
+      <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
       <div
         v-for="ticket in filteredTickets"
         :key="ticket.id"
-        class="p-4 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col gap-2 group hover:scale-[1.01]"
-        :class="
+        role="button"
+        tabindex="0"
+        class="ticket-sidebar-card p-4 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col gap-2 group will-change-transform hover:scale-[1.01]"
+        :class="[
           currentTicketInternalId === String(ticket.internalId)
-            ? 'bg-[#e8f0f9] border-[#1e3a5f]/40 shadow-xs border-l-4 border-l-[#1e3a5f]'
-            : 'bg-white hover:bg-slate-50 border-slate-200/80 hover:border-slate-300 shadow-2xs'
-        "
+            ? (isClosedTicket(ticket)
+                ? 'bg-[#f0fdf4] border-emerald-300 shadow-xs border-l-4 border-l-[#15803d]'
+                : 'bg-[#e8f0f9] border-[#1e3a5f]/40 shadow-xs border-l-4 border-l-[#1e3a5f]')
+            : isClosedTicket(ticket)
+              ? 'border-slate-200/70 bg-gradient-to-b from-slate-50/90 to-slate-100/75 shadow-2xs hover:border-slate-300 hover:bg-white hover:shadow-xs'
+              : 'bg-white hover:bg-slate-50 border-slate-200/90 hover:border-[#1e3a5f] shadow-2xs hover:shadow-xs',
+        ]"
         @click="navigateToTicket(ticket)"
+        @keydown.enter="navigateToTicket(ticket)"
       >
         <!-- Top: Ticket # and Status Pill -->
         <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <!-- Closed checkmark indicator -->
+            <span
+              v-if="isClosedTicket(ticket)"
+              class="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"
+              title="Resolved"
+            >
+              <svg class="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <span
+              class="text-sm font-black transition-colors truncate"
+              :class="
+                currentTicketInternalId === String(ticket.internalId)
+                  ? (isClosedTicket(ticket) ? 'text-[#15803d]' : 'text-[#1e3a5f]')
+                  : isClosedTicket(ticket)
+                    ? 'text-slate-500 group-hover:text-slate-700'
+                    : 'text-slate-600 group-hover:text-slate-900'
+              "
+            >
+              #{{ ticket.number || ticket.internalId }}
+            </span>
+          </div>
+
           <span
-            class="text-sm font-black transition-colors"
-            :class="
-              currentTicketInternalId === String(ticket.internalId)
-                ? 'text-[#1e3a5f]'
-                : 'text-slate-600 group-hover:text-slate-900'
-            "
-          >
-            #{{ ticket.number || ticket.internalId }}
-          </span>
-          <span
-            class="px-2.5 py-1 rounded-full text-xs font-bold border"
+            class="px-2.5 py-1 rounded-full text-xs font-bold border shrink-0"
             :class="getStateBadge(ticket).class"
           >
             {{ getStateBadge(ticket).label }}
@@ -203,15 +250,20 @@ const navigateToTicket = (ticket: any) => {
           class="text-sm sm:text-base font-bold line-clamp-2 leading-snug transition-colors"
           :class="
             currentTicketInternalId === String(ticket.internalId)
-              ? 'text-slate-900 font-extrabold'
-              : 'text-slate-800 group-hover:text-[#1e3a5f]'
+              ? (isClosedTicket(ticket) ? 'text-slate-900 font-extrabold' : 'text-slate-900 font-extrabold')
+              : isClosedTicket(ticket)
+                ? 'text-slate-700 group-hover:text-[#1e3a5f]'
+                : 'text-slate-800 group-hover:text-[#1e3a5f]'
           "
         >
           {{ ticket.title }}
         </h4>
 
         <!-- Footer: Group / College & Time -->
-        <div class="flex items-center justify-between text-xs text-slate-500 font-medium pt-1 border-t border-slate-100">
+        <div
+          class="flex items-center justify-between text-xs font-medium pt-1 border-t transition-colors"
+          :class="isClosedTicket(ticket) ? 'border-slate-200/60 text-slate-400' : 'border-slate-100 text-slate-500'"
+        >
           <span>{{ ticket.group?.name || 'Support' }}</span>
           <span>{{ formatRelativeTime(ticket.updatedAt || ticket.createdAt) }}</span>
         </div>

@@ -112,9 +112,90 @@ const openSelectDropdown = () => {
 
   requestAnimationFrame(() => {
     activateTabTrap()
-    if (props.context.noFiltering) outputElement.value?.focus()
-    else filterInputElement.value?.focus()
+    if (props.context.noFiltering || (isStateSelect.value && sortedOptions.value.length <= 4)) {
+      outputElement.value?.focus()
+    } else {
+      filterInputElement.value?.focus()
+    }
   })
+}
+
+const isStateSelect = computed(() => props.context.node?.name === 'state_id')
+
+const getStateStyle = (labelOrValue?: SelectValue | string) => {
+  const str = (
+    getSelectedOptionLabel(labelOrValue as SelectValue) ||
+    String(labelOrValue ?? '')
+  ).toLowerCase()
+
+  if (str.includes('closed') || str.includes('resolved') || str.includes('merged')) {
+    return {
+      type: 'closed',
+      label: getSelectedOptionLabel(labelOrValue as SelectValue) || i18n.t('Closed'),
+      pillClass:
+        'bg-[#f0fdf4] text-[#15803d] border border-emerald-200/90 shadow-2xs dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/80',
+      activeButtonClass:
+        'bg-[#15803d] text-white shadow-xs border-[#15803d]',
+      inactiveButtonClass:
+        'bg-white hover:bg-emerald-50/70 text-slate-600 hover:text-emerald-800 border-slate-200/90 hover:border-emerald-300 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white',
+      dotClass: 'bg-emerald-500',
+      icon: 'check2',
+    }
+  }
+  if (str.includes('pending')) {
+    return {
+      type: 'pending',
+      label: getSelectedOptionLabel(labelOrValue as SelectValue) || i18n.t('Pending'),
+      pillClass:
+        'bg-[#fef9c3] text-[#854d0e] border border-yellow-200 shadow-2xs dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
+      activeButtonClass:
+        'bg-amber-600 text-white shadow-xs border-amber-600',
+      inactiveButtonClass:
+        'bg-white hover:bg-amber-50/70 text-slate-600 hover:text-amber-800 border-slate-200/90 hover:border-amber-300 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white',
+      dotClass: 'bg-amber-500',
+      icon: 'clock',
+    }
+  }
+  if (str.includes('waiting')) {
+    return {
+      type: 'waiting',
+      label: getSelectedOptionLabel(labelOrValue as SelectValue) || i18n.t('Waiting for Reply'),
+      pillClass:
+        'bg-[#fff7ed] text-[#c2410c] border border-orange-200 shadow-2xs dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800',
+      activeButtonClass:
+        'bg-orange-600 text-white shadow-xs border-orange-600',
+      inactiveButtonClass:
+        'bg-white hover:bg-orange-50/70 text-slate-600 hover:text-orange-800 border-slate-200/90 hover:border-orange-300 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white',
+      dotClass: 'bg-orange-500',
+      icon: 'chat-left-dots',
+    }
+  }
+  if (str.includes('new')) {
+    return {
+      type: 'new',
+      label: getSelectedOptionLabel(labelOrValue as SelectValue) || i18n.t('New'),
+      pillClass:
+        'bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800',
+      activeButtonClass:
+        'bg-teal-600 text-white shadow-xs border-teal-600',
+      inactiveButtonClass:
+        'bg-white hover:bg-teal-50/70 text-slate-600 hover:text-teal-800 border-slate-200/90 hover:border-teal-300 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white',
+      dotClass: 'bg-teal-500',
+      icon: 'sparkle',
+    }
+  }
+  return {
+    type: 'open',
+    label: getSelectedOptionLabel(labelOrValue as SelectValue) || i18n.t('Open'),
+    pillClass:
+      'bg-[#e8f0f9] text-[#1e3a5f] border border-blue-200 shadow-2xs dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
+    activeButtonClass:
+      'bg-[#1e3a5f] text-white shadow-xs border-[#1e3a5f]',
+    inactiveButtonClass:
+      'bg-white hover:bg-blue-50/70 text-slate-600 hover:text-[#1e3a5f] border-slate-200/90 hover:border-blue-300 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:text-white',
+    dotClass: 'bg-[#1e3a5f] dark:bg-blue-400',
+    icon: 'circle-fill',
+  }
 }
 
 onMounted(() => {
@@ -179,13 +260,19 @@ setupMissingOrDisabledOptionHandling()
 <template>
   <div
     ref="input"
-    class="flex h-auto min-h-10 bg-blue-200 hover:outline-1 hover:-outline-offset-1 hover:outline-blue-600 has-[output:focus,input:focus]:outline-1 has-[output:focus,input:focus]:-outline-offset-1 has-[output:focus,input:focus]:outline-blue-800 dark:bg-gray-700 dark:hover:outline-blue-900 dark:has-[output:focus,input:focus]:outline-blue-800 formkit-alternative-background:bg-neutral-50 dark:formkit-alternative-background:bg-gray-500"
+    class="flex h-auto min-h-10 transition-all duration-150"
     :class="[
       context.classes.input,
+      isStateSelect
+        ? 'bg-white dark:bg-neutral-800 border-2 border-slate-200/90 dark:border-neutral-700 hover:border-[#1e3a5f] shadow-2xs'
+        : 'bg-blue-200 hover:outline-1 hover:-outline-offset-1 hover:outline-blue-600 has-[output:focus,input:focus]:outline-1 has-[output:focus,input:focus]:-outline-offset-1 has-[output:focus,input:focus]:outline-blue-800 dark:bg-gray-700 dark:hover:outline-blue-900 dark:has-[output:focus,input:focus]:outline-blue-800 formkit-alternative-background:bg-neutral-50 dark:formkit-alternative-background:bg-gray-500',
       {
-        'rounded-lg': !selectInstance?.isOpen,
-        'rounded-t-lg': selectInstance?.isOpen && !isBelowHalfScreen,
-        'rounded-b-lg': selectInstance?.isOpen && isBelowHalfScreen,
+        'rounded-xl': isStateSelect && !selectInstance?.isOpen,
+        'rounded-lg': !isStateSelect && !selectInstance?.isOpen,
+        'rounded-t-xl': isStateSelect && selectInstance?.isOpen && !isBelowHalfScreen,
+        'rounded-t-lg': !isStateSelect && selectInstance?.isOpen && !isBelowHalfScreen,
+        'rounded-b-xl': isStateSelect && selectInstance?.isOpen && isBelowHalfScreen,
+        'rounded-b-lg': !isStateSelect && selectInstance?.isOpen && isBelowHalfScreen,
       },
     ]"
     data-test-id="field-select"
@@ -279,7 +366,7 @@ setupMissingOrDisabledOptionHandling()
           </div>
         </div>
         <CommonInputSearch
-          v-if="expanded && !context.noFiltering"
+          v-if="expanded && !context.noFiltering && (!isStateSelect || sortedOptions.length > 4)"
           ref="filter-input"
           v-model="filter"
           :suggestion="suggestedOptionLabel"
@@ -292,21 +379,54 @@ setupMissingOrDisabledOptionHandling()
             class="flex items-center gap-1.5 text-sm"
             role="listitem"
           >
-            <CommonIcon
-              v-if="getSelectedOptionIcon(currentValue)"
-              :name="getSelectedOptionIcon(currentValue)"
-              class="shrink-0 fill-gray-100 dark:fill-neutral-400"
-              size="tiny"
-              decorative
-            />
-            <span
-              v-tooltip="
-                getSelectedOptionLabel(currentValue) || i18n.t('%s (unknown)', currentValue)
-              "
-              class="line-clamp-3 break-word"
+            <!-- Rich status pill for state_id -->
+            <div
+              v-if="isStateSelect"
+              class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-all duration-150"
+              :class="getStateStyle(currentValue).pillClass"
             >
-              {{ getSelectedOptionLabel(currentValue) || i18n.t('%s (unknown)', currentValue) }}
-            </span>
+              <span
+                v-if="getStateStyle(currentValue).type === 'open'"
+                class="relative flex h-2 w-2 shrink-0"
+              >
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#1e3a5f] dark:bg-blue-400" />
+              </span>
+              <CommonIcon
+                v-else-if="getStateStyle(currentValue).type === 'closed'"
+                name="check2"
+                size="xs"
+                class="shrink-0 fill-current"
+                decorative
+              />
+              <CommonIcon
+                v-else-if="getStateStyle(currentValue).type === 'pending'"
+                name="clock"
+                size="xs"
+                class="shrink-0 fill-current"
+                decorative
+              />
+              <span class="capitalize">{{ getStateStyle(currentValue).label }}</span>
+            </div>
+
+            <!-- Standard select option rendering -->
+            <template v-else>
+              <CommonIcon
+                v-if="getSelectedOptionIcon(currentValue)"
+                :name="getSelectedOptionIcon(currentValue)"
+                class="shrink-0 fill-gray-100 dark:fill-neutral-400"
+                size="tiny"
+                decorative
+              />
+              <span
+                v-tooltip="
+                  getSelectedOptionLabel(currentValue) || i18n.t('%s (unknown)', currentValue)
+                "
+                class="line-clamp-3 break-word"
+              >
+                {{ getSelectedOptionLabel(currentValue) || i18n.t('%s (unknown)', currentValue) }}
+              </span>
+            </template>
           </div>
         </div>
         <CommonIcon

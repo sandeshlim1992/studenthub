@@ -29,7 +29,11 @@ const isChecklistFeatureEnabled = computed(() => !!config.value.checklist)
 
     <CommonTicketPriorityIndicator v-if="isTicketAgent" :priority="ticket.priority" />
 
-    <CommonBadge variant="tertiary" class="uppercase">
+    <CommonBadge
+      variant="tertiary"
+      rounded
+      class="uppercase tracking-wider font-bold text-slate-500! bg-slate-100/90! border! border-slate-200/80! shadow-2xs px-3 py-1 text-xs"
+    >
       <CommonDateTime :date-time="ticket.createdAt" absolute-format="date" class="ms-1">
         <template #prefix>
           {{ $t('Created') }}

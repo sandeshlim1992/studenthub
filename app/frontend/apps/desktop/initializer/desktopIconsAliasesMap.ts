@@ -70,6 +70,9 @@ export default {
   '2fa-authenticator-app': 'phone',
 
   'form-field-link': 'box-arrow-up-right',
+  'arrow-up-right': 'box-arrow-up-right',
+  translate: 'translate',
+  weblate: 'weblate',
 
   // File input field
   attachment: 'paperclip',
@@ -124,4 +127,13 @@ export default {
   'avatar-indicator-desktop': 'avatar-indicator-desktop',
   'avatar-indicator-mobile': 'phone',
   'avatar-indicator-idle': 'user-idle-2',
+
+  // AI Providers
+  openai: 'openai',
+  anthropic: 'anthropic',
+  ollama: 'ollama',
+  mistral: 'mistral',
+  azure: 'azure',
+  'zammad-ai': 'zammad-ai',
+  'custom-ai': 'custom-ai',
 }

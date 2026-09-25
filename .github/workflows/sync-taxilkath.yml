@@ -1,0 +1,51 @@
+name: Sync from taxilkath
+
+on:
+  schedule:
+    - cron: "17 6 * * *"      # every day at about 07:17 UK time
+  workflow_dispatch:          # lets you run it manually too
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - name: Check taxilkath's repo and open a PR if there's anything new
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git remote add taxil https://github.com/taxilkath/zammad_ui.git
+          git fetch taxil develop
+
+          NEW=$(git rev-list --count HEAD..taxil/develop)
+          if [ "$NEW" = "0" ]; then
+            echo "No new commits from taxilkath. Nothing to do."
+            exit 0
+          fi
+
+          # Put his latest code on a review branch in your repo
+          git push -f origin taxil/develop:refs/heads/sync/taxilkath
+
+          OPEN=$(gh pr list --head sync/taxilkath --state open --json number --jq length)
+          if [ "$OPEN" = "0" ]; then
+            {
+              echo "New commits from https://github.com/taxilkath/zammad_ui:"
+              echo
+              git log --format='- %h %s (%an, %ad)' --date=short HEAD..taxil/develop
+              echo
+              echo "Review the **Files changed** tab. Merge with **Create a merge commit** (not squash or rebase)."
+            } > body.md
+            gh pr create --base develop --head sync/taxilkath \
+              --title "Sync: $NEW new commit(s) from taxilkath/zammad_ui" \
+              --body-file body.md
+          else
+            echo "A sync PR is already open; it now includes his latest commits."
+          fi

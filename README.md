@@ -1,53 +1,263 @@
-# Welcome to Zammad
+# Student Hub (customised Zammad helpdesk)
 
-Are you juggling countless customer inquiries across multiple channels?
-Struggling to keep your support team on the same page?
-Or spending more time managing your helpdesk than delivering exceptional support to your customers?
+Student Hub is a branded support portal for students and staff, built on
+[Zammad](https://zammad.org), an open-source helpdesk and ticketing system
+(Ruby on Rails + Vue 3). The branding assets reference **LSST**, **UKBC** and **FSB**.
 
-Zammad is your Swiss Army knife - a web-based, open-source helpdesk and customer support platform
-packed with features to streamline customer communication across channels like email, chat, telephone and social media.
+This repository is a private copy of
+[taxilkath/zammad_ui](https://github.com/taxilkath/zammad_ui). That repo is a fork of the
+official [zammad/zammad](https://github.com/zammad/zammad) with the Student Hub
+UI work added on top.
 
-## The Software
+---
 
-The Zammad software is and will stay open source. It is licensed under the GNU AGPLv3.
-The source code is [available on GitHub](https://github.com/zammad/zammad) and owned by
-the [Zammad Foundation](https://zammad-foundation.org/), which is independent of commercial
-providers such as Zammad GmbH.
+## At a glance
 
-## The Company - Zammad GmbH
+| | |
+|---|---|
+| **Base product** | Zammad **7.2.x (pre-release)**, a `develop` branch snapshot, *not* a tagged release |
+| **Forked from Zammad at** | commit `91916cb`, 17 Jul 2026 (between the `7.2.0-alpha` and `7.2.0` tags) |
+| **Custom work** | 6 commits by Taxil Kathiriya, 21 Jul to 23 Sep 2026 (~53,000 lines) |
+| **Main branch** | `develop` (default; the only branch we use) |
+| **Licence** | GNU AGPLv3, inherited from Zammad (see [Licence](#licence)) |
+| **Backend** | Ruby 3.4.9, Rails, PostgreSQL, Redis |
+| **Frontend** | Vue 3 + TypeScript + Vite (new "desktop" UI), CoffeeScript (legacy UI) |
+| **Package manager** | pnpm 11, Node 24 |
 
-The development of Zammad is carried out by the [amazing team of people](https://zammad.com/en/company)
-at [Zammad GmbH](https://zammad.com/) in collaboration with the community.
-We love to create open source software for you. If you want to ensure the Zammad software
-has a bright and sustainable future, consider becoming a Zammad customer!
+### Where this code came from
 
-> Are you tired of complex setup, configuration, backup and update tasks? Let us handle this stuff for you! 🚀
->
-> The easiest and often most cost-effective way to operate Zammad is [our cloud service](https://zammad.com/en/pricing).
-> Give it a try with a [free trial instance](https://zammad.com/en/getting-started)!
+```
+zammad/zammad (official)                 upstream, develop branch
+   │  forked 17 Jul 2026 @ 91916cb
+   ▼
+taxilkath/zammad_ui                      Taxil's fork, 6 Student Hub commits
+   │  mirrored 25 Sep 2026 (git push --mirror)
+   ▼
+sandeshlim1992/studenthub (this repo)    private, independent copy
+```
 
-## Status
+As of 25 Sep 2026, Taxil's fork was **6 commits ahead** and **573 commits
+behind** official Zammad. Zammad **7.2.0 stable** was released on 23 Sep 2026
+(tag `7.2.0`, commit `9a69c6b`), and Zammad `develop` has since moved on to **7.3.x**.
+None of those upstream fixes are in this repo yet.
 
-- Toolchain: [![CI](https://github.com/zammad/zammad/workflows/CI/badge.svg)](https://github.com/zammad/zammad/actions/workflows/ci.yaml)
-  [![docker-release workflow](https://github.com/zammad/zammad/workflows/docker-release/badge.svg)](https://github.com/zammad/zammad/actions/workflows/docker-release.yaml)
-  [![documentation status](https://readthedocs.org/projects/zammad/badge/)](https://docs.zammad.org)
-- Docker container images: [![Docker images for Zammad](https://img.shields.io/badge/version-stable-blue.svg)](https://hub.docker.com/r/zammad/zammad-docker-compose)
-  [![Dockerhub Pulls](https://badgen.net/docker/pulls/zammad/zammad-docker-compose?icon=docker&label=pulls)](https://hub.docker.com/r/zammad/zammad-docker-compose/)
-- Helm chart for Kubernetes: [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/zammad)](https://artifacthub.io/packages/helm/zammad/zammad)
-  [![Release downloads](https://img.shields.io/github/downloads/zammad/zammad-helm/total.svg)](https://github.com/zammad/zammad-helm/releases)
-- Download DEB/RPM: [![binary packages for Zammad stable](https://img.shields.io/badge/Branch-stable-blue.svg)](https://packager.io/gh/zammad/zammad/refs/stable)
-  [![binary packages for Zammad develop](https://img.shields.io/badge/Branch-develop-lightgrey.svg)](https://packager.io/gh/zammad/zammad/refs/develop)
-- License: [![AGPL license](https://img.shields.io/badge/License-AGPL%203.0-brightgreen.svg)](https://github.com/zammad/zammad/blob/develop/LICENSE)
+---
 
-## Further Information
+## What was changed (Taxil's 6 commits)
 
-- [Installing & Getting Started](https://docs.zammad.org)
-- [Screenshots](https://zammad.org/screenshots)
-- [Developer Manual](/doc/developer_manual/index.md)
-- [REST API](https://docs.zammad.org/en/latest/api/intro.html)
-- For reporting security vulnerabilities, please see [our security policy](SECURITY.md).
-- [Contributing](https://zammad.org/participate)
+| Date | Commit | Summary |
+|---|---|---|
+| 21 Jul 2026 | `a4995eb` | **Legacy UI theme.** 1,700-line custom SCSS theme plus redesigned dashboard stats widgets on the old (`/#dashboard`) interface |
+| 12 Aug 2026 | `172eb95` | **New admin area + login.** ~14 Vue 3 admin pages under `/manage` (Users, Groups, Triggers, Macros, SLAs, Webhooks, Templates, Calendars…), UI primitives, redesigned Login / Signup / Password reset, college logos, new loading screen |
+| 14 Sep 2026 | `c86011f` | **Student portal.** Two-column customer layout with persistent header and sidebar, restyled ticket list |
+| 15 Sep 2026 | `19ca334` | **Staff sidebar.** Student Hub brand header, high-contrast navigation, improved tabs |
+| 23 Sep 2026 | `c73c822` | **Admin area, part 2.** ~35 more `/manage` pages: AI (agents, providers, summary, writing assistant), all channels (Email, M365, Google, WhatsApp, Telegram, SMS, Facebook, Chat, Form, Web), Knowledge Base, Time Accounting, Reports, Security, System (API, Backup, Core Workflows, Objects, Packages, Translations…) |
+| 23 Sep 2026 | `efe9ff5` | **Polish.** Emerald / dark-slate theme, customer personal-settings pages (incl. Microsoft 365 SSO security view), redesigned "Submit a Support Request" card, glass-style taskbar tabs |
 
-Thanks! ❤️ ❤️ ❤️
+### How the changes are structured
 
- Your Zammad Team
+- **107 new files** (~49,200 lines): most of the work lives in files that don't exist in Zammad.
+- **69 original Zammad files edited** (+3,651 / −777 lines). These cause **merge conflicts**
+  when pulling in Zammad updates.
+- **0 files deleted.**
+
+#### New files (safe from upstream conflicts)
+
+| Path | What it is |
+|---|---|
+| `app/frontend/apps/desktop/pages/manage/` | The whole new admin area (48 views + `routes.ts`), served at `/manage`. Zammad's new UI has no admin section yet, so this adds one rather than replacing anything; the original admin in the legacy UI is still there |
+| `app/frontend/apps/desktop/components/ui/` | UI building blocks: button, card, dialog, dropdown-menu, input, select, tabs |
+| `app/frontend/apps/desktop/components/Customer/` | Student portal header, sidebar and `useCustomerTickets.ts` |
+| `app/frontend/apps/desktop/pages/personal-setting/components/CustomerPersonalSettingSidebar.vue` | Student settings sidebar |
+| `app/frontend/apps/desktop/pages/ticket/components/TicketCreate/CustomerTicketCreateCard.vue` | "Submit a Support Request" card |
+| `app/assets/stylesheets/zammad/theme/custom-theme.scss` | Legacy UI theme, loaded by one `@import` line at the end of `app/assets/stylesheets/zammad.scss` |
+| `app/frontend/apps/desktop/styles/custom-theme.css` | New UI theme overrides |
+| `app/frontend/apps/desktop/assets/images/`, `public/assets/images/branding/` | Student Hub, LSST, UKBC and FSB logos |
+| `app/frontend/apps/desktop/initializer/assets/*.svg` | AI provider / integration icons |
+
+#### Most-edited Zammad files (watch these when merging)
+
+| File | Change |
+|---|---|
+| `app/frontend/apps/desktop/pages/dashboard/views/Dashboard.vue` | +704 / −5 |
+| `app/frontend/apps/desktop/pages/ticket-overviews/components/TicketList.vue` | +489 / −1 |
+| `app/frontend/apps/desktop/pages/authentication/views/Login.vue` | +375 / −135 |
+| `app/frontend/apps/desktop/pages/personal-setting/views/PersonalSettingAvatar.vue` | +236 / −10 |
+| `app/assets/javascripts/app/views/dashboard.jst.eco` | +188 / −14 |
+| `app/frontend/apps/desktop/pages/ticket/components/TicketCreate/TicketCreateContent.vue` | +130 / −6 |
+| `app/frontend/apps/desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarHeader.vue` | +107 / −15 |
+| `app/assets/javascripts/app/controllers/dashboard.coffee` | +107 / −6 |
+| `app/views/init/spinner-loading.html.erb` | +66 / −208 |
+| `app/frontend/apps/desktop/components/layout/LayoutPage.vue` | +67 / −1 |
+
+For the full list, run `git diff --stat 91916cb develop`.
+
+#### Student vs staff views
+
+Several original files now branch on the user's role:
+
+```ts
+const isCustomer = computed(() =>
+  hasPermission('ticket.customer', perms) && !hasPermission('ticket.agent', perms))
+```
+
+```html
+<div v-if="isCustomer"> … Student Hub customer layout … </div>
+<div v-if="!isCustomer"> … Zammad's original (restyled) agent layout … </div>
+```
+
+Students (customers) get the new portal layout, and staff (agents/admins) get Zammad's
+layout with the Student Hub styling. See `LayoutPage.vue` and `TicketList.vue`.
+
+#### How the new admin pages talk to the backend
+
+The `/manage` views call Zammad's **REST API** directly with `fetch('/api/v1/...')`.
+They do **not** use the GraphQL layer that the rest of Zammad's new UI uses. They work,
+but they bypass Zammad's caching, typing and authorisation helpers, and several files
+are very large (up to ~2,500 lines). Much of this code appears to be AI-generated.
+
+---
+
+## Getting started (local development)
+
+Zammad's own developer guide applies unchanged: see
+[`doc/developer_manual/development_environment/getting-started.md`](doc/developer_manual/development_environment/getting-started.md).
+
+### Option A: Devcontainer (recommended, especially on Windows)
+
+Requirements: **Docker Desktop**, **VS Code** and the **Dev Containers** extension.
+
+1. `git clone https://github.com/sandeshlim1992/studenthub.git`
+2. Open the folder in VS Code and click **Reopen in Container**. PostgreSQL, Redis and
+   all other dependencies are set up for you.
+3. In the container terminal, run `dev`.
+4. Open <http://localhost:3000> and sign in with `admin@example.com` / `test`.
+
+Variants exist in `.devcontainer/` for LDAP, a mail server, Ollama (local AI) and Selenium.
+
+### Option B: Manual setup
+
+See [`manual-setup.md`](doc/developer_manual/development_environment/manual-setup.md).
+You'll need Ruby 3.4.9, Node 24, pnpm 11, PostgreSQL and Redis. Then:
+
+```sh
+bundle install
+pnpm install
+cp config/database/database.yml config/database.yml   # then set your own DB credentials
+bin/dev                                              # starts Rails, Vite, websocket, worker, CSS
+```
+
+### Useful commands
+
+| Command | Purpose |
+|---|---|
+| `bin/dev` / `pnpm dev` | Start all dev processes (`Procfile.dev`) |
+| `pnpm lint` | TypeScript, JS, CSS and Markdown linting |
+| `pnpm test` | Frontend unit tests (Vitest) |
+| `bundle exec rspec` | Backend tests |
+| `pnpm generate-graphql-api` | Regenerate GraphQL types after schema changes |
+
+### Useful URLs (dev)
+
+| URL | What |
+|---|---|
+| `http://localhost:3000/desktop` | New Vue 3 UI (Student Hub portal, dashboard) |
+| `http://localhost:3000/desktop/manage` | New Student Hub admin area |
+| `http://localhost:3000/#dashboard` | Legacy UI with the custom theme |
+
+---
+
+## Staying in sync with Taxil's repo
+
+This repo is **not** a GitHub fork, so there is no "Sync fork" button. Updates from
+`taxilkath/zammad_ui` arrive as **pull requests that need approval**.
+
+- **Workflow:** `.github/workflows/sync-taxilkath.yml`
+- **Schedule:** daily at ~07:17 UK time (06:17 UTC), plus **Actions → Sync from taxilkath → Run workflow** manually
+- **What it does:** fetches Taxil's `develop`. If there are new commits, it pushes them to
+  the branch `sync/taxilkath` and opens (or updates) a PR into `develop`
+- **To approve:** review **Files changed**, then **Merge pull request** (merge commit)
+- **To reject:** close the PR. Note that it will reopen the next day. To skip changes
+  permanently, merge and then **Revert**
+
+### Repository settings this relies on
+
+- **Settings → Actions → General**
+  - Actions permissions: *Allow all actions and reusable workflows*
+  - Workflow permissions: *Read and write* + *Allow GitHub Actions to create and approve pull requests*
+- **Settings → General → Pull Requests**: only **merge commits** allowed (squash and rebase
+  turned off). Squash or rebase would rewrite Taxil's commits and break the sync.
+- **Zammad's own workflows are disabled** in the Actions tab (`CI`, `docker-ci`,
+  `docker-release`, `packager.io`). They are meant for Zammad's infrastructure. The files
+  are left unchanged so they don't conflict with future syncs.
+
+### Limitations
+
+- GitHub pauses scheduled workflows after **60 days** without repo activity. Re-enable the
+  workflow from the Actions tab if that happens.
+- If Taxil changes anything in `.github/workflows/`, the automated push fails, because
+  `GITHUB_TOKEN` can't modify workflows. Sync that update manually.
+
+### Pulling in official Zammad updates (not set up yet)
+
+To get upstream fixes (e.g. from `7.2.0` stable), add Zammad as a second remote:
+
+```sh
+git remote add zammad https://github.com/zammad/zammad.git
+git fetch zammad
+git merge 7.2.0            # or zammad/stable
+```
+
+Expect conflicts in the **69 edited files** listed above.
+
+---
+
+## Known issues and to-do
+
+- [ ] **Database password committed.** `config/database/database.yml` contains a real-looking
+      Postgres username and password (it was published in Taxil's public repo). Change that
+      password on any server that uses it, restore the file to Zammad's commented-out
+      sample, and keep real credentials in `config/database.yml` (git-ignored) or
+      environment variables.
+- [ ] **`auto_wizard.json` in the repo root.** This is Zammad's standard test set-up
+      (`admin@example.com` / `agent1@example.com` with test passwords, developer mode on).
+      Zammad runs it automatically on first start. That's fine for development, but it
+      **must not be present on a production server**.
+- [ ] **Not on a supported release.** The base is a mid-July `develop` snapshot. Consider
+      moving the 6 Student Hub commits onto the `7.2.0` tag or the `stable` branch before
+      going live.
+- [ ] **No tests** were added for the ~53,000 new lines.
+- [ ] **Conflicting Node versions.** Taxil added two tool-version files: `.mise.toml` pins
+      Node 22.23.2, while `mise.toml` pins Node 24, and `package.json` requires Node **≥ 24**.
+      Use Node 24 and delete `.mise.toml`.
+- [ ] **Leftover branch.** `feature/student-hub-portal` (from Taxil) was 3 commits behind
+      `develop` with nothing unique. It can be deleted.
+- [ ] Admin pages use raw `fetch` calls instead of GraphQL, and several views are very large
+      (1,000–2,500 lines). Consider refactoring if they grow further.
+
+---
+
+## AI assistant configuration in this repo
+
+- `AGENTS.md`, `.claude/CLAUDE.md` and `.github/copilot-instructions.md` are Zammad's own coding guidelines for AI tools.
+- `.claude/ui-rules.md` was added by Taxil and describes the legacy-UI theme rules (palette,
+  typography, spacing). Its colours reflect the first theme pass (navy/blue). Later
+  commits moved to emerald / dark slate.
+- `.claude/settings.json` is Zammad's Claude Code config (permissions plus lint/regenerate
+  hooks). Taxil added the `frontend-design` plugin to it.
+
+---
+
+## Licence
+
+Zammad is licensed under the **GNU AGPLv3** (see `LICENSE`). This repo can stay
+private, but if you run a modified version for other people (for example, students using the
+portal), the AGPL requires that you make this modified source code available to those users.
+
+## Upstream resources
+
+- Zammad documentation: <https://docs.zammad.org>
+- Zammad REST API: <https://docs.zammad.org/en/latest/api/intro.html>
+- Developer manual (in this repo): [`doc/developer_manual/index.md`](doc/developer_manual/index.md)
+- Official repo: <https://github.com/zammad/zammad>
+- Taxil's fork: <https://github.com/taxilkath/zammad_ui>

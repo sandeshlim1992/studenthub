@@ -3,7 +3,6 @@
 <script setup lang="ts">
 import { FormKit } from '@formkit/vue'
 
-import { useTouchDevice } from '#shared/composables/useTouchDevice.ts'
 
 import { useBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import { showFeedbackConsent } from '#desktop/components/BetaUi/composables/useBetaUiFeedbackConsent.ts'
@@ -27,7 +26,6 @@ const {
 
 const { openFeedbackDialog } = useFeedbackDialog()
 
-const { isTouchDevice } = useTouchDevice()
 </script>
 
 <template>
@@ -78,10 +76,7 @@ const { isTouchDevice } = useTouchDevice()
           size="large"
           variant="tertiary-gray"
           :collapsed="isSidebarCollapsed"
-          :class="[
-            isSidebarCollapsed ? 'order-last' : 'order-first',
-            { 'lg:hidden': !isTouchDevice },
-          ]"
+          :class="isSidebarCollapsed ? 'order-last' : 'order-first'"
           :collapse-label="$t('Collapse sidebar')"
           :expand-label="$t('Expand sidebar')"
           @toggle-collapse="toggleSidebar"
@@ -109,19 +104,20 @@ const { isTouchDevice } = useTouchDevice()
 :deep([aria-label*="New ticket" i]),
 :deep([href*="/tickets/create"]),
 :deep(a[href="/tickets/create"]) {
-  background-color: #16a34a !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
   color: #ffffff !important;
   border-radius: 0.5rem;
   padding: 0.375rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 150ms ease;
+  transition: all 150ms ease;
 }
 :deep([aria-label*="New ticket" i]:hover),
 :deep([href*="/tickets/create"]:hover),
 :deep(a[href="/tickets/create"]:hover) {
-  background-color: #15803d !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
 }
 :deep([aria-label*="New ticket" i] svg),
 :deep([href*="/tickets/create"] svg),

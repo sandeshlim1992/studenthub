@@ -112,7 +112,7 @@ describe('UserTaskbarTabs.vue', () => {
       ],
     })
 
-    expect(wrapper.getByText('Tabs')).toBeInTheDocument()
+    expect(wrapper.getByText('Recent')).toBeInTheDocument()
 
     const tab = wrapper.getByRole('treeitem')
 
@@ -155,7 +155,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const wrapper = await renderUserTaskbarTabs()
 
-    expect(wrapper.getByText('Tabs')).toBeInTheDocument()
+    expect(wrapper.getByText('Recent')).toBeInTheDocument()
 
     const tab = wrapper.getByRole('treeitem')
 
@@ -186,7 +186,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const wrapper = await renderUserTaskbarTabs()
 
-    expect(wrapper.getByText('Tabs')).toBeInTheDocument()
+    expect(wrapper.getByText('Recent')).toBeInTheDocument()
 
     const tab = wrapper.getByRole('treeitem')
 
@@ -218,7 +218,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const wrapper = await renderUserTaskbarTabs()
 
-    expect(wrapper.getByText('Tabs')).toBeInTheDocument()
+    expect(wrapper.getByText('Recent')).toBeInTheDocument()
 
     const tab = wrapper.getByRole('treeitem')
 
@@ -308,7 +308,7 @@ describe('UserTaskbarTabs.vue', () => {
       },
     })
 
-    expect(wrapper.queryByText('Tabs')).toBeInTheDocument()
+    expect(wrapper.queryByText('Recent')).toBeInTheDocument()
     expect(wrapper.getByText('Test ticket title')).toBeInTheDocument()
 
     // Update item.
@@ -405,7 +405,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const wrapper = await renderUserTaskbarTabs()
 
-    expect(wrapper.getByText('Tabs')).toBeInTheDocument()
+    expect(wrapper.getByText('Recent')).toBeInTheDocument()
 
     let tabs = wrapper.getAllByRole('treeitem')
 
@@ -559,7 +559,7 @@ describe('UserTaskbarTabs.vue', () => {
     // Rely on the default ticket tab from the `UserTaskbarItem` factory.
     const wrapper = await renderUserTaskbarTabs()
 
-    expect(wrapper.getByText('Tabs')).toBeInTheDocument()
+    expect(wrapper.getByText('Recent')).toBeInTheDocument()
 
     const tab = wrapper.getByRole('treeitem')
 

@@ -10,8 +10,8 @@ import { useReducedMotion } from '#shared/composables/useReducedMotion.ts'
 import { useTrapTab } from '#shared/composables/useTrapTab.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
-import hasPermission from '#shared/utils/hasPermission.ts'
 import emitter from '#shared/utils/emitter.ts'
+import hasPermission from '#shared/utils/hasPermission.ts'
 
 import CustomerHeader from '#desktop/components/Customer/CustomerHeader.vue'
 import CustomerSidebar from '#desktop/components/Customer/CustomerSidebar.vue'
@@ -107,8 +107,7 @@ const isCustomer = computed(
 const route = useRoute()
 
 const showCustomerSidebar = computed(() => {
-  const routeName = route.name
-  const path = route.path
+  const { name: routeName, path } = route
   if (routeName === 'TicketOverview' || path === '/' || path.startsWith('/tickets/view')) {
     return false
   }
@@ -195,9 +194,20 @@ const showCustomerSidebar = computed(() => {
           <LeftSidebarHeader
             v-model:search="quickSearchValue"
             v-model:search-active="isQuickSearchActive"
-            class="mb-3 px-3 py-2.5"
+            class="px-3 pt-2.5 pb-1"
             :collapsed="isCollapsed"
           />
+
+          <!-- Attractive Subtle Divider -->
+          <div v-if="!isCollapsed" class="flex w-full items-center justify-center gap-2 px-4 my-2 opacity-60 select-none">
+            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+            <div class="h-1 w-1 rounded-full bg-white/30 ring-2 ring-white/10" />
+            <div class="h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-transparent" />
+          </div>
+          <div v-else class="flex w-full items-center justify-center my-2 opacity-40 select-none">
+            <div class="w-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          </div>
+
           <QuickSearch
             v-show="isQuickSearchActive"
             :search="quickSearchValue"
@@ -207,10 +217,29 @@ const showCustomerSidebar = computed(() => {
           <PageNavigation
             v-show="!isQuickSearchActive"
             class="px-3"
-            :class="{ 'mb-2': !isCollapsed }"
+            :class="{ 'mb-1': !isCollapsed }"
             :collapsed="isCollapsed"
           />
+
+          <!-- Attractive Subtle Divider -->
+          <div v-if="!isCollapsed && !isQuickSearchActive" class="flex w-full items-center justify-center gap-2 px-4 my-2 opacity-60 select-none">
+            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+            <div class="h-1 w-1 rounded-full bg-white/30 ring-2 ring-white/10" />
+            <div class="h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-transparent" />
+          </div>
+          <div v-else-if="!isQuickSearchActive" class="flex w-full items-center justify-center my-2 opacity-40 select-none">
+            <div class="w-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          </div>
+
           <UserTaskbarTabs v-show="!isQuickSearchActive" class="px-3" :collapsed="isCollapsed" />
+
+          <!-- Attractive Subtle Divider before footer -->
+          <div v-if="!isCollapsed && !isQuickSearchActive" class="flex w-full items-center justify-center gap-2 px-4 mt-auto mb-1 opacity-60 select-none">
+            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+            <div class="h-1 w-1 rounded-full bg-white/30 ring-2 ring-white/10" />
+            <div class="h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-transparent" />
+          </div>
+
           <LeftSidebarFooterMenu
             v-show="!isQuickSearchActive"
             class="mt-auto"

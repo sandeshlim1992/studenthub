@@ -51,17 +51,7 @@ const currentStateColorCode = computed(
 )
 
 const activeBackgroundColor = computed(() => {
-  switch (currentStateColorCode.value) {
-    case EnumTicketStateColorCode.Closed:
-      return 'bg-emerald-500/15! text-white! ring-1 ring-emerald-400/35 shadow-2xs font-bold'
-    case EnumTicketStateColorCode.Pending:
-      return 'bg-amber-500/15! text-white! ring-1 ring-amber-400/35 shadow-2xs font-bold'
-    case EnumTicketStateColorCode.Escalating:
-      return 'bg-rose-500/15! text-white! ring-1 ring-rose-400/35 shadow-2xs font-bold'
-    case EnumTicketStateColorCode.Open:
-    default:
-      return 'bg-emerald-500/15! text-white! ring-1 ring-emerald-400/35 shadow-2xs font-bold'
-  }
+  return 'bg-white/15! text-white! ring-1 ring-white/25 shadow-xs font-bold'
 })
 
 const currentViewTitle = computed(
@@ -75,7 +65,7 @@ const currentViewTitle = computed(
     ref="tabLinkInstance"
     v-tooltip="currentViewTitle"
     :aria-current="isActive ? 'page' : undefined"
-    class="flex grow items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.08] hover:no-underline! transition-all duration-150 rounded-xl outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
+    class="flex grow items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/[0.08] hover:no-underline! transition-all duration-150 rounded-xl outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50"
     :link="taskbarTabLink"
     :class="{
       [activeBackgroundColor]: taskbarTabActive,
@@ -87,7 +77,7 @@ const currentViewTitle = computed(
     <div
       class="relative shrink-0 flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-white/5 border border-white/10 transition-colors"
       :class="{
-        'bg-emerald-500/20! border-emerald-400/40! shadow-xs': taskbarTabActive,
+        'bg-sky-500/25! border-sky-400/40! text-sky-300! shadow-xs': taskbarTabActive,
       }"
     >
       <CommonUpdateIndicator v-if="isTicketUpdated" />

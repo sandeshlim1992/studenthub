@@ -132,17 +132,14 @@ describe('Left sidebar', () => {
         useSidebarDisplayStore().setCollapsed(SidebarName.Primary, collapsed)
 
         const expectedMenuItems = [
-          'Admin documentation',
-          'User documentation',
-          'Appearance',
-          'Playground',
           'Profile settings',
+          'Keyboard shortcuts',
           'Sign out',
         ]
 
         const view = await visitView('/')
 
-        const aside = view.getByRole('complementary')
+        const aside = view.getByRole('complementary', { name: 'Main sidebar' })
         const avatarButton = getByRole(aside, 'button', {
           name: 'Nicole Braun',
         })
@@ -164,35 +161,7 @@ describe('Left sidebar', () => {
       },
     )
 
-    it('supports cycling appearance state', async () => {
-      mockPermissions(['user_preferences.appearance'])
-
-      const view = await visitView('/')
-
-      const aside = view.getByRole('complementary')
-      const avatarButton = getByRole(aside, 'button', { name: 'Nicole Braun' })
-
-      await view.events.click(avatarButton)
-
-      const appearanceButton = view.getByRole('button', { name: 'Appearance' })
-      const appearanceSwitch = view.getByRole('checkbox', { name: 'Dark mode' })
-
-      expect(appearanceSwitch).toBePartiallyChecked()
-
-      await view.events.click(appearanceSwitch)
-
-      expect(appearanceSwitch).toBeChecked()
-
-      await view.events.click(appearanceButton)
-
-      expect(appearanceSwitch).not.toBeChecked()
-
-      await view.events.click(appearanceSwitch)
-
-      expect(appearanceSwitch).toBePartiallyChecked()
-    })
-
-    it('supports navigating to playground', async () => {
+    it('supports keyboard shortcuts menu item', async () => {
       mockPermissions(['admin'])
 
       const view = await visitView('/')
@@ -202,17 +171,11 @@ describe('Left sidebar', () => {
 
       await view.events.click(avatarButton)
 
-      const playgroundLink = view.getByRole('link', {
-        name: 'Playground',
+      const shortcutsButton = view.getByRole('button', {
+        name: 'Keyboard shortcuts',
       })
 
-      await view.events.click(playgroundLink)
-
-      await waitFor(() => {
-        expect(view, 'correctly redirects to playground page').toHaveCurrentUrl('/playground')
-      })
-
-      expect(view.queryByRole('region', { name: 'User menu' })).not.toBeInTheDocument()
+      expect(shortcutsButton).toBeInTheDocument()
     })
 
     // TODO: Cover keyboard shortcuts menu item when ready.
@@ -235,7 +198,7 @@ describe('Left sidebar', () => {
 
       await waitFor(() => {
         expect(view, 'correctly redirects to personal settings page').toHaveCurrentUrl(
-          '/personal-setting/appearance',
+          '/personal-setting/avatar',
         )
       })
 

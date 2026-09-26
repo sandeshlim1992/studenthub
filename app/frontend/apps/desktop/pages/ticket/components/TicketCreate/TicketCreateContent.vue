@@ -41,6 +41,7 @@ import { useProvideTicketSidebar, useTicketSidebar } from '../../composables/use
 import { TicketSidebarScreenType, type TicketSidebarContext } from '../../types/sidebar.ts'
 import TicketSidebar from '../TicketSidebar.vue'
 
+import AgentTicketCreateCard from './AgentTicketCreateCard.vue'
 import ApplyTemplate from './ApplyTemplate.vue'
 import CustomerTicketCreateCard from './CustomerTicketCreateCard.vue'
 import TicketDuplicateDetectionAlert from './TicketDuplicateDetectionAlert.vue'
@@ -110,66 +111,60 @@ const applyNewlyCreatedCustomer = async (data: unknown) => {
   customerNode.input(user.internalId, false)
 }
 
-const agentSchema = [
+const defaultSchema = [
   {
+    if: '$existingAdditionalCreateNotes() && $getAdditionalCreateNote($values.articleSenderType) !== undefined',
     isLayout: true,
-    component: 'CommonContentPanel',
+    component: 'CommonAlert',
+    props: {
+      variant: 'warning',
+    },
     children: [
       {
         isLayout: true,
-        element: 'h1',
+        element: 'div',
         attrs: {
-          class: 'py-2.5 text-center text-xl font-medium leading-snug text-black dark:text-white',
-          ariaCurrent: 'page',
+          // We convert light weight markup
+          // The input is not sanitized and relies on the administrator to provide safe links
+          innerHTML: '$markup($t($getAdditionalCreateNote($values.articleSenderType)))',
         },
-        children: '$values.title || $t($defaultTitle)',
+        children: '',
       },
+    ],
+  },
+  {
+    if: '$values.ticket_duplicate_detection.count > 0',
+    isLayout: true,
+    component: 'TicketDuplicateDetectionAlert',
+    props: {
+      tickets: '$values.ticket_duplicate_detection.items',
+    },
+    children: '',
+  },
+  {
+    isLayout: true,
+    component: 'AgentTicketCreateCard',
+    children: [
       {
         if: '$isTicketCustomer === false',
         ...ticketArticleSenderTypeField,
-        outerClass: 'flex justify-center max-w-full overflow-x-hidden',
-        blockClass: 'w-full',
-        innerClass: 'flex justify-stretch @md:justify-center',
+        outerClass: 'channel-tabs-outer flex justify-center w-full mb-1',
+        blockClass: 'channel-tabs-block',
+        innerClass: 'channel-tabs-inner',
+        inputClass: 'channel-tabs-strip',
+        classes: {
+          input: 'channel-tabs-strip',
+          inner: 'channel-tabs-inner',
+          outer: 'channel-tabs-outer',
+        },
       },
       {
         isLayout: true,
         element: 'div',
         attrs: {
-          class: 'grid grid-cols-1 gap-2.5',
-          role: 'tabpanel',
-          ariaLabelledby: '$getTabLabel($values.articleSenderType)',
-          id: '$getTabPanelId($values.articleSenderType)',
+          class: 'grid grid-cols-1 gap-5',
         },
         children: [
-          {
-            if: '$existingAdditionalCreateNotes() && $getAdditionalCreateNote($values.articleSenderType) !== undefined',
-            isLayout: true,
-            component: 'CommonAlert',
-            props: {
-              variant: 'warning',
-            },
-            children: [
-              {
-                isLayout: true,
-                element: 'div',
-                attrs: {
-                  // We convert light weight markup
-                  // The input is not sanitized and relies on the administrator to provide safe links
-                  innerHTML: '$markup($t($getAdditionalCreateNote($values.articleSenderType)))',
-                },
-                children: '',
-              },
-            ],
-          },
-          {
-            if: '$values.ticket_duplicate_detection.count > 0',
-            isLayout: true,
-            component: 'TicketDuplicateDetectionAlert',
-            props: {
-              tickets: '$values.ticket_duplicate_detection.items',
-            },
-            children: '',
-          },
           {
             screen: 'create_top',
             object: EnumObjectManagerObjects.Ticket,
@@ -228,51 +223,46 @@ const agentSchema = [
             },
           },
           {
-            name: 'ticket_duplicate_detection',
-            type: 'hidden',
-            value: {
-              count: 0,
-              items: [],
+            isLayout: true,
+            element: 'div',
+            attrs: {
+              class:
+                'grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-neutral-700/80',
             },
-          },
-          {
-            name: 'link_ticket_id',
-            type: 'hidden',
-          },
-          {
-            name: 'shared_draft_id',
-            type: 'hidden',
-          },
-          {
-            name: 'externalReferences',
-            type: 'hidden',
+            children: [
+              {
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+              {
+                screen: 'create_bottom',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+            ],
           },
         ],
       },
     ],
   },
   {
-    isLayout: true,
-    component: 'CommonContentPanel',
-    children: [
-      {
-        isLayout: true,
-        element: 'div',
-        attrs: {
-          class: 'grid @md:grid-cols-2-uneven gap-2.5',
-        },
-        children: [
-          {
-            screen: 'create_middle',
-            object: EnumObjectManagerObjects.Ticket,
-          },
-        ],
-      },
-      {
-        screen: 'create_bottom',
-        object: EnumObjectManagerObjects.Ticket,
-      },
-    ],
+    name: 'ticket_duplicate_detection',
+    type: 'hidden',
+    value: {
+      count: 0,
+      items: [],
+    },
+  },
+  {
+    name: 'link_ticket_id',
+    type: 'hidden',
+  },
+  {
+    name: 'shared_draft_id',
+    type: 'hidden',
+  },
+  {
+    name: 'externalReferences',
+    type: 'hidden',
   },
 ]
 
@@ -380,7 +370,7 @@ const customerSchema = [
   },
 ]
 
-const formSchema = defineFormSchema(isTicketCustomer.value ? customerSchema : agentSchema)
+const formSchema = defineFormSchema(isTicketCustomer.value ? customerSchema : defaultSchema)
 
 const securityIntegration = computed<boolean>(
   () => (application.config.smime_integration || application.config.pgp_integration) ?? false,
@@ -512,21 +502,20 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
     background-variant="primary"
     content-alignment="center"
     :show-sidebar="hasSidebar"
-    no-padding
+    :no-padding="isTicketCustomer"
   >
-    <div
-      class="w-full max-w-270 px-4 py-7.5"
-      :class="{ 'max-w-5xl! py-8!': isTicketCustomer }"
-    >
+    <div class="w-full max-w-5xl px-4 py-8">
       <Form
         id="ticket-create"
         ref="form"
         :key="tabId"
+        class="w-full"
         :form-id="currentTaskbarTabFormId"
         :schema="formSchema"
         :schema-component-library="{
           CommonContentPanel: markRaw(CommonContentPanel),
           CustomerTicketCreateCard: markRaw(CustomerTicketCreateCard),
+          AgentTicketCreateCard: markRaw(AgentTicketCreateCard),
           TicketDuplicateDetectionAlert: markRaw(TicketDuplicateDetectionAlert),
         }"
         :schema-data="schemaData"
@@ -535,7 +524,7 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
         :change-fields="changedFields"
         :form-updater-additional-params="formAdditionalRouteQueryParams"
         use-object-attributes
-        form-class="flex flex-col gap-3 min-w-xs"
+        form-class="flex w-full flex-col gap-5 min-w-xs"
         @submit="submitCreateTicket($event as FormSubmitData<TicketFormData>)"
       />
     </div>
@@ -565,12 +554,8 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
         type="submit"
         :form="formNodeId"
         :disabled="isDisabled"
-        class="min-w-36 font-bold"
-        :class="{
-          'bg-gradient-to-r from-emerald-600 to-[#15803d] hover:from-emerald-700 hover:to-[#166534] text-white shadow-md shadow-emerald-700/20 rounded-xl px-6':
-            isTicketCustomer,
-        }"
-        >{{ isTicketCustomer ? $t('Submit Request') : $t('Create') }}</CommonButton
+        class="min-w-36"
+        >{{ $t('Create') }}</CommonButton
       >
     </template>
   </LayoutContent>

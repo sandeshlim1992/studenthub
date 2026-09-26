@@ -9,6 +9,8 @@ import { useSessionStore } from '#shared/stores/session.ts'
 import emitter from '#shared/utils/emitter.ts'
 
 import OnlineNotification from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarHeader/OnlineNotification.vue'
+import { SidebarName } from '#desktop/components/layout/types.ts'
+import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 import QuickSearchInput from '#desktop/components/Search/QuickSearch/QuickSearchInput/QuickSearchInput.vue'
 
 interface Props {
@@ -18,6 +20,7 @@ interface Props {
 defineProps<Props>()
 
 const router = useRouter()
+const { toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
 
 const searchValue = defineModel<string>('search', {
   required: true,
@@ -54,9 +57,9 @@ const isTicketAgent = computed(() => hasPermission('ticket.agent') ?? false)
         @click="router.push('/')"
         @keydown.enter="router.push('/')"
       >
-        <!-- Crisp White Badge for Brand Logo -->
+        <!-- Crisp Badge for Brand Logo -->
         <div
-          class="h-10 w-10 rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-white/30 flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105"
+          class="h-11 w-11 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-white/25 group-hover:ring-sky-400/50 flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105"
         >
           <img
             src="/assets/images/branding/student_hub_logo.png"
@@ -65,33 +68,52 @@ const isTicketAgent = computed(() => hasPermission('ticket.agent') ?? false)
           />
         </div>
 
-        <!-- Clean Brand Title -->
-        <div class="flex items-center min-w-0 flex-1">
-          <span class="text-base font-extrabold text-white tracking-tight leading-none truncate group-hover:text-emerald-300 transition-colors">
+        <!-- Clean Prominent Brand Title -->
+        <div class="flex flex-col min-w-0 flex-1 justify-center">
+          <span class="text-[17px] font-black text-white tracking-tight leading-tight truncate group-hover:text-sky-200 transition-colors">
             Student Hub
+          </span>
+          <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest leading-none mt-0.5">
+            Admin & Agent
           </span>
         </div>
       </div>
 
-      <!-- Online / Notification bell -->
-      <component
-        :is="isTicketAgent ? OnlineNotification : 'div'"
-        class="shrink-0 flex items-center justify-center p-1.5 rounded-xl hover:bg-white/10 transition-colors"
-      >
-        <svg class="h-5 w-5 text-slate-400 hover:text-emerald-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-        </svg>
-      </component>
+      <!-- Action buttons: Notification bell + Collapse Toggle -->
+      <div class="flex items-center gap-0.5 shrink-0">
+        <component
+          :is="isTicketAgent ? OnlineNotification : 'div'"
+          class="shrink-0 flex items-center justify-center p-1.5 rounded-xl hover:bg-white/10 transition-colors"
+        >
+          <svg class="h-5 w-5 text-slate-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+        </component>
+
+        <!-- Dedicated Header Collapse Toggle Button -->
+        <button
+          v-tooltip="$t('Collapse sidebar')"
+          type="button"
+          class="flex items-center justify-center p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+          :aria-label="$t('Collapse sidebar')"
+          @click="toggleSidebar()"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <!-- Collapsed View Logo -->
-    <div v-else class="flex flex-col items-center gap-2 py-1">
+    <!-- Collapsed View Logo & Expand Toggle -->
+    <div v-else class="flex flex-col items-center gap-2.5 py-1">
       <div
-        class="h-10 w-10 rounded-2xl bg-white p-1.5 shadow-md ring-2 ring-white/30 flex items-center justify-center cursor-pointer transition-transform hover:scale-105"
+        v-tooltip="$t('Expand sidebar')"
+        class="h-11 w-11 rounded-2xl bg-white p-2 shadow-md ring-1 ring-white/25 hover:ring-sky-400/50 flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-105"
         role="button"
         tabindex="0"
-        @click="router.push('/')"
-        @keydown.enter="router.push('/')"
+        @click="toggleSidebar()"
+        @keydown.enter="toggleSidebar()"
       >
         <img
           src="/assets/images/branding/student_hub_logo.png"
@@ -100,11 +122,23 @@ const isTicketAgent = computed(() => hasPermission('ticket.agent') ?? false)
         />
       </div>
 
+      <button
+        v-tooltip="$t('Expand sidebar')"
+        type="button"
+        class="flex items-center justify-center p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+        :aria-label="$t('Expand sidebar')"
+        @click="toggleSidebar()"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+        </svg>
+      </button>
+
       <component
         :is="isTicketAgent ? OnlineNotification : 'div'"
         class="flex items-center justify-center p-1 rounded-lg hover:bg-white/10 transition-colors"
       >
-        <svg class="h-4 w-4 text-slate-400 hover:text-emerald-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="h-4 w-4 text-slate-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
       </component>

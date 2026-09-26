@@ -19,6 +19,6 @@ export default {
 
     return config.customer_ticket_create
   },
-  icon: 'plus-square-fill',
+  icon: 'plus',
   link: '/tickets/create',
 } as AddMenuItem

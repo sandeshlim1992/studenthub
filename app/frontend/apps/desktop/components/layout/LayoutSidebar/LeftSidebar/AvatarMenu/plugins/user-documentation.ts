@@ -10,5 +10,6 @@ export default <AvatarMenuPlugin>{
   linkExternal: true,
   openInNewTab: true,
   icon: 'book',
+  show: () => false,
   order: 80,
 }

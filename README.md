@@ -166,8 +166,8 @@ Windows → WSL 2 → Ubuntu (repo lives here) → Docker → devcontainer (Ruby
 3. **Clone inside Ubuntu** (in `~`, not under `/mnt/c`, which is much slower):
    ```sh
    sudo apt update && sudo apt install -y git gh
-   git config --global user.name "Sandesh Limbu"
-   git config --global user.email "sandeshlim1992@gmail.com"
+   git config --global user.name "Your Name"
+   git config --global user.email "you@example.com"   # use your GitHub noreply address to keep your email private
    gh auth login        # GitHub.com → HTTPS → authenticate Git → browser
    cd ~ && gh repo clone sandeshlim1992/studenthub
    ```

@@ -123,11 +123,17 @@ are very large (up to ~2,500 lines). Much of this code appears to be AI-generate
 Zammad's own developer guide applies unchanged: see
 [`doc/developer_manual/development_environment/getting-started.md`](doc/developer_manual/development_environment/getting-started.md).
 
-### Option A: Devcontainer (recommended, especially on Windows)
+> **Use Option A (devcontainer).** It's the preferred setup for this project: every
+> tool comes pre-installed at the right version, and the home and work PCs end up
+> identical. Only use Option B if Docker Desktop isn't available.
+
+### Option A: Devcontainer (preferred)
 
 Requirements: **Docker Desktop**, **VS Code** and the **Dev Containers** extension.
+On Windows, follow [Windows setup](#windows-setup-home-and-work-pcs) below first.
 
-1. `git clone https://github.com/sandeshlim1992/studenthub.git`
+1. `git clone https://github.com/sandeshlim1992/studenthub.git` (on Windows, clone
+   inside WSL/Ubuntu, not on `C:`)
 2. Open the folder in VS Code and click **Reopen in Container**. PostgreSQL, Redis and
    all other dependencies are set up for you.
 3. In the container terminal, run `dev`.
@@ -135,7 +141,57 @@ Requirements: **Docker Desktop**, **VS Code** and the **Dev Containers** extensi
 
 Variants exist in `.devcontainer/` for LDAP, a mail server, Ollama (local AI) and Selenium.
 
-### Option B: Manual setup
+### Windows setup (home and work PCs)
+
+Do this once on each PC. Ruby, Node, pnpm, PostgreSQL and Redis all come from the
+devcontainer, so don't install them in Windows or Ubuntu.
+
+```
+Windows → WSL 2 → Ubuntu (repo lives here) → Docker → devcontainer (Ruby, Node, pnpm, Postgres, Redis)
+```
+
+1. **WSL + Ubuntu.** In a *normal* (not admin) PowerShell:
+   ```powershell
+   wsl --install -d Ubuntu
+   wsl --set-default Ubuntu
+   ```
+   Check with `wsl -l -v`: Ubuntu should be VERSION 2 with a `*`. (`docker-desktop` in
+   that list is Docker's internal distro; don't work in it.)
+   On work PCs, don't use "Run as administrator": it can install Ubuntu under a
+   different Windows account, where Docker Desktop can't see it.
+2. **Docker Desktop.** Settings → Resources → WSL integration → enable **Ubuntu** →
+   Apply & restart. Test in Ubuntu with `docker run hello-world`. If Ubuntu isn't listed,
+   quit Docker Desktop from the tray, run `wsl --shutdown`, restart it and click
+   **Refetch distros**.
+3. **Clone inside Ubuntu** (in `~`, not under `/mnt/c`, which is much slower):
+   ```sh
+   sudo apt update && sudo apt install -y git gh
+   git config --global user.name "Sandesh Limbu"
+   git config --global user.email "sandeshlim1992@gmail.com"
+   gh auth login        # GitHub.com → HTTPS → authenticate Git → browser
+   cd ~ && gh repo clone sandeshlim1992/studenthub
+   ```
+4. **VS Code.** Install the **WSL** and **Dev Containers** extensions. Then
+   F1 → *Connect to WSL using Distro* → Ubuntu → open `~/studenthub` →
+   F1 → *Dev Containers: Reopen in Container*. The first build can take 10+ minutes.
+5. **Claude Code** (in the container terminal; reinstall after a container rebuild):
+   ```sh
+   curl -fsSL https://claude.ai/install.sh | bash
+   claude --rc          # continue the session from the Claude phone app
+   ```
+   Keep the PC awake (not just locked) while using it from your phone.
+
+### Switching between PCs
+
+- **Before you start:** `git pull`
+- **Before you leave:** commit and `git push`. The other PC can't see unpushed work.
+- Each PC has its own database inside its container, so test data (tickets, users)
+  isn't shared. Only code travels through git.
+
+### Option B: Manual setup (fallback only)
+
+Only if Docker Desktop can't be used (for example, it's blocked on a work PC). You
+install and version-match every tool yourself, on each PC.
 
 See [`manual-setup.md`](doc/developer_manual/development_environment/manual-setup.md).
 You'll need Ruby 3.4.9, Node 24, pnpm 11, PostgreSQL and Redis. Then:

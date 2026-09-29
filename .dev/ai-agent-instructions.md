@@ -1,6 +1,4 @@
 
-@README.md
-
 # AI Agent Instructions
 
 This file provides guidance on how to work with code in the Zammad repository.

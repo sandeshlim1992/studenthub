@@ -135,16 +135,23 @@ onMounted(() => {
             >
               <CommonButton
                 v-tooltip="$t('Discard unsaved reply')"
-                class="text-red-500"
+                class="text-red-500 hover:text-red-600 hover:bg-red-50 hover:outline-transparent! focus:outline-transparent! dark:hover:bg-red-950/40"
                 variant="none"
+                :size="isTicketCustomer ? 'small' : 'large'"
                 icon="trash"
                 @click="$emit('discard-form')"
               />
               <CommonButton
                 v-tooltip="isPinned ? $t('Unpin this panel') : $t('Pin this panel')"
                 :icon="isPinned ? 'pin' : 'pin-angle'"
-                variant="neutral"
-                size="small"
+                class="hover:outline-transparent! focus:outline-transparent!"
+                :class="
+                  isPinned
+                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-950/50'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-700'
+                "
+                variant="none"
+                :size="isTicketCustomer ? 'small' : 'large'"
                 @click="$emit('toggle-pin')"
               />
             </div>

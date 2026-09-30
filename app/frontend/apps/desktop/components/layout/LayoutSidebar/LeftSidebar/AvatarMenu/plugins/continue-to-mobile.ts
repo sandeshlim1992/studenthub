@@ -20,10 +20,6 @@ export default <AvatarMenuPlugin>{
     clearForceDesktopApp()
     continueToMobile()
   },
-  show: () => {
-    const { forceDesktopApp } = useMobileNavigation()
-
-    return forceDesktopApp.value || isMobile
-  },
+  show: () => false,
   order: 150,
 }

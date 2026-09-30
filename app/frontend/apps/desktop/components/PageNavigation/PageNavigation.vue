@@ -83,18 +83,18 @@ const isRouteActive = (route: any) => {
               />
               <CommonLink
                 v-else
-                class="flex grow items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-300 hover:bg-white/[0.08] hover:text-white! hover:no-underline! transition-all duration-150 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40 group"
+                class="flex grow items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10 hover:text-white! hover:no-underline! transition-all duration-150 outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/50 group"
                 :class="{
-                  'active-nav-item bg-emerald-500/15! text-white! font-bold ring-1 ring-emerald-400/30 shadow-2xs': isRouteActive(route),
+                  'active-nav-item bg-white/15! text-white! font-bold ring-1 ring-white/25 shadow-xs': isRouteActive(route),
                 }"
                 :link="route.path.replace(/\/:\w+/, '')"
-                exact-active-class="active-nav-item bg-emerald-500/15! text-white! font-bold ring-1 ring-emerald-400/30 shadow-2xs"
+                exact-active-class="active-nav-item bg-white/15! text-white! font-bold ring-1 ring-white/25 shadow-xs"
                 internal
               >
                 <div
-                  class="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-slate-400 transition-all duration-150 group-hover:bg-emerald-500/10 group-hover:border-emerald-500/30 group-hover:text-emerald-300"
+                  class="flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-slate-300 transition-all duration-150 group-hover:bg-white/10 group-hover:border-white/20 group-hover:text-sky-300"
                   :class="{
-                    'bg-emerald-500/20! border-emerald-400/40! text-emerald-300! shadow-xs': isRouteActive(route),
+                    'bg-sky-500/25! border-sky-400/40! text-sky-300! shadow-xs': isRouteActive(route),
                   }"
                 >
                   <CommonIcon

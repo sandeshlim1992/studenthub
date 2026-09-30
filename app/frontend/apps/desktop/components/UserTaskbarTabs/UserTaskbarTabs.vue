@@ -240,7 +240,7 @@ const { isTouchDevice } = useTouchDevice()
           id="user-taskbar-tabs-popover-button"
           ref="popoverTarget"
           v-tooltip="$t('List of all user taskbar tabs')"
-          class="text-neutral-400 hover:outline-emerald-900"
+          class="text-neutral-400 hover:outline-blue-900"
           icon="card-list"
           size="large"
           variant="neutral"
@@ -248,7 +248,7 @@ const { isTouchDevice } = useTouchDevice()
           aria-haspopup="true"
           :aria-expanded="popoverIsOpen"
           :class="{
-            'bg-emerald-600! text-white!': popoverIsOpen,
+            'bg-sky-600! text-white!': popoverIsOpen,
           }"
           @click="toggle(true)"
         />
@@ -263,7 +263,7 @@ const { isTouchDevice } = useTouchDevice()
         >
           <template #title>
             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400/80 px-3.5 mb-1.5 block select-none">
-              {{ __('Tickets') }}
+              {{ __('Recent') }}
             </span>
           </template>
           <div id="taskbarTabListExpanded" ref="taskbar-tab-list" />

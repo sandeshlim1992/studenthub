@@ -845,6 +845,32 @@ describe('Form.vue - with object attributes', () => {
     const input = view.getByLabelText('Title')
     expect(input).toHaveFocus()
   })
+
+  it('deduplicates screen fields so attributes configured in multiple screens are only rendered once', async () => {
+    mockGraphQLApi(ObjectManagerFrontendAttributesDocument).willResolve({
+      objectManagerFrontendAttributes: frontendObjectAttributes,
+    })
+
+    const view = renderComponent(Form, {
+      ...wrapperParameters,
+      props: {
+        useObjectAttributes: true,
+        schema: [
+          {
+            object: EnumObjectManagerObjects.Ticket,
+            screen: 'create_top',
+          },
+          {
+            object: EnumObjectManagerObjects.Ticket,
+            screen: 'create_top',
+          },
+        ],
+      },
+    })
+
+    await waitUntil(() => view.queryByLabelText('Title'))
+    expect(view.getAllByLabelText('Title')).toHaveLength(1)
+  })
 })
 
 describe('Form.vue - Flatten form groups', () => {

@@ -358,6 +358,46 @@ const customerFilterTabs = [
 type CustomerFilterTab = (typeof customerFilterTabs)[number]
 const customerActiveTab = ref<CustomerFilterTab>('All')
 
+const customerTabCounts = computed(() => {
+  const counts: Record<CustomerFilterTab, number> = {
+    'All': 0,
+    'Open': 0,
+    'Pending': 0,
+    'Waiting for Reply': 0,
+    'Resolved': 0,
+  }
+
+  if (!tickets.value) return counts
+
+  counts['All'] = tickets.value.length
+
+  for (const ticket of tickets.value) {
+    const stateName = (ticket.state?.name || ticket.state?.stateType?.name || '').toLowerCase()
+    if (
+      stateName.includes('closed') ||
+      stateName.includes('resolved') ||
+      stateName.includes('merged')
+    ) {
+      counts['Resolved']++
+    } else if (stateName.includes('waiting')) {
+      counts['Waiting for Reply']++
+    } else if (stateName.includes('pending')) {
+      counts['Pending']++
+    } else if (stateName.includes('open') || stateName.includes('new')) {
+      counts['Open']++
+    } else {
+      counts['Open']++
+    }
+  }
+
+  return counts
+})
+
+const formatStateLabel = (name?: string | null, fallback = 'Open') => {
+  const raw = name || fallback
+  const translated = __(raw)
+  return translated.charAt(0).toUpperCase() + translated.slice(1)
+}
 
 const getStatusBadge = (
   state?: { name?: string | null; stateType?: { name?: string | null } } | null,
@@ -365,36 +405,41 @@ const getStatusBadge = (
   const name = (state?.name || state?.stateType?.name || '').toLowerCase()
   if (name.includes('closed') || name.includes('resolved') || name.includes('merged')) {
     return {
-      label: state?.name || 'Resolved',
+      type: 'closed' as const,
+      label: formatStateLabel(state?.name, 'Closed'),
       class:
-        'flex-shrink-0 px-3.5 py-1 rounded-full text-xs font-bold bg-[#f0fdf4] text-[#15803d] border border-emerald-200 shadow-2xs',
+        'bg-[#e6eee8] text-[#243d2c] border border-[#b8d5c0] dark:bg-[#18261e] dark:text-[#a3ccae] dark:border-[#2f4f38]',
     }
   }
   if (name.includes('waiting')) {
     return {
-      label: state?.name || 'Waiting for Reply',
+      type: 'waiting' as const,
+      label: formatStateLabel(state?.name, 'Waiting for Reply'),
       class:
-        'flex-shrink-0 px-3.5 py-1 rounded-full text-xs font-bold bg-[#fff7ed] text-[#c2410c] border border-orange-200 shadow-2xs',
+        'bg-amber-50 text-amber-900 border border-amber-200/80 border-l-2 border-l-amber-500 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800/70 dark:border-l-amber-500',
     }
   }
   if (name.includes('pending')) {
     return {
-      label: state?.name || 'Pending',
+      type: 'pending' as const,
+      label: formatStateLabel(state?.name, 'Pending'),
       class:
-        'flex-shrink-0 px-3.5 py-1 rounded-full text-xs font-bold bg-[#fef9c3] text-[#854d0e] border border-yellow-200 shadow-2xs',
+        'bg-purple-50 text-purple-900 border border-purple-200/80 border-l-2 border-l-purple-500 dark:bg-purple-950/40 dark:text-purple-200 dark:border-purple-800/70 dark:border-l-purple-500',
     }
   }
   if (name.includes('new')) {
     return {
-      label: state?.name || 'New',
+      type: 'new' as const,
+      label: formatStateLabel(state?.name, 'New'),
       class:
-        'flex-shrink-0 px-3.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs',
+        'bg-[#ecfdf5] text-[#065f46] border border-[#a7f3d0] border-l-2 border-l-[#22c55e] dark:bg-emerald-950/50 dark:text-emerald-200 dark:border-emerald-800/80 dark:border-l-[#22c55e]',
     }
   }
   return {
-    label: state?.name || 'Open',
+    type: 'open' as const,
+    label: formatStateLabel(state?.name, 'Open'),
     class:
-      'flex-shrink-0 px-3.5 py-1 rounded-full text-xs font-bold bg-[#e8f0f9] text-[#1e3a5f] border border-blue-200 shadow-2xs',
+      'bg-sky-50 text-sky-900 border border-sky-200/80 border-l-2 border-l-sky-500 dark:bg-sky-950/40 dark:text-sky-200 dark:border-sky-800/70 dark:border-l-sky-500',
   }
 }
 
@@ -515,7 +560,7 @@ defineExpose({ tickets: readonly(tickets) })
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 xl:gap-8 items-start">
         <!-- LEFT COLUMN: MY TICKETS (Narrower & sleek: 4 columns on desktop) -->
         <section
-          class="lg:col-span-4 xl:col-span-4 order-2 lg:order-1 flex flex-col bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-4 sm:p-5.5 lg:h-[calc(100vh-140px)] lg:sticky lg:top-6"
+          class="lg:col-span-4 xl:col-span-4 order-2 lg:order-1 flex flex-col bg-white rounded-xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] p-4 sm:p-5.5 lg:h-[calc(100vh-140px)] lg:sticky lg:top-6"
         >
           <!-- Header: Title & Count Badge -->
           <div class="mb-4 flex items-center justify-between shrink-0">
@@ -524,7 +569,7 @@ defineExpose({ tickets: readonly(tickets) })
                 {{ $t('My Tickets') }}
               </h2>
               <span
-                class="rounded-full bg-[#e8f0f9] px-3 py-0.5 text-xs sm:text-sm font-extrabold text-[#1e3a5f]"
+                class="rounded-md bg-[#e8f0f9] px-2.5 py-0.5 text-xs sm:text-sm font-extrabold text-[#1e3a5f]"
               >
                 {{ filteredCustomerTickets.length }}
               </span>
@@ -546,11 +591,11 @@ defineExpose({ tickets: readonly(tickets) })
             <input
               v-model="customerSearch"
               type="text"
-              class="h-11 w-full rounded-xl border border-slate-200/90 bg-slate-50/80 pl-10 pr-4 text-sm font-medium text-slate-900 outline-none transition-all duration-150 placeholder:text-slate-400 focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/15"
+              class="h-11 w-full rounded-xl border border-slate-200/90 bg-slate-50/80 pl-10 pr-10 text-sm font-medium text-slate-900 outline-none transition-all duration-150 placeholder:text-slate-400 focus:bg-white focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/15"
               :placeholder="$t('Search your tickets...')"
             />
             <svg
-              class="absolute top-3 left-3.5 h-4.5 w-4.5 text-slate-400"
+              class="absolute top-3 left-3.5 h-4.5 w-4.5 text-slate-400 pointer-events-none"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -563,22 +608,45 @@ defineExpose({ tickets: readonly(tickets) })
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
               />
             </svg>
+            <button
+              v-if="customerSearch"
+              type="button"
+              class="absolute top-2.5 right-3 p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/70 transition-colors cursor-pointer"
+              :aria-label="$t('Clear search')"
+              @click="customerSearch = ''"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           <!-- Filter Tabs -->
-          <div class="mb-3.5 flex gap-1.5 overflow-x-auto pb-1 shrink-0 scrollbar-none">
+          <div class="mb-3.5 flex items-center gap-2 overflow-x-auto pb-1 shrink-0 scrollbar-none">
             <button
               v-for="tab in customerFilterTabs"
               :key="tab"
               type="button"
+              class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold cursor-pointer transition-all duration-150 select-none active:scale-[0.98]"
               :class="
                 customerActiveTab === tab
-                  ? 'whitespace-nowrap rounded-lg bg-[#1e3a5f] px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-all'
-                  : 'cursor-pointer whitespace-nowrap rounded-lg border border-slate-200/80 bg-slate-50/80 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-all duration-150 hover:border-slate-300 hover:text-[#1e3a5f] hover:bg-slate-100'
+                  ? 'bg-[#1e3a5f] text-white border border-[#1e3a5f] shadow-sm hover:bg-[#162d4a]'
+                  : 'bg-slate-100 hover:bg-slate-200/90 text-slate-700 hover:text-slate-900 border border-slate-300/85 hover:border-slate-400 shadow-2xs hover:shadow-xs dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:hover:text-white dark:border-slate-700'
               "
               @click="customerActiveTab = tab"
             >
-              {{ $t(tab) }}
+              <span>{{ $t(tab) }}</span>
+              <span
+                v-if="customerTabCounts[tab] > 0"
+                class="inline-flex items-center justify-center min-w-[18px] px-1.5 py-0.5 rounded-md text-[10px] font-bold leading-none tracking-tight transition-colors"
+                :class="
+                  customerActiveTab === tab
+                    ? 'bg-white/20 text-white'
+                    : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300/80 dark:border-slate-600 shadow-2xs'
+                "
+              >
+                {{ customerTabCounts[tab] }}
+              </span>
             </button>
           </div>
 
@@ -588,11 +656,11 @@ defineExpose({ tickets: readonly(tickets) })
               <div
                 v-for="(ticket, idx) in filteredCustomerTickets"
                 :key="ticket.id"
-                class="ticket-card cursor-pointer rounded-2xl border-2 p-4 transition-all duration-200 hover:-translate-y-0.5 group will-change-transform"
+                class="ticket-card cursor-pointer rounded-xl border p-4 transition-all duration-200 hover:-translate-y-0.5 group will-change-transform"
                 :class="
                   isClosedTicket(ticket.state)
-                    ? 'border-slate-200/70 bg-gradient-to-b from-slate-50/90 to-slate-100/75 shadow-2xs hover:border-slate-300 hover:bg-white hover:shadow-xs'
-                    : 'border-slate-200/90 bg-white shadow-2xs hover:border-[#1e3a5f] hover:shadow-md'
+                    ? 'border-slate-200/70 bg-gradient-to-b from-slate-50/90 to-slate-100/75 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-slate-300 hover:bg-white hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)]'
+                    : 'border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#1e3a5f] hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)]'
                 "
                 :style="idx < 3 ? undefined : { animationDelay: `${Math.min(idx * 50, 300)}ms` }"
                 @click="navigateToTicket(ticket)"
@@ -610,30 +678,74 @@ defineExpose({ tickets: readonly(tickets) })
                     #{{ ticket.number || ticket.internalId || getIdFromGraphQLId(ticket.id) }}
                   </span>
                   <span
-                    class="shrink-0 font-bold inline-flex items-center gap-1"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-medium shrink-0 transition-colors shadow-2xs"
                     :class="getStatusBadge(ticket.state).class"
                   >
+                    <!-- Closed / Resolved Check Icon -->
                     <svg
-                      v-if="isClosedTicket(ticket.state)"
-                      class="h-3.5 w-3.5 text-emerald-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                      v-if="getStatusBadge(ticket.state).type === 'closed'"
+                      class="h-3 w-3 shrink-0 text-[#243d2c] dark:text-[#a3ccae]"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                       aria-hidden="true"
                     >
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                      <path
+                        fill-rule="evenodd"
+                        d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+                        clip-rule="evenodd"
+                      />
                     </svg>
-                    {{ getStatusBadge(ticket.state).label }}
+
+                    <!-- New Live Pulsing Dot -->
+                    <span
+                      v-else-if="getStatusBadge(ticket.state).type === 'new'"
+                      class="relative flex h-1.5 w-1.5 shrink-0"
+                      aria-hidden="true"
+                    >
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#22c55e]"></span>
+                    </span>
+
+                    <!-- Open Active Steady Dot -->
+                    <span
+                      v-else-if="getStatusBadge(ticket.state).type === 'open'"
+                      class="h-1.5 w-1.5 rounded-full bg-sky-500 shrink-0"
+                      aria-hidden="true"
+                    ></span>
+
+                    <!-- Waiting for Reply Clock Icon -->
+                    <svg
+                      v-else-if="getStatusBadge(ticket.state).type === 'waiting'"
+                      class="h-3 w-3 shrink-0 text-amber-700 dark:text-amber-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-13a.75.75 0 0 0-1.5 0v5c0 .414.336.75.75.75h4a.75.75 0 0 0 0-1.5h-3.25V5Z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+
+                    <!-- Pending Purple Dot -->
+                    <span
+                      v-else-if="getStatusBadge(ticket.state).type === 'pending'"
+                      class="h-1.5 w-1.5 rounded-full bg-purple-500 shrink-0"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span>{{ getStatusBadge(ticket.state).label }}</span>
                   </span>
                 </div>
 
                 <!-- Title -->
                 <div
-                  class="text-sm sm:text-base leading-snug line-clamp-2 mb-2 transition-colors"
+                  class="text-sm sm:text-base leading-snug line-clamp-2 mb-2 transition-colors font-semibold"
                   :class="
                     isClosedTicket(ticket.state)
-                      ? 'font-medium text-slate-600 group-hover:text-slate-900'
-                      : 'font-bold text-slate-900 group-hover:text-[#1e3a5f]'
+                      ? 'text-slate-700 group-hover:text-slate-900'
+                      : 'text-slate-900 group-hover:text-[#1e3a5f]'
                   "
                 >
                   {{ ticket.title }}
@@ -661,28 +773,98 @@ defineExpose({ tickets: readonly(tickets) })
               </div>
             </template>
 
-            <!-- Empty State -->
-            <div v-else class="py-14 text-center">
-              <svg
-                class="mx-auto mb-3 h-12 w-12 text-slate-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div class="text-sm font-bold text-[#0f172a]">
-                {{ $t('No tickets found') }}
+            <!-- Friendly Empty State with Illustration & Context-Aware Actions -->
+            <div v-else class="py-12 px-4 text-center flex flex-col items-center justify-center">
+              <!-- Friendly Duotone Illustration Badge -->
+              <div class="mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100/80 text-slate-500 ring-8 ring-slate-50/80">
+                <!-- Search Empty Icon -->
+                <svg
+                  v-if="customerSearch"
+                  class="h-7 w-7 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+
+                <!-- Filter Empty Icon -->
+                <svg
+                  v-else-if="customerActiveTab !== 'All'"
+                  class="h-7 w-7 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z" />
+                </svg>
+
+                <!-- Default Friendly Ticket Icon -->
+                <svg
+                  v-else
+                  class="h-7 w-7 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 0 1 0 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 0 1 0-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375Z" />
+                </svg>
               </div>
-              <div class="mt-1 text-xs text-[#64748b]">
-                {{ $t('Need help? Raise a new ticket on the right.') }}
-              </div>
+
+              <!-- Context-Aware Title & Message -->
+              <template v-if="customerSearch">
+                <div class="text-sm font-semibold text-slate-900">
+                  {{ $t('No matching tickets') }}
+                </div>
+                <p class="mt-1 text-xs text-slate-500 max-w-xs leading-relaxed">
+                  {{ $t("We couldn't find any tickets matching your search query.") }}
+                </p>
+                <button
+                  type="button"
+                  class="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300/80 transition-colors cursor-pointer"
+                  @click="customerSearch = ''"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>{{ $t('Clear search') }}</span>
+                </button>
+              </template>
+
+              <template v-else-if="customerActiveTab !== 'All'">
+                <div class="text-sm font-semibold text-slate-900">
+                  {{ $t('No tickets in this filter') }}
+                </div>
+                <p class="mt-1 text-xs text-slate-500 max-w-xs leading-relaxed">
+                  {{ $t('You have no tickets currently under this status.') }}
+                </p>
+                <button
+                  type="button"
+                  class="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1e3a5f] bg-[#e8f0f9] hover:bg-[#d5e4f5] border border-[#1e3a5f]/20 transition-colors cursor-pointer"
+                  @click="customerActiveTab = 'All'"
+                >
+                  <span>{{ $t('View all tickets') }}</span>
+                </button>
+              </template>
+
+              <template v-else>
+                <div class="text-sm font-semibold text-slate-900">
+                  {{ $t('No tickets yet') }}
+                </div>
+                <p class="mt-1 text-xs text-slate-500 max-w-xs leading-relaxed">
+                  {{ $t('Whenever you submit an enquiry, your tickets will appear here.') }}
+                </p>
+                <button
+                  type="button"
+                  class="mt-3.5 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#16a34a] hover:bg-[#15803d] shadow-sm transition-colors cursor-pointer"
+                  @click="router.push({ name: 'TicketCreate', query: { mode: 'form' } })"
+                >
+                  <span>{{ $t('Raise a New Ticket') }}</span>
+                </button>
+              </template>
             </div>
           </div>
         </section>
@@ -730,8 +912,8 @@ defineExpose({ tickets: readonly(tickets) })
               <!-- Primary: Brand Green Theme (#16a34a) -->
               <button
                 type="button"
-                class="w-full sm:w-auto inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-[#16a34a] hover:bg-[#15803d] px-6 sm:px-8 py-3 text-sm sm:text-base font-semibold text-white shadow-md shadow-emerald-950/25 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 select-none"
-                @click="router.push({ name: 'TicketCreate' })"
+                class="w-full sm:w-auto inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#16a34a] hover:bg-[#15803d] px-6 sm:px-8 py-3 text-sm sm:text-base font-semibold text-white shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 select-none"
+                @click="router.push({ name: 'TicketCreate', query: { mode: 'form' } })"
               >
                 <span>{{ $t('Raise a New Ticket') }}</span>
                 <span class="text-base leading-none">→</span>
@@ -740,8 +922,8 @@ defineExpose({ tickets: readonly(tickets) })
               <!-- Secondary: Frosted Glass / Translucent with Subtle Green Hover -->
               <button
                 type="button"
-                class="w-full sm:w-auto inline-flex cursor-pointer items-center justify-center rounded-xl sm:rounded-2xl border border-white/20 hover:border-emerald-400/50 bg-white/5 hover:bg-emerald-950/20 px-6 sm:px-8 py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 select-none"
-                @click="router.push({ name: 'TicketCreate' })"
+                class="w-full sm:w-auto inline-flex cursor-pointer items-center justify-center rounded-xl border border-white/20 hover:border-emerald-400/50 bg-white/5 hover:bg-emerald-950/20 px-6 sm:px-8 py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 select-none"
+                @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard' } })"
               >
                 <span>{{ $t('Talk to Student Support') }}</span>
               </button>
@@ -756,10 +938,10 @@ defineExpose({ tickets: readonly(tickets) })
             <div class="grid grid-cols-1 gap-3.5 sm:gap-5 sm:grid-cols-3">
               <!-- Card 1 - IT Support -->
               <div
-                class="group cursor-pointer rounded-2xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.07)] hover:border-emerald-200/60 flex flex-col items-center select-none"
-                @click="router.push({ name: 'TicketCreate' })"
+                class="group cursor-pointer rounded-xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-emerald-300/80 flex flex-col items-center select-none"
+                @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard', category: 'it' } })"
               >
-                <div class="mb-3.5 rounded-2xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
+                <div class="mb-3.5 rounded-xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
                   <!-- Duotone IT Icon: Navy + Brand Green Accent -->
                   <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <rect x="4" y="6" width="28" height="17" rx="3" fill="#16a34a" fill-opacity="0.18" />
@@ -778,10 +960,10 @@ defineExpose({ tickets: readonly(tickets) })
 
               <!-- Card 2 - Account Help -->
               <div
-                class="group cursor-pointer rounded-2xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.07)] hover:border-emerald-200/60 flex flex-col items-center select-none"
-                @click="router.push({ name: 'TicketCreate' })"
+                class="group cursor-pointer rounded-xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-emerald-300/80 flex flex-col items-center select-none"
+                @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard', category: 'account' } })"
               >
-                <div class="mb-3.5 rounded-2xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
+                <div class="mb-3.5 rounded-xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
                   <!-- Duotone Account Icon: Navy + Brand Green Accent -->
                   <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="26" cy="12" r="5" fill="#16a34a" fill-opacity="0.22" />
@@ -801,10 +983,10 @@ defineExpose({ tickets: readonly(tickets) })
 
               <!-- Card 3 - General Enquiry -->
               <div
-                class="group cursor-pointer rounded-2xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-100/90 shadow-[0_4px_20px_rgba(0,0,0,0.02)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(15,23,42,0.07)] hover:border-emerald-200/60 flex flex-col items-center select-none"
-                @click="router.push({ name: 'TicketCreate' })"
+                class="group cursor-pointer rounded-xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-emerald-300/80 flex flex-col items-center select-none"
+                @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard', category: 'general' } })"
               >
-                <div class="mb-3.5 rounded-2xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
+                <div class="mb-3.5 rounded-xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
                   <!-- Duotone Chat Icon: Navy + Brand Green Accent -->
                   <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path

@@ -33,14 +33,14 @@ const iconName = computed(() => {
 const iconColor = computed(() => {
   switch (props.colorCode) {
     case EnumTicketStateColorCode.Closed:
-      return 'text-[#15803d] dark:text-emerald-400'
+      return 'text-[#243d2c] dark:text-[#a3ccae]'
     case EnumTicketStateColorCode.Pending:
-      return 'text-[#854d0e] dark:text-amber-400'
+      return 'text-purple-600 dark:text-purple-400'
     case EnumTicketStateColorCode.Escalating:
       return 'text-red-600 dark:text-red-400'
     case EnumTicketStateColorCode.Open:
     default:
-      return 'text-[#1e3a5f] dark:text-blue-400'
+      return 'text-sky-600 dark:text-sky-400'
   }
 })
 

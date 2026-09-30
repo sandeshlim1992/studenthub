@@ -627,10 +627,31 @@ const submitEditTicket = async (formData: FormSubmitData<TicketUpdateFormData>) 
     })
 }
 
-const discardReplyForm = async () => {
-  const confirm = await waitForVariantConfirmation('unsaved')
+const isArticleReplyDirty = () => {
+  const articleNode = articleFormGroupNode.value
+  if (!articleNode) return false
 
-  if (!confirm) return
+  const isFormDirty = articleNode.context?.state?.dirty ?? false
+  const articleValues = articleNode.value as Record<string, unknown> | undefined
+
+  if (!articleValues) return isFormDirty
+
+  const bodyText =
+    typeof articleValues.body === 'string'
+      ? articleValues.body.replace(/<[^>]*>/g, '').trim()
+      : ''
+
+  const hasAttachments =
+    Array.isArray(articleValues.attachments) && articleValues.attachments.length > 0
+
+  return (bodyText.length > 0 || hasAttachments) && isFormDirty
+}
+
+const discardReplyForm = async () => {
+  if (isArticleReplyDirty()) {
+    const confirm = await waitForVariantConfirmation('unsaved')
+    if (!confirm) return
+  }
 
   newTicketArticlePresent.value = false
 
@@ -642,6 +663,12 @@ const discardReplyForm = async () => {
   await nextTick()
 
   articleFormGroupNode.value?.reset(ticketArticleDefaultValues)
+
+  formReset({
+    values: {
+      article: ticketArticleDefaultValues,
+    },
+  })
 
   return triggerFormUpdater()
 }

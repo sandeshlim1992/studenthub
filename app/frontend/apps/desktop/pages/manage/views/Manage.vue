@@ -11,7 +11,7 @@ const searchQuery = ref('')
 const router = useRouter()
 
 const handleRedirect = (target: string) => {
-  if (target.startsWith('/manage')) {
+  if (target.startsWith('/manage') || target.startsWith('/report')) {
     router.push(target)
   } else {
     const { clearSwitchAndRedirect } = initializeBetaUi()
@@ -106,6 +106,12 @@ const categories = ref<Category[]>([
         icon: 'calendar',
         target: '/manage/calendars',
         description: __('Define business hours and holidays.'),
+      },
+      {
+        name: __('Reporting & Analytics'),
+        icon: 'speedometer2',
+        target: '/report',
+        description: __('Interactive ticket statistics, volume trends, and CSV exports.'),
       },
       {
         name: __('Report Profiles'),

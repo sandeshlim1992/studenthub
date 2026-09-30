@@ -135,7 +135,7 @@ const showCustomerSidebar = computed(() => {
       <CustomerSidebar v-if="showCustomerSidebar" />
 
       <!-- Center Content Area -->
-      <div id="customer-content" class="flex-1 min-w-0 h-full overflow-y-auto relative">
+      <div id="main-content" class="flex-1 min-w-0 h-full overflow-y-auto relative">
         <RouterView #default="{ Component, route: currentRoute }">
           <KeepAlive :exclude="['ErrorTab']" :max="config.ui_task_mananger_max_task_count">
             <component

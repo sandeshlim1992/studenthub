@@ -1169,6 +1169,8 @@ const buildStaticSchema = () => {
   type ResolveFormSchemaNode = Exclude<FormSchemaNode, string>
   type ResolveFormKitSchemaNode = Exclude<FormKitSchemaNode, string>
 
+  const seenScreenFields = new Set<string>()
+
   const resolveSchemaNode = (
     node: ResolveFormSchemaNode,
   ): Maybe<ResolveFormKitSchemaNode | ResolveFormKitSchemaNode[]> => {
@@ -1196,6 +1198,8 @@ const buildStaticSchema = () => {
       if ('name' in node && node.name && !node.type) {
         const { screen, object, ...fieldNode } = node
 
+        seenScreenFields.add(`${object}:${fieldNode.name}`)
+
         const resolvedField = getFormFieldSchema(fieldNode.name, object, screen)
 
         if (!resolvedField) return null
@@ -1208,6 +1212,12 @@ const buildStaticSchema = () => {
         const resolvedFields = getFormFieldsFromScreen(node.screen, node.object)
         const formKitFields: ResolveFormKitSchemaNode[] = []
         resolvedFields.forEach((screenField) => {
+          const fieldKey = `${node.object}:${screenField.name}`
+          if (seenScreenFields.has(fieldKey)) {
+            return
+          }
+          seenScreenFields.add(fieldKey)
+
           updateSchemaDataField(screenField)
           formKitFields.push(buildFormKitField(screenField))
         })

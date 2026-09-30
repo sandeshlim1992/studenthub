@@ -1,14 +1,15 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { inject } from 'vue'
+
+const switchToWizard = inject<(() => void) | null>('switchToWizard', null)
+</script>
 
 <template>
   <div
-    class="customer-ticket-card relative overflow-hidden rounded-3xl border border-emerald-100/90 bg-white shadow-xl shadow-emerald-950/[0.04] transition-all duration-300 dark:border-neutral-700 dark:bg-neutral-800"
+    class="customer-ticket-card relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xl shadow-slate-900/[0.04] transition-all duration-300 dark:border-neutral-700 dark:bg-neutral-800"
   >
-    <!-- Top Decorative Emerald / Forest Gradient Line -->
-    <div class="h-2 w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-400" />
-
     <!-- Ambient Emerald Radial Glow at the Top -->
     <div
       class="pointer-events-none absolute -top-24 inset-x-0 mx-auto h-72 w-[650px] rounded-full bg-radial from-emerald-100/50 via-emerald-50/20 to-transparent blur-2xl dark:from-emerald-950/20"
@@ -16,6 +17,18 @@
     />
 
     <div class="@container relative z-10 flex flex-col gap-6 p-6 sm:p-8 md:p-10">
+      <!-- Quick link to guided intake wizard -->
+      <div v-if="switchToWizard" class="flex justify-end -mt-2 -mb-2">
+        <button
+          type="button"
+          class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-emerald-200/90 bg-emerald-50/80 px-3.5 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs hover:bg-emerald-100 hover:border-emerald-300 transition-all hover:-translate-y-0.5"
+          @click="switchToWizard"
+        >
+          <span>✨</span>
+          <span>{{ $t('Switch to guided wizard') }}</span>
+          <span>→</span>
+        </button>
+      </div>
       <!-- Elegant Header with Emerald Brand Accents -->
       <div class="flex flex-col items-center text-center">
         <!-- Floating Emerald Icon Badge -->

@@ -4,7 +4,6 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { initializeBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import { useOrganizationEdit } from '#desktop/entities/organization/composables/useOrganizationEdit.ts'
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
 
@@ -90,12 +89,6 @@ watch(searchQuery, () => {
 watch(currentPage, () => {
   fetchOrganizations()
 })
-
-// Trigger legacy new organization redirection
-const handleNewOrganization = () => {
-  const { clearSwitchAndRedirect } = initializeBetaUi()
-  clearSwitchAndRedirect('/#manage/organizations/new')
-}
 
 // Trigger native edit organization flyout
 const handleEditOrganization = (org: OrganizationItem) => {
@@ -188,13 +181,11 @@ onMounted(() => {
             {{ __('Organizations') }} <span class="text-sm font-normal text-slate-500 dark:text-slate-400 ml-1">{{ __('Management') }}</span>
           </h1>
         </div>
-        <div>
-          <button
-            @click="handleNewOrganization"
-            class="px-4 py-2 bg-[#22c55e] hover:bg-[#16a34a] text-white rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer"
-          >
-            {{ __('New Organization') }}
-          </button>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+            {{ __('Single-Brand Organization') }}
+          </span>
         </div>
       </div>
 

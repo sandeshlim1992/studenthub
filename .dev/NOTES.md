@@ -17,21 +17,34 @@ Never put passwords, tokens or keys in this file.
 - Prefer new files over editing Zammad's originals (fewer upstream merge conflicts)
 - Don't edit `.github/workflows/` or Zammad's `.claude/CLAUDE.md`
 - Use Node 24 (ignore `.mise.toml`)
+- AI agents propose changes and wait for approval before editing code (rule in CLAUDE.md)
 
 ## Known issues
 - Zammad's Claude hooks need pnpm → errors if Claude runs outside the container
 - `config/database/database.yml` has a leaked password → not yet fixed
 - `.claude/ui-rules.md` describes the old navy/blue theme; current theme is emerald / dark slate
 - Base is a July `develop` snapshot, not a stable Zammad release
+- Review of Taxil's work (30 Sep), not fixed yet:
+  - "Continue with Microsoft" button on `/desktop/login` does nothing (legacy `/#login` still works)
+  - 8 `/manage` pages send saves without the CSRF token → all rejected (Translations, Sessions,
+    Packages, Core Workflows, Monitoring, Data Privacy, Maintenance, API)
+  - 10 `/manage` actions call API routes that don't exist (404), e.g. maintenance/API toggles,
+    MS Graph + Facebook channel edit, `/api/v1/locales`, branding logo preview
+  - Theme switch, "Continue to mobile" and login-page public links removed; `/manage` messages show "%s"
+  - 74 TypeScript errors, 35 Zammad unit tests now fail (all pass on original Zammad)
 
 ## In progress
-- Getting the app running in the devcontainer (`dev` → http://localhost:3000)
+- Work PC dev DB holds a restore of the test server (real student data; email channels,
+  webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`
+- Taxil's 30 Sep commit (reports, student ticket wizard) waits on `sync/taxilkath`, not merged
 
 ## Next steps
-- [ ] Confirm app runs locally and log in works
-- [ ] Set up the same environment on the other PC
+- [ ] Set up the same environment on the home PC (check data-protection rules before copying real data)
+- [ ] Review and merge (or not) the pending `sync/taxilkath` PR
+- [ ] Decide which review findings to fix, starting with Microsoft login and `/manage` saves
 - [ ] Decide on `.claude/ui-rules.md` (update or drop)
 - [ ] Fix the committed database password
 
 ## Log
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
+- 2026-09-30: App running on work PC; restored test-server DB locally; read-only review of Taxil's changes

@@ -12,6 +12,7 @@ import OnlineNotification from '#desktop/components/layout/LayoutSidebar/LeftSid
 import { SidebarName } from '#desktop/components/layout/types.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 import QuickSearchInput from '#desktop/components/Search/QuickSearch/QuickSearchInput/QuickSearchInput.vue'
+import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 
 interface Props {
   collapsed?: boolean
@@ -62,7 +63,7 @@ const isTicketAgent = computed(() => hasPermission('ticket.agent') ?? false)
           class="h-11 w-11 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-white/25 group-hover:ring-sky-400/50 flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105"
         >
           <img
-            src="/assets/images/branding/student_hub_logo.png"
+            :src="studentHubLogo"
             alt="Student Hub"
             class="h-full w-full object-contain"
           />
@@ -116,7 +117,7 @@ const isTicketAgent = computed(() => hasPermission('ticket.agent') ?? false)
         @keydown.enter="toggleSidebar()"
       >
         <img
-          src="/assets/images/branding/student_hub_logo.png"
+          :src="studentHubLogo"
           alt="Student Hub"
           class="h-full w-full object-contain"
         />

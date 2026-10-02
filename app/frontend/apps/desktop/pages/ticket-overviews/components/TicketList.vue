@@ -42,6 +42,7 @@ import { useTicketsCachedByOverviewCache } from '#desktop/entities/ticket/compos
 import { useTicketsCachedByOverviewQuery } from '#desktop/entities/ticket/graphql/queries/ticketsCachedByOverview.api.ts'
 import { useTicketOverviewsStore } from '#desktop/entities/ticket/stores/ticketOverviews.ts'
 import { useLifetimeCustomerTicketsCount } from '#desktop/entities/user/current/composables/useLifetimeCustomerTicketsCount.ts'
+import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 
 const MAX_ITEMS = 2000
 
@@ -882,7 +883,7 @@ defineExpose({ tickets: readonly(tickets) })
                 class="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-white p-2 sm:p-2.5 shadow-lg ring-2 ring-white/60 flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105"
               >
                 <img
-                  src="/assets/images/branding/student_hub_logo.png"
+                  :src="studentHubLogo"
                   alt="Student Hub"
                   class="h-full w-full object-contain"
                 />

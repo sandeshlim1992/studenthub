@@ -8,6 +8,7 @@ import CommonPopover from '#desktop/components/CommonPopover/CommonPopover.vue'
 import { usePopover } from '#desktop/components/CommonPopover/usePopover.ts'
 import CommonUserAvatar from '#shared/components/CommonUserAvatar/CommonUserAvatar.vue'
 import { useSessionStore } from '#shared/stores/session.ts'
+import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 
 const router = useRouter()
 const session = useSessionStore()
@@ -58,7 +59,7 @@ const onSignOut = () => {
         class="h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-white p-1.5 sm:p-2 shadow-sm ring-1 ring-white/30 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-105 group-hover:ring-emerald-400/50"
       >
         <img
-          src="/assets/images/branding/student_hub_logo.png"
+          :src="studentHubLogo"
           alt="Student Hub"
           class="h-full w-full object-contain"
         />

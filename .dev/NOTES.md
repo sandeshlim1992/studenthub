@@ -18,6 +18,8 @@ Never put passwords, tokens or keys in this file.
 - Don't edit `.github/workflows/` or Zammad's `.claude/CLAUDE.md`
 - Use Node 24 (ignore `.mise.toml`)
 - AI agents propose changes and wait for approval before editing code (rule in CLAUDE.md)
+- `auto_wizard.json` is dev-only: removed from the repo, never on test/production servers
+- Test server pulls from this repo (read-only deploy key), not from Taxil's
 
 ## Known issues
 - Zammad's Claude hooks need pnpm → errors if Claude runs outside the container
@@ -36,11 +38,15 @@ Never put passwords, tokens or keys in this file.
 ## In progress
 - Work PC dev DB holds a restore of the test server (real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`
-- Taxil's 30 Sep commit (reports, student ticket wizard) waits on `sync/taxilkath`, not merged
+- Taxil's 30 Sep + later commits (UI update, reports, student ticket wizard) wait on `sync/taxilkath`, not merged
+- Switching test server (`/opt/zammad`, source install) from Taxil's repo to this one. Deploy key works;
+  remote not changed yet (repo owned by another user). Server has uncommitted branding edits
+  (login page, logo, favicon, custom CSS) that must be saved first
 
 ## Next steps
 - [ ] Set up the same environment on the home PC (check data-protection rules before copying real data)
-- [ ] Review and merge (or not) the pending `sync/taxilkath` PR
+- [ ] Review and merge (or not) the pending `sync/taxilkath` PR (check first whether the test server already runs those commits)
+- [ ] Finish switching the test server to this repo
 - [ ] Decide which review findings to fix, starting with Microsoft login and `/manage` saves
 - [ ] Decide on `.claude/ui-rules.md` (update or drop)
 - [ ] Fix the committed database password
@@ -48,3 +54,4 @@ Never put passwords, tokens or keys in this file.
 ## Log
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
 - 2026-09-30: App running on work PC; restored test-server DB locally; read-only review of Taxil's changes
+- 2026-10-02: Deploy key for test server; removed `auto_wizard.json` from repo

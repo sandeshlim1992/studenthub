@@ -141,6 +141,12 @@ On Windows, follow [Windows setup](#windows-setup-home-and-work-pcs) below first
 
 Variants exist in `.devcontainer/` for LDAP, a mail server, Ollama (local AI) and Selenium.
 
+> **`auto_wizard.json` is for local development only.** The devcontainer creates the
+> `admin@example.com` / `test` login from `contrib/auto_wizard_test.json`, copying it to
+> `auto_wizard.json` in the repo root and deleting it after use. Never commit
+> `auto_wizard.json`, and never put it on the test or production server: it creates logins
+> with known passwords and turns on developer mode.
+
 ### Windows setup (home and work PCs)
 
 Do this once on each PC. Ruby, Node, pnpm, PostgreSQL and Redis all come from the
@@ -275,10 +281,6 @@ Expect conflicts in the **69 edited files** listed above.
       password on any server that uses it, restore the file to Zammad's commented-out
       sample, and keep real credentials in `config/database.yml` (git-ignored) or
       environment variables.
-- [ ] **`auto_wizard.json` in the repo root.** This is Zammad's standard test set-up
-      (`admin@example.com` / `agent1@example.com` with test passwords, developer mode on).
-      Zammad runs it automatically on first start. That's fine for development, but it
-      **must not be present on a production server**.
 - [ ] **Not on a supported release.** The base is a mid-July `develop` snapshot. Consider
       moving the 6 Student Hub commits onto the `7.2.0` tag or the `stable` branch before
       going live.

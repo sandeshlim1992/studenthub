@@ -1081,8 +1081,6 @@ defineExpose({ tickets: readonly(tickets) })
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap');
-
 .font-editorial {
   font-family: 'Playfair Display', Georgia, Cambria, 'Times New Roman', Times, serif;
 }

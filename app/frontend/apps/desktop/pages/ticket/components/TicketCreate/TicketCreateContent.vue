@@ -2,29 +2,33 @@
 
 <script setup lang="ts">
 import { isEqual } from 'lodash-es'
-import { computed, markRaw, nextTick, reactive } from 'vue'
+import { computed, markRaw, nextTick, provide, reactive, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 
 import { EXTENSION_NAME as TEXT_TOOL_EXTENSION_NAME } from '#shared/components/Form/fields/FieldEditor/extensions/AiAssistantTextTools.ts'
+import type { FieldFileContext } from '#shared/components/Form/fields/FieldFile/types.ts'
 import Form from '#shared/components/Form/Form.vue'
-import type { FormSubmitData } from '#shared/components/Form/types.ts'
+import type { FormSchemaField, FormSubmitData } from '#shared/components/Form/types.ts'
 import { useForm } from '#shared/components/Form/useForm.ts'
 import { getNodeByName } from '#shared/components/Form/utils.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
 import { useTicketCreate } from '#shared/entities/ticket/composables/useTicketCreate.ts'
 import { useTicketCreateArticleType } from '#shared/entities/ticket/composables/useTicketCreateArticleType.ts'
+import { useTicketCreateView } from '#shared/entities/ticket/composables/useTicketCreateView.ts'
 import { useTicketFormOrganizationHandler } from '#shared/entities/ticket/composables/useTicketFormOrganizationHandler.ts'
 import { useTicketSignature } from '#shared/entities/ticket/composables/useTicketSignature.ts'
-import type { TicketFormData } from '#shared/entities/ticket/types.ts'
+import { TicketCreateArticleType, type TicketFormData } from '#shared/entities/ticket/types.ts'
 import { defineFormSchema } from '#shared/form/defineFormSchema.ts'
 import {
   EnumFormUpdaterId,
   EnumObjectManagerObjects,
+  type TicketAttributesFragment,
   type User,
   type UserAddMutation,
 } from '#shared/graphql/types.ts'
 import { useWalker } from '#shared/router/walker.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
+import { useSessionStore } from '#shared/stores/session.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonContentPanel from '#desktop/components/CommonContentPanel/CommonContentPanel.vue'
@@ -44,6 +48,7 @@ import TicketSidebar from '../TicketSidebar.vue'
 import AgentTicketCreateCard from './AgentTicketCreateCard.vue'
 import ApplyTemplate from './ApplyTemplate.vue'
 import CustomerTicketCreateCard from './CustomerTicketCreateCard.vue'
+import CustomerTicketCreateWizard, { type WizardData } from './CustomerTicketCreateWizard.vue'
 import TicketDuplicateDetectionAlert from './TicketDuplicateDetectionAlert.vue'
 
 interface Props {
@@ -59,6 +64,24 @@ const route = useRoute()
 const { form, isDisabled, isDirty, isInitialSettled, formNodeId, values, triggerFormUpdater } =
   useForm()
 
+const tabContext = computed<TaskbarTabContext>((currentContext) => {
+  if (!isInitialSettled.value) return {}
+
+  const newContext = {
+    formValues: values.value,
+    formIsDirty: isDirty.value,
+  }
+
+  if (currentContext && isEqual(newContext, currentContext)) return currentContext
+
+  return newContext
+})
+
+const { currentTaskbarTab, currentTaskbarTabId, currentTaskbarTabFormId, currentTaskbarTabDelete } =
+  useTaskbarTab(tabContext)
+
+useTaskbarTabStateUpdates(currentTaskbarTabId, form, triggerFormUpdater)
+
 const currentTitle = computed(() => values.value.title as string)
 const currentArticleType = computed(() => values.value.articleSenderType as string)
 
@@ -69,24 +92,261 @@ usePage({
 })
 
 const application = useApplicationStore()
+const session = useSessionStore()
 
-const redirectAfterCreate = (internalId?: number) => {
+const { ticketArticleSenderTypeField, defaultTicketCreateArticleType } = useTicketCreateArticleType()
+const { isTicketCustomer } = useTicketCreateView()
+
+const isWizardMode = ref(route.query.mode === 'form' ? false : isTicketCustomer.value)
+const createdTicketInfo = ref<{ id: number; number: string } | null>(null)
+const isSubmittingWizard = ref(false)
+
+watch(
+  () => route.query.mode,
+  (mode) => {
+    if (mode === 'form') {
+      isWizardMode.value = false
+    } else if (mode === 'wizard') {
+      isWizardMode.value = true
+    }
+  },
+)
+
+const redirectAfterCreate = (
+  internalId?: number,
+  ticket?: TicketAttributesFragment | null,
+) => {
+  if (isWizardMode.value && (ticket || internalId)) {
+    createdTicketInfo.value = {
+      id: internalId || ticket?.internalId || 0,
+      number: ticket?.number || String(internalId || ''),
+    }
+    isSubmittingWizard.value = false
+    return
+  }
+
   if (internalId) {
     router.replace(`/tickets/${internalId}`)
     return
   }
 
   // Fallback redirect, in case the user has no access to the ticket they just created.
-  router.replace({ name: 'Dashboard' })
+  router.replace('/')
 }
 
 const goBack = () => {
   walker.back('/')
 }
 
-const { ticketArticleSenderTypeField } = useTicketCreateArticleType()
+const { createTicket } = useTicketCreate(form, redirectAfterCreate)
 
-const { createTicket, isTicketCustomer } = useTicketCreate(form, redirectAfterCreate)
+const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
+  return createTicket(event)
+    .then((result) => {
+      isSubmittingWizard.value = false
+      if (!result || result === null || result === undefined) return
+      if (typeof result === 'function') result()
+
+      if (!isWizardMode.value) {
+        currentTaskbarTabDelete()
+      }
+    })
+    .catch((err) => {
+      console.error('Failed to create ticket:', err)
+      isSubmittingWizard.value = false
+    })
+}
+
+const wizardInitialValues = computed<Partial<WizardData>>(() => {
+  const formValues = values.value as Record<string, unknown>
+  let catKey: 'it' | 'account' | 'general' | '' =
+    (route.query.category as 'it' | 'account' | 'general') || ''
+
+  if (!catKey) {
+    if (formValues?.category === 'Software' || formValues?.category === 'Hardware') {
+      catKey = 'it'
+    } else if (formValues?.category === 'Service Request') {
+      catKey = 'account'
+    }
+  }
+
+  let catName = (formValues?.category as string) || ''
+  if (!catName && catKey === 'it') catName = __('IT Support')
+  if (!catName && catKey === 'account') catName = __('Account Help')
+  if (!catName && catKey === 'general') catName = __('General Enquiry')
+
+  return {
+    categoryKey: catKey,
+    category: catName,
+    subCategory: (formValues?.sub_category as string) || '',
+    campus: (formValues?.campus as string) || '',
+    title: (formValues?.title as string) || '',
+    body:
+      typeof formValues?.body === 'string'
+        ? formValues.body.replace(/<[^>]*>?/gm, '').trim()
+        : '',
+  }
+})
+
+const switchToFullForm = () => {
+  isWizardMode.value = false
+}
+
+const switchToWizard = () => {
+  isWizardMode.value = true
+}
+
+provide('switchToWizard', switchToWizard)
+
+const handleWizardSubmit = async (data: WizardData) => {
+  isSubmittingWizard.value = true
+  try {
+    const formId = form.value?.formId
+
+    // 1. Format body with category, subcategory and campus context
+    const categoryName =
+      data.category ||
+      (data.categoryKey === 'it'
+        ? __('IT Support')
+        : data.categoryKey === 'account'
+          ? __('Account Help')
+          : __('General Enquiry'))
+
+    const campusText = data.campus || __('Not specified')
+    const subCatText = data.subCategory || __('General')
+
+    const bodyHeader = `<p><strong>${__('Category')}:</strong> ${categoryName} &gt; ${subCatText}</p><p><strong>${__('Campus')}:</strong> ${campusText}</p><hr/>`
+
+    const formattedParagraphs = data.body
+      .split('\n\n')
+      .map((para) => `<p>${para.replace(/\n/g, '<br/>')}</p>`)
+      .join('')
+
+    const fullBodyHtml = `${bodyHeader}${formattedParagraphs}`
+
+    // Map wizard selection to official DB attribute values
+    const rawCategory =
+      data.category ||
+      (data.categoryKey === 'it'
+        ? 'Software'
+        : data.categoryKey === 'account'
+          ? 'Service Request'
+          : 'Service Request')
+
+    const categoryAttributeValue =
+      ['Software', 'Hardware', 'Service Request'].includes(rawCategory)
+        ? rawCategory
+        : 'Service Request'
+
+    const campusAttributeValue = data.campus || 'FSB Sheffield'
+    const subCategoryAttributeValue = data.subCategory || ''
+
+    // 2. Set nodes if form is available for visual sync
+    if (formId) {
+      const titleNode = getNodeByName(formId, 'title')
+      titleNode?.input(data.title)
+
+      const bodyNode = getNodeByName(formId, 'body')
+      bodyNode?.input(fullBodyHtml)
+
+      getNodeByName(formId, 'category')?.input(categoryAttributeValue)
+      getNodeByName(formId, 'sub_category')?.input(subCategoryAttributeValue)
+      getNodeByName(formId, 'campus')?.input(campusAttributeValue)
+    }
+
+    // 3. Ensure group_id is resolved
+    let groupId: string | number | undefined = (values.value as Record<string, unknown>)?.group_id as string | number
+    if (!groupId && formId) {
+      const groupNode = getNodeByName(formId, 'group_id')
+      if (groupNode) {
+        groupId = groupNode.value as string | number
+        if (!groupId) {
+          const options = (groupNode.context?.options as Array<{ value: unknown }>) || []
+          const firstValid = options.find((opt) => opt && opt.value)
+          if (firstValid) {
+            groupId = firstValid.value as string | number
+            groupNode.input(groupId)
+          }
+        }
+      }
+    }
+    if (!groupId) {
+      groupId = 1
+    }
+
+    // 4. Handle attachments if any
+    let uploadedFiles: File[] | undefined
+    if (data.attachments && data.attachments.length > 0 && formId) {
+      const attachmentsNode = getNodeByName(formId, 'attachments')
+      if (attachmentsNode?.context && 'uploadFiles' in attachmentsNode.context) {
+        try {
+          await (attachmentsNode.context as unknown as FieldFileContext).uploadFiles(
+            data.attachments,
+          )
+          uploadedFiles = (attachmentsNode.value as File[]) || data.attachments
+        } catch (uploadErr) {
+          console.warn('Could not upload files via form node', uploadErr)
+        }
+      }
+    }
+
+    await nextTick()
+
+    // 5. Ensure articleSenderType and customer_id are defined
+    const senderType =
+      (values.value as Record<string, unknown>)?.articleSenderType ||
+      defaultTicketCreateArticleType ||
+      TicketCreateArticleType.EmailOut
+
+    const customerId =
+      (values.value as Record<string, unknown>)?.customer_id ||
+      session.user?.id
+
+    // 6. Build full form submission payload
+    const formPayload: FormSubmitData<TicketFormData> = {
+      ...(values.value as Record<string, unknown>),
+      title: data.title,
+      body: fullBodyHtml,
+      articleSenderType: senderType as TicketCreateArticleType,
+      group_id: groupId,
+      category: categoryAttributeValue,
+      campus: campusAttributeValue,
+      sub_category: subCategoryAttributeValue,
+    } as unknown as FormSubmitData<TicketFormData>
+
+    if (customerId) {
+      formPayload.customer_id = customerId as string | number
+    }
+    if (uploadedFiles) {
+      formPayload.attachments = uploadedFiles
+    } else if (data.attachments && data.attachments.length > 0) {
+      formPayload.attachments = data.attachments
+    }
+
+    // 7. Directly invoke submitCreateTicket to execute creation
+    await submitCreateTicket(formPayload)
+  } catch (err) {
+    console.error('Failed to submit wizard ticket', err)
+  } finally {
+    if (!createdTicketInfo.value) {
+      isSubmittingWizard.value = false
+    }
+  }
+}
+
+const handleWizardCancel = () => {
+  goBack()
+}
+
+const handleViewTicket = (ticketId: number) => {
+  currentTaskbarTabDelete()
+  router.push(`/tickets/${ticketId}`)
+}
+
+const handleBackToDashboard = () => {
+  currentTaskbarTabDelete()
+  router.push('/')
+}
 
 const defaultTitle = __('New ticket')
 
@@ -394,7 +654,7 @@ const schemaData = reactive({
   },
 })
 
-const changedFields = reactive<Record<string, any>>({
+const changedFields = reactive<Record<string, Partial<FormSchemaField>>>({
   // Workaround until the object attribute for body is required so core worklow is returning it correctly.
   body: {
     required: true,
@@ -432,24 +692,6 @@ if (isTicketCustomer.value) {
 
 const { signatureHandling } = useTicketSignature()
 
-const tabContext = computed<TaskbarTabContext>((currentContext) => {
-  if (!isInitialSettled.value) return {}
-
-  const newContext = {
-    formValues: values.value,
-    formIsDirty: isDirty.value,
-  }
-
-  if (currentContext && isEqual(newContext, currentContext)) return currentContext
-
-  return newContext
-})
-
-const { currentTaskbarTab, currentTaskbarTabId, currentTaskbarTabFormId, currentTaskbarTabDelete } =
-  useTaskbarTab(tabContext)
-
-useTaskbarTabStateUpdates(currentTaskbarTabId, form, triggerFormUpdater)
-
 const sidebarContext = computed<TicketSidebarContext>(() => ({
   screenType: TicketSidebarScreenType.TicketCreate,
   view: isTicketCustomer.value ? 'customer' : 'agent',
@@ -485,15 +727,6 @@ const formAdditionalRouteQueryParams = computed(() => ({
   taskbarId: currentTaskbarTab.value?.taskbarTabId,
   ...route.query,
 }))
-
-const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
-  return createTicket(event).then((result) => {
-    if (!result || result === null || result === undefined) return
-    if (typeof result === 'function') result()
-
-    currentTaskbarTabDelete()
-  })
-}
 </script>
 
 <template>
@@ -501,37 +734,50 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
     name="ticket-create"
     background-variant="primary"
     content-alignment="center"
-    :show-sidebar="hasSidebar"
+    :show-sidebar="hasSidebar && (!isTicketCustomer || !isWizardMode)"
     :no-padding="isTicketCustomer"
   >
     <div class="w-full max-w-5xl px-4 py-8">
-      <Form
-        id="ticket-create"
-        ref="form"
-        :key="tabId"
-        class="w-full"
-        :form-id="currentTaskbarTabFormId"
-        :schema="formSchema"
-        :schema-component-library="{
-          CommonContentPanel: markRaw(CommonContentPanel),
-          CustomerTicketCreateCard: markRaw(CustomerTicketCreateCard),
-          AgentTicketCreateCard: markRaw(AgentTicketCreateCard),
-          TicketDuplicateDetectionAlert: markRaw(TicketDuplicateDetectionAlert),
-        }"
-        :schema-data="schemaData"
-        :form-updater-id="EnumFormUpdaterId.FormUpdaterUpdaterTicketCreate"
-        :handlers="[useTicketFormOrganizationHandler(), signatureHandling('body')]"
-        :change-fields="changedFields"
-        :form-updater-additional-params="formAdditionalRouteQueryParams"
-        use-object-attributes
-        form-class="flex w-full flex-col gap-5 min-w-xs"
-        @submit="submitCreateTicket($event as FormSubmitData<TicketFormData>)"
+      <CustomerTicketCreateWizard
+        v-if="isTicketCustomer && isWizardMode"
+        :is-submitting="isSubmittingWizard"
+        :created-ticket-info="createdTicketInfo"
+        :initial-values="wizardInitialValues"
+        @submit="handleWizardSubmit"
+        @switch-to-full="switchToFullForm"
+        @cancel="handleWizardCancel"
+        @view-ticket="handleViewTicket"
+        @back-to-dashboard="handleBackToDashboard"
       />
+      <div v-show="!isTicketCustomer || !isWizardMode" class="w-full">
+        <Form
+          id="ticket-create"
+          ref="form"
+          :key="tabId"
+          class="w-full"
+          :form-id="currentTaskbarTabFormId"
+          :schema="formSchema"
+          :schema-component-library="{
+            CommonContentPanel: markRaw(CommonContentPanel),
+            CustomerTicketCreateCard: markRaw(CustomerTicketCreateCard),
+            AgentTicketCreateCard: markRaw(AgentTicketCreateCard),
+            TicketDuplicateDetectionAlert: markRaw(TicketDuplicateDetectionAlert),
+          }"
+          :schema-data="schemaData"
+          :form-updater-id="EnumFormUpdaterId.FormUpdaterUpdaterTicketCreate"
+          :handlers="[useTicketFormOrganizationHandler(), signatureHandling('body')]"
+          :change-fields="changedFields"
+          :form-updater-additional-params="formAdditionalRouteQueryParams"
+          use-object-attributes
+          form-class="flex w-full flex-col gap-5 min-w-xs"
+          @submit="submitCreateTicket($event as FormSubmitData<TicketFormData>)"
+        />
+      </div>
     </div>
     <template #sideBar>
       <TicketSidebar :context="sidebarContext" />
     </template>
-    <template #bottomBar>
+    <template v-if="!isTicketCustomer || !isWizardMode" #bottomBar>
       <template v-if="isInitialSettled">
         <CommonButton
           v-if="isDirty"

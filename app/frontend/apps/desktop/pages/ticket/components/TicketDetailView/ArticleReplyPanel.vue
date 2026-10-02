@@ -135,7 +135,7 @@ onMounted(() => {
             >
               <CommonButton
                 v-tooltip="$t('Discard unsaved reply')"
-                class="text-red-500 hover:text-red-600 hover:bg-red-50 hover:outline-transparent! focus:outline-transparent! dark:hover:bg-red-950/40"
+                class="cursor-pointer text-red-500 hover:text-red-600 hover:bg-red-50 hover:outline-transparent! focus:outline-transparent! dark:hover:bg-red-950/40"
                 variant="none"
                 :size="isTicketCustomer ? 'small' : 'large'"
                 icon="trash"
@@ -144,7 +144,7 @@ onMounted(() => {
               <CommonButton
                 v-tooltip="isPinned ? $t('Unpin this panel') : $t('Pin this panel')"
                 :icon="isPinned ? 'pin' : 'pin-angle'"
-                class="hover:outline-transparent! focus:outline-transparent!"
+                class="cursor-pointer hover:outline-transparent! focus:outline-transparent!"
                 :class="
                   isPinned
                     ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-950/50'

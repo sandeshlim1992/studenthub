@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import { onKeyStroke, useEventListener, whenever } from '@vueuse/core'
-import { computed, onUnmounted, watch } from 'vue'
+import { computed, nextTick, onUnmounted, watch } from 'vue'
 
 import getUuid from '#shared/utils/getUuid.ts'
 
@@ -18,24 +18,31 @@ const descriptionId = getUuid()
 
 // To deactivate isActive whenever we are not within the article body
 whenever(isActive, () => {
-  const stopClickListener = useEventListener('click', (event) => {
-    const evenTarget = event.target as HTMLElement
-    // Only if any content of articles is clicked and not any of button
-    if (evenTarget?.closest('article') && !evenTarget.closest('button')) return
+  let stopClickListener: (() => void) | undefined
 
-    // Entire wrapper for the split button should not trigger deactivation
-    if (evenTarget?.closest('[data-id="highlight-menu-wrapper"]')) return
+  nextTick(() => {
+    if (!isActive.value) return
 
-    // Popovers which are on the body level
-    if (evenTarget?.closest('[data-id="highlight-menu-popover"]')) return
+    stopClickListener = useEventListener('click', (event) => {
+      const evenTarget = event.target as HTMLElement
+      // Only if any content of articles is clicked and not any of button
+      if (evenTarget?.closest('article') && !evenTarget.closest('button')) return
 
-    reset()
-    stopClickListener()
+      // Entire wrapper for the split button should not trigger deactivation
+      if (evenTarget?.closest('[data-id="highlight-menu-wrapper"]')) return
+
+      // Popovers which are on the body level
+      if (evenTarget?.closest('[data-id="highlight-menu-popover"]')) return
+
+      reset()
+      stopClickListener?.()
+    })
   })
 
   const stopKeyStrokeListener = onKeyStroke('Escape', () => {
     reset()
     stopKeyStrokeListener()
+    stopClickListener?.()
   })
 })
 
@@ -121,9 +128,10 @@ onUnmounted(() => {
         >
           <template v-for="(item, index) in items" #[`item-${item.key}`] :key="item.key">
             <button
-              class="flex w-full grow items-center gap-2 p-2.5 text-gray-100 focus-visible-app-default -outline-offset-1! focus:outline-hidden dark:text-neutral-400"
+              class="flex w-full grow cursor-pointer items-center gap-2 p-2.5 text-gray-100 hover:bg-slate-100 focus-visible-app-default -outline-offset-1! focus:outline-hidden dark:text-neutral-400 dark:hover:bg-neutral-700 transition-colors"
               :class="{
-                'bg-blue-800! text-white!': item.key === activeMenuItem?.key,
+                'bg-blue-800! text-white! hover:bg-blue-700! dark:hover:bg-blue-700!':
+                  item.key === activeMenuItem?.key,
                 'rounded-t-lg': index === 0,
                 'rounded-b-lg': index === items.length - 1,
               }"

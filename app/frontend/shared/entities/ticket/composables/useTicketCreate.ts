@@ -11,7 +11,7 @@ import { useObjectAttributes } from '#shared/entities/object-attributes/composab
 import { ticketCreateArticleType } from '#shared/entities/ticket/composables/useTicketCreateArticleType.ts'
 import { useTicketCreateMutation } from '#shared/entities/ticket/graphql/mutations/create.api.ts'
 import UserError from '#shared/errors/UserError.ts'
-import { EnumObjectManagerObjects, type TicketCreateInput } from '#shared/graphql/types.ts'
+import { EnumObjectManagerObjects, type TicketAttributesFragment, type TicketCreateInput } from '#shared/graphql/types.ts'
 import { isGraphQLId, convertToGraphQLId } from '#shared/graphql/utils.ts'
 import MutationHandler from '#shared/server/apollo/handler/MutationHandler.ts'
 import { GraphQLErrorTypes } from '#shared/types/error.ts'
@@ -31,7 +31,7 @@ const {
 
 export const useTicketCreate = (
   form: Ref<FormRef | undefined>,
-  redirectAfterCreate: (internalId?: number) => void,
+  redirectAfterCreate: (internalId?: number, ticket?: TicketAttributesFragment | null) => void,
 ) => {
   const { isTicketCustomer } = useTicketCreateView()
 
@@ -171,7 +171,10 @@ export const useTicketCreate = (
           return () => {
             const ticket = result.ticketCreate?.ticket
 
-            redirectAfterCreate(ticket?.policy.update ? ticket.internalId : undefined)
+            redirectAfterCreate(
+              ticket?.policy.update ? ticket.internalId : ticket?.internalId,
+              ticket,
+            )
           }
         }
         return null

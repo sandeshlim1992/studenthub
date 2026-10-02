@@ -36,19 +36,19 @@ const stateCustomClasses = computed(() => {
     lbl.includes('resolved') ||
     lbl.includes('merged')
   ) {
-    return 'bg-[#f0fdf4]! text-[#15803d]! border! border-emerald-200/90! dark:bg-emerald-950/40! dark:text-emerald-300! dark:border-emerald-800/80!'
+    return 'bg-[#e6eee8]! text-[#243d2c]! border! border-[#b8d5c0]! dark:bg-[#18261e]! dark:text-[#a3ccae]! dark:border-[#2f4f38]!'
   }
   if (props.colorCode === EnumTicketStateColorCode.Pending || lbl.includes('pending')) {
-    return 'bg-[#fef9c3]! text-[#854d0e]! border! border-yellow-200/90! dark:bg-amber-950/40! dark:text-amber-300! dark:border-amber-800/80!'
+    return 'bg-purple-50! text-purple-900! border! border-purple-200/80! border-l-2! border-l-purple-500! dark:bg-purple-950/40! dark:text-purple-200! dark:border-purple-800/70! dark:border-l-purple-500!'
   }
   if (lbl.includes('waiting')) {
-    return 'bg-[#fff7ed]! text-[#c2410c]! border! border-orange-200/90! dark:bg-orange-950/40! dark:text-orange-300! dark:border-orange-800/80!'
+    return 'bg-amber-50! text-amber-900! border! border-amber-200/80! border-l-2! border-l-amber-500! dark:bg-amber-950/40! dark:text-amber-200! dark:border-amber-800/70! dark:border-l-amber-500!'
   }
   if (lbl.includes('new')) {
-    return 'bg-emerald-50! text-emerald-700! border! border-emerald-200/90! dark:bg-teal-950/40! dark:text-teal-300! dark:border-teal-800/80!'
+    return 'bg-[#ecfdf5]! text-[#065f46]! border! border-[#a7f3d0]! border-l-2! border-l-[#22c55e]! dark:bg-emerald-950/50! dark:text-emerald-200! dark:border-emerald-800/80! dark:border-l-[#22c55e]!'
   }
   // Open / default
-  return 'bg-[#e8f0f9]! text-[#1e3a5f]! border! border-blue-200/90! dark:bg-blue-950/40! dark:text-blue-300! dark:border-blue-800/80!'
+  return 'bg-sky-50! text-sky-900! border! border-sky-200/80! border-l-2! border-l-sky-500! dark:bg-sky-950/40! dark:text-sky-200! dark:border-sky-800/70! dark:border-l-sky-500!'
 })
 </script>
 

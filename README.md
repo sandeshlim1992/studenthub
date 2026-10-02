@@ -274,6 +274,80 @@ Expect conflicts in the **69 edited files** listed above.
 
 ---
 
+## Deploying to the servers
+
+The test server (`172.20.72.4`) and production run Zammad from source in `/opt/zammad`.
+Update them only with [`script/studenthub/deploy.sh`](script/studenthub/deploy.sh), not with
+`git pull` and rake commands by hand. The first manual update of the test server (2 Oct 2026)
+showed why: the frontend build failed, nobody noticed, the migrations and restart went ahead,
+and the server kept serving the old UI.
+
+### What the script does
+
+| Step | Zammad | If the step fails |
+|---|---|---|
+| **Checks:** right remote, clean git tree, fast-forward only, Ruby/Node/pnpm versions, database, disk space | running | nothing was changed |
+| **Build:** `git merge --ff-only`, `bundle install`, `pnpm install`, `assets:precompile`, then a check that every built file exists and nginx can read it | running (old version) | code and build are put back automatically; no restart, so users notice nothing |
+| **Stop**, back up the database, switch the rvm default Ruby if the new code needs another one | stopped | the old version is put back and started again |
+| **Migrations**, cache clear | stopped | Zammad stays stopped; the script prints the rollback command |
+| **Start and check:** HTTP, `/desktop/login` serves the new build, both websockets connect, services stay up | running (new version) | the script prints the rollback command |
+
+Every run keeps its database backup, state and log in `/var/backups/zammad-deploy/<date-time>/`.
+
+### Installing it on a server (once, and after it changes)
+
+It runs as root, so install a root-owned copy instead of running the file inside `/opt/zammad`:
+
+```sh
+sudo -u zammad -H git -C /opt/zammad fetch origin
+sudo -u zammad -H git -C /opt/zammad show origin/develop:script/studenthub/deploy.sh \
+  | sudo install -m 0755 -o root -g root /dev/stdin /usr/local/sbin/studenthub-deploy
+```
+
+### Using it
+
+Run it inside `tmux`, so a dropped SSH connection can't stop it halfway.
+
+| Command | What it does |
+|---|---|
+| `sudo studenthub-deploy --check` | Shows what would be deployed and any problems. Changes nothing |
+| `sudo studenthub-deploy` | Deploys the newest commit on `origin/develop` |
+| `sudo studenthub-deploy --ref <commit>` | Deploys exactly that commit, e.g. the one tested on the test server |
+| `sudo studenthub-deploy --rollback` | Undoes the last deploy (code, Ruby, frontend build). The database stays as it is |
+| `sudo studenthub-deploy --rollback --restore-db` | Also puts the database back to the backup taken during the deploy. Anything users changed since then is not in it. The replaced database is kept as `<name>_before_rollback_<time>`; drop it once all is well |
+
+### First deploy to production (once)
+
+Production still runs official Zammad (`2cefc4b5f6`). `--check` reports anything below that's
+still missing.
+
+1. **Rehearse** the whole list on a fresh clone of the production VM.
+2. Take a **VM snapshot** of production.
+3. Upgrade **Node to 24** and **pnpm to 11**. They are only used for builds, so this is safe while
+   Zammad runs.
+4. Install **Ruby 3.4.9** with `sudo /usr/share/rvm/bin/rvm install ruby-3.4.9`, but **don't make it
+   the default**. The running Zammad needs 3.4.7 until it's stopped; the script switches the
+   default during the restart.
+5. Point git at this repo: add a read-only deploy key, then
+   `git remote set-url origin git@github.com:sandeshlim1992/studenthub.git` and set
+   `core.sshCommand` to use the key (as on the test server).
+6. Save the server's own edits (branding):
+   `sudo -u zammad -H git -C /opt/zammad stash push -m "branding before Student Hub"`.
+7. Move old CSS out of `app/assets/stylesheets/custom/`. It's built into the legacy UI on top of
+   the Student Hub theme and clashes with it.
+8. In nginx, add `proxy_set_header Host $http_host;` to the `/cable` and `/ws` blocks. Without it
+   the new UI shows "Lost network connection" when opened by another name than the `fqdn` setting.
+9. Install the script, run `--check`, then deploy with `--ref` set to the commit that was tested.
+
+### Tests for the script
+
+`script/studenthub/test/deploy_test.sh` runs the script against a throwaway git repository and
+PostgreSQL cluster, with stubs for sudo, systemctl, rvm, bundle, pnpm and curl. It covers the
+normal deploy, every failure-and-undo path, both kinds of rollback and the refusals. It needs
+git, node, ruby and the PostgreSQL server binaries (`initdb`), which the test server has.
+
+---
+
 ## Known issues and to-do
 
 - [ ] **Database password committed.** `config/database/database.yml` contains a real-looking

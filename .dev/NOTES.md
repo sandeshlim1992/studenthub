@@ -20,9 +20,15 @@ Never put passwords, tokens or keys in this file.
 - AI agents propose changes and wait for approval before editing code (rule in CLAUDE.md)
 - `auto_wizard.json` is dev-only: removed from the repo, never on test/production servers
 - Test server pulls from this repo (read-only deploy key), not from Taxil's
+- Servers are updated only with `script/studenthub/deploy.sh` (README → Deploying to the servers),
+  never with a manual `git pull`; production gets the exact commit tested on the test server (`--ref`)
 
 ## Known issues
 - Zammad's Claude hooks need pnpm → errors if Claude runs outside the container
+  (switched off on the test server with `disableAllHooks` in `.claude/settings.local.json`)
+- Test server: Elasticsearch isn't running → search index jobs fail and fill the log
+- Test server: `/etc/zammad/zammad.env` is world-readable and holds the M365 client secret
+  (check production too)
 - `config/database/database.yml` has a leaked password → not yet fixed
 - `.claude/ui-rules.md` describes the old navy/blue theme; current theme is emerald / dark slate
 - Base is a July `develop` snapshot, not a stable Zammad release
@@ -38,13 +44,16 @@ Never put passwords, tokens or keys in this file.
 ## In progress
 - Work PC dev DB holds a restore of the test server (real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`
-- Switching test server (`/opt/zammad`, source install) from Taxil's repo to this one. Deploy key works;
-  remote not changed yet (repo owned by another user). Server has uncommitted branding edits
-  (login page, logo, favicon, custom CSS) that must be saved first
+- Test server switched to this repo on 2 Oct (`develop` at `f8f9b99dc9`). The logo build fix is
+  applied there by hand (uncommitted); nginx `/cable` + `/ws` now forward the Host header; old
+  branding edits are in `git stash` and `~ticketadmi/server-branding/` (old `custom.css` in `disabled-live/`)
 
 ## Next steps
 - [ ] Set up the same environment on the home PC (check data-protection rules before copying real data)
-- [ ] Finish switching the test server to this repo
+- [ ] Test server: stash the hand-applied logo fix, install the deploy script, run the first scripted deploy
+- [ ] Rehearse the first production deploy on a fresh clone of the production VM, then do it
+- [ ] Decide whether everyone goes from `/#…` to `/desktop` (now only per browser via the beta switch)
+- [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
 - [ ] Decide which review findings to fix, starting with Microsoft login and `/manage` saves
 - [ ] Decide on `.claude/ui-rules.md` (update or drop)
 - [ ] Fix the committed database password
@@ -53,3 +62,5 @@ Never put passwords, tokens or keys in this file.
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
 - 2026-09-30: App running on work PC; restored test-server DB locally; read-only review of Taxil's changes
 - 2026-10-02: Deploy key for test server; removed `auto_wizard.json` from repo; merged Taxil's reports/ticket-wizard commit (PR #2)
+- 2026-10-02: Switched the test server to this repo; fixed the production build (logo paths only worked
+  in dev); added `script/studenthub/deploy.sh` with tests

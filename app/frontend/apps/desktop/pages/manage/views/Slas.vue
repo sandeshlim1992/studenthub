@@ -218,6 +218,53 @@ const handleEditSla = (sla: SlaItem) => {
   showDrawer.value = true
 }
 
+const handleCloneSla = (sla: SlaItem) => {
+  formState.value = {
+    id: null,
+    name: __('%s (Copy)', sla.name || __('SLA')),
+    calendar_id: sla.calendar_id || null,
+    first_response_time: sla.first_response_time || sla.response_time || '',
+    update_time: sla.update_time || '',
+    solution_time: sla.solution_time || '',
+    conditions: parseConditionToRows(sla.condition as Record<string, unknown>),
+  }
+  if (formState.value.conditions.length === 0) {
+    formState.value.conditions.push({ field: 'state', operator: 'is', values: [] })
+  }
+  drawerTitle.value = __('Clone SLA')
+  showDrawer.value = true
+}
+
+const getSlaRuleSummary = (sla: SlaItem) => {
+  if (!sla.condition || Object.keys(sla.condition).length === 0) return []
+  const rules: string[] = []
+  for (const [key, rawVal] of Object.entries(sla.condition)) {
+    const obj = rawVal as { operator?: string; value?: string[] }
+    const op = obj.operator || 'is'
+    let fieldLabel = ''
+    let valNames: string[] = []
+
+    if (key === 'ticket.state_id') {
+      fieldLabel = __('State')
+      valNames = (obj.value || []).map((id) => ticketStatesList.value.find((s) => String(s.id) === String(id))?.name || `#${id}`)
+    } else if (key === 'ticket.priority_id') {
+      fieldLabel = __('Priority')
+      valNames = (obj.value || []).map((id) => ticketPrioritiesList.value.find((p) => String(p.id) === String(id))?.name || `#${id}`)
+    } else if (key === 'ticket.group_id') {
+      fieldLabel = __('Group')
+      valNames = (obj.value || []).map((id) => groupsList.value.find((g) => String(g.id) === String(id))?.name || `#${id}`)
+    } else {
+      fieldLabel = key.replace('ticket.', '')
+      valNames = obj.value || []
+    }
+
+    if (valNames.length > 0) {
+      rules.push(`${fieldLabel} ${op} ${valNames.join(', ')}`)
+    }
+  }
+  return rules
+}
+
 const saveSla = async () => {
   if (!formState.value.name.trim()) {
     alert(__('Name is required.'))
@@ -265,7 +312,7 @@ const saveSla = async () => {
 }
 
 const handleDeleteSla = async (id: number, name: string) => {
-  if (!confirm(`Are you sure you want to delete SLA "${name}"?`)) return
+  if (!confirm(__('Are you sure you want to delete SLA "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/slas/${id}`, {
       method: 'DELETE',
@@ -392,9 +439,26 @@ onMounted(() => {
               class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
               @click="handleEditSla(sla)"
             >
-              <!-- Name -->
-              <td class="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">
-                {{ sla.name }}
+              <!-- Name & Conditions -->
+              <td class="py-4 px-6">
+                <div class="font-medium text-slate-900 dark:text-slate-100">
+                  {{ sla.name }}
+                </div>
+                <div class="flex flex-wrap gap-1.5 mt-1.5">
+                  <span
+                    v-for="(rule, rIdx) in getSlaRuleSummary(sla)"
+                    :key="rIdx"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+                  >
+                    {{ rule }}
+                  </span>
+                  <span
+                    v-if="getSlaRuleSummary(sla).length === 0"
+                    class="text-[11px] text-slate-400 italic"
+                  >
+                    {{ __('Applies to all tickets') }}
+                  </span>
+                </div>
               </td>
               <!-- Calendar -->
               <td class="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">
@@ -427,14 +491,20 @@ onMounted(() => {
                 >
                   <div class="py-1.5">
                     <button
-                      @click="handleEditSla(sla)"
+                      @click="() => { closeActionMenu(); handleEditSla(sla) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
                     </button>
+                    <button
+                      @click="() => { closeActionMenu(); handleCloneSla(sla) }"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
+                    </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button
-                      @click="handleDeleteSla(sla.id, sla.name)"
+                      @click="() => { closeActionMenu(); handleDeleteSla(sla.id, sla.name) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                     >
                       <CommonIcon name="trash3" class="w-3.5 h-3.5 mr-2.5 text-red-400" />{{ __('Delete') }}

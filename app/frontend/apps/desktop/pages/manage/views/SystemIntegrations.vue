@@ -37,6 +37,13 @@ interface ConfigModalState {
   endpointUrl: string
   token: string
   apiKey: string
+  url: string
+  verifySsl: boolean
+  isVerifying: boolean
+  verifyStatus: { success: boolean; message: string } | null
+  autoCreateOrg: boolean
+  sharedOrg: boolean
+  signSystemNotifications: boolean
   customConfigJson: string
   isSaving: boolean
 }
@@ -340,9 +347,35 @@ const openConfigModal = (item: IntegrationItem) => {
   const tokenVal = item.tokenSetting
     ? String(allSettings.value[item.tokenSetting]?.state_current?.value || '')
     : ''
-  const cfgVal = item.configSetting
+  const cfgVal = (item.configSetting
     ? allSettings.value[item.configSetting]?.state_current?.value
-    : {}
+    : {}) as Record<string, unknown> || {}
+
+  let urlVal = ''
+  let verifySslVal = true
+  let apiKeyVal = ''
+  let autoCreateOrg = true
+  let sharedOrg = false
+  let signSystemNotifications = false
+
+  if (item.key === 'github') {
+    urlVal = String(cfgVal.endpoint || 'https://api.github.com/graphql')
+    apiKeyVal = String(cfgVal.api_token || '')
+  } else if (item.key === 'gitlab') {
+    urlVal = String(cfgVal.endpoint || 'https://gitlab.com/api/v4')
+    apiKeyVal = String(cfgVal.api_token || '')
+    verifySslVal = cfgVal.verify_ssl !== false
+  } else if (item.key === 'idoit') {
+    urlVal = String(cfgVal.endpoint || '')
+    apiKeyVal = String(cfgVal.api_token || '')
+    verifySslVal = cfgVal.verify_ssl !== false
+  } else if (item.key === 'clearbit') {
+    apiKeyVal = String(cfgVal.api_key || '')
+    autoCreateOrg = cfgVal.organization_autocreate !== false
+    sharedOrg = !!cfgVal.organization_shared
+  } else if (item.key === 'smime' || item.key === 'pgp') {
+    signSystemNotifications = !!cfgVal.sign_system_notifications
+  }
 
   configModal.value = {
     isOpen: true,
@@ -351,9 +384,80 @@ const openConfigModal = (item: IntegrationItem) => {
     autoClose: !!allSettings.value[`${item.key}_auto_close`]?.state_current?.value,
     endpointUrl: `${window.location.origin}/api/v1/integrations/${item.key}`,
     token: tokenVal,
-    apiKey: '',
+    apiKey: apiKeyVal,
+    url: urlVal,
+    verifySsl: verifySslVal,
+    isVerifying: false,
+    verifyStatus: null,
+    autoCreateOrg,
+    sharedOrg,
+    signSystemNotifications,
     customConfigJson: cfgVal ? JSON.stringify(cfgVal, null, 2) : '',
     isSaving: false,
+  }
+}
+
+const verifyIntegrationConnection = async () => {
+  const { item } = configModal.value
+  if (!item) return
+  configModal.value.isVerifying = true
+  configModal.value.verifyStatus = null
+  try {
+    let url = ''
+    let payload: Record<string, unknown> = {}
+    if (item.key === 'github') {
+      url = '/api/v1/integration/github/verify'
+      payload = {
+        api_token: configModal.value.apiKey || configModal.value.token,
+        endpoint: configModal.value.url || 'https://api.github.com/graphql',
+      }
+    } else if (item.key === 'gitlab') {
+      url = '/api/v1/integration/gitlab/verify'
+      payload = {
+        api_token: configModal.value.apiKey || configModal.value.token,
+        endpoint: configModal.value.url || 'https://gitlab.com/api/v4',
+        verify_ssl: configModal.value.verifySsl,
+      }
+    } else if (item.key === 'idoit') {
+      url = '/api/v1/integration/idoit/verify'
+      payload = {
+        method: 'cmdb.object_types',
+        api_token: configModal.value.apiKey || configModal.value.token,
+        endpoint: configModal.value.url,
+        verify_ssl: configModal.value.verifySsl,
+      }
+    }
+
+    if (!url) return
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': getCsrf(),
+      },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json()
+    if (data.result === 'ok' || (res.ok && data.result !== 'failed')) {
+      configModal.value.verifyStatus = {
+        success: true,
+        message: __('Connection verified successfully!'),
+      }
+    } else {
+      configModal.value.verifyStatus = {
+        success: false,
+        message: data.message || data.error || __('Verification failed. Please check credentials.'),
+      }
+    }
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : String(err)
+    configModal.value.verifyStatus = {
+      success: false,
+      message: errorMsg || __('Error testing connection.'),
+    }
+  } finally {
+    configModal.value.isVerifying = false
   }
 }
 
@@ -371,6 +475,51 @@ const saveConfigModal = async () => {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrf() },
           body: JSON.stringify({ state_current: { value: configModal.value.token } }),
+        }),
+      )
+    }
+
+    if (item.configSetting && allSettings.value[item.configSetting]) {
+      let cfgPayload: Record<string, unknown> = (allSettings.value[item.configSetting].state_current?.value as Record<string, unknown>) || {}
+      if (item.key === 'github') {
+        cfgPayload = {
+          ...cfgPayload,
+          endpoint: configModal.value.url,
+          api_token: configModal.value.apiKey,
+        }
+      } else if (item.key === 'gitlab') {
+        cfgPayload = {
+          ...cfgPayload,
+          endpoint: configModal.value.url,
+          api_token: configModal.value.apiKey,
+          verify_ssl: configModal.value.verifySsl,
+        }
+      } else if (item.key === 'idoit') {
+        cfgPayload = {
+          ...cfgPayload,
+          endpoint: configModal.value.url,
+          api_token: configModal.value.apiKey,
+          verify_ssl: configModal.value.verifySsl,
+        }
+      } else if (item.key === 'clearbit') {
+        cfgPayload = {
+          ...cfgPayload,
+          api_key: configModal.value.apiKey,
+          organization_autocreate: configModal.value.autoCreateOrg,
+          organization_shared: configModal.value.sharedOrg,
+        }
+      } else if (item.key === 'smime' || item.key === 'pgp') {
+        cfgPayload = {
+          ...cfgPayload,
+          sign_system_notifications: configModal.value.signSystemNotifications,
+        }
+      }
+
+      promises.push(
+        fetch(`/api/v1/settings/${allSettings.value[item.configSetting].id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': getCsrf() },
+          body: JSON.stringify({ state_current: { value: cfgPayload } }),
         }),
       )
     }
@@ -709,9 +858,10 @@ onMounted(() => {
           </button>
         </div>
 
-        <div class="space-y-4 text-xs">
+        <div class="max-h-[70vh] space-y-4 overflow-y-auto pr-1 text-xs">
           <!-- Webhook Endpoint URL if applicable -->
           <div
+            v-if="['cti', 'sipgate', 'check_mk', 'icinga', 'nagios', 'monit'].includes(configModal.item.key)"
             class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-[#1e293b]/70"
           >
             <p class="mb-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
@@ -729,6 +879,175 @@ onMounted(() => {
               >
                 <CommonIcon name="copy" class="h-3.5 w-3.5" />
               </button>
+            </div>
+          </div>
+
+          <!-- GitHub & GitLab & i-doit Configuration -->
+          <div
+            v-if="['github', 'gitlab', 'idoit'].includes(configModal.item.key)"
+            class="space-y-3"
+          >
+            <div class="space-y-1.5">
+              <label
+                for="integration-endpoint-url"
+                class="block font-semibold text-slate-700 dark:text-slate-300"
+              >
+                {{ __('Endpoint URL') }}
+              </label>
+              <input
+                id="integration-endpoint-url"
+                v-model="configModal.url"
+                type="text"
+                placeholder="https://..."
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label
+                for="integration-api-key"
+                class="block font-semibold text-slate-700 dark:text-slate-300"
+              >
+                {{ __('API Token') }}
+              </label>
+              <input
+                id="integration-api-key"
+                v-model="configModal.apiKey"
+                type="password"
+                placeholder="••••••••••••••••"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              />
+            </div>
+
+            <div
+              v-if="configModal.item.key !== 'github'"
+              class="flex items-center justify-between pt-1"
+            >
+              <div>
+                <p class="font-semibold text-slate-700 dark:text-slate-300">
+                  {{ __('Verify SSL Certificate') }}
+                </p>
+                <p class="text-[11px] text-slate-400">
+                  {{ __('Disable only for self-signed development certificates.') }}
+                </p>
+              </div>
+              <input
+                id="integration-verify-ssl"
+                v-model="configModal.verifySsl"
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer accent-blue-600"
+              />
+            </div>
+
+            <!-- Test Connection Button & Status -->
+            <div class="border-t border-slate-100 pt-2 dark:border-slate-800">
+              <div class="flex items-center justify-between">
+                <button
+                  type="button"
+                  class="flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-60 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                  :disabled="configModal.isVerifying"
+                  @click="verifyIntegrationConnection"
+                >
+                  <CommonIcon
+                    v-if="configModal.isVerifying"
+                    name="arrow-clockwise"
+                    class="h-3.5 w-3.5 animate-spin"
+                  />
+                  <CommonIcon v-else name="plug" class="h-3.5 w-3.5" />
+                  <span>{{ configModal.isVerifying ? __('Testing...') : __('Test Connection') }}</span>
+                </button>
+              </div>
+
+              <div
+                v-if="configModal.verifyStatus"
+                class="mt-2 rounded-xl p-2.5 text-[11px] font-medium"
+                :class="
+                  configModal.verifyStatus.success
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
+                    : 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300'
+                "
+              >
+                {{ configModal.verifyStatus.message }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Clearbit Configuration -->
+          <div
+            v-if="configModal.item.key === 'clearbit'"
+            class="space-y-3"
+          >
+            <div class="space-y-1.5">
+              <label
+                for="clearbit-api-key"
+                class="block font-semibold text-slate-700 dark:text-slate-300"
+              >
+                {{ __('Clearbit API Key') }}
+              </label>
+              <input
+                id="clearbit-api-key"
+                v-model="configModal.apiKey"
+                type="password"
+                placeholder="sk_..."
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              />
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <div>
+                <p class="font-semibold text-slate-700 dark:text-slate-300">
+                  {{ __('Auto Create Organizations') }}
+                </p>
+                <p class="text-[11px] text-slate-400">
+                  {{ __('Create organizations automatically if customer record has one.') }}
+                </p>
+              </div>
+              <input
+                id="clearbit-autocreate-org"
+                v-model="configModal.autoCreateOrg"
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer accent-blue-600"
+              />
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <div>
+                <p class="font-semibold text-slate-700 dark:text-slate-300">
+                  {{ __('Shared Organizations') }}
+                </p>
+                <p class="text-[11px] text-slate-400">
+                  {{ __('New organizations created from Clearbit are marked as shared.') }}
+                </p>
+              </div>
+              <input
+                id="clearbit-shared-org"
+                v-model="configModal.sharedOrg"
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer accent-blue-600"
+              />
+            </div>
+          </div>
+
+          <!-- PGP / S/MIME Security Configuration -->
+          <div
+            v-if="['pgp', 'smime'].includes(configModal.item.key)"
+            class="space-y-3"
+          >
+            <div class="flex items-center justify-between pt-1">
+              <div>
+                <p class="font-semibold text-slate-700 dark:text-slate-300">
+                  {{ __('Sign System Notifications') }}
+                </p>
+                <p class="text-[11px] text-slate-400">
+                  {{ __('Automatically sign outgoing automated system notification emails.') }}
+                </p>
+              </div>
+              <input
+                id="security-sign-notifications"
+                v-model="configModal.signSystemNotifications"
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer accent-blue-600"
+              />
             </div>
           </div>
 

@@ -48,7 +48,10 @@ import TicketSidebar from '../TicketSidebar.vue'
 import AgentTicketCreateCard from './AgentTicketCreateCard.vue'
 import ApplyTemplate from './ApplyTemplate.vue'
 import CustomerTicketCreateCard from './CustomerTicketCreateCard.vue'
-import CustomerTicketCreateWizard, { type WizardData } from './CustomerTicketCreateWizard.vue'
+import CustomerTicketCreateWizard, {
+  type CategoryKey,
+  type WizardData,
+} from './CustomerTicketCreateWizard.vue'
 import TicketDuplicateDetectionAlert from './TicketDuplicateDetectionAlert.vue'
 
 interface Props {
@@ -159,26 +162,57 @@ const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
 
 const wizardInitialValues = computed<Partial<WizardData>>(() => {
   const formValues = values.value as Record<string, unknown>
-  let catKey: 'it' | 'account' | 'general' | '' =
-    (route.query.category as 'it' | 'account' | 'general') || ''
+  let catKey: CategoryKey =
+    (route.query.category as CategoryKey) || ''
 
-  if (!catKey) {
-    if (formValues?.category === 'Software' || formValues?.category === 'Hardware') {
-      catKey = 'it'
-    } else if (formValues?.category === 'Service Request') {
-      catKey = 'account'
+  let rawCat =
+    (route.query.categoryValue as string) ||
+    (formValues?.category2 as string) ||
+    (formValues?.category as string) ||
+    ''
+
+  // Map any legacy or shorthand keys to real categories
+  if (catKey === 'it' || catKey === 'software') {
+    catKey = 'software'
+    if (!rawCat) rawCat = 'Software'
+  } else if (catKey === 'account' || catKey === 'service_request') {
+    catKey = 'service_request'
+    if (!rawCat) rawCat = 'Service Request'
+  } else if (catKey === 'general') {
+    catKey = 'service_request'
+    if (!rawCat) rawCat = 'Service Request'
+  } else if (catKey === 'hardware') {
+    catKey = 'hardware'
+    if (!rawCat) rawCat = 'Hardware'
+  }
+
+  if (!catKey && rawCat) {
+    if (rawCat === 'Software') {
+      catKey = 'software'
+    } else if (rawCat === 'Hardware') {
+      catKey = 'hardware'
+    } else if (rawCat === 'Service Request') {
+      catKey = 'service_request'
+    } else {
+      catKey = rawCat.toLowerCase().replace(/[^a-z0-9]+/g, '_')
     }
   }
 
-  let catName = (formValues?.category as string) || ''
-  if (!catName && catKey === 'it') catName = __('IT Support')
-  if (!catName && catKey === 'account') catName = __('Account Help')
-  if (!catName && catKey === 'general') catName = __('General Enquiry')
+  let catName = rawCat
+  if (!catName && catKey) {
+    if (catKey === 'service_request') catName = 'Service Request'
+    else if (catKey === 'software') catName = 'Software'
+    else if (catKey === 'hardware') catName = 'Hardware'
+    else catName = catKey
+  }
 
   return {
     categoryKey: catKey,
     category: catName,
-    subCategory: (formValues?.sub_category as string) || '',
+    subCategory:
+      (formValues?.subcategory as string) ||
+      (formValues?.sub_category as string) ||
+      '',
     campus: (formValues?.campus as string) || '',
     title: (formValues?.title as string) || '',
     body:
@@ -206,11 +240,13 @@ const handleWizardSubmit = async (data: WizardData) => {
     // 1. Format body with category, subcategory and campus context
     const categoryName =
       data.category ||
-      (data.categoryKey === 'it'
-        ? __('IT Support')
-        : data.categoryKey === 'account'
-          ? __('Account Help')
-          : __('General Enquiry'))
+      (data.categoryKey === 'service_request'
+        ? 'Service Request'
+        : data.categoryKey === 'software'
+          ? 'Software'
+          : data.categoryKey === 'hardware'
+            ? 'Hardware'
+            : (data.categoryKey || ''))
 
     const campusText = data.campus || __('Not specified')
     const subCatText = data.subCategory || __('General')
@@ -227,18 +263,16 @@ const handleWizardSubmit = async (data: WizardData) => {
     // Map wizard selection to official DB attribute values
     const rawCategory =
       data.category ||
-      (data.categoryKey === 'it'
-        ? 'Software'
-        : data.categoryKey === 'account'
-          ? 'Service Request'
-          : 'Service Request')
+      (data.categoryKey === 'service_request'
+        ? 'Service Request'
+        : data.categoryKey === 'software'
+          ? 'Software'
+          : data.categoryKey === 'hardware'
+            ? 'Hardware'
+            : '')
 
-    const categoryAttributeValue =
-      ['Software', 'Hardware', 'Service Request'].includes(rawCategory)
-        ? rawCategory
-        : 'Service Request'
-
-    const campusAttributeValue = data.campus || 'FSB Sheffield'
+    const categoryAttributeValue = rawCategory
+    const campusAttributeValue = data.campus || ''
     const subCategoryAttributeValue = data.subCategory || ''
 
     // 2. Set nodes if form is available for visual sync
@@ -250,7 +284,9 @@ const handleWizardSubmit = async (data: WizardData) => {
       bodyNode?.input(fullBodyHtml)
 
       getNodeByName(formId, 'category')?.input(categoryAttributeValue)
+      getNodeByName(formId, 'category2')?.input(categoryAttributeValue)
       getNodeByName(formId, 'sub_category')?.input(subCategoryAttributeValue)
+      getNodeByName(formId, 'subcategory')?.input(subCategoryAttributeValue)
       getNodeByName(formId, 'campus')?.input(campusAttributeValue)
     }
 
@@ -310,8 +346,10 @@ const handleWizardSubmit = async (data: WizardData) => {
       articleSenderType: senderType as TicketCreateArticleType,
       group_id: groupId,
       category: categoryAttributeValue,
+      category2: categoryAttributeValue,
       campus: campusAttributeValue,
       sub_category: subCategoryAttributeValue,
+      subcategory: subCategoryAttributeValue,
     } as unknown as FormSubmitData<TicketFormData>
 
     if (customerId) {
@@ -740,6 +778,7 @@ const formAdditionalRouteQueryParams = computed(() => ({
     <div class="w-full max-w-5xl px-4 py-8">
       <CustomerTicketCreateWizard
         v-if="isTicketCustomer && isWizardMode"
+        :form-id="currentTaskbarTabFormId"
         :is-submitting="isSubmittingWizard"
         :created-ticket-info="createdTicketInfo"
         :initial-values="wizardInitialValues"

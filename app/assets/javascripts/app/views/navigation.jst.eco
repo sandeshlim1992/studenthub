@@ -25,10 +25,6 @@
       <ul class="global-search-result js-global-search-result" role="menu"></ul>
     </div>
   </div>
-  <a href="#ticket/create" class="new-ticket-btn" title="<%- @Ti('New Ticket') %>">
-    <%- @Icon('plus') %>
-    <span class="new-ticket-btn-label"><%- @T('New Ticket') %></span>
-  </a>
   <div class="menu js-menu"></div>
   <div class="tasks tasks-navigation"></div>
   <% if !_.isEmpty(@user): %>

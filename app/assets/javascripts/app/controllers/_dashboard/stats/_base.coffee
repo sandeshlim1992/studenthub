@@ -1,7 +1,6 @@
 class App.ControllerDashboardStatsBase extends App.Controller
   constructor: ->
     super
-    App.StatsStore.bind('refresh change create update', @load)
     @load()
 
   load: =>

@@ -226,8 +226,95 @@ const saveChecklistTemplate = async () => {
   }
 }
 
+const isChecklistFeatureEnabled = ref(true)
+
+const fetchChecklistSetting = async () => {
+  try {
+    const res = await fetch('/api/v1/settings/checklist', {
+      headers: {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (typeof data.value === 'boolean') {
+        isChecklistFeatureEnabled.value = data.value
+      } else if (data.state_current && typeof data.state_current.value === 'boolean') {
+        isChecklistFeatureEnabled.value = data.state_current.value
+      }
+    }
+  } catch (e) {
+    console.error('Failed to fetch checklist setting:', e)
+  }
+}
+
+const toggleGlobalChecklistSetting = async () => {
+  const nextVal = !isChecklistFeatureEnabled.value
+  isChecklistFeatureEnabled.value = nextVal
+  try {
+    const res = await fetch('/api/v1/settings/checklist', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
+      },
+      body: JSON.stringify({ value: nextVal }),
+    })
+    if (!res.ok) {
+      isChecklistFeatureEnabled.value = !nextVal
+      alert(__('Failed to update checklist setting.'))
+    }
+  } catch (e) {
+    isChecklistFeatureEnabled.value = !nextVal
+    console.error('Failed to update checklist setting:', e)
+  }
+}
+
+const handleCloneChecklist = async (tmpl: ChecklistTemplateItem) => {
+  closeActionMenu()
+  isLoading.value = true
+  try {
+    const res = await fetch(`/api/v1/checklist_templates/${tmpl.id}?full=true`, {
+      headers: {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      const record = data.assets?.ChecklistTemplate?.[tmpl.id] || data
+      const sortedItemIds: number[] = record.sorted_item_ids || data.sorted_item_ids || []
+      const itemAssets: Record<string, { id: number; text: string }> = data.assets?.ChecklistTemplateItem || {}
+
+      let itemTexts: string[] = []
+      if (sortedItemIds.length > 0) {
+        itemTexts = sortedItemIds.map((itemId) => itemAssets[String(itemId)]?.text).filter(Boolean) as string[]
+      } else if (Array.isArray(record.items)) {
+        itemTexts = record.items.map((i: { text: string }) => i.text).filter(Boolean)
+      }
+
+      formState.value = {
+        id: null,
+        name: `${__('Clone')}: ${record.name || tmpl.name || ''}`,
+        active: record.active !== false,
+        items: itemTexts.length > 0 ? itemTexts : [''],
+      }
+      drawerTitle.value = __('New Checklist')
+      showDrawer.value = true
+    }
+  } catch (e) {
+    console.error('Failed to clone checklist:', e)
+  } finally {
+    isLoading.value = false
+  }
+}
+
 const handleDeleteChecklistTemplate = async (id: number, name: string) => {
-  if (!confirm(`Are you sure you want to delete checklist template "${name}"?`)) return
+  closeActionMenu()
+  if (!confirm(__('Are you sure you want to delete checklist template "%s"?').replace('%s', name))) return
   try {
     const res = await fetch(`/api/v1/checklist_templates/${id}`, {
       method: 'DELETE',
@@ -270,6 +357,7 @@ const toggleActiveState = async (tmpl: ChecklistTemplateItem) => {
 
 onMounted(() => {
   fetchChecklistTemplates()
+  fetchChecklistSetting()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -279,17 +367,37 @@ onMounted(() => {
     <div class="w-full px-8 py-6 text-slate-800 dark:text-slate-100" @click="closeActionMenu">
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4">
           <button
             @click="router.push('/manage')"
             class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <CommonIcon name="arrow-left" class="w-4 h-4" />
           </button>
-          <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
-            {{ __('Checklists') }}
-            <span class="text-sm font-normal text-slate-500 dark:text-slate-400 ml-1">{{ __('Management') }}</span>
-          </h1>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-3">
+              {{ __('Checklists') }}
+              <span class="text-sm font-normal text-slate-500 dark:text-slate-400">{{ __('Management') }}</span>
+            </h1>
+          </div>
+          <!-- Global Feature Toggle Switch -->
+          <div class="flex items-center gap-2 pl-4 border-l border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              @click="toggleGlobalChecklistSetting"
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-hidden"
+              :class="isChecklistFeatureEnabled ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'"
+              :title="isChecklistFeatureEnabled ? __('Checklists are enabled') : __('Checklists are disabled')"
+            >
+              <span
+                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200"
+                :class="isChecklistFeatureEnabled ? 'translate-x-5' : 'translate-x-0'"
+              ></span>
+            </button>
+            <span class="text-xs font-medium text-slate-600 dark:text-slate-400">
+              {{ isChecklistFeatureEnabled ? __('Enabled') : __('Disabled') }}
+            </span>
+          </div>
         </div>
         <button
           @click="handleNewChecklist"
@@ -297,6 +405,15 @@ onMounted(() => {
         >
           {{ __('New Checklist') }}
         </button>
+      </div>
+
+      <!-- Disabled Feature Notice Banner -->
+      <div
+        v-if="!isChecklistFeatureEnabled"
+        class="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-3"
+      >
+        <CommonIcon name="exclamation-triangle" class="w-5 h-5 shrink-0 text-amber-500" />
+        <span>{{ __('Checklists are currently disabled system-wide. Switch the toggle above to enable checklists on tickets.') }}</span>
       </div>
 
       <!-- Search -->
@@ -400,6 +517,12 @@ onMounted(() => {
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
+                    </button>
+                    <button
+                      @click="handleCloneChecklist(tmpl)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button

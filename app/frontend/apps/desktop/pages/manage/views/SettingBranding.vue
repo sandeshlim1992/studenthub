@@ -433,6 +433,83 @@ onMounted(() => {
               </div>
             </div>
           </div>
+
+          <!-- Live Login Screen Simulation (Parity with Legacy generic/login_preview) -->
+          <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  {{ __('Login Screen Simulation') }}
+                </h3>
+                <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  {{ __('Live preview of how your logo, product name, and branding appear on the user sign-in page.') }}
+                </p>
+              </div>
+              <span class="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-medium text-slate-600 dark:text-slate-400">
+                {{ __('Preview Mode') }}
+              </span>
+            </div>
+
+            <div class="flex justify-center p-6 sm:p-10 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 border border-slate-800 shadow-inner">
+              <div class="w-full max-w-sm rounded-2xl bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md p-6 shadow-2xl border border-white/20 dark:border-slate-700/50">
+                <div class="text-center mb-6">
+                  <div class="h-14 flex items-center justify-center mb-3">
+                    <img
+                      v-if="logoPreviewUrl"
+                      :src="logoPreviewUrl"
+                      :alt="productName || __('Product Logo')"
+                      class="max-h-12 max-w-full object-contain"
+                    />
+                    <div v-else class="text-lg font-bold text-slate-700 dark:text-slate-200">
+                      {{ productName || __('Zammad Helpdesk') }}
+                    </div>
+                  </div>
+                  <h4 class="text-base font-semibold text-slate-800 dark:text-slate-100">
+                    {{ productName || __('Zammad Helpdesk') }}
+                  </h4>
+                  <p v-if="organization" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {{ organization }}
+                  </p>
+                </div>
+
+                <div class="space-y-4 opacity-75 pointer-events-none select-none">
+                  <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      {{ __('Username / email') }}
+                    </label>
+                    <input
+                      type="text"
+                      disabled
+                      value="agent@example.com"
+                      class="w-full px-3 py-2 bg-slate-100 dark:bg-[#1e293b] border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 dark:text-slate-400"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      {{ __('Password') }}
+                    </label>
+                    <input
+                      type="password"
+                      disabled
+                      value="••••••••••••"
+                      class="w-full px-3 py-2 bg-slate-100 dark:bg-[#1e293b] border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 dark:text-slate-400"
+                    />
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="checkbox" disabled class="rounded border-slate-300 text-blue-600" />
+                    <span class="text-xs text-slate-600 dark:text-slate-400">{{ __('Remember me') }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    disabled
+                    class="w-full py-2 px-4 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow-xs"
+                  >
+                    {{ __('Sign in') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 2. Product Identity (Product Name & Organization) -->

@@ -205,8 +205,110 @@ const saveWebhook = async () => {
   }
 }
 
+const handleCloneWebhook = (wh: WebhookItem) => {
+  formState.value = {
+    id: null,
+    name: __('%s (Copy)', wh.name || __('Webhook')),
+    endpoint: wh.endpoint || '',
+    http_method: (wh.http_method || 'post').toLowerCase(),
+    ssl_verify: wh.ssl_verify !== false,
+    auth_type: wh.auth_type || '',
+    basic_auth_username: wh.basic_auth_username || '',
+    basic_auth_password: wh.basic_auth_password || '',
+    bearer_token: wh.bearer_token || '',
+    signature_token: wh.signature_token || '',
+    customized_payload: Boolean(wh.customized_payload),
+    custom_payload: wh.custom_payload || '',
+    note: htmlToPlainText(wh.note || ''),
+    active: wh.active !== false,
+  }
+  drawerTitle.value = __('Clone Webhook')
+  showDrawer.value = true
+}
+
+// Example Payload modal
+const showPayloadModal = ref(false)
+const payloadPreviewData = ref('')
+const payloadLoading = ref(false)
+const copiedPayload = ref(false)
+
+const openPayloadModal = async () => {
+  showPayloadModal.value = true
+  payloadLoading.value = true
+  try {
+    const res = await fetch('/api/v1/webhooks/preview', {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      payloadPreviewData.value = typeof data === 'string' ? data : JSON.stringify(data, null, 2)
+    } else {
+      payloadPreviewData.value = JSON.stringify({ error: 'Failed to load preview payload' }, null, 2)
+    }
+  } catch (e) {
+    console.error('Failed to load payload preview:', e)
+  } finally {
+    payloadLoading.value = false
+  }
+}
+
+const copyPayloadToClipboard = async () => {
+  try {
+    await navigator.clipboard.writeText(payloadPreviewData.value)
+    copiedPayload.value = true
+    setTimeout(() => { copiedPayload.value = false }, 2000)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+// Pre-defined Webhooks modal
+interface PredefinedDefinition {
+  name: string
+  endpoint?: string
+  note?: string
+  custom_payload?: string | Record<string, unknown>
+  customized_payload?: boolean
+}
+
+const showPredefinedModal = ref(false)
+const predefinedWebhooks = ref<PredefinedDefinition[]>([])
+const predefinedLoading = ref(false)
+
+const openPredefinedModal = async () => {
+  showPredefinedModal.value = true
+  predefinedLoading.value = true
+  try {
+    const res = await fetch('/api/v1/webhooks/pre_defined', {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      predefinedWebhooks.value = Array.isArray(data) ? data : Object.values(data)
+    }
+  } catch (e) {
+    console.error('Failed to load predefined webhooks:', e)
+  } finally {
+    predefinedLoading.value = false
+  }
+}
+
+const selectPredefinedWebhook = (pre: PredefinedDefinition) => {
+  formState.value = defaultFormState()
+  formState.value.name = pre.name
+  formState.value.endpoint = pre.endpoint || ''
+  formState.value.note = pre.note || ''
+  if (pre.custom_payload) {
+    formState.value.customized_payload = true
+    formState.value.custom_payload = typeof pre.custom_payload === 'string' ? pre.custom_payload : JSON.stringify(pre.custom_payload, null, 2)
+  }
+  showPredefinedModal.value = false
+  drawerTitle.value = __('%s (Pre-defined)', pre.name)
+  showDrawer.value = true
+}
+
 const handleDeleteWebhook = async (id: number, name: string) => {
-  if (!confirm(`Are you sure you want to delete webhook "${name}"?`)) return
+  if (!confirm(__('Are you sure you want to delete webhook "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/webhooks/${id}`, {
       method: 'DELETE',
@@ -270,12 +372,28 @@ onMounted(() => {
             <span class="text-sm font-normal text-slate-500 dark:text-slate-400 ml-1">{{ __('Management') }}</span>
           </h1>
         </div>
-        <button
-          @click="handleNewWebhook"
-          class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
-        >
-          {{ __('New Webhook') }}
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            @click="openPayloadModal"
+            class="px-3.5 py-2 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <CommonIcon name="code-slash" class="w-4 h-4 text-slate-400" />
+            {{ __('Example Payload') }}
+          </button>
+          <button
+            @click="openPredefinedModal"
+            class="px-3.5 py-2 border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+          >
+            <CommonIcon name="lightning" class="w-4 h-4" />
+            {{ __('Pre-defined Webhook') }}
+          </button>
+          <button
+            @click="handleNewWebhook"
+            class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
+          >
+            {{ __('New Webhook') }}
+          </button>
+        </div>
       </div>
 
       <!-- Search -->
@@ -389,14 +507,20 @@ onMounted(() => {
                 >
                   <div class="py-1.5">
                     <button
-                      @click="handleEditWebhook(wh)"
+                      @click="() => { closeActionMenu(); handleEditWebhook(wh) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
                     </button>
+                    <button
+                      @click="() => { closeActionMenu(); handleCloneWebhook(wh) }"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
+                    </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button
-                      @click="handleDeleteWebhook(wh.id, wh.name)"
+                      @click="() => { closeActionMenu(); handleDeleteWebhook(wh.id, wh.name) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                     >
                       <CommonIcon name="trash3" class="w-3.5 h-3.5 mr-2.5 text-red-400" />{{ __('Delete') }}
@@ -652,6 +776,124 @@ onMounted(() => {
           >
             <span v-if="submitting">{{ __('Saving...') }}</span>
             <span v-else>{{ __('Save') }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Example Payload Modal -->
+  <Teleport to="body">
+    <div
+      v-if="showPayloadModal"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      @click="showPayloadModal = false"
+    >
+      <div
+        class="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
+        @click.stop
+      >
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+              <CommonIcon name="code-slash" class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Example Payload') }}</h3>
+              <p class="text-xs text-slate-500">{{ __('Live sample payload dispatched on ticket/article webhook triggers.') }}</p>
+            </div>
+          </div>
+          <button
+            @click="showPayloadModal = false"
+            class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <CommonIcon name="x-lg" class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 bg-slate-950 text-slate-200 font-mono text-xs relative">
+          <div v-if="payloadLoading" class="py-12 flex items-center justify-center gap-2">
+            <div class="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+            <span class="text-slate-400 text-xs">{{ __('Generating sample payload...') }}</span>
+          </div>
+          <pre v-else class="whitespace-pre-wrap break-all">{{ payloadPreviewData }}</pre>
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <button
+            @click="copyPayloadToClipboard"
+            :disabled="payloadLoading"
+            class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <CommonIcon :name="copiedPayload ? 'check2' : 'copy'" class="w-3.5 h-3.5" />
+            {{ copiedPayload ? __('Copied!') : __('Copy JSON') }}
+          </button>
+          <button
+            @click="showPayloadModal = false"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+          >
+            {{ __('Close') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Pre-defined Webhook Modal -->
+  <Teleport to="body">
+    <div
+      v-if="showPredefinedModal"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      @click="showPredefinedModal = false"
+    >
+      <div
+        class="w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[85vh]"
+        @click.stop
+      >
+        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="p-2 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+              <CommonIcon name="lightning" class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Pre-defined Webhooks') }}</h3>
+              <p class="text-xs text-slate-500">{{ __('Select a template to auto-populate webhook configurations.') }}</p>
+            </div>
+          </div>
+          <button
+            @click="showPredefinedModal = false"
+            class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <CommonIcon name="x-lg" class="w-4 h-4" />
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 space-y-3">
+          <div v-if="predefinedLoading" class="py-12 flex items-center justify-center gap-2">
+            <div class="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+            <span class="text-slate-400 text-xs">{{ __('Loading templates...') }}</span>
+          </div>
+          <div
+            v-else
+            v-for="(pre, pIdx) in predefinedWebhooks"
+            :key="pIdx"
+            @click="selectPredefinedWebhook(pre)"
+            class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all cursor-pointer flex items-center justify-between"
+          >
+            <div>
+              <h4 class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ pre.name }}</h4>
+              <p v-if="pre.note" class="text-xs text-slate-500 mt-0.5">{{ pre.note }}</p>
+            </div>
+            <CommonIcon name="chevron-right" class="w-4 h-4 text-slate-400 shrink-0 ml-3" />
+          </div>
+        </div>
+
+        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+          <button
+            @click="showPredefinedModal = false"
+            class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer"
+          >
+            {{ __('Cancel') }}
           </button>
         </div>
       </div>

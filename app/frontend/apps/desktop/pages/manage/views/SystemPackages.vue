@@ -144,18 +144,24 @@ const onFileChange = (e: Event) => {
   }
 }
 
+const getCsrf = () => {
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  return meta ? meta.getAttribute('content') || '' : ''
+}
+
 const uploadPackage = async () => {
   if (!selectedFile.value) return
   isUploading.value = true
   errorMessage.value = ''
   try {
     const formData = new FormData()
-    formData.append('file', selectedFile.value)
+    formData.append('file_upload', selectedFile.value)
 
     const res = await fetch('/api/v1/packages', {
       method: 'POST',
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: formData,
     })
@@ -188,6 +194,7 @@ const installFromApi = async (meta: ApiPackageMeta) => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify({ id: meta.id || meta.name }),
     })
@@ -215,6 +222,7 @@ const updatePackage = async (pkg: PackageRecord) => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify({ id: pkg.id }),
     })
@@ -252,6 +260,7 @@ const executeUninstall = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify({ id: pkg.id }),
     })
@@ -288,6 +297,7 @@ const saveToken = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify({
         state_current: { value: tokenModal.value.token.trim() },

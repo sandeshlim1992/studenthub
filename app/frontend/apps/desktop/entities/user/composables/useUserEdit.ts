@@ -56,6 +56,12 @@ export const openUserEditFlyout = async (
 
   const formChangeFields = buildUserEditFormChangeFields()
 
+  if (!user.active) {
+    formChangeFields.active = {
+      help: __('You cannot view or change the group permissions of an inactive user. Activate them first to manage their permissions.'),
+    }
+  }
+
   return openFlyout(USER_EDIT_FLYOUT_NAME, {
     name: USER_EDIT_FLYOUT_NAME,
     title: options?.title ?? __('Edit user'),
@@ -66,7 +72,16 @@ export const openUserEditFlyout = async (
     schema: userEditFormSchema,
     formChangeFields,
     formUpdaterId: EnumFormUpdaterId.FormUpdaterUpdaterUserEdit,
-    onChangedField: (fieldName: string, newValue: number) => {
+    onChangedField: (fieldName: string, newValue: unknown) => {
+      if (fieldName === 'active') {
+        formChangeFields.active ||= {}
+        if (!newValue) {
+          formChangeFields.active.help = __('You cannot view or change the group permissions of an inactive user. Activate them first to manage their permissions.')
+        } else {
+          formChangeFields.active.help = ''
+        }
+      }
+
       if (fieldName !== 'organization_id' || !application.config.ticket_organization_reassignment)
         return
 

@@ -9,9 +9,9 @@ interface OverviewItem {
   id: number
   name: string
   link: string
-  roles: string[]
+  roles?: string[]
   role_ids: number[]
-  users: string[]
+  users?: string[]
   user_ids: number[]
   active: boolean
   prio: number
@@ -21,7 +21,7 @@ interface OverviewItem {
   group_direction?: string
   order?: { by: string; direction: string }
   view?: { s: string[] }
-  condition?: Record<string, { operator: string; value?: string[]; pre_condition?: string }>
+  condition?: Record<string, { operator?: string; value?: string[] | string; pre_condition?: string; range?: string; value_completion?: string }>
 }
 
 interface PreviewTicket {
@@ -30,6 +30,14 @@ interface PreviewTicket {
   title: string
   state: string
   created_at: string
+}
+
+interface ConditionRow {
+  field: string
+  operator: string
+  values: string[]
+  pre_condition?: string
+  text_value?: string
 }
 
 const TICKET_ATTRIBUTES = [
@@ -41,6 +49,11 @@ const TICKET_ATTRIBUTES = [
   { value: 'owner', label: 'Owner' },
   { value: 'state', label: 'State' },
   { value: 'priority', label: 'Priority' },
+  { value: 'escalation_at', label: 'First response escalation' },
+  { value: 'close_escalation_at', label: 'Close escalation' },
+  { value: 'pending_time', label: 'Pending till' },
+  { value: 'tags', label: 'Tags' },
+  { value: 'campus', label: 'Campus' },
   { value: 'created_at', label: 'Created at' },
   { value: 'updated_at', label: 'Updated at' },
 ]
@@ -54,8 +67,23 @@ const TICKET_SORT_ATTRIBUTES = [
   { value: 'owner', label: 'Owner' },
   { value: 'state', label: 'State' },
   { value: 'priority', label: 'Priority' },
+  { value: 'escalation_at', label: 'First response escalation' },
+  { value: 'close_escalation_at', label: 'Close escalation' },
+  { value: 'pending_time', label: 'Pending till' },
   { value: 'created_at', label: 'Created at' },
   { value: 'updated_at', label: 'Updated at' },
+]
+
+const GROUP_BY_ATTRIBUTES = [
+  { value: '', label: '-' },
+  { value: 'customer', label: 'Customer' },
+  { value: 'state', label: 'State' },
+  { value: 'priority', label: 'Priority' },
+  { value: 'group', label: 'Group' },
+  { value: 'owner', label: 'Owner' },
+  { value: 'organization', label: 'Organization' },
+  { value: 'campus', label: 'Campus' },
+  { value: 'itil_type', label: 'ITIL Type' },
 ]
 
 const router = useRouter()
@@ -64,6 +92,10 @@ const isLoading = ref(true)
 const errorText = ref('')
 const searchQuery = ref('')
 const activeActionMenuOverviewId = ref<number | null>(null)
+
+// Drag and drop state
+const draggedOverviewIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
 
 const rolesList = ref<{ id: number; name: string }[]>([])
 const groupsList = ref<{ id: number; name: string }[]>([])
@@ -89,6 +121,9 @@ const previewTickets = ref<PreviewTicket[]>([])
 const previewTotal = ref(0)
 const previewError = ref('')
 
+// Preserved conditions that aren't represented in standard editor rows
+const rawExtraConditions = ref<Record<string, unknown>>({})
+
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
 
 const defaultFormState = () => ({
@@ -105,7 +140,7 @@ const defaultFormState = () => ({
   role_ids: [] as number[],
   user_ids: [] as number[],
   view_s: ['number', 'title', 'customer', 'owner', 'state', 'created_at'] as string[],
-  conditions: [] as { field: string; operator: string; values: string[]; pre_condition?: string }[]
+  conditions: [] as ConditionRow[]
 })
 
 const formState = ref(defaultFormState())
@@ -122,8 +157,19 @@ const toggleActionMenu = (overviewId: number, event: Event) => {
 
 const closeActionMenu = () => { activeActionMenuOverviewId.value = null }
 
+// Role name lookup map
+const rolesMap = computed(() => {
+  const map: Record<number, string> = {}
+  for (const r of rolesList.value) {
+    map[r.id] = r.name
+  }
+  return map
+})
+
+// Build condition payload preserving all standard, specialized, and raw extra conditions
 const buildConditionPayload = () => {
-  const payload: Record<string, { operator: string; value: string[]; pre_condition?: string }> = {}
+  const payload: Record<string, unknown> = { ...rawExtraConditions.value }
+
   for (const cond of formState.value.conditions) {
     let key = ''
     if (cond.field === 'state') key = 'ticket.state_id'
@@ -132,16 +178,39 @@ const buildConditionPayload = () => {
     else if (cond.field === 'owner') key = 'ticket.owner_id'
     else if (cond.field === 'customer') key = 'ticket.customer_id'
     else if (cond.field === 'organization') key = 'ticket.organization_id'
-    if (key) {
-      payload[key] = { operator: cond.operator, value: cond.values }
-      if (cond.pre_condition) payload[key].pre_condition = cond.pre_condition
+    else if (cond.field === 'tags') key = 'ticket.tags'
+    else if (cond.field === 'mention_user_ids') key = 'ticket.mention_user_ids'
+    else if (cond.field === 'out_of_office_replacement_id') key = 'ticket.out_of_office_replacement_id'
+    else if (cond.field) key = cond.field.startsWith('ticket.') ? cond.field : `ticket.${cond.field}`
+
+    if (!key) continue
+
+    if (key === 'ticket.tags') {
+      payload[key] = {
+        operator: cond.operator || 'contains one',
+        value: cond.text_value || ''
+      }
+    } else if (cond.pre_condition) {
+      payload[key] = {
+        operator: cond.operator || 'is',
+        pre_condition: cond.pre_condition,
+        value: [],
+        value_completion: ''
+      }
+    } else {
+      payload[key] = {
+        operator: cond.operator || 'is',
+        value: cond.values || []
+      }
     }
   }
+
   return payload
 }
 
+// Live ticket preview
 const fetchPreview = async () => {
-  if (formState.value.conditions.length === 0) {
+  if (formState.value.conditions.length === 0 && Object.keys(rawExtraConditions.value).length === 0) {
     previewTickets.value = []
     previewTotal.value = 0
     previewError.value = ''
@@ -152,7 +221,12 @@ const fetchPreview = async () => {
   try {
     const res = await fetch('/api/v1/tickets/selector', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': getCsrf() },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf()
+      },
       body: JSON.stringify({ condition: buildConditionPayload() })
     })
     if (res.ok) {
@@ -183,6 +257,7 @@ const fetchPreview = async () => {
   }
 }
 
+// Fetch all overviews
 const fetchOverviews = async () => {
   isLoading.value = true
   errorText.value = ''
@@ -210,6 +285,7 @@ const fetchOverviews = async () => {
   }
 }
 
+// Fetch metadata
 const fetchMetadata = async () => {
   try {
     const [rolesRes, groupsRes, statesRes, prioritiesRes, usersRes] = await Promise.all([
@@ -229,16 +305,22 @@ const fetchMetadata = async () => {
   }
 }
 
+// Filtered list by search
 const filteredOverviews = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return overviews.value
-  return overviews.value.filter(o => o.name.toLowerCase().includes(query))
+  return overviews.value.filter(o =>
+    o.name.toLowerCase().includes(query) ||
+    (o.link && o.link.toLowerCase().includes(query))
+  )
 })
 
+// Create Overview handler
 const handleNewOverview = () => {
   formState.value = defaultFormState()
   formState.value.role_ids = rolesList.value.filter(r => r.name === 'Agent').map(r => r.id)
   formState.value.conditions = [{ field: 'state', operator: 'is', values: [] }]
+  rawExtraConditions.value = {}
   previewTickets.value = []
   previewTotal.value = 0
   previewError.value = ''
@@ -246,7 +328,112 @@ const handleNewOverview = () => {
   showDrawer.value = true
 }
 
+// Populate conditions from overview record into form state
+const populateConditionsFromOverview = (overview: OverviewItem, fs: ReturnType<typeof defaultFormState>) => {
+  const parsedConditions: ConditionRow[] = []
+  const extra: Record<string, unknown> = {}
+
+  if (overview.condition) {
+    for (const [key, cond] of Object.entries(overview.condition)) {
+      if (key === 'ticket.state_id') {
+        parsedConditions.push({
+          field: 'state',
+          operator: cond.operator || 'is',
+          values: Array.isArray(cond.value) ? cond.value.map(String) : []
+        })
+      } else if (key === 'ticket.priority_id') {
+        parsedConditions.push({
+          field: 'priority',
+          operator: cond.operator || 'is',
+          values: Array.isArray(cond.value) ? cond.value.map(String) : []
+        })
+      } else if (key === 'ticket.group_id') {
+        parsedConditions.push({
+          field: 'group',
+          operator: cond.operator || 'is',
+          values: Array.isArray(cond.value) ? cond.value.map(String) : []
+        })
+      } else if (key === 'ticket.owner_id') {
+        parsedConditions.push({
+          field: 'owner',
+          operator: cond.operator || 'is',
+          pre_condition: cond.pre_condition,
+          values: Array.isArray(cond.value) ? cond.value.map(String) : []
+        })
+      } else if (key === 'ticket.customer_id') {
+        parsedConditions.push({
+          field: 'customer',
+          operator: cond.operator || 'is',
+          pre_condition: cond.pre_condition,
+          values: Array.isArray(cond.value) ? cond.value.map(String) : []
+        })
+      } else if (key === 'ticket.organization_id') {
+        parsedConditions.push({
+          field: 'organization',
+          operator: cond.operator || 'is',
+          pre_condition: cond.pre_condition,
+          values: Array.isArray(cond.value) ? cond.value.map(String) : []
+        })
+      } else if (key === 'ticket.tags') {
+        parsedConditions.push({
+          field: 'tags',
+          operator: cond.operator || 'contains one',
+          values: [],
+          text_value: typeof cond.value === 'string' ? cond.value : Array.isArray(cond.value) ? cond.value.join(', ') : ''
+        })
+      } else if (key === 'ticket.mention_user_ids') {
+        parsedConditions.push({
+          field: 'mention_user_ids',
+          operator: cond.operator || 'is',
+          pre_condition: 'current_user.id',
+          values: []
+        })
+      } else if (key === 'ticket.out_of_office_replacement_id') {
+        parsedConditions.push({
+          field: 'out_of_office_replacement_id',
+          operator: cond.operator || 'is',
+          pre_condition: 'current_user.id',
+          values: []
+        })
+      } else {
+        // Preserve unedited conditions (e.g. pending_time, escalation_at, campus, etc.)
+        extra[key] = cond
+      }
+    }
+  }
+
+  fs.conditions = parsedConditions
+  rawExtraConditions.value = extra
+}
+
+// Clone Overview handler
+const handleCloneOverview = (overview: OverviewItem) => {
+  activeActionMenuOverviewId.value = null
+  const fs = defaultFormState()
+  fs.id = null
+  fs.name = `${__('Clone')}: ${overview.name}`
+  fs.active = overview.active
+  fs.prio = (overviews.value.length + 1) * 10
+  fs.organization_shared = overview.organization_shared || false
+  fs.out_of_office = overview.out_of_office || false
+  fs.group_by = overview.group_by || ''
+  fs.group_direction = overview.group_direction || 'DESC'
+  fs.order_by = overview.order?.by || 'created_at'
+  fs.order_direction = overview.order?.direction || 'DESC'
+  fs.role_ids = [...(overview.role_ids || [])]
+  fs.user_ids = [...(overview.user_ids || [])]
+  fs.view_s = [...(overview.view?.s || ['number', 'title', 'customer', 'owner', 'state', 'created_at'])]
+
+  populateConditionsFromOverview(overview, fs)
+  formState.value = fs
+  drawerTitle.value = __('New Overview')
+  showDrawer.value = true
+  fetchPreview()
+}
+
+// Edit Overview handler
 const handleEditOverview = (overview: OverviewItem) => {
+  activeActionMenuOverviewId.value = null
   const fs = defaultFormState()
   fs.id = overview.id
   fs.name = overview.name
@@ -262,46 +449,35 @@ const handleEditOverview = (overview: OverviewItem) => {
   fs.user_ids = [...(overview.user_ids || [])]
   fs.view_s = [...(overview.view?.s || ['number', 'title', 'customer', 'owner', 'state', 'created_at'])]
 
-  const parsedConditions: { field: string; operator: string; values: string[]; pre_condition?: string }[] = []
-  if (overview.condition) {
-    for (const [key, cond] of Object.entries(overview.condition)) {
-      let field = ''
-      if (key === 'ticket.state_id') field = 'state'
-      else if (key === 'ticket.priority_id') field = 'priority'
-      else if (key === 'ticket.group_id') field = 'group'
-      else if (key === 'ticket.owner_id') field = 'owner'
-      else if (key === 'ticket.customer_id') field = 'customer'
-      else if (key === 'ticket.organization_id') field = 'organization'
-      if (field) {
-        parsedConditions.push({
-          field,
-          operator: cond.operator || 'is',
-          values: Array.isArray(cond.value) ? cond.value.map(String) : [],
-          pre_condition: cond.pre_condition
-        })
-      }
-    }
-  }
-  fs.conditions = parsedConditions
+  populateConditionsFromOverview(overview, fs)
   formState.value = fs
   drawerTitle.value = __('Edit Overview')
   showDrawer.value = true
   fetchPreview()
 }
 
+// Navigate to view tickets for this overview
+const handleViewOverview = (overview: OverviewItem) => {
+  activeActionMenuOverviewId.value = null
+  if (overview.link) {
+    router.push(`/desktop/ticket/view/${overview.link}`)
+  }
+}
+
+// Save overview
 const saveOverview = async () => {
   if (!formState.value.name.trim()) { alert(__('Name is required.')); return }
   if (formState.value.role_ids.length === 0) { alert(__('Please select at least one role.')); return }
   submitting.value = true
   try {
     const payload = {
-      name: formState.value.name,
+      name: formState.value.name.trim(),
       active: formState.value.active,
       prio: formState.value.prio,
       organization_shared: formState.value.organization_shared,
       out_of_office: formState.value.out_of_office,
-      group_by: formState.value.group_by,
-      group_direction: formState.value.group_direction,
+      group_by: formState.value.group_by || null,
+      group_direction: formState.value.group_direction || 'DESC',
       order: { by: formState.value.order_by, direction: formState.value.order_direction },
       condition: buildConditionPayload(),
       role_ids: formState.value.role_ids,
@@ -311,11 +487,21 @@ const saveOverview = async () => {
     const isEdit = formState.value.id !== null
     const res = await fetch(isEdit ? `/api/v1/overviews/${formState.value.id}` : '/api/v1/overviews', {
       method: isEdit ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': getCsrf() },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf()
+      },
       body: JSON.stringify(payload)
     })
-    if (res.ok) { showDrawer.value = false; fetchOverviews() }
-    else { const d = await res.json(); alert(d.error || __('Failed to save overview.')) }
+    if (res.ok) {
+      showDrawer.value = false
+      fetchOverviews()
+    } else {
+      const d = await res.json()
+      alert(d.error_human || d.error || __('Failed to save overview.'))
+    }
   } catch (e) {
     console.error('Failed to save overview:', e)
   } finally {
@@ -323,43 +509,121 @@ const saveOverview = async () => {
   }
 }
 
+// Drag & drop priority reordering
+const onDragStart = (event: DragEvent, index: number) => {
+  draggedOverviewIndex.value = index
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', String(index))
+  }
+}
+
+const onDragOver = (event: DragEvent, index: number) => {
+  event.preventDefault()
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move'
+  }
+  dragOverIndex.value = index
+}
+
+const onDrop = async (event: DragEvent, targetIndex: number) => {
+  event.preventDefault()
+  const fromIndex = draggedOverviewIndex.value
+  draggedOverviewIndex.value = null
+  dragOverIndex.value = null
+
+  if (fromIndex === null || fromIndex === targetIndex) return
+
+  const list = [...overviews.value]
+  const [movedItem] = list.splice(fromIndex, 1)
+  list.splice(targetIndex, 0, movedItem)
+  overviews.value = list
+
+  const prios = list.map((item, idx) => [item.id, idx + 1])
+  try {
+    const res = await fetch('/api/v1/overviews_prio', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf()
+      },
+      body: JSON.stringify({ prios })
+    })
+    if (res.ok) fetchOverviews()
+  } catch (e) {
+    console.error('Failed to save overview priority order:', e)
+  }
+}
+
+const onDragEnd = () => {
+  draggedOverviewIndex.value = null
+  dragOverIndex.value = null
+}
+
+// Move priority using arrow buttons
 const movePriority = async (index: number, direction: 'up' | 'down') => {
   const newIndex = direction === 'up' ? index - 1 : index + 1
   if (newIndex < 0 || newIndex >= overviews.value.length) return
   const list = [...overviews.value]
   const temp = list[index]; list[index] = list[newIndex]; list[newIndex] = temp
+  overviews.value = list
   const prios = list.map((item, idx) => [item.id, idx + 1])
   try {
     const res = await fetch('/api/v1/overviews_prio', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': getCsrf() },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf()
+      },
       body: JSON.stringify({ prios })
     })
     if (res.ok) fetchOverviews()
-  } catch (e) { console.error('Failed to swap priorities:', e) }
+  } catch (e) {
+    console.error('Failed to swap priorities:', e)
+  }
 }
 
+// Delete overview
 const handleDeleteOverview = async (overviewId: number, name: string) => {
+  activeActionMenuOverviewId.value = null
   if (!confirm(`Are you sure you want to delete overview "${name}"?`)) return
   try {
     const res = await fetch(`/api/v1/overviews/${overviewId}`, {
       method: 'DELETE',
-      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': getCsrf() }
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf()
+      }
     })
     if (res.ok) fetchOverviews()
     else { const d = await res.json(); alert(d.error || __('Failed to delete overview.')) }
-  } catch (e) { console.error('Failed to delete overview:', e) }
+  } catch (e) {
+    console.error('Failed to delete overview:', e)
+  }
 }
 
+// Toggle active state
 const toggleActiveState = async (overview: OverviewItem) => {
   try {
     const res = await fetch(`/api/v1/overviews/${overview.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-Token': getCsrf() },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf()
+      },
       body: JSON.stringify({ active: !overview.active })
     })
     if (res.ok) fetchOverviews()
-  } catch (e) { console.error('Failed to update active state:', e) }
+  } catch (e) {
+    console.error('Failed to update active state:', e)
+  }
 }
 
 onMounted(() => {
@@ -379,6 +643,7 @@ onMounted(() => {
           <button
             @click="router.push('/manage')"
             class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            :title="__('Back')"
           >
             <CommonIcon name="arrow-left" class="w-4 h-4" />
           </button>
@@ -388,8 +653,9 @@ onMounted(() => {
         </div>
         <button
           @click="handleNewOverview"
-          class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
+          class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer flex items-center gap-2"
         >
+          <CommonIcon name="plus" class="w-4 h-4" />
           {{ __('New Overview') }}
         </button>
       </div>
@@ -401,7 +667,7 @@ onMounted(() => {
             v-model="searchQuery"
             type="text"
             :placeholder="__('Search for overviews')"
-            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all"
+            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-200 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all"
           />
           <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
             <CommonIcon name="search" class="w-4 h-4" />
@@ -409,12 +675,12 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm mb-6 overflow-hidden">
+      <!-- Table Section -->
+      <div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs mb-6 overflow-hidden">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-              <th class="py-4 px-6 text-center w-24">{{ __('Order') }}</th>
+              <th class="py-4 px-6 text-center w-28">{{ __('Order') }}</th>
               <th class="py-4 px-6">{{ __('Name') }}</th>
               <th class="py-4 px-6">{{ __('Link') }}</th>
               <th class="py-4 px-6">{{ __('Access Roles') }}</th>
@@ -462,40 +728,75 @@ onMounted(() => {
             </tr>
           </tbody>
 
-          <!-- Data rows -->
+          <!-- Data rows with Drag & Drop -->
           <tbody v-else class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
             <tr
               v-for="(overview, index) in filteredOverviews"
               :key="overview.id"
+              draggable="true"
+              @dragstart="onDragStart($event, index)"
+              @dragover="onDragOver($event, index)"
+              @drop="onDrop($event, index)"
+              @dragend="onDragEnd"
               class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+              :class="{
+                'opacity-40 bg-slate-100 dark:bg-slate-800': draggedOverviewIndex === index,
+                'border-t-2 border-blue-500': dragOverIndex === index && draggedOverviewIndex !== index
+              }"
               @click="handleEditOverview(overview)"
             >
-              <!-- Order -->
+              <!-- Order & Drag Handle -->
               <td class="py-3 px-6 text-center" @click.stop>
-                <div class="flex items-center justify-center gap-1">
-                  <button @click="movePriority(index, 'up')" :disabled="index === 0" class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
-                    <CommonIcon name="chevron-up" class="w-3.5 h-3.5" />
-                  </button>
-                  <button @click="movePriority(index, 'down')" :disabled="index === overviews.length - 1" class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
-                    <CommonIcon name="chevron-down" class="w-3.5 h-3.5" />
-                  </button>
+                <div class="flex items-center justify-center gap-1.5">
+                  <span class="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1" :title="__('Drag to reorder')">
+                    <CommonIcon name="three-dots-vertical" class="w-3.5 h-3.5 inline -mr-1" />
+                    <CommonIcon name="three-dots-vertical" class="w-3.5 h-3.5 inline" />
+                  </span>
+                  <div class="flex items-center gap-0.5">
+                    <button
+                      @click="movePriority(index, 'up')"
+                      :disabled="index === 0"
+                      class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                      :title="__('Move up')"
+                    >
+                      <CommonIcon name="chevron-up" class="w-3 h-3" />
+                    </button>
+                    <button
+                      @click="movePriority(index, 'down')"
+                      :disabled="index === overviews.length - 1"
+                      class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                      :title="__('Move down')"
+                    >
+                      <CommonIcon name="chevron-down" class="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               </td>
               <!-- Name -->
-              <td class="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">{{ overview.name }}</td>
+              <td class="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">
+                {{ overview.name }}
+              </td>
               <!-- Link -->
               <td class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 font-mono">
-                {{ overview.link || '-' }}
+                <span class="hover:text-blue-600 transition-colors">{{ overview.link || '-' }}</span>
               </td>
-              <!-- Roles -->
+              <!-- Access Roles -->
               <td class="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">
-                <span v-if="overview.roles && overview.roles.length > 0" class="flex flex-wrap gap-1">
-                  <span v-for="role in overview.roles" :key="role" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-xs">{{ role }}</span>
+                <span v-if="overview.role_ids && overview.role_ids.length > 0" class="flex flex-wrap gap-1">
+                  <span
+                    v-for="rId in overview.role_ids"
+                    :key="rId"
+                    class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-xs"
+                  >
+                    {{ rolesMap[rId] || (overview.roles ? overview.roles[overview.role_ids.indexOf(rId)] : `#${rId}`) }}
+                  </span>
                 </span>
                 <span v-else>-</span>
               </td>
               <!-- Group By -->
-              <td class="py-4 px-6 text-sm text-slate-500 dark:text-slate-400 capitalize">{{ overview.group_by || '-' }}</td>
+              <td class="py-4 px-6 text-sm text-slate-500 dark:text-slate-400 capitalize">
+                {{ overview.group_by ? __(overview.group_by) : '-' }}
+              </td>
               <!-- Active -->
               <td class="py-4 px-6 text-center" @click.stop>
                 <button
@@ -508,7 +809,10 @@ onMounted(() => {
               </td>
               <!-- Actions -->
               <td class="py-4 px-6 text-right relative" @click.stop>
-                <button @click="toggleActionMenu(overview.id, $event)" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                <button
+                  @click="toggleActionMenu(overview.id, $event)"
+                  class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
                   <CommonIcon name="three-dots-vertical" class="w-4 h-4" />
                 </button>
                 <div
@@ -517,12 +821,35 @@ onMounted(() => {
                   @click.stop
                 >
                   <div class="py-1.5">
-                    <button @click="handleEditOverview(overview)" class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                      <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
+                    <button
+                      @click="handleEditOverview(overview)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
+                      {{ __('Edit') }}
+                    </button>
+                    <button
+                      @click="handleCloneOverview(overview)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
+                      {{ __('Clone') }}
+                    </button>
+                    <button
+                      v-if="overview.link"
+                      @click="handleViewOverview(overview)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="card-list" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
+                      {{ __('View Tickets') }}
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
-                    <button @click="handleDeleteOverview(overview.id, overview.name)" class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors">
-                      <CommonIcon name="trash3" class="w-3.5 h-3.5 mr-2.5 text-red-400" />{{ __('Delete') }}
+                    <button
+                      @click="handleDeleteOverview(overview.id, overview.name)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                    >
+                      <CommonIcon name="trash3" class="w-3.5 h-3.5 mr-2.5 text-red-400" />
+                      {{ __('Delete') }}
                     </button>
                   </div>
                 </div>
@@ -535,9 +862,9 @@ onMounted(() => {
     </div>
   </LayoutContent>
 
-  <!-- Drawer -->
+  <!-- Slide-Over Drawer for Overview Configuration -->
   <Teleport to="body">
-    <div v-if="showDrawer" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex justify-end" @click="showDrawer = false">
+    <div v-if="showDrawer" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex justify-end" @click="showDrawer = false">
       <div class="w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col" @click.stop>
 
         <!-- Drawer Header -->
@@ -559,7 +886,7 @@ onMounted(() => {
           <!-- Name -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{{ __('Name') }} <span class="text-red-500">*</span></label>
-            <input v-model="formState.name" type="text" :placeholder="__('Overview name')" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500" />
+            <input v-model="formState.name" type="text" :placeholder="__('Overview name')" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500" />
           </div>
 
           <!-- Roles -->
@@ -582,7 +909,7 @@ onMounted(() => {
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">{{ __('Restrict to only the following users') }}</label>
             <div class="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
               <div class="p-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                <input v-model="userSearchQuery" type="text" :placeholder="__('Search users...')" class="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:border-blue-500" />
+                <input v-model="userSearchQuery" type="text" :placeholder="__('Search users...')" class="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-hidden focus:border-blue-500" />
               </div>
               <div class="max-h-36 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 <label
@@ -622,7 +949,12 @@ onMounted(() => {
 
           <!-- Conditions -->
           <div>
-            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">{{ __('Conditions for shown tickets') }} <span class="text-red-500">*</span></label>
+            <div class="flex items-center justify-between mb-2">
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ __('Conditions for shown tickets') }} <span class="text-red-500">*</span></label>
+              <span v-if="Object.keys(rawExtraConditions).length > 0" class="text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                {{ Object.keys(rawExtraConditions).length }} {{ __('system condition(s) preserved') }}
+              </span>
+            </div>
             <div class="space-y-3">
               <div v-for="(cond, idx) in formState.conditions" :key="idx" class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative">
                 <button @click="formState.conditions.splice(idx, 1)" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer">
@@ -631,63 +963,112 @@ onMounted(() => {
                 <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
                   <div>
                     <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select v-model="cond.field" @change="cond.values = []; delete cond.pre_condition" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500">
+                    <select v-model="cond.field" @change="cond.values = []; delete cond.pre_condition; cond.text_value = ''" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
                       <option value="state">{{ __('State') }}</option>
                       <option value="priority">{{ __('Priority') }}</option>
                       <option value="group">{{ __('Group') }}</option>
                       <option value="owner">{{ __('Owner') }}</option>
                       <option value="customer">{{ __('Customer') }}</option>
                       <option value="organization">{{ __('Organization') }}</option>
+                      <option value="tags">{{ __('Tags') }}</option>
+                      <option value="mention_user_ids">{{ __('Subscribed Tickets') }}</option>
+                      <option value="out_of_office_replacement_id">{{ __('Absence Replacement') }}</option>
                     </select>
                   </div>
                   <div>
                     <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Operator') }}</label>
-                    <select v-model="cond.operator" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500">
+                    <select v-if="cond.field === 'tags'" v-model="cond.operator" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
+                      <option value="contains one">{{ __('contains one') }}</option>
+                      <option value="contains all">{{ __('contains all') }}</option>
+                      <option value="contains one not">{{ __('contains one not') }}</option>
+                      <option value="contains all not">{{ __('contains all not') }}</option>
+                    </select>
+                    <select v-else v-model="cond.operator" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
                       <option value="is">{{ __('is') }}</option>
                       <option value="is not">{{ __('is not') }}</option>
                     </select>
                   </div>
                 </div>
+
+                <!-- Values based on Field -->
                 <div>
                   <label class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</label>
+
+                  <!-- State -->
                   <div v-if="cond.field === 'state'" class="flex flex-wrap gap-1.5">
                     <label v-for="state in ticketStatesList" :key="state.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(state.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
                       <input type="checkbox" :value="String(state.id)" v-model="cond.values" class="rounded text-blue-600" /><span>{{ state.name }}</span>
                     </label>
                   </div>
+
+                  <!-- Priority -->
                   <div v-else-if="cond.field === 'priority'" class="flex flex-wrap gap-1.5">
                     <label v-for="prio in ticketPrioritiesList" :key="prio.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(prio.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
                       <input type="checkbox" :value="String(prio.id)" v-model="cond.values" class="rounded text-blue-600" /><span>{{ prio.name }}</span>
                     </label>
                   </div>
+
+                  <!-- Group -->
                   <div v-else-if="cond.field === 'group'" class="flex flex-wrap gap-1.5">
                     <label v-for="grp in groupsList" :key="grp.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(grp.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
                       <input type="checkbox" :value="String(grp.id)" v-model="cond.values" class="rounded text-blue-600" /><span>{{ grp.name }}</span>
                     </label>
                   </div>
+
+                  <!-- Owner (Current User, Unassigned / not_set, or Specific Agents) -->
                   <div v-else-if="cond.field === 'owner'" class="space-y-2">
-                    <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
-                      <input type="radio" :checked="cond.pre_condition === 'current_user.id'" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" class="text-blue-600" />
-                      <span>{{ __('Current User') }}</span>
-                    </label>
-                    <div class="flex flex-wrap gap-1.5">
+                    <div class="flex items-center gap-4">
+                      <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
+                        <input type="radio" :checked="cond.pre_condition === 'current_user.id'" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" class="text-blue-600" />
+                        <span>{{ __('Current User') }}</span>
+                      </label>
+                      <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'not_set' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
+                        <input type="radio" :checked="cond.pre_condition === 'not_set'" @change="() => { cond.pre_condition = 'not_set'; cond.values = [] }" class="text-blue-600" />
+                        <span>{{ __('Unassigned (Not Set)') }}</span>
+                      </label>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 pt-1">
                       <label v-for="user in usersList.slice(0, 30)" :key="user.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(user.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
                         <input type="checkbox" :value="String(user.id)" v-model="cond.values" @change="() => { if (cond.values.length > 0) delete cond.pre_condition }" class="rounded text-blue-600" />
                         <span>{{ user.fullname || user.login }}</span>
                       </label>
                     </div>
                   </div>
+
+                  <!-- Customer -->
                   <div v-else-if="cond.field === 'customer'">
-                    <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
+                    <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
                       <input type="radio" :checked="cond.pre_condition === 'current_user.id'" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" class="text-blue-600" />
                       <span>{{ __('Current User') }}</span>
                     </label>
                   </div>
+
+                  <!-- Organization -->
                   <div v-else-if="cond.field === 'organization'">
-                    <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.organization_id' ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
+                    <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.organization_id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
                       <input type="radio" :checked="cond.pre_condition === 'current_user.organization_id'" @change="() => { cond.pre_condition = 'current_user.organization_id'; cond.values = [] }" class="text-blue-600" />
                       <span>{{ __("Current User's Organization") }}</span>
                     </label>
+                  </div>
+
+                  <!-- Tags -->
+                  <div v-else-if="cond.field === 'tags'">
+                    <input
+                      v-model="cond.text_value"
+                      type="text"
+                      :placeholder="__('Tag name or comma-separated tags (e.g. spam, urgent)')"
+                      class="w-full px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500 font-mono"
+                    />
+                  </div>
+
+                  <!-- Subscribed Tickets -->
+                  <div v-else-if="cond.field === 'mention_user_ids'" class="p-2 text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {{ __('Filters tickets where current user is subscribed / mentioned.') }}
+                  </div>
+
+                  <!-- Absence Replacement -->
+                  <div v-else-if="cond.field === 'out_of_office_replacement_id'" class="p-2 text-xs text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    {{ __('Filters tickets for which the current user is active absence replacement.') }}
                   </div>
                 </div>
               </div>
@@ -712,7 +1093,7 @@ onMounted(() => {
                 <span class="text-xs text-slate-500">{{ __('Loading preview...') }}</span>
               </div>
               <div v-else-if="previewError" class="py-6 text-center text-xs text-red-500 px-4">{{ previewError }}</div>
-              <div v-else-if="formState.conditions.length === 0" class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">{{ __('Add conditions above to see a preview of matching tickets.') }}</div>
+              <div v-else-if="formState.conditions.length === 0 && Object.keys(rawExtraConditions).length === 0" class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">{{ __('Add conditions above to see a preview of matching tickets.') }}</div>
               <div v-else>
                 <div class="px-4 py-2 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                   <span class="text-xs font-semibold text-slate-600 dark:text-slate-400">{{ previewTotal }} {{ __('matching ticket(s) found') }}</span>
@@ -743,7 +1124,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Attributes -->
+          <!-- Attributes (view.s) -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">{{ __('Attributes') }} <span class="text-red-500">*</span></label>
             <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
@@ -757,7 +1138,7 @@ onMounted(() => {
           <!-- Sorting By -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{{ __('Sorting by') }} <span class="text-red-500">*</span></label>
-            <select v-model="formState.order_by" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500">
+            <select v-model="formState.order_by" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
               <option v-for="attr in TICKET_SORT_ATTRIBUTES" :key="attr.value" :value="attr.value">{{ __(attr.label) }}</option>
             </select>
           </div>
@@ -765,7 +1146,7 @@ onMounted(() => {
           <!-- Sorting Order -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{{ __('Sorting order') }} <span class="text-red-500">*</span></label>
-            <select v-model="formState.order_direction" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500">
+            <select v-model="formState.order_direction" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
               <option value="ASC">{{ __('ascending') }}</option>
               <option value="DESC">{{ __('descending') }}</option>
             </select>
@@ -774,20 +1155,15 @@ onMounted(() => {
           <!-- Grouping By -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{{ __('Grouping by') }}</label>
-            <select v-model="formState.group_by" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500">
-              <option value="">-</option>
-              <option value="customer">{{ __('Customer') }}</option>
-              <option value="state">{{ __('State') }}</option>
-              <option value="priority">{{ __('Priority') }}</option>
-              <option value="group">{{ __('Group') }}</option>
-              <option value="owner">{{ __('Owner') }}</option>
+            <select v-model="formState.group_by" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
+              <option v-for="grp in GROUP_BY_ATTRIBUTES" :key="grp.value" :value="grp.value">{{ __(grp.label) }}</option>
             </select>
           </div>
 
           <!-- Grouping Order -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{{ __('Grouping order') }} <span class="text-red-500">*</span></label>
-            <select v-model="formState.group_direction" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500">
+            <select v-model="formState.group_direction" class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
               <option value="ASC">{{ __('ascending') }}</option>
               <option value="DESC">{{ __('descending') }}</option>
             </select>
@@ -799,7 +1175,7 @@ onMounted(() => {
               <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ __('Active') }} <span class="text-red-500">*</span></h3>
               <p class="text-xs text-slate-500 mt-0.5">{{ __('Determine if the overview is enabled for authorized users.') }}</p>
             </div>
-            <button @click="formState.active = !formState.active" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none" :class="formState.active ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'">
+            <button @click="formState.active = !formState.active" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-hidden" :class="formState.active ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'">
               <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200" :class="formState.active ? 'translate-x-5' : 'translate-x-0'"></span>
             </button>
           </div>
@@ -807,7 +1183,7 @@ onMounted(() => {
           <!-- Position -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{{ __('Position') }}</label>
-            <input v-model.number="formState.prio" type="number" min="1" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500" />
+            <input v-model.number="formState.prio" type="number" min="1" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500" />
           </div>
 
         </div>

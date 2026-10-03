@@ -92,7 +92,7 @@ const executeSetMode = async (value: boolean) => {
   errorMessage.value = ''
   try {
     const res = await fetch('/api/v1/settings/maintenance_mode', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -131,7 +131,7 @@ const toggleLoginMessageSetting = async () => {
   errorMessage.value = ''
   try {
     const res = await fetch('/api/v1/settings/maintenance_login', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -160,7 +160,7 @@ const saveLoginMessage = async () => {
   errorMessage.value = ''
   try {
     const res = await fetch('/api/v1/settings/maintenance_login_message', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

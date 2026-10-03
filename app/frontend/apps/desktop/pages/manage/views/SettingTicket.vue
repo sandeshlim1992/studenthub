@@ -39,6 +39,12 @@ interface RoleRecord {
   active?: boolean
 }
 
+interface TicketStateRecord {
+  id: number
+  name: string
+  state_type?: { name: string }
+}
+
 const router = useRouter()
 
 const breadcrumbItems = [
@@ -56,6 +62,8 @@ const isSaving = ref<Record<string, boolean>>({})
 const allSettings = ref<Record<string, SettingRecord>>({})
 const usersList = ref<UserRecord[]>([])
 const rolesList = ref<RoleRecord[]>([])
+const ticketStatesList = ref<TicketStateRecord[]>([])
+const autoAssignmentConditionStates = ref<number[]>([])
 
 // Base Settings Form
 const ticketHook = ref('Ticket#')
@@ -117,10 +125,11 @@ const showError = (msg: string) => {
 const fetchAllData = async () => {
   isLoading.value = true
   try {
-    const [settingsRes, usersRes, rolesRes] = await Promise.all([
+    const [settingsRes, usersRes, rolesRes, statesRes] = await Promise.all([
       fetch('/api/v1/settings', { headers: { 'Accept': 'application/json' } }),
       fetch('/api/v1/users?per_page=100', { headers: { 'Accept': 'application/json' } }),
       fetch('/api/v1/roles', { headers: { 'Accept': 'application/json' } }),
+      fetch('/api/v1/ticket_states', { headers: { 'Accept': 'application/json' } }),
     ])
 
     if (settingsRes.ok) {
@@ -165,6 +174,11 @@ const fetchAllData = async () => {
       }
       if (Array.isArray(dict.ticket_auto_assignment_user_ids_ignore?.state_current?.value)) {
         autoAssignmentIgnoredUserIds.value = dict.ticket_auto_assignment_user_ids_ignore.state_current.value as number[]
+      }
+      const selectorVal = dict.ticket_auto_assignment_selector?.state_current?.value as { condition?: Record<string, { operator?: string; value?: unknown }> } | undefined
+      if (selectorVal?.condition && selectorVal.condition['ticket.state_id']?.value) {
+        const stVal = selectorVal.condition['ticket.state_id'].value
+        autoAssignmentConditionStates.value = Array.isArray(stVal) ? stVal.map(Number) : [Number(stVal)]
       }
 
       // Populate Language Detection
@@ -212,6 +226,11 @@ const fetchAllData = async () => {
     if (rolesRes.ok) {
       const rData = await rolesRes.json()
       rolesList.value = Array.isArray(rData) ? rData : []
+    }
+
+    if (statesRes.ok) {
+      const sData = await statesRes.json()
+      ticketStatesList.value = Array.isArray(sData) ? sData : []
     }
   } catch {
     showError(__('Failed to load ticket settings.'))
@@ -298,7 +317,15 @@ const saveNumberFormatSettings = async () => {
 }
 
 // Auto Assignment Actions
-const toggleIgnoredUser = async (userId: number) => {
+const toggleConditionState = (stateId: number) => {
+  const cur = [...autoAssignmentConditionStates.value]
+  const idx = cur.indexOf(stateId)
+  if (idx >= 0) cur.splice(idx, 1)
+  else cur.push(stateId)
+  autoAssignmentConditionStates.value = cur
+}
+
+const toggleIgnoredUser = (userId: number) => {
   const current = [...autoAssignmentIgnoredUserIds.value]
   const idx = current.indexOf(userId)
   if (idx >= 0) {
@@ -307,7 +334,42 @@ const toggleIgnoredUser = async (userId: number) => {
     current.push(userId)
   }
   autoAssignmentIgnoredUserIds.value = current
-  await saveSetting('ticket_auto_assignment_user_ids_ignore', current)
+}
+
+const saveAutoAssignmentSettings = async () => {
+  isSaving.value.ticket_auto_assignment = true
+  try {
+    const conditionPayload: Record<string, unknown> = {}
+    if (autoAssignmentConditionStates.value.length > 0) {
+      conditionPayload['ticket.state_id'] = {
+        operator: 'is',
+        value: autoAssignmentConditionStates.value,
+      }
+    }
+    await Promise.all([
+      saveSetting('ticket_auto_assignment', autoAssignmentEnabled.value),
+      saveSetting('ticket_auto_assignment_selector', { condition: conditionPayload }),
+      saveSetting('ticket_auto_assignment_user_ids_ignore', autoAssignmentIgnoredUserIds.value),
+    ])
+    showSuccess(__('Auto assignment settings saved successfully.'))
+  } finally {
+    isSaving.value.ticket_auto_assignment = false
+  }
+}
+
+const resetAutoAssignmentFilter = async () => {
+  if (!confirm(__('Are you sure you want to reset auto assignment filters?'))) return
+  try {
+    autoAssignmentConditionStates.value = []
+    autoAssignmentIgnoredUserIds.value = []
+    await Promise.all([
+      saveSetting('ticket_auto_assignment_selector', {}),
+      saveSetting('ticket_auto_assignment_user_ids_ignore', []),
+    ])
+    showSuccess(__('Auto assignment filters reset successfully.'))
+  } catch {
+    showError(__('Failed to reset filters.'))
+  }
 }
 
 // Notifications Actions
@@ -401,6 +463,17 @@ const saveDuplicateDetectionSettings = async () => {
     showSuccess(__('Duplicate detection settings saved successfully.'))
   } finally {
     isSaving.value.ticket_duplicate_detection = false
+  }
+}
+
+const resetDuplicateDetectionFilter = async () => {
+  if (!confirm(__('Are you sure you want to reset duplicate detection attributes?'))) return
+  try {
+    duplicateDetectionAttributes.value = []
+    await saveSetting('ticket_duplicate_detection_attributes', [])
+    showSuccess(__('Duplicate detection attributes reset successfully.'))
+  } catch {
+    showError(__('Failed to reset attributes.'))
   }
 }
 
@@ -731,6 +804,28 @@ onMounted(() => {
               />
             </div>
 
+            <!-- Conditions for Affected Objects (ticket_auto_assignment_selector) -->
+            <div class="border-t border-slate-100 dark:border-slate-800 pt-6 space-y-3">
+              <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ __('Conditions for Affected Objects') }}</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ __('Select which ticket states allow automatic assignment. If none selected, applies to all open ticket states.') }}
+              </p>
+
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button
+                  v-for="st in ticketStatesList"
+                  :key="st.id"
+                  type="button"
+                  class="px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer"
+                  :class="autoAssignmentConditionStates.includes(st.id) ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-slate-50 dark:bg-[#1e293b] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
+                  @click="toggleConditionState(st.id)"
+                >
+                  <CommonIcon v-if="autoAssignmentConditionStates.includes(st.id)" name="check2" class="w-3 h-3 inline ltr:mr-1 rtl:ml-1" />
+                  <span>{{ st.name }}</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Excepted Users -->
             <div class="border-t border-slate-100 dark:border-slate-800 pt-6 space-y-3">
               <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ __('Excepted Users') }}</h3>
@@ -757,6 +852,25 @@ onMounted(() => {
                   </div>
                 </label>
               </div>
+            </div>
+
+            <!-- Auto Assignment Actions -->
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <button
+                type="button"
+                class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-60"
+                :disabled="isSaving.ticket_auto_assignment"
+                @click="saveAutoAssignmentSettings"
+              >
+                {{ isSaving.ticket_auto_assignment ? __('Saving...') : __('Save Auto Assignment') }}
+              </button>
+              <button
+                type="button"
+                class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                @click="resetAutoAssignmentFilter"
+              >
+                {{ __('Reset Filter') }}
+              </button>
             </div>
           </div>
         </div>
@@ -1016,7 +1130,7 @@ onMounted(() => {
               </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <button
                 type="button"
                 class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors cursor-pointer disabled:opacity-60"
@@ -1024,6 +1138,13 @@ onMounted(() => {
                 @click="saveDuplicateDetectionSettings"
               >
                 {{ isSaving.ticket_duplicate_detection ? __('Saving...') : __('Save Duplicate Detection Settings') }}
+              </button>
+              <button
+                type="button"
+                class="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                @click="resetDuplicateDetectionFilter"
+              >
+                {{ __('Reset to Default') }}
               </button>
             </div>
           </div>

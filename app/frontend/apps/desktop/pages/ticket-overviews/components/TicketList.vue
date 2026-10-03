@@ -8,6 +8,7 @@ import {
   computed,
   onActivated,
   onDeactivated,
+  onMounted,
   readonly,
   ref,
   type Ref,
@@ -346,6 +347,98 @@ const formatTicketDate = (dateStr?: string | null) => {
   } catch {
     return dateStr
   }
+}
+
+interface DashboardCategory {
+  key: string
+  categoryValue: string
+  label: string
+  desc: string
+  icon: string
+}
+
+const defaultDashboardCategories: DashboardCategory[] = [
+  {
+    key: 'service_request',
+    categoryValue: 'Service Request',
+    label: 'Service Request',
+    desc: 'Account help, password resets, onboarding, ID cards & access',
+    icon: 'shield-user',
+  },
+  {
+    key: 'software',
+    categoryValue: 'Software',
+    label: 'Software Support',
+    desc: 'MS Office, Outlook, VLE, SPSS, Windows, Wi-Fi & software licenses',
+    icon: 'laptop',
+  },
+  {
+    key: 'hardware',
+    categoryValue: 'Hardware',
+    label: 'Hardware & Equipment',
+    desc: 'Laptops, desktop PCs, monitors, printers, scanners & classroom AV',
+    icon: 'devices',
+  },
+]
+
+const categoryIconMap: Record<
+  string,
+  { icon: string; desc: string; key: string }
+> = {
+  'Service Request': {
+    icon: 'shield-user',
+    desc: 'Account help, password resets, onboarding, ID cards, drive & access permissions',
+    key: 'service_request',
+  },
+  Software: {
+    icon: 'laptop',
+    desc: 'MS Office, Outlook, LSST Portal, SPSS, Windows, Wi-Fi, VPN & app licenses',
+    key: 'software',
+  },
+  Hardware: {
+    icon: 'devices',
+    desc: 'Desktop PCs, laptops, monitors, printers, scanners, attendance & AV setup',
+    key: 'hardware',
+  },
+}
+
+const dashboardCategories = ref<DashboardCategory[]>(defaultDashboardCategories)
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/api/v1/ticket_wizard_metadata', {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data?.categories) && data.categories.length > 0) {
+        dashboardCategories.value = data.categories.map((c: { name: string; value: string }) => {
+          const hint = categoryIconMap[c.value] || categoryIconMap[c.name]
+          const key = hint?.key || c.value.toLowerCase().replace(/[^a-z0-9]+/g, '_')
+          return {
+            key,
+            categoryValue: c.value,
+            label: c.name,
+            desc: hint?.desc || c.name,
+            icon: hint?.icon || 'chat',
+          }
+        })
+      }
+    }
+  } catch {
+    // Fallback to defaultDashboardCategories
+  }
+})
+
+const navigateToCategory = (cat: DashboardCategory) => {
+  router.push({
+    name: 'TicketCreate',
+    query: {
+      mode: 'wizard',
+      category: cat.key,
+      categoryValue: cat.categoryValue,
+    },
+  })
 }
 
 const customerSearch = ref('')
@@ -937,83 +1030,68 @@ defineExpose({ tickets: readonly(tickets) })
               {{ $t('Choose a Category') }}
             </h3>
             <div class="grid grid-cols-1 gap-3.5 sm:gap-5 sm:grid-cols-3">
-              <!-- Card 1 - IT Support -->
               <div
+                v-for="cat in dashboardCategories"
+                :key="cat.key"
                 class="group cursor-pointer rounded-xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-emerald-300/80 flex flex-col items-center select-none"
-                @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard', category: 'it' } })"
+                @click="navigateToCategory(cat)"
               >
                 <div class="mb-3.5 rounded-xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
-                  <!-- Duotone IT Icon: Navy + Brand Green Accent -->
-                  <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="6" width="28" height="17" rx="3" fill="#16a34a" fill-opacity="0.18" />
-                    <path d="M18 10L16 14H20L18 18" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    <rect x="4" y="6" width="28" height="17" rx="3" stroke="#0f233d" stroke-width="2.2" />
-                    <path d="M2 27H34M14 23V27M22 23V27" stroke="#0f233d" stroke-width="2.2" stroke-linecap="round" />
+                  <!-- Laptop Icon -->
+                  <svg
+                    v-if="cat.icon === 'laptop'"
+                    class="h-9 w-9 text-[#0f233d] group-hover:text-[#16a34a] transition-all duration-200 group-hover:scale-105"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
+                  <!-- Shield User Icon -->
+                  <svg
+                    v-else-if="cat.icon === 'shield-user'"
+                    class="h-9 w-9 text-[#0f233d] group-hover:text-[#16a34a] transition-all duration-200 group-hover:scale-105"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <!-- Devices Icon -->
+                  <svg
+                    v-else-if="cat.icon === 'devices'"
+                    class="h-9 w-9 text-[#0f233d] group-hover:text-[#16a34a] transition-all duration-200 group-hover:scale-105"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect x="2" y="4" width="20" height="12" rx="2" />
+                    <line x1="6" y1="20" x2="18" y2="20" />
+                    <line x1="12" y1="16" x2="12" y2="20" />
+                  </svg>
+                  <!-- Chat Fallback Icon -->
+                  <svg
+                    v-else
+                    class="h-9 w-9 text-[#0f233d] group-hover:text-[#16a34a] transition-all duration-200 group-hover:scale-105"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
                 </div>
                 <div class="text-base font-bold text-slate-900 group-hover:text-[#16a34a] transition-colors duration-150">
-                  {{ $t('IT Support') }}
+                  {{ $t(cat.label) }}
                 </div>
                 <div class="mt-1.5 text-xs sm:text-sm font-normal text-slate-500 leading-snug">
-                  {{ $t('Hardware, software & accounts') }}
-                </div>
-              </div>
-
-              <!-- Card 2 - Account Help -->
-              <div
-                class="group cursor-pointer rounded-xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-emerald-300/80 flex flex-col items-center select-none"
-                @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard', category: 'account' } })"
-              >
-                <div class="mb-3.5 rounded-xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
-                  <!-- Duotone Account Icon: Navy + Brand Green Accent -->
-                  <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="26" cy="12" r="5" fill="#16a34a" fill-opacity="0.22" />
-                    <path d="M26 10V14M24 12H28" stroke="#16a34a" stroke-width="2" stroke-linecap="round" />
-                    <circle cx="15" cy="11" r="5" stroke="#0f233d" stroke-width="2.2" />
-                    <path d="M6 26C6 21.5817 9.58172 18 14 18H16C20.4183 18 24 21.5817 24 26" stroke="#0f233d" stroke-width="2.2" stroke-linecap="round" />
-                    <rect x="22" y="20" width="8" height="6" rx="2" stroke="#0f233d" stroke-width="2" />
-                  </svg>
-                </div>
-                <div class="text-base font-bold text-slate-900 group-hover:text-[#16a34a] transition-colors duration-150">
-                  {{ $t('Account Help') }}
-                </div>
-                <div class="mt-1.5 text-xs sm:text-sm font-normal text-slate-500 leading-snug">
-                  {{ $t('Passwords & email access') }}
-                </div>
-              </div>
-
-              <!-- Card 3 - General Enquiry -->
-              <div
-                class="group cursor-pointer rounded-xl bg-white p-5 sm:p-6 lg:p-7 text-center border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-emerald-300/80 flex flex-col items-center select-none"
-                @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard', category: 'general' } })"
-              >
-                <div class="mb-3.5 rounded-xl bg-slate-50/90 p-3.5 transition-colors duration-200 group-hover:bg-[#f0fdf4]">
-                  <!-- Duotone Chat Icon: Navy + Brand Green Accent -->
-                  <svg class="h-9 w-9 transition-transform duration-200 group-hover:scale-105" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M20 18C20 15.7909 22.2386 14 25 14C27.7614 14 30 15.7909 30 18C30 19.3456 29.1706 20.5284 27.882 21.2467L28 24L25.334 22.4282C25.224 22.4332 25.112 22.436 25 22.436C22.2386 22.436 20 20.6451 20 18Z"
-                      fill="#16a34a"
-                      fill-opacity="0.22"
-                      stroke="#16a34a"
-                      stroke-width="1.8"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M6 15C6 10.5817 10.4772 7 16 7C21.5228 7 26 10.5817 26 15C26 19.4183 21.5228 23 16 23C14.3312 23 12.7663 22.449 11.4589 21.493L6 23L7.75549 19.1415C6.66699 17.9255 6 16.3986 6 15Z"
-                      stroke="#0f233d"
-                      stroke-width="2.2"
-                      stroke-linejoin="round"
-                    />
-                    <circle cx="11.5" cy="15" r="1.2" fill="#0f233d" />
-                    <circle cx="16" cy="15" r="1.2" fill="#0f233d" />
-                    <circle cx="20.5" cy="15" r="1.2" fill="#0f233d" />
-                  </svg>
-                </div>
-                <div class="text-base font-bold text-slate-900 group-hover:text-[#16a34a] transition-colors duration-150">
-                  {{ $t('General Enquiry') }}
-                </div>
-                <div class="mt-1.5 text-xs sm:text-sm font-normal text-slate-500 leading-snug">
-                  {{ $t('Any other questions') }}
+                  {{ $t(cat.desc) }}
                 </div>
               </div>
             </div>

@@ -2,12 +2,13 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import { initializeBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 const searchQuery = ref('')
+const route = useRoute()
 const router = useRouter()
 
 const handleRedirect = (target: string) => {
@@ -347,11 +348,31 @@ const categories = ref<Category[]>([
   },
 ])
 
+const isSystemSection = computed(() => {
+  const path = route.path.toLowerCase()
+  return (
+    path.endsWith('/system') ||
+    path.includes('/desktop/system') ||
+    path.includes('/manage/system') ||
+    route.query.section === 'system'
+  )
+})
+
+const activeCategories = computed(() => {
+  if (isSystemSection.value) {
+    return categories.value.filter(
+      (cat) => cat.title.toLowerCase() === 'system' || cat.title === __('System'),
+    )
+  }
+  return categories.value
+})
+
 const filteredCategories = computed(() => {
-  if (!searchQuery.value) return categories.value
+  const base = activeCategories.value
+  if (!searchQuery.value) return base
 
   const query = searchQuery.value.toLowerCase()
-  return categories.value
+  return base
     .map((cat) => {
       const matchedItems = cat.items.filter(
         (item) =>
@@ -365,7 +386,30 @@ const filteredCategories = computed(() => {
     .filter((cat) => cat.items.length > 0)
 })
 
-const breadcrumbItems = [{ label: __('Administration') }]
+const breadcrumbItems = computed(() => {
+  if (isSystemSection.value) {
+    return [{ label: __('Administration'), to: '/manage' }, { label: __('System') }]
+  }
+  return [{ label: __('Administration') }]
+})
+
+const pageTitle = computed(() => {
+  return isSystemSection.value ? __('System') : __('Administration')
+})
+
+const pageDescription = computed(() => {
+  return isSystemSection.value
+    ? __('Manage system integrations, object schemas, workflows, monitoring, and diagnostics.')
+    : __('Manage and configure all settings of your helpdesk application.')
+})
+
+const handleBack = () => {
+  if (isSystemSection.value) {
+    router.push('/manage')
+  } else {
+    router.back()
+  }
+}
 </script>
 
 <template>
@@ -378,16 +422,16 @@ const breadcrumbItems = [{ label: __('Administration') }]
             type="button"
             class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-300 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
             :title="__('Back')"
-            @click="router.back()"
+            @click="handleBack"
           >
             <CommonIcon name="arrow-left" class="h-4 w-4" />
           </button>
           <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
-            {{ __('Administration') }}
+            {{ pageTitle }}
           </h1>
         </div>
         <p class="mb-6 text-sm text-slate-500 dark:text-slate-400">
-          {{ __('Manage and configure all settings of your helpdesk application.') }}
+          {{ pageDescription }}
         </p>
 
         <div class="relative max-w-md">

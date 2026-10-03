@@ -48,7 +48,9 @@ interface WorkflowModalState {
   active: boolean
   stopAfterMatch: boolean
   screens: string[]
+  conditionScope: 'selected' | 'saved'
   conditions: WorkflowConditionItem[]
+  conditionsSaved: WorkflowConditionItem[]
   actions: WorkflowActionItem[]
   isSaving: boolean
 }
@@ -91,7 +93,9 @@ const modalState = ref<WorkflowModalState>({
   active: true,
   stopAfterMatch: false,
   screens: ['create', 'edit'],
+  conditionScope: 'selected',
   conditions: [],
+  conditionsSaved: [],
   actions: [],
   isSaving: false,
 })
@@ -252,6 +256,7 @@ const openNewWorkflowModal = () => {
     active: true,
     stopAfterMatch: false,
     screens: ['create', 'edit'],
+    conditionScope: 'selected',
     conditions: [
       {
         id: 'cond_1',
@@ -260,6 +265,7 @@ const openNewWorkflowModal = () => {
         value: '',
       },
     ],
+    conditionsSaved: [],
     actions: [
       {
         id: 'act_1',
@@ -281,7 +287,7 @@ const openEditWorkflowModal = (wf: CoreWorkflowRecord) => {
     for (const [attr, cond] of Object.entries(wf.condition_selected)) {
       const valStr = Array.isArray(cond.value) ? cond.value.join(', ') : String(cond.value || '')
       conditions.push({
-        id: `cond_${condIndex++}`,
+        id: `cond_sel_${condIndex++}`,
         attribute: attr,
         operator: cond.operator || 'is',
         value: valStr,
@@ -289,11 +295,13 @@ const openEditWorkflowModal = (wf: CoreWorkflowRecord) => {
     }
   }
 
+  const conditionsSaved: WorkflowConditionItem[] = []
+  let condSavedIndex = 1
   if (wf.condition_saved) {
     for (const [attr, cond] of Object.entries(wf.condition_saved)) {
       const valStr = Array.isArray(cond.value) ? cond.value.join(', ') : String(cond.value || '')
-      conditions.push({
-        id: `cond_${condIndex++}`,
+      conditionsSaved.push({
+        id: `cond_sav_${condSavedIndex++}`,
         attribute: attr,
         operator: cond.operator || 'is',
         value: valStr,
@@ -315,6 +323,11 @@ const openEditWorkflowModal = (wf: CoreWorkflowRecord) => {
     }
   }
 
+  const loadedScreens = wf.preferences?.screen ? [...wf.preferences.screen] : ['create', 'edit']
+  if (loadedScreens.includes('create_middle') && !loadedScreens.includes('create')) {
+    loadedScreens.push('create')
+  }
+
   modalState.value = {
     isOpen: true,
     isEditing: true,
@@ -324,8 +337,10 @@ const openEditWorkflowModal = (wf: CoreWorkflowRecord) => {
     priority: wf.priority ?? 100,
     active: wf.active,
     stopAfterMatch: wf.stop_after_match,
-    screens: wf.preferences?.screen ? [...wf.preferences.screen] : ['create', 'edit'],
+    screens: loadedScreens,
+    conditionScope: conditions.length > 0 || conditionsSaved.length === 0 ? 'selected' : 'saved',
     conditions,
+    conditionsSaved,
     actions,
     isSaving: false,
   }
@@ -353,6 +368,22 @@ const addCondition = () => {
 
 const removeCondition = (index: number) => {
   modalState.value.conditions.splice(index, 1)
+}
+
+const addConditionSaved = () => {
+  modalState.value.conditionsSaved.push({
+    id: `cond_saved_${Date.now()}`,
+    attribute:
+      modalState.value.object === 'Ticket'
+        ? 'ticket.state_id'
+        : `${modalState.value.object.toLowerCase()}.name`,
+    operator: 'is',
+    value: '',
+  })
+}
+
+const removeConditionSaved = (index: number) => {
+  modalState.value.conditionsSaved.splice(index, 1)
 }
 
 const addAction = () => {
@@ -390,7 +421,7 @@ const saveWorkflow = async () => {
   modalState.value.isSaving = true
   errorMessage.value = ''
 
-  // Build condition payload
+  // Build conditionSelected payload
   const conditionSelected: Record<string, { operator: string; value: string[] }> = {}
   for (const cond of modalState.value.conditions) {
     if (cond.attribute.trim()) {
@@ -399,6 +430,21 @@ const saveWorkflow = async () => {
         .map((v) => v.trim())
         .filter(Boolean)
       conditionSelected[cond.attribute.trim()] = {
+        operator: cond.operator,
+        value: values,
+      }
+    }
+  }
+
+  // Build conditionSaved payload
+  const conditionSaved: Record<string, { operator: string; value: string[] }> = {}
+  for (const cond of modalState.value.conditionsSaved) {
+    if (cond.attribute.trim()) {
+      const values = cond.value
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean)
+      conditionSaved[cond.attribute.trim()] = {
         operator: cond.operator,
         value: values,
       }
@@ -427,6 +473,16 @@ const saveWorkflow = async () => {
     }
   }
 
+  // Map screen identifiers for Ticket creation mask: 'create_middle' in backend
+  const finalScreens = [...modalState.value.screens]
+  if (
+    modalState.value.object === 'Ticket' &&
+    finalScreens.includes('create') &&
+    !finalScreens.includes('create_middle')
+  ) {
+    finalScreens.push('create_middle')
+  }
+
   const payload = {
     name: modalState.value.name.trim(),
     object: modalState.value.object,
@@ -434,10 +490,10 @@ const saveWorkflow = async () => {
     active: modalState.value.active,
     stop_after_match: modalState.value.stopAfterMatch,
     preferences: {
-      screen: modalState.value.screens,
+      screen: finalScreens,
     },
     condition_selected: conditionSelected,
-    condition_saved: {},
+    condition_saved: conditionSaved,
     perform,
   }
 
@@ -951,7 +1007,7 @@ const executeDeleteWorkflow = async () => {
               <span
                 class="text-2xs inline-flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 text-slate-700 ltr:ml-1 rtl:mr-1 dark:bg-slate-800 dark:text-slate-300"
               >
-                {{ modalState.conditions.length }}
+                {{ modalState.conditions.length + modalState.conditionsSaved.length }}
               </span>
             </button>
             <button
@@ -1093,104 +1149,223 @@ const executeDeleteWorkflow = async () => {
 
             <!-- TAB 2: Match Conditions -->
             <div v-else-if="activeModalTab === 'conditions'" class="space-y-4">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h3 class="text-xs font-semibold text-slate-900 uppercase dark:text-white">
-                    {{ __('When conditions match (AND logic)') }}
-                  </h3>
-                  <p class="text-2xs text-slate-500 dark:text-slate-400">
-                    {{
-                      __(
-                        'Specify the conditions that trigger this workflow. Leave empty to always run.',
-                      )
-                    }}
-                  </p>
-                </div>
+              <!-- Scope switcher -->
+              <div class="flex items-center gap-2 border-b border-slate-200 pb-2 dark:border-slate-800">
                 <button
                   type="button"
-                  class="inline-flex cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                  @click="addCondition"
+                  class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+                  :class="
+                    modalState.conditionScope === 'selected'
+                      ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'
+                      : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                  "
+                  @click="modalState.conditionScope = 'selected'"
                 >
-                  <CommonIcon name="plus" class="h-3.5 w-3.5 ltr:mr-1 rtl:ml-1" />
-                  {{ __('Add Condition') }}
+                  {{ __('Selected Conditions (Form Input)') }}
+                  <span class="rounded-full bg-slate-200 px-1.5 py-0.5 text-2xs ltr:ml-1 rtl:mr-1 dark:bg-slate-700">
+                    {{ modalState.conditions.length }}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+                  :class="
+                    modalState.conditionScope === 'saved'
+                      ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'
+                      : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+                  "
+                  @click="modalState.conditionScope = 'saved'"
+                >
+                  {{ __('Saved Conditions (Stored in DB)') }}
+                  <span class="rounded-full bg-slate-200 px-1.5 py-0.5 text-2xs ltr:ml-1 rtl:mr-1 dark:bg-slate-700">
+                    {{ modalState.conditionsSaved.length }}
+                  </span>
                 </button>
               </div>
 
-              <div
-                v-if="modalState.conditions.length === 0"
-                class="rounded-xl border border-dashed border-slate-200 py-8 text-center dark:border-slate-700"
-              >
-                <p class="text-xs text-slate-500 dark:text-slate-400">
-                  {{
-                    __(
-                      'No conditions defined. This workflow will always execute on target screens.',
-                    )
-                  }}
-                </p>
-                <button
-                  type="button"
-                  class="mt-2 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
-                  @click="addCondition"
-                >
-                  {{ __('+ Add first condition') }}
-                </button>
-              </div>
-
-              <div v-else class="space-y-3">
-                <div
-                  v-for="(cond, index) in modalState.conditions"
-                  :key="cond.id"
-                  class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3 sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900/40"
-                >
-                  <!-- Attribute -->
-                  <div class="flex-1">
-                    <input
-                      v-model="cond.attribute"
-                      type="text"
-                      list="attributes-list"
-                      :aria-label="__('Condition Attribute')"
-                      class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                      :placeholder="__('Attribute, e.g. ticket.state_id')"
-                    />
+              <!-- Scope 1: Selected Conditions -->
+              <div v-if="modalState.conditionScope === 'selected'" class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-xs font-semibold text-slate-900 uppercase dark:text-white">
+                      {{ __('Selected Conditions (Form Input)') }}
+                    </h3>
+                    <p class="text-2xs text-slate-500 dark:text-slate-400">
+                      {{
+                        __(
+                          'Conditions evaluated on unsaved user inputs currently entered in the form.',
+                        )
+                      }}
+                    </p>
                   </div>
-
-                  <!-- Operator -->
-                  <div class="w-full sm:w-36">
-                    <select
-                      v-model="cond.operator"
-                      :aria-label="__('Condition Operator')"
-                      class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                    >
-                      <option
-                        v-for="op in availableConditionOperators"
-                        :key="op.value"
-                        :value="op.value"
-                      >
-                        {{ op.label }}
-                      </option>
-                    </select>
-                  </div>
-
-                  <!-- Value -->
-                  <div class="flex-1">
-                    <input
-                      v-model="cond.value"
-                      type="text"
-                      :aria-label="__('Condition Value')"
-                      class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
-                      :placeholder="__('Values (comma separated)')"
-                    />
-                  </div>
-
-                  <!-- Delete -->
                   <button
                     type="button"
-                    class="cursor-pointer self-end rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 sm:self-auto dark:hover:bg-red-950/30 dark:hover:text-red-400"
-                    :aria-label="__('Remove Condition')"
-                    @click="removeCondition(index)"
+                    class="inline-flex cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    @click="addCondition"
                   >
-                    <CommonIcon name="trash" class="h-4 w-4" />
+                    <CommonIcon name="plus" class="h-3.5 w-3.5 ltr:mr-1 rtl:ml-1" />
+                    {{ __('Add Condition') }}
                   </button>
+                </div>
+
+                <div
+                  v-if="modalState.conditions.length === 0"
+                  class="rounded-xl border border-dashed border-slate-200 py-8 text-center dark:border-slate-700"
+                >
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    {{ __('No selected conditions defined.') }}
+                  </p>
+                  <button
+                    type="button"
+                    class="mt-2 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    @click="addCondition"
+                  >
+                    {{ __('+ Add first selected condition') }}
+                  </button>
+                </div>
+
+                <div v-else class="space-y-3">
+                  <div
+                    v-for="(cond, index) in modalState.conditions"
+                    :key="cond.id"
+                    class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3 sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900/40"
+                  >
+                    <div class="flex-1">
+                      <input
+                        v-model="cond.attribute"
+                        type="text"
+                        list="attributes-list"
+                        :aria-label="__('Condition Attribute')"
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        :placeholder="__('Attribute, e.g. ticket.state_id')"
+                      />
+                    </div>
+                    <div class="w-full sm:w-36">
+                      <select
+                        v-model="cond.operator"
+                        :aria-label="__('Condition Operator')"
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                      >
+                        <option
+                          v-for="op in availableConditionOperators"
+                          :key="op.value"
+                          :value="op.value"
+                        >
+                          {{ op.label }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="flex-1">
+                      <input
+                        v-model="cond.value"
+                        type="text"
+                        :aria-label="__('Condition Value')"
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        :placeholder="__('Values (comma separated)')"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      class="cursor-pointer self-end rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 sm:self-auto dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                      :aria-label="__('Remove Condition')"
+                      @click="removeCondition(index)"
+                    >
+                      <CommonIcon name="trash" class="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Scope 2: Saved Conditions -->
+              <div v-else class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h3 class="text-xs font-semibold text-slate-900 uppercase dark:text-white">
+                      {{ __('Saved Conditions (Stored in DB)') }}
+                    </h3>
+                    <p class="text-2xs text-slate-500 dark:text-slate-400">
+                      {{
+                        __(
+                          'Conditions evaluated on existing saved object attributes in the database.',
+                        )
+                      }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="inline-flex cursor-pointer items-center rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    @click="addConditionSaved"
+                  >
+                    <CommonIcon name="plus" class="h-3.5 w-3.5 ltr:mr-1 rtl:ml-1" />
+                    {{ __('Add Condition') }}
+                  </button>
+                </div>
+
+                <div
+                  v-if="modalState.conditionsSaved.length === 0"
+                  class="rounded-xl border border-dashed border-slate-200 py-8 text-center dark:border-slate-700"
+                >
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    {{ __('No saved conditions defined.') }}
+                  </p>
+                  <button
+                    type="button"
+                    class="mt-2 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    @click="addConditionSaved"
+                  >
+                    {{ __('+ Add first saved condition') }}
+                  </button>
+                </div>
+
+                <div v-else class="space-y-3">
+                  <div
+                    v-for="(cond, index) in modalState.conditionsSaved"
+                    :key="cond.id"
+                    class="flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50/50 p-3 sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900/40"
+                  >
+                    <div class="flex-1">
+                      <input
+                        v-model="cond.attribute"
+                        type="text"
+                        list="attributes-list"
+                        :aria-label="__('Saved Condition Attribute')"
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        :placeholder="__('Attribute, e.g. ticket.state_id')"
+                      />
+                    </div>
+                    <div class="w-full sm:w-36">
+                      <select
+                        v-model="cond.operator"
+                        :aria-label="__('Saved Condition Operator')"
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                      >
+                        <option
+                          v-for="op in availableConditionOperators"
+                          :key="op.value"
+                          :value="op.value"
+                        >
+                          {{ op.label }}
+                        </option>
+                      </select>
+                    </div>
+                    <div class="flex-1">
+                      <input
+                        v-model="cond.value"
+                        type="text"
+                        :aria-label="__('Saved Condition Value')"
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                        :placeholder="__('Values (comma separated)')"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      class="cursor-pointer self-end rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 sm:self-auto dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                      :aria-label="__('Remove Saved Condition')"
+                      @click="removeConditionSaved(index)"
+                    >
+                      <CommonIcon name="trash" class="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

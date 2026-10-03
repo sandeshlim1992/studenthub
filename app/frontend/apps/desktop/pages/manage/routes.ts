@@ -5,6 +5,14 @@ import type { RouteRecordRaw } from 'vue-router'
 const route: RouteRecordRaw[] = [
   {
     path: '/manage',
+    alias: [
+      '/desktop/settings',
+      '/manage/settings',
+      '/settings',
+      '/desktop/system',
+      '/manage/system',
+      '/system',
+    ],
     name: 'ManageSettings',
     component: () => import('./views/Manage.vue'),
     meta: {

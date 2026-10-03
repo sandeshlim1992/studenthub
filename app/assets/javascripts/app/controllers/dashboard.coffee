@@ -1,16 +1,8 @@
 class App.Dashboard extends App.Controller
   clueAccess: true
   events:
-    'click .ad-tab': 'toggle'
     'click .tabs .tab': 'toggle'
     'click .js-intro': 'clues'
-    'mouseenter .ad-bar-group': 'showBarTooltip'
-    'mouseleave .ad-bar-group': 'hideBarTooltip'
-    'mouseenter .js-point': 'showLineTooltip'
-    'mouseleave .js-point': 'hideLineTooltip'
-    'click .ad-chart-pill': 'togglePeriod'
-    'click .ad-legend-item': 'toggleLegendSeries'
-    'click .js-toggle-activity-stream': 'toggleActivityStream'
 
   constructor: ->
     super
@@ -38,7 +30,7 @@ class App.Dashboard extends App.Controller
     ) )
 
     new App.DashboardStats(
-      el: localEl.find('.ad-grid')
+      el: localEl.find('.stat-widgets')
     )
 
     new App.DashboardActivityStream(
@@ -120,104 +112,11 @@ class App.Dashboard extends App.Controller
     false
 
   toggle: (e) =>
-    $tab = $(e.currentTarget)
-    @$('.ad-tab, .tabs .tab').removeClass('active')
-    $tab.addClass('active')
-    target = $tab.data('area')
-    if target is 'stat-widgets'
-      @$('.stat-widgets, .ad-grid, .ad-charts-row').removeClass('hidden')
-      @$('.first-steps-widgets').addClass('hidden')
-    else
-      @$('.stat-widgets, .ad-grid, .ad-charts-row').addClass('hidden')
-      @$('.first-steps-widgets').removeClass('hidden')
-
-  showBarTooltip: (e) ->
-    $bar = $(e.currentTarget)
-    $card = $bar.closest('.ad-chart-card')
-    $tooltip = $card.find('.js-bar-tooltip')
-    date = $bar.data('date')
-    high = $bar.data('high') || $bar.data('rev')
-    normal = $bar.data('normal') || $bar.data('exp')
-    $card.find('.js-bar-date').text(date)
-    $card.find('.js-bar-val-high').text(high)
-    $card.find('.js-bar-val-normal').text(normal)
-
-    pos = $bar.position()
-    $tooltip.css(left: "#{pos.left - 35}px", top: "#{pos.top - 65}px").removeClass('hidden')
-
-  hideBarTooltip: (e) =>
-    @$('.js-bar-tooltip').addClass('hidden')
-
-  showLineTooltip: (e) ->
-    $point = $(e.currentTarget)
-    $card = $point.closest('.ad-chart-card')
-    $tooltip = $card.find('.js-line-tooltip')
-    $line = $card.find('.js-hover-line')
-
-    date = $point.data('date')
-    opened = $point.data('opened') || $point.data('growth')
-    closed = $point.data('closed') || $point.data('active')
-    cx = parseFloat($point.attr('cx'))
-    cy = parseFloat($point.attr('cy'))
-
-    $card.find('.ad-tooltip-date').text(date)
-    $card.find('.js-val-opened').text(opened)
-    $card.find('.js-val-closed').text(closed)
-
-    $card.find('.js-point').removeClass('active')
-    $point.addClass('active')
-
-    $line.attr('x1', cx).attr('x2', cx).removeClass('hidden')
-
-    svgWidth = 500
-    leftPct = (cx / svgWidth) * 100
-    $tooltip.css(left: "#{leftPct}%", top: "#{cy - 55}px").removeClass('hidden')
-
-  hideLineTooltip: (e) =>
-    @$('.js-line-tooltip').addClass('hidden')
-    @$('.js-hover-line').addClass('hidden')
-
-  togglePeriod: (e) ->
-    $pill = $(e.currentTarget)
-    $pill.siblings().removeClass('active')
-    $pill.addClass('active')
-    period = $pill.data('period')
-
-    $card = $pill.closest('.ad-chart-card')
-    # coffeelint: disable=detect_translatable_string
-    # SVG path geometry, not user-facing text.
-    if period is '90d'
-      $card.find('.js-path-growth').attr('d', 'M0,160 Q60,140 120,110 T240,75 T360,50 T480,20')
-      $card.find('.js-path-growth-area').attr('d', 'M0,160 Q60,140 120,110 T240,75 T360,50 T480,20 L480,180 L0,180 Z')
-    else
-      $card.find('.js-path-growth').attr('d', 'M0,150 Q60,110 120,80 T240,45 T360,20 T480,30')
-      $card.find('.js-path-growth-area').attr('d', 'M0,150 Q60,110 120,80 T240,45 T360,20 T480,30 L480,180 L0,180 Z')
-    # coffeelint: enable=detect_translatable_string
-
-  toggleLegendSeries: (e) ->
-    $item = $(e.currentTarget)
-    $item.toggleClass('is-dimmed')
-    series = $item.data('series')
-    $card = $item.closest('.ad-chart-card')
-    if series is 'opened' or series is 'growth'
-      $card.find('.js-path-growth, .js-path-growth-area').toggleClass('ad-dimmed')
-    else if series is 'closed' or series is 'active'
-      $card.find('.js-path-active').toggleClass('ad-dimmed')
-    else if series is 'high' or series is 'revenue'
-      $card.find('.ad-bar-top').toggleClass('ad-dimmed')
-    else if series is 'normal' or series is 'expense'
-      $card.find('.ad-bar-bottom').toggleClass('ad-dimmed')
-
-  toggleActivityStream: (e) =>
-    e?.preventDefault()
-    $btn = @$('.js-toggle-activity-stream.ad-bell-toggle-btn')
-    $sidebar = $('.sidebar.optional, .js-activity-sidebar')
-    $sidebar.toggleClass('is-collapsed')
-    $btn.toggleClass('active')
-    if $sidebar.hasClass('is-collapsed')
-      $btn.find('.ad-bell-label').text(__('Feed Closed'))
-    else
-      $btn.find('.ad-bell-label').text(__('Activity Feed'))
+    @$('.tabs .tab').removeClass('active')
+    $(e.target).addClass('active')
+    target = $(e.target).data('area')
+    @$('.tab-content').addClass('hidden')
+    @$(".tab-content.#{target}").removeClass('hidden')
 
 class DashboardRouter extends App.ControllerPermanent
   @requiredPermission: ['*']

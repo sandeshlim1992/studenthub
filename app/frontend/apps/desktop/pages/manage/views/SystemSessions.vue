@@ -172,6 +172,11 @@ const uniqueUsersCount = computed(() => {
   return userIds.size
 })
 
+const getCsrf = () => {
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  return meta ? meta.getAttribute('content') || '' : ''
+}
+
 const confirmTerminateSession = (s: SessionRecord) => {
   terminateModal.value = {
     isOpen: true,
@@ -191,6 +196,7 @@ const executeTerminateSession = async () => {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
     })
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)

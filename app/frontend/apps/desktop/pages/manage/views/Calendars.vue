@@ -114,9 +114,11 @@ const fetchCalendars = async () => {
   }
 }
 
-const fetchTimezones = async () => {
+const icalFeedsList = ref<{ name: string; url: string }[]>([])
+
+const fetchInitData = async () => {
   try {
-    const res = await fetch('/api/v1/calendars/timezones', {
+    const res = await fetch('/api/v1/calendars_init', {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     })
     if (res.ok) {
@@ -133,9 +135,15 @@ const fetchTimezones = async () => {
           }))
         }
       }
+      if (data.ical_feeds && typeof data.ical_feeds === 'object') {
+        icalFeedsList.value = Object.entries(data.ical_feeds).map(([name, url]) => ({
+          name,
+          url: String(url),
+        })).sort((a, b) => a.name.localeCompare(b.name))
+      }
     }
   } catch (e) {
-    console.error('Failed to fetch timezones:', e)
+    console.error('Failed to fetch calendars init data:', e)
   }
 }
 
@@ -228,8 +236,36 @@ const saveCalendar = async () => {
   }
 }
 
+const handleCloneCalendar = (cal: CalendarItem) => {
+  const defaultState = defaultFormState()
+  const mergedHours: Record<string, DayHours> = { ...defaultState.business_hours }
+
+  if (cal.business_hours) {
+    for (const [dayKey, dayVal] of Object.entries(cal.business_hours)) {
+      if (mergedHours[dayKey]) {
+        mergedHours[dayKey] = {
+          active: dayVal.active !== false,
+          time_start: dayVal.time_start || '08:00',
+          time_end: dayVal.time_end || '17:00',
+        }
+      }
+    }
+  }
+
+  formState.value = {
+    id: null,
+    name: __('%s (Copy)', cal.name || __('Calendar')),
+    timezone: cal.timezone || 'UTC',
+    default: false,
+    ical_url: cal.ical_url || '',
+    business_hours: mergedHours,
+  }
+  drawerTitle.value = __('Clone Calendar')
+  showDrawer.value = true
+}
+
 const handleDeleteCalendar = async (id: number, name: string) => {
-  if (!confirm(`Are you sure you want to delete calendar "${name}"?`)) return
+  if (!confirm(__('Are you sure you want to delete calendar "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/calendars/${id}`, {
       method: 'DELETE',
@@ -273,7 +309,7 @@ const toggleDefaultState = async (cal: CalendarItem) => {
 
 onMounted(() => {
   fetchCalendars()
-  fetchTimezones()
+  fetchInitData()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -406,14 +442,27 @@ onMounted(() => {
                 >
                   <div class="py-1.5">
                     <button
-                      @click="handleEditCalendar(cal)"
+                      @click="() => { closeActionMenu(); handleEditCalendar(cal) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
                     </button>
+                    <button
+                      @click="() => { closeActionMenu(); handleCloneCalendar(cal) }"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
+                    </button>
+                    <button
+                      v-if="!cal.default"
+                      @click="() => { closeActionMenu(); toggleDefaultState(cal) }"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="check2" class="w-3.5 h-3.5 mr-2.5 text-green-500" />{{ __('Set as default') }}
+                    </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button
-                      @click="handleDeleteCalendar(cal.id, cal.name)"
+                      @click="() => { closeActionMenu(); handleDeleteCalendar(cal.id, cal.name) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                     >
                       <CommonIcon name="trash3" class="w-3.5 h-3.5 mr-2.5 text-red-400" />{{ __('Delete') }}
@@ -534,6 +583,17 @@ onMounted(() => {
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
               {{ __('Holidays iCalendar Feed') }}
             </label>
+            <div v-if="icalFeedsList.length > 0" class="mb-2">
+              <select
+                @change="(e) => { const target = e.target as HTMLSelectElement; if (target.value) formState.ical_url = target.value }"
+                class="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
+              >
+                <option value="">{{ __('— Select public holiday feed —') }}</option>
+                <option v-for="feed in icalFeedsList" :key="feed.name" :value="feed.url">
+                  {{ feed.name }}
+                </option>
+              </select>
+            </div>
             <input
               v-model="formState.ical_url"
               type="url"

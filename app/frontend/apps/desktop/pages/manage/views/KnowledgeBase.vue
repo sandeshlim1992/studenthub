@@ -532,7 +532,7 @@ const openPublicMenuDrawer = (location: 'header' | 'footer') => {
   for (const loc of kbLocales.value) {
     const existing = menuItems.value
       .filter((m) => m.kb_locale_id === loc.id && m.location === location && !m._destroy)
-      .map((m) => ({ ...m }))
+      .map((m) => Object.assign({}, m))
     grouped[loc.id] = existing
   }
   drawerMenuItemsByLocale.value = grouped
@@ -654,6 +654,33 @@ const normalizeHost = (val: string) => {
     .replace(/\/.*$/, '')
 }
 
+const syncVideoServers = async (servers: VideoServer[]) => {
+  if (!videoServerSettingId.value) return
+  isSavingVideoServer.value = true
+  try {
+    const res = await fetch(`/api/v1/settings/${videoServerSettingId.value}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
+      },
+      body: JSON.stringify({ state_current: { value: servers } }),
+    })
+    if (res.ok) {
+      videoServers.value = servers
+      showNotification(__('Video servers updated.'))
+    } else {
+      showNotification(__('Failed to update video servers.'), true)
+    }
+  } catch (e) {
+    console.error('Failed to sync video servers:', e)
+  } finally {
+    isSavingVideoServer.value = false
+  }
+}
+
 const saveVideoServer = async () => {
   if (!videoForm.value.name.trim() || !videoForm.value.host.trim()) {
     showNotification(__('Name and Host are required.'), true)
@@ -684,34 +711,6 @@ const removeVideoServer = async (index: number) => {
   const updated = [...videoServers.value]
   updated.splice(index, 1)
   await syncVideoServers(updated)
-}
-
-const syncVideoServers = async (servers: VideoServer[]) => {
-  if (!videoServerSettingId.value) return
-  isSavingVideoServer.value = true
-  try {
-    const res = await fetch(`/api/v1/settings/${videoServerSettingId.value}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': getCsrf(),
-      },
-      body: JSON.stringify({ state_current: { value: servers } }),
-    })
-    if (res.ok) {
-      videoServers.value = servers
-      showNotification(__('Video servers updated.'))
-    } else {
-      showNotification(__('Failed to update video servers.'), true)
-    }
-  } catch (e) {
-    console.error('Failed to sync video servers:', e)
-    showNotification(__('Network error updating video servers.'), true)
-  } finally {
-    isSavingVideoServer.value = false
-  }
 }
 
 // -------------------------------------------------------------

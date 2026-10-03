@@ -163,7 +163,7 @@ const toggleTokenAccess = async () => {
   errorMessage.value = ''
   try {
     const res = await fetch('/api/v1/settings/api_token_access', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
@@ -191,7 +191,7 @@ const togglePasswordAccess = async () => {
   errorMessage.value = ''
   try {
     const res = await fetch('/api/v1/settings/api_password_access', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

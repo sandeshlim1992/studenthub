@@ -1,17 +1,13 @@
-<div class="ad-card">
-  <div class="ad-card-header">
-    <span class="ad-card-title"><%- @T('Reopening rate') %></span>
-    <div class="ad-card-icon">
-      <%- @Icon('reopening') %>
+<div class="stat-widget vertical">
+  <div class="stat-title">
+    <%- @T('Reopening rate') %>
+    <div class="stat-icon-help js-stat-help" title="<%- @Ti(@StatsTicketReopen.description) %>" data-placement="left">
+      <%- @Icon('help') %>
     </div>
   </div>
-  <div class="ad-card-value">
-    <%- @StatsTicketReopen?.percent || 0 %>%
+  <div class="stat-graphic">
+    <%- @Icon('reopening', "reopening-icon #{@StatsTicketReopen.state}-color") %>
   </div>
-  <div class="ad-card-subtitle">
-    <%- @T('%s% have been reopened', @StatsTicketReopen?.percent || 0) %>
-  </div>
-  <div class="ad-card-detail">
-    <%- @T('Average: %s%', @StatsTicketReopen?.average_per_agent || 0) %>
-  </div>
+  <div class="stat-label"><%- @T('%s% have been reopened', @StatsTicketReopen.percent) %></div>
+  <div class="stat-detail"><%- @T('Average: %s%', @StatsTicketReopen.average_per_agent) %></div>
 </div>

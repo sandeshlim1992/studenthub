@@ -85,6 +85,25 @@ const providerModal = ref<ProviderModalState>({
   isSaving: false,
 })
 
+// Session Timeout State (Security::Base)
+const sessionTimeoutValues = ref<Record<string, string>>({
+  default: '2419200',
+  admin: '2419200',
+  'ticket.agent': '2419200',
+  'ticket.customer': '2419200',
+})
+
+const sessionTimeoutOptions = [
+  { value: '0', label: __('disabled') },
+  { value: '3600', label: __('1 hour') },
+  { value: '7200', label: __('2 hours') },
+  { value: '86400', label: __('1 day') },
+  { value: '604800', label: __('1 week') },
+  { value: '1209600', label: __('2 weeks') },
+  { value: '1814400', label: __('3 weeks') },
+  { value: '2419200', label: __('4 weeks') },
+]
+
 const getCsrf = () => {
   const meta = document.querySelector('meta[name="csrf-token"]')
   return meta ? meta.getAttribute('content') || '' : ''
@@ -117,6 +136,16 @@ const fetchAllData = async () => {
         dict[item.name] = item
       }
       allSettings.value = dict
+
+      if (dict.session_timeout?.state_current?.value && typeof dict.session_timeout.state_current.value === 'object') {
+        const currentVals = dict.session_timeout.state_current.value as Record<string, unknown>
+        sessionTimeoutValues.value = {
+          default: String(currentVals['default'] ?? '2419200'),
+          admin: String(currentVals['admin'] ?? '2419200'),
+          'ticket.agent': String(currentVals['ticket.agent'] ?? '2419200'),
+          'ticket.customer': String(currentVals['ticket.customer'] ?? '2419200'),
+        }
+      }
     }
 
     if (rolesRes.ok) {
@@ -169,6 +198,11 @@ const saveSetting = async (name: string, value: unknown) => {
   } finally {
     isSaving.value[name] = false
   }
+}
+
+const saveSessionTimeout = async (target: string, value: string) => {
+  sessionTimeoutValues.value[target] = value
+  await saveSetting('session_timeout', { ...sessionTimeoutValues.value })
 }
 
 const toggleBooleanSetting = async (name: string) => {
@@ -488,6 +522,100 @@ onMounted(() => {
                 class="w-5 h-5 accent-blue-600 cursor-pointer"
                 @change="toggleBooleanSetting('user_lost_password')"
               />
+            </div>
+          </div>
+
+          <!-- Session Timeout (Security::Base Parity) -->
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+            <div>
+              <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
+                {{ __('Session Timeout') }}
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {{ __('Defines the session timeout for inactivity of users. Based on the assigned permissions the highest timeout value will be used, otherwise the default.') }}
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              <!-- Default -->
+              <div class="space-y-1.5">
+                <label for="session-timeout-default" class="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                  {{ __('Default') }}
+                </label>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ __('Fallback timeout applied when no specific role timeout matches.') }}
+                </p>
+                <select
+                  id="session-timeout-default"
+                  :value="sessionTimeoutValues.default"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  @change="saveSessionTimeout('default', ($event.target as HTMLSelectElement).value)"
+                >
+                  <option v-for="opt in sessionTimeoutOptions" :key="'def-' + opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Admin interface -->
+              <div class="space-y-1.5">
+                <label for="session-timeout-admin" class="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                  {{ __('Admin interface') }}
+                </label>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ __('Inactivity timeout for administrators accessing management pages.') }}
+                </p>
+                <select
+                  id="session-timeout-admin"
+                  :value="sessionTimeoutValues.admin"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  @change="saveSessionTimeout('admin', ($event.target as HTMLSelectElement).value)"
+                >
+                  <option v-for="opt in sessionTimeoutOptions" :key="'adm-' + opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Agent tickets -->
+              <div class="space-y-1.5">
+                <label for="session-timeout-agent" class="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                  {{ __('Agent tickets') }}
+                </label>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ __('Inactivity timeout for support agents processing tickets.') }}
+                </p>
+                <select
+                  id="session-timeout-agent"
+                  :value="sessionTimeoutValues['ticket.agent']"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  @change="saveSessionTimeout('ticket.agent', ($event.target as HTMLSelectElement).value)"
+                >
+                  <option v-for="opt in sessionTimeoutOptions" :key="'agt-' + opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Customer tickets -->
+              <div class="space-y-1.5">
+                <label for="session-timeout-customer" class="text-xs font-semibold text-slate-700 dark:text-slate-300 block">
+                  {{ __('Customer tickets') }}
+                </label>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                  {{ __('Inactivity timeout for customers logged into the ticket portal.') }}
+                </p>
+                <select
+                  id="session-timeout-customer"
+                  :value="sessionTimeoutValues['ticket.customer']"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  @change="saveSessionTimeout('ticket.customer', ($event.target as HTMLSelectElement).value)"
+                >
+                  <option v-for="opt in sessionTimeoutOptions" :key="'cst-' + opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

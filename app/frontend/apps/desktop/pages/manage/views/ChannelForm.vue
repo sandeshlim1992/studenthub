@@ -52,6 +52,8 @@ const messageThankYou = ref(__('Thank you for your inquiry! We\'ll contact you a
 const isModal = ref(true)
 const showTitle = ref(true)
 const attachmentSupport = ref(true)
+const agreementSupport = ref(false)
+const agreementMessage = ref(__('Accept Data Privacy Policy & Acceptable Use Policy'))
 const noCSS = ref(false)
 const debug = ref(false)
 const scriptFormat = ref<'vanilla' | 'jquery'>('vanilla')
@@ -110,7 +112,9 @@ const generatedEmbedSnippet = computed(() => {
   const host = window.location.origin
   const quote = (str: string) => str.replace(/'/g, "\\'")
 
-  const closingScript = '<' + '/script>'
+  const agreementParam = agreementSupport.value
+    ? `,\n    agreementSupport: true,\n    agreementMessage: '${quote(agreementMessage.value)}'`
+    : ''
 
   if (scriptFormat.value === 'jquery') {
     return `<button id="feedback-form" type="button">${quote(messageTitle.value)}</button>
@@ -126,7 +130,7 @@ $(function() {
     showTitle: ${showTitle.value},
     attachmentSupport: ${attachmentSupport.value},
     noCSS: ${noCSS.value},
-    debug: ${debug.value}
+    debug: ${debug.value}${agreementParam}
   });
 });
 ${closingScript}`
@@ -145,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
     showTitle: ${showTitle.value},
     attachmentSupport: ${attachmentSupport.value},
     noCSS: ${noCSS.value},
-    debug: ${debug.value}
+    debug: ${debug.value}${agreementParam}
   });
 });
 ${closingScript}`
@@ -514,6 +518,21 @@ onMounted(() => {
                   <span>{{ __('Allow file attachments upload') }}</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer text-xs">
+                  <input v-model="agreementSupport" type="checkbox" class="w-4 h-4 rounded text-blue-600" />
+                  <span>{{ __('Require agreement / privacy policy checkbox') }}</span>
+                </label>
+                <div v-if="agreementSupport" class="pl-6 pt-1">
+                  <label for="designer-agreement-message" class="block text-[11px] font-medium text-slate-500 mb-1">
+                    {{ __('Agreement Text') }}
+                  </label>
+                  <input
+                    id="designer-agreement-message"
+                    v-model="agreementMessage"
+                    type="text"
+                    class="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs"
+                  />
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer text-xs">
                   <input v-model="noCSS" type="checkbox" class="w-4 h-4 rounded text-blue-600" />
                   <span>{{ __('Don\'t load CSS (use your website custom styling)') }}</span>
                 </label>
@@ -553,6 +572,11 @@ onMounted(() => {
                 <div v-if="attachmentSupport" class="text-[11px] text-slate-500 flex items-center gap-1.5">
                   <CommonIcon name="file" class="w-3.5 h-3.5" />
                   <span>{{ __('Attach file (optional)') }}</span>
+                </div>
+
+                <div v-if="agreementSupport" class="flex items-start gap-2 pt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                  <input type="checkbox" disabled checked class="w-3.5 h-3.5 mt-0.5 rounded text-blue-600" />
+                  <span>{{ agreementMessage }}</span>
                 </div>
 
                 <div v-if="captchaProvider" class="text-[10px] text-slate-400 flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">

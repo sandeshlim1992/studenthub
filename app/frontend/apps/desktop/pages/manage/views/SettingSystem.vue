@@ -602,6 +602,19 @@ onMounted(() => {
               </label>
             </div>
 
+            <!-- Attachment Migration Command Guide (Parity with Legacy storage_provider.jst.eco) -->
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-slate-800 space-y-2">
+              <h3 class="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                {{ __('Attachment Migration Command') }}
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ __('If you want to move already stored attachments from one backend to another, execute the following command in your terminal:') }}
+              </p>
+              <div class="p-2.5 rounded-lg bg-slate-900 text-slate-100 font-mono text-xs overflow-x-auto select-all">
+                rake zammad:store:move_files {{ storageProvider === 'File' ? 'DB File' : (storageProvider === 'S3' ? 'File S3' : 'File DB') }}
+              </div>
+            </div>
+
             <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"

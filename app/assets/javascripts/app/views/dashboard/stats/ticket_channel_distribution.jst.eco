@@ -1,25 +1,23 @@
-<div class="ad-card">
-  <div class="ad-card-header">
-    <span class="ad-card-title"><%- @T('Channel Distribution') %></span>
-    <div class="ad-card-icon">
-      <%- @Icon('card-list') %>
+<div class="stat-widget vertical">
+  <div class="stat-title">
+    <%- @T('Channel Distribution') %>
+    <div class="stat-icon-help js-stat-help" title="<%- @Ti(@StatsTicketChannelDistribution.description) %>" data-placement="left">
+      <%- @Icon('help') %>
     </div>
   </div>
-  <div class="ad-channel-list">
-    <% for id, channel of (@StatsTicketChannelDistribution?.channels || {}): %>
-      <div class="ad-channel-row">
-        <div class="ad-channel-info">
-          <%- @Icon(channel.icon, 'ad-channel-icon') %>
-          <span class="ad-channel-name"><%- channel.sender %></span>
+  <div class="stat-graphic" data-columns="<%- _.size(@StatsTicketChannelDistribution.channels) %>">
+    <% for id, channel of @StatsTicketChannelDistribution.channels: %>
+      <div class="stats-row">
+        <div title="<%- channel.sender %>">
+          <%- @Icon(channel.icon, 'stat-channel-icon') %>
         </div>
-        <div class="ad-channel-bar-wrapper">
-          <div class="ad-channel-track" title="Inbound: <%- channel.inbound_in_percent %>% | Outbound: <%- channel.outbound_in_percent %>%">
-            <div class="ad-channel-fill-inbound" style="width: <%- channel.inbound_in_percent %>%"></div>
-            <div class="ad-channel-fill-outbound" style="width: <%- channel.outbound_in_percent %>%"></div>
-          </div>
-          <span class="ad-channel-percentage"><%- channel.overal_percentage %>%</span>
+        <div class="stat-bars">
+          <div class="stat-bar stat-bar--inbound" style="height: <%- channel.inbound_in_percent %>%" title="<%- @Ti('Inbound:') %> <%- channel.inbound_in_percent %>% (<%- channel.inbound %>)"></div>
+          <div class="stat-bar stat-bar--outbound" style="height: <%- channel.outbound_in_percent %>%" title="<%- @Ti('Outbound:') %> <%- channel.outbound_in_percent %>% (<%- channel.outbound %>)"></div>
         </div>
+        <div class="stat-detail"><%- channel.overal_percentage %>%</div>
       </div>
+      <div class="stat-label"></div>
     <% end %>
   </div>
 </div>

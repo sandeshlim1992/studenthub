@@ -232,8 +232,24 @@ const saveTextModule = async () => {
   }
 }
 
+const handleCloneTextModule = (tm: TextModuleItem) => {
+  closeActionMenu()
+  formState.value = {
+    id: null,
+    name: `${__('Clone')}: ${tm.name}`,
+    keywords: tm.keywords || '',
+    content: htmlToPlainText(tm.content || ''),
+    note: htmlToPlainText(tm.note || ''),
+    active: tm.active !== false,
+    group_ids: tm.group_ids ? [...tm.group_ids] : [],
+  }
+  drawerTitle.value = __('New Text Module')
+  showDrawer.value = true
+}
+
 const handleDeleteTextModule = async (id: number, name: string) => {
-  if (!confirm(`Are you sure you want to delete text module "${name}"?`)) return
+  closeActionMenu()
+  if (!confirm(__('Are you sure you want to delete text module "%s"?').replace('%s', name))) return
   try {
     const res = await fetch(`/api/v1/text_modules/${id}`, {
       method: 'DELETE',
@@ -251,6 +267,101 @@ const handleDeleteTextModule = async (id: number, name: string) => {
     }
   } catch (e) {
     console.error('Failed to delete text module:', e)
+  }
+}
+
+// CSV Import state
+const showImportModal = ref(false)
+const importStage = ref<'input' | 'preview' | 'complete'>('input')
+const importContent = ref('')
+const importFile = ref<File | null>(null)
+const importColSep = ref(',')
+const importDeleteOption = ref(false)
+const importLoading = ref(false)
+const importError = ref('')
+const importResult = ref<{
+  result?: string
+  stats?: {
+    created?: number
+    updated?: number
+    deleted?: number
+    total?: number
+  }
+} | null>(null)
+
+const openImportModal = () => {
+  showImportModal.value = true
+  importStage.value = 'input'
+  importContent.value = ''
+  importFile.value = null
+  importResult.value = null
+  importError.value = ''
+  importDeleteOption.value = false
+}
+
+const handleFileUpload = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    const file = target.files[0]
+    importFile.value = file
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      importContent.value = (e.target?.result as string) || ''
+    }
+    reader.readAsText(file)
+  }
+}
+
+const downloadExampleCsv = () => {
+  window.location.href = '/api/v1/text_modules/import_example'
+}
+
+const runImport = async (dryRun: boolean) => {
+  if (!importContent.value.trim()) {
+    importError.value = __('Please select a file or paste CSV data.')
+    return
+  }
+  importLoading.value = true
+  importError.value = ''
+
+  try {
+    const formData = new FormData()
+    formData.append('data', importContent.value)
+    formData.append('col_sep', importColSep.value)
+    if (dryRun) {
+      formData.append('try', 'true')
+    }
+    if (importDeleteOption.value) {
+      formData.append('delete', 'true')
+    }
+
+    const res = await fetch(`/api/v1/text_modules/import${dryRun ? '?try=true' : ''}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
+      },
+      body: formData,
+    })
+
+    const data = await res.json()
+    if (res.ok) {
+      importResult.value = data
+      if (dryRun) {
+        importStage.value = 'preview'
+      } else {
+        importStage.value = 'complete'
+        fetchTextModules()
+      }
+    } else {
+      importError.value = data.error_human || data.error || data.message || __('Failed to import CSV data.')
+    }
+  } catch (e) {
+    console.error('CSV import error:', e)
+    importError.value = __('An error occurred during import.')
+  } finally {
+    importLoading.value = false
   }
 }
 
@@ -298,12 +409,21 @@ onMounted(() => {
             <span class="text-sm font-normal text-slate-500 dark:text-slate-400 ml-1">{{ __('Management') }}</span>
           </h1>
         </div>
-        <button
-          @click="handleNewTextModule"
-          class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
-        >
-          {{ __('New Text Module') }}
-        </button>
+        <div class="flex items-center gap-2.5">
+          <button
+            @click="openImportModal"
+            class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
+          >
+            <CommonIcon name="upload" class="w-4 h-4 text-slate-500" />
+            <span>{{ __('Import') }}</span>
+          </button>
+          <button
+            @click="handleNewTextModule"
+            class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
+          >
+            {{ __('New Text Module') }}
+          </button>
+        </div>
       </div>
 
       <!-- Search -->
@@ -434,6 +554,12 @@ onMounted(() => {
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
+                    </button>
+                    <button
+                      @click="handleCloneTextModule(tm)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button
@@ -642,6 +768,228 @@ onMounted(() => {
             <span v-if="submitting">{{ __('Saving...') }}</span>
             <span v-else>{{ __('Save') }}</span>
           </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- CSV Import Wizard Modal -->
+  <Teleport to="body">
+    <div
+      v-if="showImportModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto"
+      @click.self="showImportModal = false"
+    >
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col my-8"
+        @click.stop
+      >
+        <!-- Modal Header -->
+        <div class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+              <CommonIcon name="upload" class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ __('Import Text Modules via CSV') }}</h3>
+              <p class="text-xs text-slate-400 dark:text-slate-500">
+                <span v-if="importStage === 'input'">{{ __('Step 1: Upload CSV or paste data') }}</span>
+                <span v-else-if="importStage === 'preview'">{{ __('Step 2: Review test results') }}</span>
+                <span v-else>{{ __('Step 3: Import complete') }}</span>
+              </p>
+            </div>
+          </div>
+          <button
+            @click="showImportModal = false"
+            class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+          >
+            <CommonIcon name="x-lg" class="w-4 h-4" />
+          </button>
+        </div>
+
+        <!-- Modal Body: Stage 1 - Input Data -->
+        <div v-if="importStage === 'input'" class="p-6 space-y-5 text-left">
+          <!-- Download Example File Link -->
+          <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60">
+            <div class="text-xs text-slate-600 dark:text-slate-300">
+              {{ __('Need a reference template format?') }}
+            </div>
+            <button
+              @click="downloadExampleCsv"
+              class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <CommonIcon name="download" class="w-3.5 h-3.5" />
+              <span>{{ __('Download sample CSV') }}</span>
+            </button>
+          </div>
+
+          <!-- File Upload Zone -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              {{ __('CSV File') }}
+            </label>
+            <input
+              type="file"
+              accept=".csv,text/csv,text/plain"
+              @change="handleFileUpload"
+              class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-blue-900/40 dark:file:text-blue-300 file:cursor-pointer"
+            />
+          </div>
+
+          <!-- Paste Raw CSV Text -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              {{ __('Or paste raw CSV text') }}
+            </label>
+            <textarea
+              v-model="importContent"
+              rows="6"
+              :placeholder="__('name,keywords,content\nGreeting,hello,Hello #{ticket.customer.firstname}!\nClosing,bye,Best regards,\nYour Support Team')"
+              class="w-full p-3 font-mono text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:outline-hidden focus:border-blue-500 text-slate-800 dark:text-slate-200"
+            ></textarea>
+          </div>
+
+          <!-- Options -->
+          <div class="grid grid-cols-2 gap-4 pt-1">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                {{ __('Column Separator') }}
+              </label>
+              <select
+                v-model="importColSep"
+                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500"
+              >
+                <option value=",">{{ __('Comma (,)') }}</option>
+                <option value=";">{{ __('Semicolon (;)') }}</option>
+                <option value="&#9;">{{ __('Tab') }}</option>
+              </select>
+            </div>
+            <div class="flex items-center gap-2 pt-6">
+              <input
+                v-model="importDeleteOption"
+                type="checkbox"
+                id="tm-import-delete"
+                class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
+              />
+              <label for="tm-import-delete" class="text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                {{ __('Delete missing records') }}
+              </label>
+            </div>
+          </div>
+
+          <!-- Error Alert -->
+          <div v-if="importError" class="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-xs text-red-600 dark:text-red-400">
+            {{ importError }}
+          </div>
+        </div>
+
+        <!-- Modal Body: Stage 2 - Dry Run Preview Results -->
+        <div v-else-if="importStage === 'preview'" class="p-6 overflow-y-auto space-y-5 text-left">
+          <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300">
+            <div class="font-semibold text-sm mb-1">{{ __('The test run was successful!') }}</div>
+            <p>{{ __('Review the estimated record modifications before proceeding with permanent changes.') }}</p>
+          </div>
+
+          <div class="grid grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-2xl font-bold text-slate-900 dark:text-white">{{ importResult?.stats?.total ?? 0 }}</div>
+              <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('Total') }}</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-2xl font-bold text-green-600">{{ importResult?.stats?.created ?? 0 }}</div>
+              <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('Create') }}</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-2xl font-bold text-blue-600">{{ importResult?.stats?.updated ?? 0 }}</div>
+              <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('Update') }}</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-2xl font-bold text-red-600">{{ importResult?.stats?.deleted ?? 0 }}</div>
+              <div class="text-xs text-slate-400 uppercase tracking-wider mt-1">{{ __('Delete') }}</div>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            {{ __('Do you really want to import this data permanently into the database?') }}
+          </p>
+        </div>
+
+        <!-- Modal Body: Stage 3 - Complete Summary -->
+        <div v-else-if="importStage === 'complete'" class="p-6 overflow-y-auto space-y-5 text-center">
+          <div class="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+            <CommonIcon name="check2" class="w-6 h-6" />
+          </div>
+          <div>
+            <h4 class="text-base font-bold text-slate-900 dark:text-white">{{ __('Import Completed Successfully') }}</h4>
+            <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+              {{ __('The text module records have been synchronized.') }}
+            </p>
+          </div>
+
+          <div class="grid grid-cols-4 gap-4 max-w-lg mx-auto">
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-xl font-bold text-slate-900 dark:text-white">{{ importResult?.stats?.total ?? 0 }}</div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">{{ __('Total') }}</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-xl font-bold text-green-600">{{ importResult?.stats?.created ?? 0 }}</div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">{{ __('Created') }}</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-xl font-bold text-blue-600">{{ importResult?.stats?.updated ?? 0 }}</div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">{{ __('Updated') }}</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 text-center">
+              <div class="text-xl font-bold text-red-600">{{ importResult?.stats?.deleted ?? 0 }}</div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wider mt-1">{{ __('Deleted') }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-6 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3 bg-slate-50 dark:bg-slate-900/50">
+          <template v-if="importStage === 'input'">
+            <button
+              @click="showImportModal = false"
+              class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium transition-colors cursor-pointer"
+            >
+              {{ __('Cancel') }}
+            </button>
+            <button
+              @click="runImport(true)"
+              :disabled="importLoading"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CommonIcon v-if="importLoading" name="loading" class="w-4 h-4 animate-spin" />
+              <span>{{ importLoading ? __('Testing Import...') : __('Start Test Import') }}</span>
+            </button>
+          </template>
+
+          <template v-else-if="importStage === 'preview'">
+            <button
+              @click="importStage = 'input'"
+              class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium transition-colors cursor-pointer"
+            >
+              {{ __('Back') }}
+            </button>
+            <button
+              @click="runImport(false)"
+              :disabled="importLoading"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CommonIcon v-if="importLoading" name="loading" class="w-4 h-4 animate-spin" />
+              <span>{{ importLoading ? __('Importing...') : __('Yes, start real import') }}</span>
+            </button>
+          </template>
+
+          <template v-else-if="importStage === 'complete'">
+            <button
+              @click="showImportModal = false"
+              class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer"
+            >
+              {{ __('Done') }}
+            </button>
+          </template>
         </div>
       </div>
     </div>

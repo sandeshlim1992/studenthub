@@ -288,8 +288,27 @@ const saveMacro = async () => {
   }
 }
 
+const handleCloneMacro = (macro: MacroItem) => {
+  closeActionMenu()
+  formState.value = {
+    id: null,
+    name: `${__('Clone')}: ${macro.name}`,
+    ux_flow_next_up: macro.ux_flow_next_up || 'none',
+    note: htmlToPlainText(macro.note || ''),
+    active: macro.active !== false,
+    group_ids: macro.group_ids ? [...macro.group_ids] : [],
+    actions: parsePerformToActions(macro.perform as Record<string, unknown>),
+  }
+  if (formState.value.actions.length === 0) {
+    formState.value.actions.push({ field: 'state', value: '', values: [] })
+  }
+  drawerTitle.value = __('New Macro')
+  showDrawer.value = true
+}
+
 const handleDeleteMacro = async (id: number, name: string) => {
-  if (!confirm(`Are you sure you want to delete macro "${name}"?`)) return
+  closeActionMenu()
+  if (!confirm(__('Are you sure you want to delete macro "%s"?').replace('%s', name))) return
   try {
     const res = await fetch(`/api/v1/macros/${id}`, {
       method: 'DELETE',
@@ -484,6 +503,12 @@ onMounted(() => {
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
+                    </button>
+                    <button
+                      @click="handleCloneMacro(macro)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button

@@ -86,7 +86,10 @@ const newModal = ref<{
   isSubmitting: false,
 })
 
-let userSearchDebounce: ReturnType<typeof setTimeout> | null = null
+const getCsrf = () => {
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  return meta ? meta.getAttribute('content') || '' : ''
+}
 
 const fetchTasks = async () => {
   isLoading.value = true
@@ -217,6 +220,7 @@ const selectUserForDeletion = async (user: UserAsset) => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify(condCustomer),
     })
@@ -241,6 +245,7 @@ const selectUserForDeletion = async (user: UserAsset) => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify(condOwner),
     })
@@ -300,6 +305,7 @@ const submitDeletionTask = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify(payload),
     })

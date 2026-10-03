@@ -233,13 +233,6 @@ class App.ControllerGenericIndex extends App.Controller
     else
       @table.update(objects: objects, pagerSelected: @pageData.pagerSelected, pagerTotalCount: @pageData.pagerTotalCount, dndCallback: @dndCallback, searchQuery: @searchQuery)
 
-    autoEditId = sessionStorage.getItem("zammad-auto-edit-#{@genericObject.toLowerCase()}-id")
-    if autoEditId
-      sessionStorage.removeItem("zammad-auto-edit-#{@genericObject.toLowerCase()}-id")
-      setTimeout( =>
-        @edit(parseInt(autoEditId, 10), { preventDefault: -> })
-      , 100)
-
     if @pageData.logFacility
       new App.HttpLog(
         el: @$('.page-footer')

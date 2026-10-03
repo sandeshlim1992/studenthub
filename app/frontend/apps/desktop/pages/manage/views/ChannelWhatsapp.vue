@@ -39,6 +39,22 @@ interface GroupRecord {
   active: boolean
 }
 
+interface HttpLogRecord {
+  id: number
+  facility: string
+  status?: number
+  created_at: string
+  request?: {
+    method?: string
+    url?: string
+    content?: unknown
+  }
+  response?: {
+    code?: number
+    content?: unknown
+  }
+}
+
 const router = useRouter()
 
 // State
@@ -49,6 +65,10 @@ const errorMessage = ref('')
 
 const channels = ref<WhatsappChannel[]>([])
 const groups = ref<GroupRecord[]>([])
+const httpLogs = ref<HttpLogRecord[]>([])
+const isLoadingLogs = ref(false)
+const selectedLog = ref<HttpLogRecord | null>(null)
+const isLogModalOpen = ref(false)
 
 // Wizard Modal
 const isWizardModalOpen = ref(false)
@@ -111,6 +131,38 @@ const copyToClipboard = async (text: string) => {
   }
 }
 
+// HTTP Logs Actions
+const loadHttpLogs = async () => {
+  isLoadingLogs.value = true
+  try {
+    const res = await fetch('/api/v1/http_logs/WhatsApp::Business?limit=25', {
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+    })
+    if (res.ok) {
+      httpLogs.value = await res.json()
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingLogs.value = false
+  }
+}
+
+const openLogDetails = (log: HttpLogRecord) => {
+  selectedLog.value = log
+  isLogModalOpen.value = true
+}
+
+const formatContent = (content: unknown) => {
+  if (!content) return '-'
+  if (typeof content === 'string') return content
+  try {
+    return JSON.stringify(content, null, 2)
+  } catch {
+    return String(content)
+  }
+}
+
 // Load Data
 const loadData = async () => {
   isLoading.value = true
@@ -132,6 +184,8 @@ const loadData = async () => {
       const channelIds: number[] = data.channel_ids || []
       channels.value = channelIds.map((id) => channelMap[id] as WhatsappChannel).filter(Boolean)
     }
+
+    await loadHttpLogs()
   } catch (e) {
     showError(__('Failed to load WhatsApp channels.'))
     console.error(e)
@@ -529,6 +583,78 @@ onMounted(() => {
           </div>
         </div>
 
+        <!-- Communication Log Panel (WhatsApp::Business) -->
+        <div class="mt-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <CommonIcon name="card-list" class="w-4 h-4 text-slate-500" />
+                {{ __('Communication Log (WhatsApp::Business)') }}
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                {{ __('Recent inbound webhook calls and delivery receipts from Meta Graph API.') }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              :disabled="isLoadingLogs"
+              @click="loadHttpLogs"
+            >
+              <CommonIcon name="arrow-clockwise" class="w-3.5 h-3.5" :class="{ 'animate-spin': isLoadingLogs }" />
+              {{ __('Refresh') }}
+            </button>
+          </div>
+
+          <div v-if="httpLogs.length === 0" class="py-6 text-center text-xs text-slate-400 dark:text-slate-500 italic bg-slate-50 dark:bg-slate-850 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+            {{ __('No webhook events recorded yet. Webhook calls from Meta will appear here in real time.') }}
+          </div>
+
+          <div v-else class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-500 text-[11px] uppercase tracking-wider">
+                <tr>
+                  <th class="px-3.5 py-2 font-semibold">{{ __('Timestamp') }}</th>
+                  <th class="px-3.5 py-2 font-semibold">{{ __('Status') }}</th>
+                  <th class="px-3.5 py-2 font-semibold">{{ __('Method') }}</th>
+                  <th class="px-3.5 py-2 font-semibold">{{ __('URL') }}</th>
+                  <th class="px-3.5 py-2 font-semibold text-right">{{ __('Action') }}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-[11px]">
+                <tr v-for="log in httpLogs" :key="log.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-colors">
+                  <td class="px-3.5 py-2 text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                    {{ new Date(log.created_at).toLocaleString() }}
+                  </td>
+                  <td class="px-3.5 py-2 whitespace-nowrap">
+                    <span
+                      class="px-2 py-0.5 rounded-md font-bold text-[10px]"
+                      :class="(log.status || log.response?.code || 200) < 400 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400'"
+                    >
+                      {{ log.status || log.response?.code || 200 }}
+                    </span>
+                  </td>
+                  <td class="px-3.5 py-2 text-slate-700 dark:text-slate-300 font-bold whitespace-nowrap">
+                    {{ log.request?.method || 'POST' }}
+                  </td>
+                  <td class="px-3.5 py-2 text-slate-500 max-w-xs truncate" :title="log.request?.url">
+                    {{ log.request?.url || '/api/v1/whatsapp_webhook' }}
+                  </td>
+                  <td class="px-3.5 py-2 text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      class="text-blue-600 hover:text-blue-700 dark:text-blue-400 font-sans font-medium cursor-pointer"
+                      @click="openLogDetails(log)"
+                    >
+                      {{ __('Inspect') }}
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- ================= MODAL: WHATSAPP WIZARD ================= -->
@@ -705,6 +831,68 @@ onMounted(() => {
                 {{ isSaving ? __('Saving...') : __('Save') }}
               </button>
             </div>
+          </div>
+        </div>
+      <!-- ================= MODAL: LOG INSPECT ================= -->
+      <div
+        v-if="isLogModalOpen && selectedLog"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto"
+      >
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-150">
+          <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <CommonIcon name="card-list" class="w-5 h-5 text-blue-500" />
+              <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">
+                {{ __('HTTP Log Detail #') }}{{ selectedLog.id }}
+              </h3>
+            </div>
+            <button
+              type="button"
+              class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 cursor-pointer"
+              :aria-label="__('Close dialog')"
+              @click="isLogModalOpen = false"
+            >
+              <CommonIcon name="x" class="w-4 h-4" />
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl">
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{{ __('Method') }}</span>
+                <span class="font-bold text-slate-700 dark:text-slate-300 font-mono">{{ selectedLog.request?.method || 'POST' }}</span>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{{ __('Status') }}</span>
+                <span class="font-bold font-mono" :class="(selectedLog.status || selectedLog.response?.code || 200) < 400 ? 'text-emerald-600' : 'text-rose-600'">
+                  {{ selectedLog.status || selectedLog.response?.code || 200 }}
+                </span>
+              </div>
+              <div class="col-span-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{{ __('Timestamp') }}</span>
+                <span class="text-slate-600 dark:text-slate-400">{{ new Date(selectedLog.created_at).toLocaleString() }}</span>
+              </div>
+            </div>
+
+            <div>
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">{{ __('Request Payload') }}</span>
+              <pre class="p-3 bg-slate-900 text-slate-100 rounded-xl font-mono text-[11px] overflow-x-auto max-h-48 whitespace-pre-wrap">{{ formatContent(selectedLog.request?.content) }}</pre>
+            </div>
+
+            <div>
+              <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">{{ __('Response Payload') }}</span>
+              <pre class="p-3 bg-slate-900 text-slate-100 rounded-xl font-mono text-[11px] overflow-x-auto max-h-48 whitespace-pre-wrap">{{ formatContent(selectedLog.response?.content) }}</pre>
+            </div>
+          </div>
+
+          <div class="px-6 py-3.5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+            <button
+              type="button"
+              class="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 cursor-pointer"
+              @click="isLogModalOpen = false"
+            >
+              {{ __('Close') }}
+            </button>
           </div>
         </div>
       </div>

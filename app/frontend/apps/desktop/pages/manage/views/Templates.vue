@@ -201,6 +201,44 @@ const handleEditTemplate = (tmpl: TemplateItem) => {
   showDrawer.value = true
 }
 
+const handleCloneTemplate = (tmpl: TemplateItem) => {
+  formState.value = {
+    id: null,
+    name: __('%s (Copy)', tmpl.name || __('Template')),
+    active: tmpl.active !== false,
+    actions: parseOptionsToActions(tmpl.options as Record<string, unknown>),
+  }
+  if (formState.value.actions.length === 0) {
+    formState.value.actions.push({ field: 'title', value: '', textValue: '' })
+  }
+  drawerTitle.value = __('Clone Template')
+  showDrawer.value = true
+}
+
+const getTemplateActionSummary = (tmpl: TemplateItem) => {
+  const actions = parseOptionsToActions(tmpl.options as Record<string, unknown>)
+  return actions.map((act) => {
+    if (act.field === 'title') return `${__('Title')}: ${act.textValue || '-'}`
+    if (act.field === 'state') {
+      const st = ticketStatesList.value.find((s) => String(s.id) === act.value)
+      return `${__('State')}: ${st ? st.name : act.value}`
+    }
+    if (act.field === 'priority') {
+      const pr = ticketPrioritiesList.value.find((p) => String(p.id) === act.value)
+      return `${__('Priority')}: ${pr ? pr.name : act.value}`
+    }
+    if (act.field === 'group') {
+      const gr = groupsList.value.find((g) => String(g.id) === act.value)
+      return `${__('Group')}: ${gr ? gr.name : act.value}`
+    }
+    if (act.field === 'owner') {
+      const u = usersList.value.find((usr) => String(usr.id) === act.value)
+      return `${__('Owner')}: ${u ? u.fullname || u.login : act.value}`
+    }
+    return act.field
+  })
+}
+
 const saveTemplate = async () => {
   if (!formState.value.name.trim()) {
     alert(__('Name is required.'))
@@ -245,7 +283,7 @@ const saveTemplate = async () => {
 }
 
 const handleDeleteTemplate = async (id: number, name: string) => {
-  if (!confirm(`Are you sure you want to delete template "${name}"?`)) return
+  if (!confirm(__('Are you sure you want to delete template "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/templates/${id}`, {
       method: 'DELETE',
@@ -386,9 +424,20 @@ onMounted(() => {
               class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
               @click="handleEditTemplate(tmpl)"
             >
-              <!-- Name -->
-              <td class="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">
-                {{ tmpl.name }}
+              <!-- Name & Configured Actions -->
+              <td class="py-4 px-6">
+                <div class="font-medium text-slate-900 dark:text-slate-100 mb-1">
+                  {{ tmpl.name }}
+                </div>
+                <div class="flex flex-wrap gap-1.5 mt-1">
+                  <span
+                    v-for="(summary, sIdx) in getTemplateActionSummary(tmpl)"
+                    :key="sIdx"
+                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700"
+                  >
+                    {{ summary }}
+                  </span>
+                </div>
               </td>
               <!-- Active -->
               <td class="py-4 px-6 text-center" @click.stop>
@@ -415,14 +464,20 @@ onMounted(() => {
                 >
                   <div class="py-1.5">
                     <button
-                      @click="handleEditTemplate(tmpl)"
+                      @click="() => { closeActionMenu(); handleEditTemplate(tmpl) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Edit') }}
                     </button>
+                    <button
+                      @click="() => { closeActionMenu(); handleCloneTemplate(tmpl) }"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
+                    </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button
-                      @click="handleDeleteTemplate(tmpl.id, tmpl.name)"
+                      @click="() => { closeActionMenu(); handleDeleteTemplate(tmpl.id, tmpl.name) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                     >
                       <CommonIcon name="trash3" class="w-3.5 h-3.5 mr-2.5 text-red-400" />{{ __('Delete') }}

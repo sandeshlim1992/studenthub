@@ -243,6 +243,11 @@ const selectSuggestion = (s: SuggestionItem) => {
   }
 }
 
+const getCsrf = () => {
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  return meta ? meta.getAttribute('content') || '' : ''
+}
+
 const saveNewTranslation = async () => {
   const { source, target, locale } = newModal.value
   if (!source.trim()) {
@@ -263,6 +268,7 @@ const saveNewTranslation = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify({
         source: source.trim(),
@@ -315,6 +321,7 @@ const saveEditTranslation = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
       body: JSON.stringify({
         source,
@@ -357,6 +364,7 @@ const executeResetTranslation = async () => {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
     })
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
@@ -391,6 +399,7 @@ const executeDeleteTranslation = async () => {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCsrf(),
       },
     })
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)

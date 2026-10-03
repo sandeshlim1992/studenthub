@@ -137,6 +137,45 @@ const formatDate = (dateStr?: string) => {
 // Settings Methods
 // -------------------------------------------------------------
 
+const parseConditionToRows = (condition?: Record<string, unknown>) => {
+  const rows: ConditionRow[] = []
+  if (!condition) return rows
+
+  for (const [key, rawVal] of Object.entries(condition)) {
+    let field = ''
+    if (key === 'ticket.state_id') field = 'state'
+    else if (key === 'ticket.priority_id') field = 'priority'
+    else if (key === 'ticket.group_id') field = 'group'
+    else if (key === 'ticket.owner_id') field = 'owner'
+    else if (key === 'ticket.customer_id') field = 'customer'
+    else if (key === 'ticket.organization_id') field = 'organization'
+
+    if (!field) continue
+
+    let operator = 'is'
+    let values: string[] = []
+    let pre_condition: string | undefined
+
+    if (typeof rawVal === 'object' && rawVal !== null) {
+      const { operator: op = 'is', pre_condition: preCond, value } = rawVal as {
+        operator?: string
+        value?: unknown
+        pre_condition?: string
+      }
+      operator = op
+      pre_condition = preCond
+      if (Array.isArray(value)) {
+        values = value.map(String)
+      } else if (value !== undefined && value !== null) {
+        values = [String(value)]
+      }
+    }
+
+    rows.push({ field, operator, values, pre_condition })
+  }
+  return rows
+}
+
 const fetchSettings = async () => {
   try {
     const res = await fetch('/api/v1/settings', {
@@ -192,45 +231,6 @@ const buildConditionPayload = () => {
     }
   }
   return { condition: condPayload }
-}
-
-const parseConditionToRows = (condition?: Record<string, unknown>) => {
-  const rows: ConditionRow[] = []
-  if (!condition) return rows
-
-  for (const [key, rawVal] of Object.entries(condition)) {
-    let field = ''
-    if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-    else if (key === 'ticket.owner_id') field = 'owner'
-    else if (key === 'ticket.customer_id') field = 'customer'
-    else if (key === 'ticket.organization_id') field = 'organization'
-
-    if (!field) continue
-
-    let operator = 'is'
-    let values: string[] = []
-    let pre_condition: string | undefined
-
-    if (typeof rawVal === 'object' && rawVal !== null) {
-      const { operator: op = 'is', pre_condition: preCond, value } = rawVal as {
-        operator?: string
-        value?: unknown
-        pre_condition?: string
-      }
-      operator = op
-      pre_condition = preCond
-      if (Array.isArray(value)) {
-        values = value.map(String)
-      } else if (value !== undefined && value !== null) {
-        values = [String(value)]
-      }
-    }
-
-    rows.push({ field, operator, values, pre_condition })
-  }
-  return rows
 }
 
 const updateSettingValue = async (name: string, value: unknown) => {
@@ -382,6 +382,18 @@ const handleEditType = (type: ActivityTypeItem) => {
     isDefault: defaultActivityTypeId.value === type.id,
   }
   typeDrawerTitle.value = __('Edit Activity Type')
+  showTypeDrawer.value = true
+}
+
+const handleCloneType = (type: ActivityTypeItem) => {
+  typeFormState.value = {
+    id: null,
+    name: __('%s (Copy)', type.name || __('Activity Type')),
+    note: type.note || '',
+    active: type.active,
+    isDefault: false,
+  }
+  typeDrawerTitle.value = __('Clone Activity Type')
   showTypeDrawer.value = true
 }
 
@@ -976,6 +988,14 @@ onMounted(() => {
                         >
                           <CommonIcon name="pencil" class="w-3.5 h-3.5 ltr:mr-2 rtl:ml-2 text-slate-400" />
                           {{ __('Edit') }}
+                        </button>
+                        <button
+                          type="button"
+                          class="flex w-full items-center px-4 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                          @click="() => { activeTypeMenuId = null; handleCloneType(type) }"
+                        >
+                          <CommonIcon name="copy" class="w-3.5 h-3.5 ltr:mr-2 rtl:ml-2 text-slate-400" />
+                          {{ __('Clone') }}
                         </button>
                         <button
                           type="button"

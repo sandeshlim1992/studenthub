@@ -7,10 +7,6 @@ Zammad::Application.routes.draw do
   match api_path + '/reports/config',              to: 'reports#reporting_config', via: :get
   match api_path + '/reports/generate',            to: 'reports#generate',        via: :post
   match api_path + '/reports/sets',                to: 'reports#sets',            via: %i[post get]
-  match api_path + '/reports/analytics',           to: 'reports#analytics',       via: :get
-  match api_path + '/reports/export',              to: 'reports#export',          via: :get
-  match '/report',                                 to: 'init#index',              via: :get
-  match '/report/*path',                           to: 'init#index',              via: :get
 
   # report_profiles
   match api_path + '/report_profiles',             to: 'report_profiles#index',   via: :get

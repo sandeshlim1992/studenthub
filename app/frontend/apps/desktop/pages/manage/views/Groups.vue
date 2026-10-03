@@ -8,17 +8,39 @@ import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 interface GroupItem {
   id: number
   name: string
+  name_last?: string
+  parent_id?: number | null
   assignment_timeout?: number | null
-  follow_up_assignment?: boolean
   follow_up_possible?: string
+  reopen_time_in_days?: number | null
+  follow_up_assignment?: boolean
+  email_address_id?: number | null
+  signature_id?: number | null
+  shared_drafts?: boolean
+  summary_generation?: string
   note?: string
   active: boolean
-  parent_id?: number | null
-  name_last?: string
+  updated_at?: string
+}
+
+interface EmailAddressItem {
+  id: number
+  name?: string
+  email: string
+  active?: boolean
+}
+
+interface SignatureItem {
+  id: number
+  name: string
+  body?: string
+  active?: boolean
 }
 
 const router = useRouter()
 const groups = ref<GroupItem[]>([])
+const emailAddresses = ref<EmailAddressItem[]>([])
+const signatures = ref<SignatureItem[]>([])
 const loading = ref(true)
 const searchQuery = ref('')
 const activeActionMenuGroupId = ref<number | null>(null)
@@ -34,8 +56,14 @@ const form = ref({
   parent_id: '' as string | number,
   assignment_timeout: '' as string | number,
   follow_up_possible: 'yes',
+  reopen_time_in_days: '' as string | number,
+  follow_up_assignment: true,
+  email_address_id: '' as string | number,
+  signature_id: '' as string | number,
+  shared_drafts: true,
+  summary_generation: 'global_default',
   note: '',
-  active: true
+  active: true,
 })
 
 // Breadcrumb navigation
@@ -59,28 +87,77 @@ const closeActionMenu = () => {
   activeActionMenuGroupId.value = null
 }
 
-// Fetch all groups
-const fetchGroups = async () => {
+// Fetch all groups, email addresses, and signatures
+const fetchData = async () => {
   loading.value = true
   try {
-    const res = await fetch('/api/v1/groups', {
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-    if (res.ok) {
-      const data = await res.json()
+    const [groupsRes, emailsRes, sigsRes] = await Promise.all([
+      fetch('/api/v1/groups', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }),
+      fetch('/api/v1/email_addresses', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      }),
+      fetch('/api/v1/signatures', {
+        headers: {
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+    ])
+
+    if (groupsRes.ok) {
+      const data = await groupsRes.json()
       groups.value = Array.isArray(data)
         ? (data as GroupItem[]).sort((a: GroupItem, b: GroupItem) => a.name.localeCompare(b.name))
         : []
     }
+
+    if (emailsRes.ok) {
+      const data = await emailsRes.json()
+      emailAddresses.value = Array.isArray(data) ? (data as EmailAddressItem[]) : []
+    }
+
+    if (sigsRes.ok) {
+      const data = await sigsRes.json()
+      signatures.value = Array.isArray(data) ? (data as SignatureItem[]) : []
+    }
   } catch (e) {
-    console.error('Failed to fetch groups:', e)
+    console.error('Failed to fetch groups data:', e)
   } finally {
     loading.value = false
   }
 }
+
+// Lookup maps
+const emailAddressMap = computed(() => {
+  const map: Record<number, EmailAddressItem> = {}
+  for (const ea of emailAddresses.value) {
+    map[ea.id] = ea
+  }
+  return map
+})
+
+const signatureMap = computed(() => {
+  const map: Record<number, SignatureItem> = {}
+  for (const sig of signatures.value) {
+    map[sig.id] = sig
+  }
+  return map
+})
+
+// Check if currently selected signature is inactive
+const isSelectedSignatureInactive = computed(() => {
+  if (!form.value.signature_id) return false
+  const sig = signatureMap.value[Number(form.value.signature_id)]
+  return sig ? sig.active === false : false
+})
 
 // Filter groups client-side
 const filteredGroups = computed(() => {
@@ -88,9 +165,16 @@ const filteredGroups = computed(() => {
   if (!query) return groups.value
 
   return groups.value.filter((group) => {
+    const emailInfo = emailAddressMap.value[group.email_address_id || 0]
+    const emailStr = emailInfo ? `${emailInfo.name || ''} ${emailInfo.email}`.toLowerCase() : ''
+    const sigInfo = signatureMap.value[group.signature_id || 0]
+    const sigStr = sigInfo ? sigInfo.name.toLowerCase() : ''
+
     return (
       group.name.toLowerCase().includes(query) ||
-      (group.note && group.note.toLowerCase().includes(query))
+      (group.note && group.note.toLowerCase().includes(query)) ||
+      emailStr.includes(query) ||
+      sigStr.includes(query)
     )
   })
 })
@@ -101,14 +185,34 @@ const formatTimeout = (timeout: number | null | undefined) => {
   return `${timeout} ${__('minutes')}`
 }
 
-// Parent group options (excluding current group and its descendants when editing)
+// Format follow up display
+const formatFollowUp = (group: GroupItem) => {
+  if (!group.follow_up_possible || group.follow_up_possible === 'yes') {
+    return __('yes')
+  }
+  if (group.follow_up_possible === 'new_ticket') {
+    return __('New Ticket')
+  }
+  if (group.follow_up_possible === 'new_ticket_after_certain_time') {
+    const days = group.reopen_time_in_days || 0
+    return `${__('New Ticket')} (${days}d)`
+  }
+  return group.follow_up_possible
+}
+
+// Calculate group nesting depth
+const getGroupDepth = (name: string) => (name ? name.split('::').length - 1 : 0)
+
+// Parent group options (excluding current group, its descendants, and depth >= 9)
 const parentGroupOptions = computed(() => {
-  if (drawerMode.value === 'create' || !drawerGroupId.value) return groups.value
-  
-  const currentGroup = groups.value.find(g => g.id === drawerGroupId.value)
-  if (!currentGroup) return groups.value
-  
-  return groups.value.filter(g => {
+  return groups.value.filter((g) => {
+    if (getGroupDepth(g.name) >= 9) return false
+
+    if (drawerMode.value === 'create' || !drawerGroupId.value) return true
+
+    const currentGroup = groups.value.find((item) => item.id === drawerGroupId.value)
+    if (!currentGroup) return true
+
     return g.id !== currentGroup.id && !g.name.startsWith(currentGroup.name + '::')
   })
 })
@@ -122,25 +226,124 @@ const handleNewGroup = () => {
     parent_id: '',
     assignment_timeout: '',
     follow_up_possible: 'yes',
+    reopen_time_in_days: '',
+    follow_up_assignment: true,
+    email_address_id: '',
+    signature_id: '',
+    shared_drafts: true,
+    summary_generation: 'global_default',
     note: '',
-    active: true
+    active: true,
   }
   showDrawer.value = true
 }
 
+// Clone an existing group
+const handleCloneGroup = async (group: GroupItem) => {
+  activeActionMenuGroupId.value = null
+  drawerMode.value = 'create'
+  drawerGroupId.value = null
+
+  const baseLastName = group.name_last || group.name.split('::').pop() || ''
+  form.value = {
+    name_last: `${__('Clone')}: ${baseLastName}`,
+    parent_id: group.parent_id || '',
+    assignment_timeout: group.assignment_timeout || '',
+    follow_up_possible: group.follow_up_possible || 'yes',
+    reopen_time_in_days: group.reopen_time_in_days || '',
+    follow_up_assignment: group.follow_up_assignment ?? true,
+    email_address_id: group.email_address_id || '',
+    signature_id: group.signature_id || '',
+    shared_drafts: group.shared_drafts ?? true,
+    summary_generation: group.summary_generation || 'global_default',
+    note: group.note || '',
+    active: group.active ?? true,
+  }
+  showDrawer.value = true
+
+  // Hydrate full source details
+  try {
+    const res = await fetch(`/api/v1/groups/${group.id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    if (res.ok) {
+      const fullGroup: GroupItem = await res.json()
+      const hydratedName = fullGroup.name_last || fullGroup.name.split('::').pop() || ''
+      form.value = {
+        name_last: `${__('Clone')}: ${hydratedName}`,
+        parent_id: fullGroup.parent_id || '',
+        assignment_timeout: fullGroup.assignment_timeout || '',
+        follow_up_possible: fullGroup.follow_up_possible || 'yes',
+        reopen_time_in_days: fullGroup.reopen_time_in_days || '',
+        follow_up_assignment: fullGroup.follow_up_assignment ?? true,
+        email_address_id: fullGroup.email_address_id || '',
+        signature_id: fullGroup.signature_id || '',
+        shared_drafts: fullGroup.shared_drafts ?? true,
+        summary_generation: fullGroup.summary_generation || 'global_default',
+        note: fullGroup.note || '',
+        active: fullGroup.active ?? true,
+      }
+    }
+  } catch (e) {
+    console.error('Failed to hydrate cloned group:', e)
+  }
+}
+
 // Open drawer for group editing
-const handleEditGroup = (group: GroupItem) => {
+const handleEditGroup = async (group: GroupItem) => {
+  activeActionMenuGroupId.value = null
   drawerMode.value = 'edit'
   drawerGroupId.value = group.id
+
   form.value = {
     name_last: group.name_last || group.name.split('::').pop() || '',
     parent_id: group.parent_id || '',
     assignment_timeout: group.assignment_timeout || '',
     follow_up_possible: group.follow_up_possible || 'yes',
+    reopen_time_in_days: group.reopen_time_in_days || '',
+    follow_up_assignment: group.follow_up_assignment ?? true,
+    email_address_id: group.email_address_id || '',
+    signature_id: group.signature_id || '',
+    shared_drafts: group.shared_drafts ?? true,
+    summary_generation: group.summary_generation || 'global_default',
     note: group.note || '',
-    active: group.active
+    active: group.active ?? true,
   }
   showDrawer.value = true
+
+  // Hydrate with full backend record to ensure relations and all attributes are complete
+  try {
+    const res = await fetch(`/api/v1/groups/${group.id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    if (res.ok) {
+      const fullGroup: GroupItem = await res.json()
+      if (drawerGroupId.value === group.id) {
+        form.value = {
+          name_last: fullGroup.name_last || fullGroup.name.split('::').pop() || '',
+          parent_id: fullGroup.parent_id || '',
+          assignment_timeout: fullGroup.assignment_timeout || '',
+          follow_up_possible: fullGroup.follow_up_possible || 'yes',
+          reopen_time_in_days: fullGroup.reopen_time_in_days || '',
+          follow_up_assignment: fullGroup.follow_up_assignment ?? true,
+          email_address_id: fullGroup.email_address_id || '',
+          signature_id: fullGroup.signature_id || '',
+          shared_drafts: fullGroup.shared_drafts ?? true,
+          summary_generation: fullGroup.summary_generation || 'global_default',
+          note: fullGroup.note || '',
+          active: fullGroup.active ?? true,
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Failed to hydrate group details:', e)
+  }
 }
 
 const closeDrawer = () => {
@@ -154,13 +357,26 @@ const saveGroup = async () => {
     return
   }
 
+  if (form.value.follow_up_possible === 'new_ticket_after_certain_time' && !form.value.reopen_time_in_days) {
+    alert(__('Please specify reopening time in days.'))
+    return
+  }
+
   submitting.value = true
   try {
     const payload = {
       name_last: form.value.name_last.trim(),
-      parent_id: form.value.parent_id || null,
-      assignment_timeout: form.value.assignment_timeout || null,
+      parent_id: form.value.parent_id ? Number(form.value.parent_id) : null,
+      assignment_timeout: form.value.assignment_timeout ? Number(form.value.assignment_timeout) : null,
       follow_up_possible: form.value.follow_up_possible,
+      reopen_time_in_days: form.value.follow_up_possible === 'new_ticket_after_certain_time' && form.value.reopen_time_in_days
+        ? Number(form.value.reopen_time_in_days)
+        : null,
+      follow_up_assignment: Boolean(form.value.follow_up_assignment),
+      email_address_id: form.value.email_address_id ? Number(form.value.email_address_id) : null,
+      signature_id: form.value.signature_id ? Number(form.value.signature_id) : null,
+      shared_drafts: Boolean(form.value.shared_drafts),
+      summary_generation: form.value.summary_generation || 'global_default',
       note: form.value.note.trim(),
       active: form.value.active
     }
@@ -182,10 +398,10 @@ const saveGroup = async () => {
 
     if (res.ok) {
       showDrawer.value = false
-      fetchGroups()
+      fetchData()
     } else {
       const data = await res.json()
-      alert(data.error || __('Failed to save group.'))
+      alert(data.error_human || data.error || __('Failed to save group.'))
     }
   } catch (e) {
     console.error('Failed to save group:', e)
@@ -209,10 +425,10 @@ const handleDeleteGroup = async (groupId: number, name: string) => {
       }
     })
     if (res.ok) {
-      fetchGroups()
+      fetchData()
     } else {
       const data = await res.json()
-      alert(data.error || __('Failed to delete group.'))
+      alert(data.error_human || data.error || __('Failed to delete group.'))
     }
   } catch (e) {
     console.error('Failed to delete group:', e)
@@ -220,7 +436,7 @@ const handleDeleteGroup = async (groupId: number, name: string) => {
 }
 
 onMounted(() => {
-  fetchGroups()
+  fetchData()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -269,11 +485,13 @@ onMounted(() => {
       </div>
 
       <!-- Table Section -->
-      <div class="bg-white dark:bg-[#0f172a]/40 border border-slate-200 dark:border-[#1e293b] rounded-2xl shadow-xs">
-        <table class="w-full text-left border-collapse">
+      <div class="bg-white dark:bg-[#0f172a]/40 border border-slate-200 dark:border-[#1e293b] rounded-2xl shadow-xs overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
               <th class="py-4 px-6 first:rounded-tl-2xl">{{ __('Name') }}</th>
+              <th class="py-4 px-6">{{ __('Email') }}</th>
+              <th class="py-4 px-6">{{ __('Signature') }}</th>
               <th class="py-4 px-6">{{ __('Assignment Timeout') }}</th>
               <th class="py-4 px-6">{{ __('Follow-up Possible') }}</th>
               <th class="py-4 px-6">{{ __('Note') }}</th>
@@ -285,9 +503,11 @@ onMounted(() => {
           <tbody v-if="loading" class="divide-y divide-slate-100 dark:divide-slate-800/60">
             <tr v-for="i in 4" :key="i" class="animate-pulse">
               <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-48"></div></td>
+              <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-36"></div></td>
               <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24"></div></td>
               <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24"></div></td>
-              <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-64"></div></td>
+              <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-28"></div></td>
+              <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-48"></div></td>
               <td class="py-4 px-6 text-center"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded-full w-4 mx-auto"></div></td>
               <td class="py-4 px-6 text-right"></td>
             </tr>
@@ -295,7 +515,7 @@ onMounted(() => {
 
           <tbody v-else-if="filteredGroups.length === 0" class="divide-y divide-slate-100 dark:divide-slate-800/60">
             <tr>
-              <td colspan="6" class="py-12 text-center text-slate-500 dark:text-slate-400">
+              <td colspan="8" class="py-12 text-center text-slate-500 dark:text-slate-400">
                 <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mx-auto mb-3">
                   <CommonIcon name="people-fill" class="w-6 h-6" />
                 </div>
@@ -312,9 +532,28 @@ onMounted(() => {
               class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer"
               @click="handleEditGroup(group)"
             >
-              <!-- Group Name -->
+              <!-- Group Name with Hierarchy -->
               <td class="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">
-                {{ group.name }}
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span v-if="group.name.includes('::')" class="text-xs text-slate-400 dark:text-slate-500 font-normal">
+                    {{ group.name.split('::').slice(0, -1).join(' › ') }} ›
+                  </span>
+                  <span>{{ group.name_last || group.name.split('::').pop() }}</span>
+                </div>
+              </td>
+              <!-- Sending Email Address -->
+              <td class="py-4 px-6 text-sm text-slate-600 dark:text-slate-300">
+                <span v-if="group.email_address_id && emailAddressMap[group.email_address_id]">
+                  {{ emailAddressMap[group.email_address_id].email }}
+                </span>
+                <span v-else class="text-slate-400">-</span>
+              </td>
+              <!-- Signature -->
+              <td class="py-4 px-6 text-sm text-slate-600 dark:text-slate-300">
+                <span v-if="group.signature_id && signatureMap[group.signature_id]">
+                  {{ signatureMap[group.signature_id].name }}
+                </span>
+                <span v-else class="text-slate-400">-</span>
               </td>
               <!-- Assignment Timeout -->
               <td class="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">
@@ -322,10 +561,12 @@ onMounted(() => {
               </td>
               <!-- Follow-up Possible -->
               <td class="py-4 px-6 text-sm">
-                <span class="capitalize">{{ group.follow_up_possible ? __(group.follow_up_possible) : '-' }}</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                  {{ formatFollowUp(group) }}
+                </span>
               </td>
               <!-- Note -->
-              <td class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 max-w-sm truncate">
+              <td class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 max-w-xs truncate">
                 {{ group.note || '-' }}
               </td>
               <!-- Active Status -->
@@ -360,6 +601,13 @@ onMounted(() => {
                     >
                       <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
                       {{ __('Edit') }}
+                    </button>
+                    <button
+                      @click="handleCloneGroup(group)"
+                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
+                      {{ __('Clone') }}
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button
@@ -405,16 +653,17 @@ onMounted(() => {
           </div>
 
           <!-- Drawer Body -->
-          <div class="p-6 overflow-y-auto flex-1 space-y-6 text-left">
+          <div class="p-6 overflow-y-auto flex-1 space-y-5 text-left">
             <!-- Group Name -->
             <div>
               <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                {{ __('Name') }}
+                {{ __('Name') }} <span class="text-red-500">*</span>
               </label>
               <input
                 v-model="form.name_last"
                 type="text"
                 class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+                placeholder="Support"
               />
             </div>
 
@@ -428,8 +677,51 @@ onMounted(() => {
                 class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
               >
                 <option value="">- {{ __('none') }} -</option>
-                <option v-for="g in parentGroupOptions" :key="g.id" :value="g.id">{{ g.name }}</option>
+                <option v-for="g in parentGroupOptions" :key="g.id" :value="g.id">
+                  {{ g.name.split('::').join(' › ') }}
+                </option>
               </select>
+            </div>
+
+            <!-- Sending Email Address -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                {{ __('Sending Email Address') }}
+              </label>
+              <select
+                v-model="form.email_address_id"
+                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+              >
+                <option value="">- {{ __('none') }} -</option>
+                <option v-for="ea in emailAddresses" :key="ea.id" :value="ea.id">
+                  {{ ea.name ? `${ea.name} <${ea.email}>` : ea.email }}
+                </option>
+              </select>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {{ __('Default email address used for ticket correspondence from this group.') }}
+              </p>
+            </div>
+
+            <!-- Signature -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                {{ __('Signature') }}
+              </label>
+              <select
+                v-model="form.signature_id"
+                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+              >
+                <option value="">- {{ __('none') }} -</option>
+                <option v-for="sig in signatures" :key="sig.id" :value="sig.id">
+                  {{ sig.name }}{{ sig.active === false ? ` (${__('inactive')})` : '' }}
+                </option>
+              </select>
+
+              <!-- Inactive Signature Warning Alert -->
+              <div v-if="isSelectedSignatureInactive" class="mt-2 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 flex items-start gap-2 text-xs text-amber-800 dark:text-amber-300">
+                <CommonIcon name="exclamation-triangle" class="w-4 h-4 shrink-0 text-amber-500 mt-0.5" />
+                <span>{{ __('This signature is inactive, it won\'t be included in the reply.') }}</span>
+              </div>
             </div>
 
             <!-- Assignment Timeout -->
@@ -440,8 +732,12 @@ onMounted(() => {
               <input
                 v-model="form.assignment_timeout"
                 type="number"
+                min="0"
                 class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
               />
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {{ __('Assignment timeout in minutes if assigned agent is not working on it. Ticket will be shown as unassigned.') }}
+              </p>
             </div>
 
             <!-- Follow-up Possible -->
@@ -454,9 +750,46 @@ onMounted(() => {
                 class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
               >
                 <option value="yes">{{ __('yes') }}</option>
-                <option value="no">{{ __('no') }}</option>
-                <option value="new ticket">{{ __('new ticket') }}</option>
+                <option value="new_ticket">{{ __('do not reopen ticket but create new ticket') }}</option>
+                <option value="new_ticket_after_certain_time">{{ __('do not reopen ticket after certain time but create new ticket') }}</option>
               </select>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {{ __('Follow-up for closed ticket possible or not.') }}
+              </p>
+            </div>
+
+            <!-- Reopening Time in Days (conditional) -->
+            <div v-if="form.follow_up_possible === 'new_ticket_after_certain_time'">
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                {{ __('Reopening time in days') }} <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="form.reopen_time_in_days"
+                type="number"
+                min="1"
+                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+              />
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {{ __('Number of days after which follow-up creates a new ticket.') }}
+              </p>
+            </div>
+
+            <!-- Summary Generation -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                {{ __('Summary Generation') }}
+              </label>
+              <select
+                v-model="form.summary_generation"
+                class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+              >
+                <option value="global_default">{{ __('Global Default') }}</option>
+                <option value="enabled">{{ __('Enabled') }}</option>
+                <option value="disabled">{{ __('Disabled') }}</option>
+              </select>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {{ __('AI summary generation behavior for tickets in this group.') }}
+              </p>
             </div>
 
             <!-- Note -->
@@ -469,20 +802,63 @@ onMounted(() => {
                 rows="3"
                 class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
               ></textarea>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                {{ __('Notes are visible to agents only, never to customers.') }}
+              </p>
             </div>
 
-            <!-- Active status -->
-            <div class="flex items-center gap-3">
-              <input
-                v-model="form.active"
-                type="checkbox"
-                id="group-active"
-                class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
-              />
-              <label for="group-active" class="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                {{ __('Active') }}
-              </label>
+            <!-- Toggles Section -->
+            <div class="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <!-- Assign follow-up to last agent -->
+              <div class="flex items-start gap-3">
+                <input
+                  v-model="form.follow_up_assignment"
+                  type="checkbox"
+                  id="group-follow-up-assignment"
+                  class="w-4 h-4 mt-0.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
+                />
+                <div>
+                  <label for="group-follow-up-assignment" class="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    {{ __('Assign follow-ups') }}
+                  </label>
+                  <p class="text-xs text-slate-400 dark:text-slate-500">
+                    {{ __('Assign follow-up to latest agent again.') }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Shared drafts -->
+              <div class="flex items-start gap-3">
+                <input
+                  v-model="form.shared_drafts"
+                  type="checkbox"
+                  id="group-shared-drafts"
+                  class="w-4 h-4 mt-0.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
+                />
+                <div>
+                  <label for="group-shared-drafts" class="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                    {{ __('Shared Drafts') }}
+                  </label>
+                  <p class="text-xs text-slate-400 dark:text-slate-500">
+                    {{ __('Ticket drafts are shared among group agents.') }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Active status -->
+              <div class="flex items-center gap-3">
+                <input
+                  v-model="form.active"
+                  type="checkbox"
+                  id="group-active"
+                  class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 cursor-pointer"
+                />
+                <label for="group-active" class="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+                  {{ __('Active') }}
+                </label>
+              </div>
             </div>
+
           </div>
 
           <!-- Drawer Footer -->

@@ -43,7 +43,7 @@ Never put passwords, tokens or keys in this file.
 - `.claude/ui-rules.md` describes the old navy/blue theme; current theme is emerald / dark slate
 - Base is a July `develop` snapshot, not a stable Zammad release
 - Review of Taxil's work (30 Sep), not fixed yet:
-  - "Continue with Microsoft" button on `/desktop/login` does nothing (legacy `/#login` still works)
+  - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
   - 8 `/manage` pages send saves without the CSRF token → all rejected (Translations, Sessions,
     Packages, Core Workflows, Monitoring, Data Privacy, Maintenance, API)
   - 10 `/manage` actions call API routes that don't exist (404), e.g. maintenance/API toggles,
@@ -64,8 +64,8 @@ Never put passwords, tokens or keys in this file.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
   dev-only test users agent@, manager@ and student@example.com and `[TEST]` tickets #886839/#886840
 - Work PC container: headless Google Chrome + Chrome DevTools MCP (user-level; redo after a rebuild)
-- New UI redesign on `studenthub-newUI` (local): step 1 colour setting + navigation panel + top bar is committed;
-  next: 2 sign-in page, 3 student portal, 4 agent ticket list, 5 ticket screen (restyle)
+- New UI redesign on `studenthub-newUI` (local): step 1 colour setting + navigation panel + top bar and step 2
+  sign-in page are committed; next: 3 student portal, 4 agent ticket list, 5 ticket screen (restyle)
 - Test server switched to this repo on 2 Oct (`develop` at `f8f9b99dc9`). The logo build fix is
   applied there by hand (uncommitted); nginx `/cable` + `/ws` now forward the Host header; old
   branding edits are in `git stash` and `~ticketadmi/server-branding/` (old `custom.css` in `disabled-live/`)
@@ -76,7 +76,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] Rehearse the first production deploy on a fresh clone of the production VM, then do it
 - [ ] Decide whether everyone goes from `/#…` to `/desktop` (now only per browser via the beta switch)
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
-- [ ] Decide which review findings to fix, starting with Microsoft login and `/manage` saves
+- [ ] Decide which review findings to fix, starting with the `/manage` saves
 - [ ] Decide on `.claude/ui-rules.md` (update or drop)
 - [ ] Fix the committed database password
 - [ ] Feedback Collection go-live (README → Feedback Collection): pick the sending channel, give
@@ -87,7 +87,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] Decide which missing `/manage` pages to build (suggested: Roles and Scheduler first)
 - [ ] Fix the Reporting & Analytics routes and `ticket_wizard_metadata` (Taxil's code)
 - [ ] Work PC: move the repo to the Ubuntu file system
-- [ ] Finish the new UI redesign steps 2–5, then merge `studenthub-newUI` into `develop`
+- [ ] Finish the new UI redesign steps 3–5, then merge `studenthub-newUI` into `develop`
 
 ## Log
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
@@ -100,4 +100,4 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-04: Built Ticket Approvals (classic + new UI); compared classic admin with `/manage` (8 pages
   missing); installed headless Chrome + Chrome DevTools MCP in the work-PC container
 - 2026-10-04: Started the Halo-style new UI on `studenthub-newUI`: admin-selectable application colour,
-  navigation panel + top bar
+  navigation panel + top bar, new sign-in page (Microsoft button now works)

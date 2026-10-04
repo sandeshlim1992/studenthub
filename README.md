@@ -351,15 +351,17 @@ git, node, ruby and the PostgreSQL server binaries (`initdb`), which the test se
 ## New UI look (Halo-style)
 
 The new UI (`/desktop`) follows the Halo-style design agreed in October 2026 (navigation panel in the
-application colour, white top bar). Work happens on the branch `studenthub-newUI`.
+application colour, white top bar, Halo-style sign-in page). Work happens on the branch `studenthub-newUI`.
 
 - **Application colour:** admins choose it under **Administration → Settings → Branding → Application colour**
   (setting `studenthub_app_color`, default navy `#14234b`). Presets or any hex colour; the server refuses colours
-  too light for white text (below 4.5:1). It colours the navigation panel and the main
+  too light for white text (below 4.5:1). It colours the navigation panel, the sign-in brand panel and the main
   buttons, via the CSS variable `--sh-app`.
 - **Top bar (staff):** search with Zammad's quick results in a drop-down, the admin menu, **New ticket**,
   notifications and the avatar menu. The navigation panel keeps the logo, Overviews / Dashboard /
   Administration, recent tabs and the collapse button.
+- **Sign-in page:** brand panel in the application colour with the institution logos, sign-in on the right.
+  "Continue with Microsoft" now really starts the Microsoft sign-in (it posts to `/auth/microsoft_office365`).
 
 | File(s) | Purpose |
 |---|---|

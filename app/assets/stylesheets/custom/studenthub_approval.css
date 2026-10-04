@@ -1,0 +1,81 @@
+/* Student Hub: "Approval" tab in the classic ticket sidebar (Ticket Approvals). */
+.studenthub-approval {
+  display: grid;
+  gap: 14px;
+}
+
+.studenthub-approval-state {
+  justify-self: start;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.studenthub-approval-state.is-pending {
+  background: #fff1cc;
+  color: #6b4400;
+}
+
+.studenthub-approval-state.is-approved {
+  background: #dff3e7;
+  color: #12603a;
+}
+
+.studenthub-approval-state.is-denied {
+  background: #fde4e7;
+  color: #9b1729;
+}
+
+.studenthub-approval-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0;
+}
+
+.studenthub-approval-facts dt {
+  font-weight: normal;
+  opacity: 0.7;
+}
+
+.studenthub-approval-facts dd {
+  margin: 0;
+}
+
+.studenthub-approval-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.studenthub-approval-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.studenthub-approval-request {
+  display: grid;
+  gap: 4px;
+}
+
+.studenthub-approval-history {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid hsl(0, 0%, 88%);
+  padding-top: 10px;
+}
+
+.studenthub-approval-history-head {
+  font-weight: 600;
+}
+
+.studenthub-approval-round .is-approved {
+  color: #12603a;
+}
+
+.studenthub-approval-round .is-denied {
+  color: #9b1729;
+}
+
+.studenthub-approval-round .is-pending {
+  color: #6b4400;
+}

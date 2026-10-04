@@ -348,6 +348,92 @@ git, node, ruby and the PostgreSQL server binaries (`initdb`), which the test se
 
 ---
 
+## Feedback Collection
+
+Replaces the PHP add-on (`/assets/feedback.php`) that production used for customer ratings.
+Admins manage it under **Administration → Manage → Feedback Collection** (`/desktop/manage/feedback-collection`,
+permission `admin.feedback_collection`).
+
+**How it works:** when a ticket changes to a _closed_ state (by an agent or a scheduler), a background step checks
+the rules on the admin page (groups, owner set, tags to skip, resend window) and emails the customer five star links
+through the Zammad email channel chosen there. A link opens `/feedback/<token>` with that star pre-selected; nothing
+is saved until the customer presses Submit (mail scanners open every link). The rating is stored, added to the ticket
+as an internal note, and shown to agents in a "Customer feedback" panel in the classic ticket sidebar.
+Only a SHA-256 hash of each token is stored.
+
+| File(s) | Purpose |
+|---|---|
+| `db/migrate/20261003120000_studenthub_feedback_collection.rb`, `lib/studenthub/feedback_collection/setup.rb` | Table, permission, settings, transaction backend |
+| `app/models/feedback_request.rb`, `app/models/transaction/feedback_collection.rb`, `app/jobs/feedback_request_send_job.rb` | Data, close detection, sending |
+| `app/services/service/feedback_collection/` | Rules, email rendering, delivery, submit, report, CSV, import |
+| `app/controllers/feedback_controller.rb`, `app/views/feedback/`, `app/views/layouts/feedback.html.erb` | Public feedback page |
+| `app/controllers/feedback_collection_controller.rb` | Admin API (`/api/v1/feedback_collection/*`) |
+| `app/frontend/apps/desktop/pages/manage/…/FeedbackCollection*` | Admin page (route in `routes.ts`, card in `Manage.vue`) |
+| `app/assets/javascripts/app/controllers/ticket_zoom/sidebar_studenthub_feedback.coffee` | Classic ticket sidebar panel |
+| `lib/studenthub/feedback_collection/default_email_template.html` | Default email template |
+
+**Going live on production (once):**
+
+1. Deploy, then in the admin page pick the sending channel (the Microsoft 365 / Graph channel), set the From
+   address, paste the old `email_template.html` if wanted, and send a test email. The channel's mailbox
+   (`it@studenthub.ac`) needs **Send As** rights on `feedback@studenthub.ac`.
+2. Import the history: `rails "studenthub:feedback:import[/path/to/feedback_tokens.json]"` (safe to run twice).
+3. Turn the feature on, then remove the **webhook** action from trigger 40 ("Ticket Closed: Email Notification
+   sent to the Customer") and job 10 ("Change Resolved ticket to Closed and Survey Email"). Keep their emails and tags.
+4. Keep old email links working with an nginx redirect in the Zammad server block:
+
+   ```nginx
+   location = /assets/feedback.php {
+       if ($arg_token !~ "^[A-Za-z0-9]+$") { return 410; }
+       return 302 /feedback/$arg_token?rating=$arg_rating;
+   }
+   ```
+
+5. Delete the PHP files and `feedback_tokens.json` from the web root; they were publicly downloadable.
+
+---
+
+## Ticket Approvals
+
+Agents send a ticket to a manager for approval; the manager approves or denies it and the result goes back to
+the agent. Admins turn it on or off under **Administration → Manage → Ticket Approvals**
+(`/desktop/manage/ticket-approvals`, permission `admin.ticket_approval`).
+
+- **Managers** are everyone with the **Managers** role. The role carries the `ticket.approver` permission (created
+  by the migration, together with the role itself if it doesn't exist).
+- **Agents** use the **Approval** tab in the ticket sidebar (new UI and classic UI): choose a manager, give a reason,
+  send. They can withdraw a request while it waits, and send again after a denial.
+- **Managers** see the ticket in the **Awaiting my approval** overview and approve or deny it in the same tab
+  (a comment is required to deny). Admins can decide too.
+- The agent who asked (and the ticket owner) are notified in the bell and by email, and the ticket shows in their
+  **Approval decisions** overview until it is closed. The ticket's own state never changes.
+- Every request and decision is added to the ticket as an internal note. The ticket fields `approval_state`,
+  `approval_approver_id` and `approval_requested_by_id` can be used in triggers (e.g. a Teams alert) and reports,
+  but can only be changed through the approval workflow.
+
+| File(s) | Purpose |
+|---|---|
+| `db/migrate/20261004090000_studenthub_ticket_approval.rb`, `lib/studenthub/ticket_approval*` | Table, ticket fields, role, permissions, setting, overviews, field guard |
+| `config/initializers/studenthub_ticket_approval.rb` | Adds the field guard to `Ticket` without editing it |
+| `app/models/ticket_approval.rb`, `app/services/service/ticket_approval/` | Approval rounds; request, decide, withdraw, notify |
+| `app/controllers/ticket_approvals_controller.rb` | API (`/api/v1/tickets/:id/approval`, `/api/v1/ticket_approval/settings`) |
+| `app/frontend/apps/desktop/pages/ticket/components/TicketSidebar/plugins/studenthub-approval.ts`, `…/TicketSidebarStudenthubApproval/` | Approval tab in the new UI's ticket sidebar (picked up automatically from the plugins folder) |
+| `app/assets/javascripts/app/controllers/ticket_zoom/sidebar_studenthub_approval.coffee` | Approval tab in the classic ticket sidebar |
+| `app/views/mailer/ticket_approval_*` | Notification emails |
+| `app/frontend/apps/desktop/pages/manage/views/TicketApproval.vue` | Admin page |
+
+**Going live on production (once):**
+
+1. Give the **Managers** role **read** access to the agent groups (Service Desk, VLE, Infrastructure, …). Managers
+   who have no other agent role can't open tickets otherwise; the Approval tab marks them "can't open this ticket".
+2. Turn the feature on in the admin page.
+3. Retire the old approval setup: deactivate core workflows "Manager: Status pending for new ticket" and
+   "Manager: Approval state make it readonly", hide the "Manager Approval Status" field (its data is kept), and
+   deactivate the "Managers Approval" overview and trigger 65 (Managers-group Teams alert). To keep a Teams alert,
+   point a trigger at "Approval is Waiting for approval" instead.
+
+---
+
 ## Known issues and to-do
 
 - [ ] **Database password committed.** `config/database/database.yml` contains a real-looking

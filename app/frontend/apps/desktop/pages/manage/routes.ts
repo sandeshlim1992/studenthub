@@ -159,6 +159,30 @@ const route: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/manage/feedback-collection',
+    name: 'ManageFeedbackCollection',
+    component: () => import('./views/FeedbackCollection.vue'),
+    meta: {
+      title: __('Feedback Collection'),
+      requiresAuth: true,
+      requiredPermission: ['admin.feedback_collection'],
+      level: 3,
+      pageKey: 'manage-feedback-collection',
+    },
+  },
+  {
+    path: '/manage/ticket-approvals',
+    name: 'ManageTicketApprovals',
+    component: () => import('./views/TicketApproval.vue'),
+    meta: {
+      title: __('Ticket Approvals'),
+      requiresAuth: true,
+      requiredPermission: ['admin.ticket_approval'],
+      level: 3,
+      pageKey: 'manage-ticket-approvals',
+    },
+  },
+  {
     path: '/manage/calendars',
     name: 'ManageCalendars',
     component: () => import('./views/Calendars.vue'),

@@ -1,0 +1,19 @@
+Approval needed: #{ticket.title}
+
+<div>Hi #{recipient.firstname},</div>
+<br>
+<div>
+"<b>#{current_user.longname}</b>" has asked you to approve ticket #{ticket.number} (#{ticket.title}).
+</div>
+<br>
+<div>
+Reason:
+<blockquote type="cite">
+<%= h(@objects[:approval].reason).gsub("\n", '<br>') %>
+</blockquote>
+</div>
+<br>
+<div>
+  <a href="#{config.http_type}://#{config.fqdn}/#ticket/zoom/#{ticket.id}" target="zammad_app">Review it in #{config.product_name}</a>
+  (open the Approval tab in the ticket sidebar to approve or deny it).
+</div>

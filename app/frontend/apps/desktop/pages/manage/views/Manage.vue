@@ -103,6 +103,18 @@ const categories = ref<Category[]>([
         description: __('Send real-time updates to external services.'),
       },
       {
+        name: __('Feedback Collection'),
+        icon: 'star',
+        target: '/manage/feedback-collection',
+        description: __('Ask customers to rate closed tickets and review the results.'),
+      },
+      {
+        name: __('Ticket Approvals'),
+        icon: 'check2-circle',
+        target: '/manage/ticket-approvals',
+        description: __('Let agents send tickets to a manager to approve or deny.'),
+      },
+      {
         name: __('Calendars'),
         icon: 'calendar',
         target: '/manage/calendars',

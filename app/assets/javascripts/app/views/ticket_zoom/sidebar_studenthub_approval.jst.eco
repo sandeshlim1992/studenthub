@@ -1,0 +1,90 @@
+<div class="sidebar-block studenthub-approval">
+<% if @error: %>
+  <div class="alert alert--danger studenthub-approval-error" role="alert"><%= @error %></div>
+<% end %>
+
+<% if @loading && !@status: %>
+  <div class="text-muted"><%- @T('Loading…') %></div>
+<% else if @status: %>
+  <% status = @status %>
+  <% current = status.current %>
+
+  <% if status.state: %>
+    <div class="studenthub-approval-state is-<%= status.state %>">
+      <% if status.state is 'pending': %><%- @T('Waiting for approval') %><% end %>
+      <% if status.state is 'approved': %><%- @T('Approved') %><% end %>
+      <% if status.state is 'denied': %><%- @T('Denied') %><% end %>
+    </div>
+  <% end %>
+
+  <% if current: %>
+    <dl class="studenthub-approval-facts">
+      <dt><%- @T('Sent to') %></dt><dd><%= current.approver?.name %></dd>
+      <dt><%- @T('Sent by') %></dt><dd><%= current.requested_by?.name %> · <%- @humanTime(current.requested_at) %></dd>
+      <dt><%- @T('Reason') %></dt><dd class="studenthub-approval-text"><%= current.reason %></dd>
+    </dl>
+
+    <% if status.can_decide: %>
+      <div class="form-group">
+        <label for="studenthub-approval-comment-<%= @ticketId %>"><%- @T('Comment') %> <span class="text-muted">(<%- @T('required to deny') %>)</span></label>
+        <textarea id="studenthub-approval-comment-<%= @ticketId %>" name="comment" class="form-control" rows="3" maxlength="5000"></textarea>
+      </div>
+      <div class="studenthub-approval-actions">
+        <button type="button" class="btn btn--success js-approvalApprove"><%- @T('Approve') %></button>
+        <button type="button" class="btn btn--danger js-approvalDeny"><%- @T('Deny') %></button>
+      </div>
+    <% end %>
+
+    <% if status.can_cancel: %>
+      <button type="button" class="btn btn--text btn--subtle js-approvalCancel"><%- @T('Withdraw request') %></button>
+    <% end %>
+  <% end %>
+
+  <% if status.can_request: %>
+    <form class="js-approvalRequest studenthub-approval-request">
+      <% if status.state is 'approved' or status.state is 'denied': %>
+        <div class="text-muted"><%- @T('You can send it for approval again.') %></div>
+      <% end %>
+      <% if status.managers.length is 0: %>
+        <div class="text-muted"><%- @T('There are no managers yet. Give someone the Managers role first.') %></div>
+      <% else: %>
+        <div class="form-group">
+          <label for="studenthub-approval-approver-<%= @ticketId %>"><%- @T('Manager') %></label>
+          <select id="studenthub-approval-approver-<%= @ticketId %>" name="approver_id" class="form-control" required>
+            <option value=""><%- @T('Choose a manager') %></option>
+            <% for manager in status.managers: %>
+              <option value="<%= manager.id %>" <%= 'disabled' if !manager.can_open_ticket %>><%= manager.name %><% if !manager.can_open_ticket: %> (<%- @T("can't open this ticket") %>)<% end %></option>
+            <% end %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="studenthub-approval-reason-<%= @ticketId %>"><%- @T('Reason') %></label>
+          <textarea id="studenthub-approval-reason-<%= @ticketId %>" name="reason" class="form-control" rows="3" maxlength="5000" required></textarea>
+        </div>
+        <button type="submit" class="btn btn--primary"><%- @T('Send for approval') %></button>
+      <% end %>
+    </form>
+  <% end %>
+
+  <% if status.history.length > 0: %>
+    <div class="studenthub-approval-history">
+      <div class="studenthub-approval-history-head"><%- @T('History') %></div>
+      <% for round in status.history: %>
+        <div class="studenthub-approval-round">
+          <div>
+            <strong class="is-<%= round.state %>">
+              <% if round.state is 'pending': %><%- @T('Waiting') %><% end %>
+              <% if round.state is 'approved': %><%- @T('Approved') %><% end %>
+              <% if round.state is 'denied': %><%- @T('Denied') %><% end %>
+              <% if round.state is 'cancelled': %><%- @T('Withdrawn') %><% end %>
+            </strong>
+            · <%= round.approver?.name %>
+          </div>
+          <% if round.comment: %><div class="studenthub-approval-text"><%= round.comment %></div><% end %>
+          <div class="text-muted"><%- @humanTime(round.decided_at || round.requested_at) %></div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>
+</div>

@@ -170,6 +170,17 @@ const route: RouteRecordRaw[] = [
       pageKey: 'manage-feedback-collection',
     },
   },
+  {
+    path: '/manage/ticket-approvals',
+    name: 'ManageTicketApprovals',
+    component: () => import('./views/TicketApproval.vue'),
+    meta: {
+      title: __('Ticket Approvals'),
+      requiresAuth: true,
+      requiredPermission: ['admin.ticket_approval'],
+      level: 3,
+      pageKey: 'manage-ticket-approvals',
+    },
   },
   {
     path: '/manage/calendars',

@@ -22,6 +22,13 @@ Never put passwords, tokens or keys in this file.
 - Test server pulls from this repo (read-only deploy key), not from Taxil's
 - Servers are updated only with `script/studenthub/deploy.sh` (README → Deploying to the servers),
   never with a manual `git pull`; production gets the exact commit tested on the test server (`--ref`)
+- Staff work in the new UI (`/desktop`; the login page lands everyone there) → new staff features go there first
+- Feedback Collection is native (replaces the PHP `feedback.php` add-on); sends through a Zammad email
+  channel; admin page in `/desktop/manage` (README → Feedback Collection)
+- Ticket Approvals: the agent picks a specific manager; a manager is anyone with the Managers role;
+  on/off switch in `/desktop/manage`; the ticket's own state never changes (README → Ticket Approvals)
+- Student Hub migrations have no "new setup" guard; their records come from `lib/studenthub/*/setup.rb`,
+  which spec support re-runs after the test DB reset (Zammad's seed list is fixed, so no seed files)
 
 ## Known issues
 - Zammad's Claude hooks need pnpm → errors if Claude runs outside the container
@@ -39,11 +46,22 @@ Never put passwords, tokens or keys in this file.
   - 10 `/manage` actions call API routes that don't exist (404), e.g. maintenance/API toggles,
     MS Graph + Facebook channel edit, `/api/v1/locales`, branding logo preview
   - Theme switch, "Continue to mobile" and login-page public links removed; `/manage` messages show "%s"
-  - 74 TypeScript errors, 35 Zammad unit tests now fail (all pass on original Zammad)
+  - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
+- Taxil's 3 Oct commit removed the `/api/v1/reports/analytics` and `/reports/export` routes, but the
+  new UI's Reporting & Analytics page still calls them → probably broken
+- Taxil's ticket wizard and ticket list call `/api/v1/ticket_wizard_metadata`, which doesn't exist (404)
+- The new UI's `/manage` lacks 8 classic admin pages: Roles, Scheduler, Ticket States, Ticket Priorities,
+  Tags, Public Links, BETA UI, KB Answer Generation (use the classic admin for these meanwhile)
+- Work PC: the devcontainer currently runs the repo from the C: drive (9p mount), not `~/studenthub` →
+  classic UI pages take 20–60 s and Vite misses file changes (restart `bin/dev` after frontend edits)
 
 ## In progress
-- Work PC dev DB holds a restore of the test server (real student data; email channels,
-  webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`
+- Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
+  webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
+  Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
+  dev-only test users agent@, manager@ and student@example.com and `[TEST]` tickets #886839/#886840
+- Work PC container: headless Google Chrome + Chrome DevTools MCP (user-level; redo after a rebuild)
+- New UI work continues on the local branch `studenthub-newUI`
 - Test server switched to this repo on 2 Oct (`develop` at `f8f9b99dc9`). The logo build fix is
   applied there by hand (uncommitted); nginx `/cable` + `/ws` now forward the Host header; old
   branding edits are in `git stash` and `~ticketadmi/server-branding/` (old `custom.css` in `disabled-live/`)
@@ -57,6 +75,14 @@ Never put passwords, tokens or keys in this file.
 - [ ] Decide which review findings to fix, starting with Microsoft login and `/manage` saves
 - [ ] Decide on `.claude/ui-rules.md` (update or drop)
 - [ ] Fix the committed database password
+- [ ] Feedback Collection go-live (README → Feedback Collection): pick the sending channel, give
+      `it@studenthub.ac` Send As on `feedback@`, import `feedback_tokens.json`, remove the webhook action
+      from trigger 40 and job 10, add the nginx redirect, delete the PHP files
+- [ ] Ticket Approvals go-live (README → Ticket Approvals): give the Managers role read access to the agent
+      groups, retire the old approval setup (auto-"Pending" workflow, old field, overview, trigger 65)
+- [ ] Decide which missing `/manage` pages to build (suggested: Roles and Scheduler first)
+- [ ] Fix the Reporting & Analytics routes and `ticket_wizard_metadata` (Taxil's code)
+- [ ] Work PC: move the repo to the Ubuntu file system
 
 ## Log
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
@@ -64,3 +90,7 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-02: Deploy key for test server; removed `auto_wizard.json` from repo; merged Taxil's reports/ticket-wizard commit (PR #2)
 - 2026-10-02: Switched the test server to this repo; fixed the production build (logo paths only worked
   in dev); added `script/studenthub/deploy.sh` with tests
+- 2026-10-03: Restored the 3 Oct test-server dump locally (outbound channels and webhooks off); merged
+  Taxil's admin-parity commit (PR #3); built native Feedback Collection
+- 2026-10-04: Built Ticket Approvals (classic + new UI); compared classic admin with `/manage` (8 pages
+  missing); installed headless Chrome + Chrome DevTools MCP in the work-PC container

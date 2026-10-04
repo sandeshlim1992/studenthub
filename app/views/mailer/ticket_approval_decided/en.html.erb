@@ -1,0 +1,20 @@
+<%= @objects[:approval].state == 'approved' ? 'Approved' : 'Denied' %>: #{ticket.title}
+
+<div>Hi #{recipient.firstname},</div>
+<br>
+<div>
+"<b>#{current_user.longname}</b>" has <b><%= @objects[:approval].state == 'approved' ? 'approved' : 'denied' %></b> ticket #{ticket.number} (#{ticket.title}).
+</div>
+<% if @objects[:approval].comment.present? %>
+<br>
+<div>
+Comment:
+<blockquote type="cite">
+<%= h(@objects[:approval].comment).gsub("\n", '<br>') %>
+</blockquote>
+</div>
+<% end %>
+<br>
+<div>
+  <a href="#{config.http_type}://#{config.fqdn}/#ticket/zoom/#{ticket.id}" target="zammad_app">View this in #{config.product_name}</a>
+</div>

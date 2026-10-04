@@ -27,6 +27,9 @@ Never put passwords, tokens or keys in this file.
   channel; admin page in `/desktop/manage` (README → Feedback Collection)
 - Ticket Approvals: the agent picks a specific manager; a manager is anyone with the Managers role;
   on/off switch in `/desktop/manage`; the ticket's own state never changes (README → Ticket Approvals)
+- New UI design: Halo-style (mockup https://claude.ai/artifact/6H4uc22Wb4zTiUfy3PhXfj), application colour chosen
+  by admins under Branding (default navy), staff top bar, ticket screen restyled but not restructured, student
+  portal keeps Taxil's layout with the new look; built on branch `studenthub-newUI`, one local commit per step
 - Student Hub migrations have no "new setup" guard; their records come from `lib/studenthub/*/setup.rb`,
   which spec support re-runs after the test DB reset (Zammad's seed list is fixed, so no seed files)
 
@@ -61,7 +64,8 @@ Never put passwords, tokens or keys in this file.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
   dev-only test users agent@, manager@ and student@example.com and `[TEST]` tickets #886839/#886840
 - Work PC container: headless Google Chrome + Chrome DevTools MCP (user-level; redo after a rebuild)
-- New UI work continues on the local branch `studenthub-newUI`
+- New UI redesign on `studenthub-newUI` (local): step 1 colour setting + navigation panel + top bar is committed;
+  next: 2 sign-in page, 3 student portal, 4 agent ticket list, 5 ticket screen (restyle)
 - Test server switched to this repo on 2 Oct (`develop` at `f8f9b99dc9`). The logo build fix is
   applied there by hand (uncommitted); nginx `/cable` + `/ws` now forward the Host header; old
   branding edits are in `git stash` and `~ticketadmi/server-branding/` (old `custom.css` in `disabled-live/`)
@@ -83,6 +87,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] Decide which missing `/manage` pages to build (suggested: Roles and Scheduler first)
 - [ ] Fix the Reporting & Analytics routes and `ticket_wizard_metadata` (Taxil's code)
 - [ ] Work PC: move the repo to the Ubuntu file system
+- [ ] Finish the new UI redesign steps 2–5, then merge `studenthub-newUI` into `develop`
 
 ## Log
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
@@ -94,3 +99,5 @@ Never put passwords, tokens or keys in this file.
   Taxil's admin-parity commit (PR #3); built native Feedback Collection
 - 2026-10-04: Built Ticket Approvals (classic + new UI); compared classic admin with `/manage` (8 pages
   missing); installed headless Chrome + Chrome DevTools MCP in the work-PC container
+- 2026-10-04: Started the Halo-style new UI on `studenthub-newUI`: admin-selectable application colour,
+  navigation panel + top bar

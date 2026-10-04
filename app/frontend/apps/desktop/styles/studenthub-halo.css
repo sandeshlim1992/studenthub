@@ -1,0 +1,54 @@
+/*
+ * Student Hub: Halo-style look for the new UI.
+ * --sh-app is the application colour admins choose under Administration → Branding;
+ * useStudenthubAppColor() sets it at runtime, the value below is only the fallback.
+ */
+
+:root {
+  --sh-app: #14234b;
+  --sh-on-app: #ffffff;
+  --sh-app-hover: color-mix(in srgb, var(--sh-app) 84%, black);
+  --sh-app-soft: color-mix(in srgb, var(--sh-app) 9%, white);
+  --sh-app-border: color-mix(in srgb, var(--sh-app) 35%, white);
+  --sh-on-app-muted: color-mix(in srgb, var(--sh-on-app) 72%, var(--sh-app));
+  --sh-on-app-hover: color-mix(in srgb, var(--sh-on-app) 12%, transparent);
+  --sh-on-app-active: color-mix(in srgb, var(--sh-on-app) 18%, transparent);
+
+  --sh-page: #f4f5f7;
+  --sh-panel: #fafbfc;
+  --sh-card: #ffffff;
+  --sh-ink: #1d2330;
+  --sh-ink-2: #4a5262;
+  --sh-muted: #5f6878;
+  --sh-line: #dfe3e8;
+  --sh-zebra: #f8f9fb;
+}
+
+@theme inline {
+  --color-app: var(--sh-app);
+  --color-on-app: var(--sh-on-app);
+  --color-app-hover: var(--sh-app-hover);
+  --color-app-soft: var(--sh-app-soft);
+}
+
+/* ---- Navigation panel: the application colour owns the left column ---- */
+#primary-sidebar {
+  background-color: var(--sh-app) !important;
+  border-right-color: transparent !important;
+}
+
+#primary-sidebar .active-nav-item {
+  background-color: var(--sh-on-app-active) !important;
+  box-shadow: inset 3px 0 0 var(--sh-on-app) !important;
+  --tw-ring-color: transparent !important;
+}
+
+#primary-sidebar a:hover,
+#primary-sidebar [role='button']:hover {
+  background-color: var(--sh-on-app-hover);
+}
+
+#primary-sidebar .text-slate-400,
+#primary-sidebar .text-slate-400\/80 {
+  color: var(--sh-on-app-muted) !important;
+}

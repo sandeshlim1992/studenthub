@@ -348,6 +348,34 @@ git, node, ruby and the PostgreSQL server binaries (`initdb`), which the test se
 
 ---
 
+## New UI look (Halo-style)
+
+The new UI (`/desktop`) follows the Halo-style design agreed in October 2026 (navigation panel in the
+application colour, white top bar). Work happens on the branch `studenthub-newUI`.
+
+- **Application colour:** admins choose it under **Administration → Settings → Branding → Application colour**
+  (setting `studenthub_app_color`, default navy `#14234b`). Presets or any hex colour; the server refuses colours
+  too light for white text (below 4.5:1). It colours the navigation panel and the main
+  buttons, via the CSS variable `--sh-app`.
+- **Top bar (staff):** search with Zammad's quick results in a drop-down, the admin menu, **New ticket**,
+  notifications and the avatar menu. The navigation panel keeps the logo, Overviews / Dashboard /
+  Administration, recent tabs and the collapse button.
+
+| File(s) | Purpose |
+|---|---|
+| `app/frontend/apps/desktop/styles/studenthub-halo.css` (imported by `custom-theme.css`) | Colour tokens and the navigation panel |
+| `app/frontend/apps/desktop/components/layout/StudenthubTopBar/` | Top bar (used by `LayoutPage.vue`) |
+| `app/frontend/apps/desktop/utils/studenthubAppColor.ts`, `composables/useStudenthubAppColor.ts` | Applies the admin colour (called in `AppDesktop.vue`) |
+| `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubAppColorSetting.vue` | Colour picker on the Branding page |
+| `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |
+
+Zammad's own unit tests that expect the notification bell, the quick search or the avatar in the sidebar
+(`LeftSidebarHeader.spec.ts` ×2, `LayoutPage.spec.ts` "expands search…", and `LeftSidebarFooterMenu.spec.ts` ×2,
+which already failed after Taxil's changes) fail by design since these moved to the top bar;
+`StudenthubTopBar.spec.ts` covers them there.
+
+---
+
 ## Feedback Collection
 
 Replaces the PHP add-on (`/assets/feedback.php`) that production used for customer ratings.

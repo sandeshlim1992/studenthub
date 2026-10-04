@@ -1,0 +1,24 @@
+<div class="sidebar-block studenthub-feedback">
+<% if @loading: %>
+  <div class="text-muted"><%- @T('Loading…') %></div>
+<% else if @failed: %>
+  <div class="text-muted"><%- @T('Feedback could not be loaded.') %></div>
+<% else if @items.length is 0: %>
+  <div class="text-muted"><%- @T('No feedback for this ticket yet.') %></div>
+<% else: %>
+  <% for item in @items: %>
+    <div class="studenthub-feedback-entry">
+      <div class="studenthub-feedback-stars" title="<%= item.rating %>/5" aria-label="<%= item.rating %> / 5">
+        <% for value in [1..5]: %><span class="<%= if value <= item.rating then 'is-on' else 'is-off' %>" aria-hidden="true">★</span><% end %>
+        <strong><%= item.rating %>/5</strong>
+      </div>
+      <% if item.comments: %>
+        <div class="studenthub-feedback-comment"><%= item.comments %></div>
+      <% end %>
+      <div class="text-muted studenthub-feedback-meta">
+        <%= item.customer_name || @T('Customer') %> · <%- @humanTime(item.rated_at) %>
+      </div>
+    </div>
+  <% end %>
+<% end %>
+</div>

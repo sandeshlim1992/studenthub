@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Service Feedback Request</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f7f6;font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#1d2b30;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7f6;padding:24px 12px;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:10px;overflow:hidden;">
+        <tr>
+          <td style="background:#296374;padding:20px 28px;color:#ffffff;font-size:18px;font-weight:bold;">Student Hub</td>
+        </tr>
+        <tr>
+          <td style="padding:28px;">
+            <p style="margin:0 0 14px;font-size:16px;">Hello {{customer_name}},</p>
+            <p style="margin:0 0 14px;font-size:15px;line-height:1.5;">Your ticket <strong>#{{ticket_number}}</strong> &ldquo;{{ticket_title}}&rdquo; has been closed by {{agent_name}}.</p>
+            <p style="margin:0 0 20px;font-size:15px;line-height:1.5;">How did we do? Choose a star to rate the support you received.</p>
+            <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 8px;">
+              <tr>
+                <td style="padding:0 4px;"><a href="{{link_1}}" style="font-size:34px;line-height:1;color:#ffca08;text-decoration:none;" title="1 star">&#9733;</a></td>
+                <td style="padding:0 4px;"><a href="{{link_2}}" style="font-size:34px;line-height:1;color:#ffca08;text-decoration:none;" title="2 stars">&#9733;</a></td>
+                <td style="padding:0 4px;"><a href="{{link_3}}" style="font-size:34px;line-height:1;color:#ffca08;text-decoration:none;" title="3 stars">&#9733;</a></td>
+                <td style="padding:0 4px;"><a href="{{link_4}}" style="font-size:34px;line-height:1;color:#ffca08;text-decoration:none;" title="4 stars">&#9733;</a></td>
+                <td style="padding:0 4px;"><a href="{{link_5}}" style="font-size:34px;line-height:1;color:#ffca08;text-decoration:none;" title="5 stars">&#9733;</a></td>
+              </tr>
+              <tr>
+                <td colspan="2" style="font-size:12px;color:#5d6f74;padding-top:6px;">Poor</td>
+                <td></td>
+                <td colspan="2" align="right" style="font-size:12px;color:#5d6f74;padding-top:6px;">Excellent</td>
+              </tr>
+            </table>
+            <p style="margin:20px 0 0;font-size:13px;line-height:1.5;color:#5d6f74;">You can add a comment on the next page. It only takes a moment.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 28px;background:#f4f7f6;font-size:12px;line-height:1.5;color:#5d6f74;">This email was sent to {{customer_email}} because a Student Hub ticket was closed. If your issue isn't resolved, simply reply to the ticket email to reopen it.</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

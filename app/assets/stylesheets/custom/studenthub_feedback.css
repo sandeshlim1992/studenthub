@@ -1,0 +1,40 @@
+/* Student Hub: Feedback Collection panel in the classic ticket sidebar. */
+.studenthub-feedback-entry {
+  display: grid;
+  gap: 6px;
+  padding: 10px 0;
+}
+
+.studenthub-feedback-entry + .studenthub-feedback-entry {
+  border-top: 1px solid hsl(0, 0%, 90%);
+}
+
+.studenthub-feedback-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.studenthub-feedback-stars .is-on {
+  color: #b07d00;
+}
+
+.studenthub-feedback-stars .is-off {
+  color: hsl(0, 0%, 72%);
+}
+
+.studenthub-feedback-stars strong {
+  margin-left: 8px;
+  font-size: 13px;
+}
+
+.studenthub-feedback-comment {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.studenthub-feedback-meta {
+  font-size: 12px;
+}

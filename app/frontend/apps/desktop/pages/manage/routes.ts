@@ -159,6 +159,19 @@ const route: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/manage/feedback-collection',
+    name: 'ManageFeedbackCollection',
+    component: () => import('./views/FeedbackCollection.vue'),
+    meta: {
+      title: __('Feedback Collection'),
+      requiresAuth: true,
+      requiredPermission: ['admin.feedback_collection'],
+      level: 3,
+      pageKey: 'manage-feedback-collection',
+    },
+  },
+  },
+  {
     path: '/manage/calendars',
     name: 'ManageCalendars',
     component: () => import('./views/Calendars.vue'),

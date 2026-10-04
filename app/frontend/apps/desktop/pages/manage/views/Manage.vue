@@ -103,6 +103,12 @@ const categories = ref<Category[]>([
         description: __('Send real-time updates to external services.'),
       },
       {
+        name: __('Feedback Collection'),
+        icon: 'star',
+        target: '/manage/feedback-collection',
+        description: __('Ask customers to rate closed tickets and review the results.'),
+      },
+      {
         name: __('Calendars'),
         icon: 'calendar',
         target: '/manage/calendars',

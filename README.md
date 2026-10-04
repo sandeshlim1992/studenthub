@@ -348,6 +348,51 @@ git, node, ruby and the PostgreSQL server binaries (`initdb`), which the test se
 
 ---
 
+## Feedback Collection
+
+Replaces the PHP add-on (`/assets/feedback.php`) that production used for customer ratings.
+Admins manage it under **Administration → Manage → Feedback Collection** (`/desktop/manage/feedback-collection`,
+permission `admin.feedback_collection`).
+
+**How it works:** when a ticket changes to a _closed_ state (by an agent or a scheduler), a background step checks
+the rules on the admin page (groups, owner set, tags to skip, resend window) and emails the customer five star links
+through the Zammad email channel chosen there. A link opens `/feedback/<token>` with that star pre-selected; nothing
+is saved until the customer presses Submit (mail scanners open every link). The rating is stored, added to the ticket
+as an internal note, and shown to agents in a "Customer feedback" panel in the classic ticket sidebar.
+Only a SHA-256 hash of each token is stored.
+
+| File(s) | Purpose |
+|---|---|
+| `db/migrate/20261003120000_studenthub_feedback_collection.rb`, `lib/studenthub/feedback_collection/setup.rb` | Table, permission, settings, transaction backend |
+| `app/models/feedback_request.rb`, `app/models/transaction/feedback_collection.rb`, `app/jobs/feedback_request_send_job.rb` | Data, close detection, sending |
+| `app/services/service/feedback_collection/` | Rules, email rendering, delivery, submit, report, CSV, import |
+| `app/controllers/feedback_controller.rb`, `app/views/feedback/`, `app/views/layouts/feedback.html.erb` | Public feedback page |
+| `app/controllers/feedback_collection_controller.rb` | Admin API (`/api/v1/feedback_collection/*`) |
+| `app/frontend/apps/desktop/pages/manage/…/FeedbackCollection*` | Admin page (route in `routes.ts`, card in `Manage.vue`) |
+| `app/assets/javascripts/app/controllers/ticket_zoom/sidebar_studenthub_feedback.coffee` | Classic ticket sidebar panel |
+| `lib/studenthub/feedback_collection/default_email_template.html` | Default email template |
+
+**Going live on production (once):**
+
+1. Deploy, then in the admin page pick the sending channel (the Microsoft 365 / Graph channel), set the From
+   address, paste the old `email_template.html` if wanted, and send a test email. The channel's mailbox
+   (`it@studenthub.ac`) needs **Send As** rights on `feedback@studenthub.ac`.
+2. Import the history: `rails "studenthub:feedback:import[/path/to/feedback_tokens.json]"` (safe to run twice).
+3. Turn the feature on, then remove the **webhook** action from trigger 40 ("Ticket Closed: Email Notification
+   sent to the Customer") and job 10 ("Change Resolved ticket to Closed and Survey Email"). Keep their emails and tags.
+4. Keep old email links working with an nginx redirect in the Zammad server block:
+
+   ```nginx
+   location = /assets/feedback.php {
+       if ($arg_token !~ "^[A-Za-z0-9]+$") { return 410; }
+       return 302 /feedback/$arg_token?rating=$arg_rating;
+   }
+   ```
+
+5. Delete the PHP files and `feedback_tokens.json` from the web root; they were publicly downloadable.
+
+---
+
 ## Known issues and to-do
 
 - [ ] **Database password committed.** `config/database/database.yml` contains a real-looking

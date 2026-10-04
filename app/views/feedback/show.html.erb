@@ -1,0 +1,33 @@
+<% content_for :title, "Feedback for ticket ##{@feedback_request.ticket_number}" %>
+<h1>We Value Your Feedback</h1>
+<p>Hello <%= @feedback_request.customer_name.presence || 'there' %>, how did we do on <strong><%= @feedback_request.ticket_title %></strong>?</p>
+<p class="ticket">Ticket #<%= @feedback_request.ticket_number %><% if @feedback_request.owner_name.present? %> · handled by <%= @feedback_request.owner_name %><% end %></p>
+
+<% if @error %>
+  <p class="error" role="alert"><%= @error %></p>
+<% end %>
+
+<form method="post" action="/feedback/<%= ERB::Util.url_encode(params[:token]) %>">
+  <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+
+  <fieldset>
+    <legend>Your rating</legend>
+    <div class="stars">
+      <% 5.downto(1) do |value| %>
+        <input type="radio" id="rating-<%= value %>" name="rating" value="<%= value %>" <%= 'checked' if @rating == value %> required>
+        <label for="rating-<%= value %>">
+          <span class="sr"><%= value %> <%= value == 1 ? 'star' : 'stars' %></span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z"/></svg>
+        </label>
+      <% end %>
+    </div>
+    <div class="scale" aria-hidden="true"><span>Poor</span><span>Excellent</span></div>
+  </fieldset>
+
+  <div>
+    <label class="field" for="comments">Additional Comments <span class="muted">(optional)</span></label>
+    <textarea id="comments" name="comments" maxlength="5000" placeholder="Tell us what went well or what we could do better"><%= @comments %></textarea>
+  </div>
+
+  <button type="submit">Submit</button>
+</form>

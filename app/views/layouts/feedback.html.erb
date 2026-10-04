@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title><%= content_for?(:title) ? yield(:title) : 'Student Hub Feedback' %></title>
+  <style>
+    :root {
+      --primary: #296374;
+      --primary-hover: #1e4c59;
+      --bg: #f4f7f6;
+      --card: #ffffff;
+      --ink: #14262b;
+      --ink-2: #46595e;
+      --line: #cfdcd8;
+      --star: #ffca08;
+      --star-edge: #b07d00;
+      --star-off: #7a888c;
+      --error: #b3261e;
+      --error-bg: #fbe5e3;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+      font: 16px/1.55 "Segoe UI", system-ui, -apple-system, Helvetica, Arial, sans-serif;
+      display: grid; place-items: start center; padding: 40px 16px;
+    }
+    .card { width: 100%; max-width: 520px; background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgb(0 0 0 / .05), 0 8px 28px rgb(20 38 43 / .08); }
+    .brand { background: var(--primary); color: #fff; padding: 16px 24px; font-weight: 700; font-size: 17px; }
+    .content { padding: 28px 24px 30px; display: grid; gap: 16px; }
+    h1 { margin: 0; font-size: 24px; line-height: 1.2; letter-spacing: -.01em; text-wrap: balance; }
+    p { margin: 0; }
+    .muted { color: var(--ink-2); }
+    .ticket { font-size: 14px; color: var(--ink-2); }
+    form { display: grid; gap: 18px; }
+    fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
+    legend, label.field { font-weight: 600; padding: 0; margin-bottom: 6px; }
+    .stars { display: inline-flex; flex-direction: row-reverse; justify-content: flex-end; gap: 6px; }
+    .stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .stars label { cursor: pointer; display: block; padding: 2px; border-radius: 6px; }
+    .stars svg { width: 42px; height: 42px; display: block; }
+    .stars path { fill: none; stroke: var(--star-off); stroke-width: 1.6; stroke-linejoin: round; transition: fill .12s, stroke .12s; }
+    .stars input:checked ~ label path,
+    .stars label:hover path,
+    .stars label:hover ~ label path { fill: var(--star); stroke: var(--star-edge); }
+    .stars input:focus-visible + label { outline: 3px solid var(--primary); outline-offset: 2px; }
+    .scale { display: flex; justify-content: space-between; width: 252px; max-width: 100%; font-size: 13px; color: var(--ink-2); }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    textarea {
+      width: 100%; min-height: 120px; resize: vertical; padding: 12px; font: inherit; color: var(--ink);
+      border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    }
+    textarea:focus-visible { outline: 3px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+    button {
+      justify-self: start; min-height: 46px; padding: 0 26px; border: 0; border-radius: 8px;
+      background: var(--primary); color: #fff; font: 600 16px/1 inherit; font-family: inherit; cursor: pointer;
+    }
+    button:hover { background: var(--primary-hover); }
+    button:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+    .error { background: var(--error-bg); color: var(--error); padding: 10px 12px; border-radius: 8px; font-weight: 600; }
+    .icon { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: #dcebec; color: var(--primary); }
+    @media (prefers-reduced-motion: reduce) { .stars path { transition: none; } }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="brand">Student Hub</div>
+    <div class="content">
+      <%= yield %>
+    </div>
+  </main>
+</body>
+</html>

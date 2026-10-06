@@ -164,3 +164,4 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-06: Ticket screen: no compact header sliding in at the top while scrolling (the top bar has the ticket number)
 - 2026-10-06: Institutions views by organisation (every active one), managed by the system; dev DB migrated
 - 2026-10-06: Institutions views renamed **Sites** in the UI and docs (code, links and keys keep "institution")
+- 2026-10-06: Sign-in page: logo, text and supported institutions centred in the brand panel

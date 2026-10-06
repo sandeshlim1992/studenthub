@@ -202,14 +202,14 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
   >
     <!-- Brand panel in the application colour (Administration → Branding) -->
     <aside
-      class="relative flex flex-col justify-between gap-8 overflow-hidden bg-app px-6 py-8 text-on-app md:px-11 md:py-12"
+      class="relative flex flex-col items-center justify-center gap-10 overflow-hidden bg-app px-6 py-8 text-center text-on-app md:px-11 md:py-12"
       :aria-label="$t('About Student Hub')"
     >
       <div
         aria-hidden="true"
         class="pointer-events-none absolute -bottom-28 hidden h-[340px] w-[340px] rounded-full border-[56px] border-white/[0.07] md:block rtl:-left-28 ltr:-right-28"
       />
-      <div class="relative z-10 flex flex-col gap-4">
+      <div class="relative z-10 flex flex-col items-center gap-4">
         <div class="flex h-[76px] w-[76px] items-center justify-center rounded-2xl bg-white shadow-lg">
           <img :src="studentHubLogo" alt="Student Hub" class="h-[60px] w-[60px] object-contain" />
         </div>
@@ -223,20 +223,20 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
           }}
         </p>
       </div>
-      <div class="relative z-10 flex flex-col gap-2.5">
+      <div class="relative z-10 flex flex-col items-center gap-2.5">
         <span class="text-[11.5px] font-semibold tracking-widest text-white/75 uppercase">
           {{ $t('Supported institutions') }}
         </span>
-        <div class="studenthub-institutions flex flex-wrap items-center gap-2.5">
-        <a href="https://www.lsst.ac/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
-          <img :src="lsstImg" class="h-10 sm:h-11 w-auto object-contain" alt="LSST" />
-        </a>
-                <a href="https://fsb.ac.uk/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
-          <img :src="fsbImg" class="h-10 sm:h-11 w-auto object-contain" alt="FSB" />
-        </a>
-                <a href="https://ukbusinesscollege.org/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
-          <img :src="ukbcImg" class="h-10 sm:h-11 w-auto object-contain rounded-lg" alt="UKBC" />
-        </a>
+        <div class="studenthub-institutions flex flex-wrap items-center justify-center gap-2.5">
+          <a href="https://www.lsst.ac/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+            <img :src="lsstImg" class="h-10 sm:h-11 w-auto object-contain" alt="LSST" />
+          </a>
+          <a href="https://fsb.ac.uk/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+            <img :src="fsbImg" class="h-10 sm:h-11 w-auto object-contain" alt="FSB" />
+          </a>
+          <a href="https://ukbusinesscollege.org/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+            <img :src="ukbcImg" class="h-10 sm:h-11 w-auto object-contain rounded-lg" alt="UKBC" />
+          </a>
         </div>
       </div>
     </aside>

@@ -368,7 +368,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   Administration, recent tabs and the collapse button.
 - **Loading screen:** the application colour with three dots in the college colours (LSST, UKBC, FSB) under
   "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
-- **Sign-in page:** brand panel in the application colour with the institution logos, sign-in on the right.
+- **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in on the right.
   "Continue with Microsoft" now really starts the Microsoft sign-in (it posts to `/auth/microsoft_office365`).
 - **Ticket lists (staff overviews and search results):** white card with quiet rows, a "Views" panel tinted in the
   application colour, and these cells when an overview has the column: state as a coloured label, priority as bars

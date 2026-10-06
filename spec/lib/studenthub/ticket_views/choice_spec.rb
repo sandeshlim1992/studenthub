@@ -36,6 +36,19 @@ RSpec.describe Studenthub::TicketViews::Choice, aggregate_failures: true do
     expect { described_class.save!(agent, overview, order_direction: 'SIDEWAYS') }.to raise_error(ArgumentError)
   end
 
+  it "doesn't offer the Ticket Approvals field and ignores a grouping saved by it earlier" do
+    expect(described_class.grouping_options.pluck(:value)).not_to include('approval_state')
+    expect { described_class.save!(agent, overview, group_by: 'approval_state') }.to raise_error(ArgumentError)
+
+    agent.preferences[described_class::PREFERENCE] = { overview.id.to_s => { 'group_by' => 'approval_state' } }
+    agent.save!
+    ticket = create(:ticket, group:)
+    Studenthub::TicketApproval.writing { ticket.update!(approval_state: 'approved') }
+
+    expect(described_class.group_by(agent.reload, overview)).to eq('owner')
+    expect { Ticket::Overviews.tickets_for_overview(overview, agent).to_a }.not_to raise_error
+  end
+
   it 'groups the ticket query by the agent choice' do
     ticket_new  = create(:ticket, group:, state_name: 'new', created_at: 2.hours.ago)
     ticket_open = create(:ticket, group:, state_name: 'open', created_at: 1.hour.ago)

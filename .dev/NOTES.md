@@ -79,8 +79,11 @@ Never put passwords, tokens or keys in this file.
 - Taxil's ticket wizard and ticket list call `/api/v1/ticket_wizard_metadata`, which doesn't exist (404)
 - The new UI's `/manage` lacks 8 classic admin pages: Roles, Scheduler, Ticket States, Ticket Priorities,
   Tags, Public Links, BETA UI, KB Answer Generation (use the classic admin for these meanwhile)
-- Work PC: the devcontainer currently runs the repo from the C: drive (9p mount), not `~/studenthub` →
-  classic UI pages take 20–60 s and Vite misses file changes (restart `bin/dev` after frontend edits)
+- Home PC: the devcontainer runs the repo from `C:\dev` (9p mount), not `~/studenthub` → file reads ~150× slower
+  than the Linux disk, classic UI pages take 20–60 s, Vite and Rails miss file changes (restart `bin/dev` after
+  edits). The work PC was reported fast on 6 Oct; check whether it already runs from Ubuntu
+- Sorting the Sent for approval view by its Approval column fails: `approval_state` has no historical options,
+  so Zammad sorts it as a number (removed from the Group by menu for the same reason)
 - Search with Elasticsearch doesn't find tickets waiting for approval (access isn't group-based); managers use
   "Awaiting my approval"
 - Tickets created directly in the old Managers group have no team to go back to (dev: #885944) → invisible
@@ -134,7 +137,7 @@ Never put passwords, tokens or keys in this file.
       delete `AgentTicketCreateCard.vue`
 - [ ] Decide which missing `/manage` pages to build (suggested: Roles and Scheduler first)
 - [ ] Fix the Reporting & Analytics routes and `ticket_wizard_metadata` (Taxil's code)
-- [ ] Work PC: move the repo to the Ubuntu file system
+- [ ] Home PC (and the work PC if it's still on C:): move the repo to the Ubuntu file system
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser
 
 ## Log
@@ -165,3 +168,5 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-06: Institutions views by organisation (every active one), managed by the system; dev DB migrated
 - 2026-10-06: Institutions views renamed **Sites** in the UI and docs (code, links and keys keep "institution")
 - 2026-10-06: Sign-in page: logo, text and supported institutions centred in the brand panel
+- 2026-10-06: Group by menu no longer offers Approval (it broke the view); saved groupings no longer offered fall back
+  to the view's own

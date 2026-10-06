@@ -19,11 +19,15 @@ module Studenthub::TicketViews::Choice
     'organization' => __('Organization'),
   }.freeze
   GROUPABLE_DATA_TYPES = %w[select tree_select boolean].freeze
+  # Ticket fields that are not offered: approval_state belongs to the Ticket Approvals workflow
+  # (and Zammad can't sort by it, so a grouping saved before 6 Oct 2026 broke the view).
+  HIDDEN_GROUPINGS = %w[approval_state].freeze
 
   # [{ value:, label: }] for the "Group by" menu; '' means no grouping.
   def self.grouping_options
     attributes = ObjectManager::Attribute
       .where(object_lookup_id: ObjectLookup.by_name('Ticket'), active: true, data_type: GROUPABLE_DATA_TYPES)
+      .where.not(name: HIDDEN_GROUPINGS)
       .reorder(:position, :name)
       .reject { |attribute| BASE_GROUPINGS.key?(attribute.name.delete_suffix('_id')) }
 
@@ -46,9 +50,10 @@ module Studenthub::TicketViews::Choice
     choices(user)[overview.id.to_s] || {}
   end
 
+  # A saved grouping that is no longer offered (field removed or hidden) falls back to the view's.
   def self.group_by(user, overview)
     choice = self.for(user, overview)
-    return choice['group_by'].presence if choice.key?('group_by')
+    return choice['group_by'].presence if choice.key?('group_by') && groupable?(choice['group_by'])
 
     overview.group_by.presence
   end

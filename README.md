@@ -393,7 +393,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   managing overviews keeps its name).
 - **Group by and sorting, per agent:** every ticket view has a **Group by** menu (no grouping, Agent, Team, State,
   Priority, Customer, Organization, and the select fields of tickets such as Category or Campus, including ones admins
-  add), and clicking a column title sorts by it. Both are remembered per agent and view in the agent's preferences, so
+  add; not the Approval field of Ticket Approvals), and clicking a column title sorts by it. Both are remembered per agent and view in the agent's preferences, so
   they are the same on every device; **Reset** goes back to the view's own grouping and order. The server applies the
   choice where Zammad reads a view's grouping and order (the ticket query, the GraphQL overview type and its cache
   keys), so lists stay correct and an agent's choice never shows up for colleagues. In the Teams views, tickets without

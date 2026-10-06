@@ -833,6 +833,7 @@ onMounted(() => {
             </div>
           </div>
         </div>
+      </div>
       <!-- ================= MODAL: LOG INSPECT ================= -->
       <div
         v-if="isLogModalOpen && selectedLog"

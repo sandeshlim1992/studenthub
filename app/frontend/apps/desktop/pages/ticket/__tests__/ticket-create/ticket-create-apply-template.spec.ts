@@ -17,15 +17,17 @@ describe('ticket create view - apply template', () => {
     mockPermissions(['ticket.agent'])
   })
 
-  it('renders no "Apply template" button', async () => {
+  // Student Hub: the button is "Choose a template" at the top of the form (StudenthubTemplatePicker).
+  it('renders no "Choose a template" button', async () => {
     mockTemplatesQuery({ templates: [] })
 
     const view = await visitView('/ticket/create')
 
-    expect(view.queryByRole('button', { name: 'Apply template' })).not.toBeInTheDocument()
+    await view.findByRole('heading', { name: 'Who is it for?' })
+    expect(view.queryByRole('button', { name: 'Choose a template' })).not.toBeInTheDocument()
   })
 
-  it('renders the "Apply template" button and can apply the', async () => {
+  it('renders the "Choose a template" button and can apply the', async () => {
     mockTemplatesQuery({
       templates: [
         { id: '1', name: 'template1' },
@@ -35,8 +37,8 @@ describe('ticket create view - apply template', () => {
 
     const view = await visitView('/ticket/create')
 
-    const applyTemplateButton = view.getByRole('button', {
-      name: 'Apply template',
+    const applyTemplateButton = await view.findByRole('button', {
+      name: 'Choose a template',
     })
     expect(applyTemplateButton).toBeInTheDocument()
 

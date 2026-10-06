@@ -14,7 +14,7 @@ const hasOverviewSortingPreference = computed(() =>
   hasPermission('user_preferences.overview_sorting'),
 )
 
-// Student Hub: views panel in groups (Approval needed, My views, Teams, Institutions).
+// Student Hub: views panel in groups (Approval needed, My views, Teams, Sites).
 const { overviewsBySection } = useStudenthubTicketViews()
 </script>
 
@@ -58,9 +58,9 @@ const { overviewsBySection } = useStudenthubTicketViews()
 
     <template v-if="overviewsBySection.institutions.length">
       <p class="mt-3 ps-2.5 text-sm font-extrabold tracking-wide text-slate-800 uppercase">
-        {{ $t('Institutions') }}
+        {{ $t('Sites') }}
       </p>
-      <TicketOverviewsList section="institutions" :label="__('Institution views')" />
+      <TicketOverviewsList section="institutions" :label="__('Site views')" />
     </template>
   </section>
 </template>

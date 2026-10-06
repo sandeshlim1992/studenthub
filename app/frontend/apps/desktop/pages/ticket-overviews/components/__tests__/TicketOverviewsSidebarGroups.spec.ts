@@ -65,8 +65,8 @@ describe('views panel groups', () => {
     const teams = await view.findByRole('navigation', { name: 'Team views' })
     expect(within(teams).getByRole('link', { name: /Service Desk/ })).toBeInTheDocument()
 
-    const institutions = view.getByRole('navigation', { name: 'Institution views' })
-    expect(within(institutions).getByRole('link', { name: /LSST/ })).toBeInTheDocument()
+    const sites = view.getByRole('navigation', { name: 'Site views' })
+    expect(within(sites).getByRole('link', { name: /LSST/ })).toBeInTheDocument()
 
     const approvals = view.getByRole('navigation', { name: 'Approval views' })
     expect(within(approvals).getByRole('link', { name: /Awaiting my approval/ })).toBeInTheDocument()

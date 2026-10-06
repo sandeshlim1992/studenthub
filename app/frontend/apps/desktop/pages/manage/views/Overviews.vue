@@ -114,7 +114,7 @@ const isManaged = (overview: OverviewItem) => managedKind(overview) !== null
 
 const managedOrderTitle = (overview: OverviewItem) => {
   if (managedKind(overview) === 'team') return __('Teams views follow the groups and are sorted by name.')
-  if (managedKind(overview) === 'institution') return __('Institutions views follow the organizations and are sorted by name.')
+  if (managedKind(overview) === 'institution') return __('Site views follow the organizations and are sorted by name.')
   return __('Approval views are always listed first, under Approval needed.')
 }
 
@@ -126,7 +126,7 @@ const managedBadgeTitle = (overview: OverviewItem) => {
 
 const managedSwitchTitle = (overview: OverviewItem) => {
   if (managedKind(overview) === 'team') return __('Teams views are always on. Switch off the group instead.')
-  if (managedKind(overview) === 'institution') return __('Institutions views are always on. Switch off the organization instead.')
+  if (managedKind(overview) === 'institution') return __('Site views are always on. Switch off the organization instead.')
   return overview.active
     ? __('On while Ticket Approvals is on.')
     : __('Off while Ticket Approvals is off.')
@@ -209,7 +209,7 @@ const editingManaged = computed(() => editingOverview.value !== undefined && isM
 const managedDrawerNote = computed(() => {
   const kind = editingOverview.value ? managedKind(editingOverview.value) : null
   if (kind === 'approval') return __('Approval views are kept in step with Ticket Approvals: name, roles, conditions and on/off are set automatically.')
-  if (kind === 'institution') return __('Institutions views are kept in step with the organizations: name, roles, conditions, on/off and position are set automatically.')
+  if (kind === 'institution') return __('Site views are kept in step with the organizations: name, roles, conditions, on/off and position are set automatically.')
   return __('Teams views are kept in step with the groups: name, roles, conditions, on/off and position are set automatically.')
 })
 

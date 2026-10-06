@@ -6,11 +6,15 @@ export const useBubbleStyleGuide = (
   position: ComputedRef<'left' | 'right'>,
   isArticleTypeNote: ComputedRef<boolean>,
 ) => {
-  const bodyClasses = computed(() =>
-    position.value === 'right'
-      ? ['dark:bg-stone-500', 'bg-blue-100']
-      : ['dark:bg-gray-400', 'bg-neutral-100'],
-  )
+  // Student Hub: customer messages white, staff replies in a light application colour,
+  // internal notes amber (instead of Zammad's stripes).
+  const bodyClasses = computed(() => {
+    if (isArticleTypeNote.value) return ['dark:bg-stone-500', 'bg-[#fff8e6]']
+
+    return position.value === 'right'
+      ? ['dark:bg-stone-500', 'bg-[var(--sh-app-soft)]']
+      : ['dark:bg-gray-400', 'bg-white']
+  })
 
   const dividerClass = computed(() => {
     if (position.value === 'right')
@@ -23,16 +27,18 @@ export const useBubbleStyleGuide = (
     if (isArticleTypeNote.value) return ''
 
     if (position.value === 'right')
-      return 'border border-neutral-100 dark:border-gray-900 print:border-black'
+      return 'border border-[color-mix(in_srgb,var(--sh-app)_18%,white)] dark:border-gray-900 print:border-black'
 
-    return 'border border-neutral-300 dark:border-gray-900 print:border-black'
+    return 'border border-[var(--sh-line)] dark:border-gray-900 print:border-black'
   })
 
-  const headerAndIconBarBackgroundClass = computed(() =>
-    position.value === 'right'
-      ? ['dark:bg-stone-700', 'bg-blue-300']
-      : ['dark:bg-gray-500', 'bg-neutral-50'],
-  )
+  const headerAndIconBarBackgroundClass = computed(() => {
+    if (isArticleTypeNote.value) return ['dark:bg-stone-700', 'bg-[#fdf0cf]']
+
+    return position.value === 'right'
+      ? ['dark:bg-stone-700', 'bg-[color-mix(in_srgb,var(--sh-app)_14%,white)]']
+      : ['dark:bg-gray-500', 'bg-[var(--sh-panel)]']
+  })
 
   // We need this class otherwise on a transition the edges of children are shown
   const articleWrapperBorderClass = computed(() =>
@@ -44,10 +50,10 @@ export const useBubbleStyleGuide = (
   const internalNoteClass = computed(() => {
     if (!isArticleTypeNote.value) return ''
 
-    // Uses `.bg-stripes` class which is defined in `app/frontend/apps/desktop/styles/main.css`.
+    // Student Hub: amber outline instead of Zammad's stripes (`.bg-stripes`).
     return position.value === 'right'
-      ? 'bg-stripes print:outline-1! print:outline-dashed print:outline-black  before:rounded-2xl relative z-0 rounded-xl outline outline-1 outline-blue-700 ltr:rounded-br-none rtl:rounded-bl-none ltr:before:rounded-br-none rtl:before:rounded-bl-none'
-      : 'bg-stripes print:outline-1! print:outline-dashed print:outline-black  before:rounded-2xl relative z-0 rounded-xl outline outline-1 outline-blue-700 ltr:rounded-bl-none rtl:rounded-br-none ltr:before:rounded-bl-none rtl:before:rounded-br-none'
+      ? 'print:outline-1! print:outline-dashed print:outline-black  before:rounded-2xl relative z-0 rounded-xl outline outline-1 outline-[#e9cf8c] ltr:rounded-br-none rtl:rounded-bl-none ltr:before:rounded-br-none rtl:before:rounded-bl-none'
+      : 'print:outline-1! print:outline-dashed print:outline-black  before:rounded-2xl relative z-0 rounded-xl outline outline-1 outline-[#e9cf8c] ltr:rounded-bl-none rtl:rounded-br-none ltr:before:rounded-bl-none rtl:before:rounded-br-none'
   })
 
   return {

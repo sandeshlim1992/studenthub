@@ -1,14 +1,18 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { onActivated, onBeforeUnmount, onDeactivated, watch } from 'vue'
 
-import CommonBreadcrumb from '#desktop/components/CommonBreadcrumb/CommonBreadcrumb.vue'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonInlineEdit from '#desktop/components/CommonInlineEdit/CommonInlineEdit.vue'
 import OrganizationPopoverWithTrigger from '#desktop/components/Organization/OrganizationPopoverWithTrigger.vue'
+import { setStudenthubTopBarCrumbs } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
+import StudenthubCampusBadge from '#desktop/components/Ticket/StudenthubTicketCells/StudenthubCampusBadge.vue'
+import StudenthubTicketPriority from '#desktop/components/Ticket/StudenthubTicketCells/StudenthubTicketPriority.vue'
+import StudenthubTicketStateLabel from '#desktop/components/Ticket/StudenthubTicketCells/StudenthubTicketStateLabel.vue'
 import UserPopoverWithTrigger from '#desktop/components/User/UserPopoverWithTrigger.vue'
 import HighlightMenu from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/HighlightMenu.vue'
+import StudenthubTicketHeaderActions from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderActions.vue'
 import TicketInformationBadgeList from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/TicketInformationFull/TicketInformationBadgeList.vue'
 
 import { useTopBarHeader } from './useTopBarHeader.ts'
@@ -24,42 +28,48 @@ const {
   updateTitle,
 } = useTopBarHeader()
 
-const items = computed(() => [
-  {
-    label: 'Tickets',
-    to: { name: 'ticket-list' },
-  },
-  {
-    label: ticketNumberWithTicketHook.value || '',
-    noOptionLabelTranslation: true,
-    to: { name: 'ticket-list' },
-  },
-])
+// Student Hub: "Tickets / Ticket#…" sits in the top bar; the header shows the number itself.
+const campus = () =>
+  ticket.value?.objectAttributeValues?.find((entry) => entry.attribute.name === 'campus')?.value
+
+// The ticket page is kept alive: only touch the top bar while it is shown.
+let isShown = true
+const updateCrumbs = () => {
+  if (!isShown) return
+  setStudenthubTopBarCrumbs(
+    ticketNumberWithTicketHook.value
+      ? [{ label: __('Tickets'), route: '/tickets/view' }, { label: ticketNumberWithTicketHook.value }]
+      : [],
+  )
+}
+watch(ticketNumberWithTicketHook, updateCrumbs, { immediate: true })
+onActivated(() => {
+  isShown = true
+  updateCrumbs()
+})
+onDeactivated(() => {
+  isShown = false
+  setStudenthubTopBarCrumbs([])
+})
+onBeforeUnmount(() => setStudenthubTopBarCrumbs([]))
 </script>
 
 <template>
   <header
-    class="ticket-detail-grid-full grid grid-cols-2 gap-y-2.5 border-b border-neutral-100 bg-neutral-50 p-3 dark:border-gray-900 dark:bg-gray-500 print:border-b-0 print:px-3"
+    class="ticket-detail-grid-full sh-ticket-header grid grid-cols-2 gap-y-2.5 border-b border-neutral-100 bg-neutral-50 p-3 dark:border-gray-900 dark:bg-gray-500 print:border-b-0 print:px-3"
   >
-    <CommonBreadcrumb
-      emphasize-last-item
-      size="small"
-      :style="{ gridTemplate: 'breadcrumbs' }"
-      :items="items"
-      class="flex"
-    >
-      <template #trailing>
-        <CommonButton
-          v-if="ticketNumber"
-          v-tooltip="$t('Copy ticket number')"
-          variant="secondary"
-          icon="files"
-          size="small"
-          class="ms-1 print:hidden"
-          @click="copyTicketNumberToClipboard"
-        />
-      </template>
-    </CommonBreadcrumb>
+    <div class="flex items-center" :style="{ gridTemplate: 'breadcrumbs' }">
+      <span v-if="ticketNumber" class="sh-ticket-number">#{{ ticketNumber }}</span>
+      <CommonButton
+        v-if="ticketNumber"
+        v-tooltip="$t('Copy ticket number')"
+        variant="secondary"
+        icon="files"
+        size="small"
+        class="ms-1 print:hidden"
+        @click="copyTicketNumberToClipboard"
+      />
+    </div>
 
     <div
       v-if="isTicketAgent && isTicketEditable"
@@ -111,6 +121,7 @@ const items = computed(() => [
       <div class="w-full grow justify-self-center">
         <div class="mb-3.5 flex flex-col justify-center">
           <div class="mb-1 flex items-center gap-1">
+            <StudenthubCampusBadge v-if="campus()" compact class="me-1 shrink-0" :value="campus()" />
             <CommonLabel tag="p" class="line-clamp-1! max-w-1/2 shrink break-all">
               {{ ticket.customer.fullname }}
             </CommonLabel>
@@ -123,28 +134,33 @@ const items = computed(() => [
             </CommonLabel>
           </div>
 
-          <CommonInlineEdit
-            v-model:editing="isUpdatingTitle"
-            size="xl"
-            required
-            block
-            :disabled="!ticket.policy.update"
-            :value="ticket.title"
-            max-length="255"
-            :classes="{
-              label: 'dark:text-white font-medium',
-              input: 'dark:text-white font-medium',
-            }"
-            :label-attrs="{
-              role: 'heading',
-              'aria-level': '2',
-            }"
-            :label="$t('Edit ticket title')"
-            @submit-edit="updateTitle"
-          />
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <CommonInlineEdit
+              v-model:editing="isUpdatingTitle"
+              size="xl"
+              required
+              :disabled="!ticket.policy.update"
+              :value="ticket.title"
+              max-length="255"
+              :classes="{
+                label: 'dark:text-white font-medium',
+                input: 'dark:text-white font-medium',
+              }"
+              :label-attrs="{
+                role: 'heading',
+                'aria-level': '2',
+              }"
+              :label="$t('Edit ticket title')"
+              @submit-edit="updateTitle"
+            />
+            <StudenthubTicketStateLabel :state="ticket.state" class="text-sm!" />
+            <StudenthubTicketPriority v-if="isTicketAgent && ticket.priority" :priority="ticket.priority" />
+          </div>
         </div>
 
         <TicketInformationBadgeList />
+
+        <StudenthubTicketHeaderActions class="mt-3" />
       </div>
     </div>
   </header>

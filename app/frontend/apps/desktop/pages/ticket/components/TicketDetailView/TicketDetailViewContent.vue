@@ -58,6 +58,7 @@ import CommonIndicator from '#desktop/components/CommonIndicator/CommonIndicator
 import { useIndicator } from '#desktop/components/CommonIndicator/useIndicator.ts'
 import CommonLoader from '#desktop/components/CommonLoader/CommonLoader.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import { SidebarPosition } from '#desktop/components/layout/types.ts'
 import { usePage } from '#desktop/composables/usePage.ts'
 import { useScrollPosition } from '#desktop/composables/useScrollPosition.ts'
 import { useTaskbarTab } from '#desktop/entities/user/current/composables/useTaskbarTab.ts'
@@ -76,6 +77,7 @@ import {
 } from '../../composables/useTicketInformation.ts'
 import { useTicketSidebar, useProvideTicketSidebar } from '../../composables/useTicketSidebar.ts'
 import { type TicketSidebarContext, TicketSidebarScreenType } from '../../types/sidebar.ts'
+import StudenthubTicketSideRail from '../TicketSidebar/StudenthubTicketSideRail.vue'
 import TicketSidebar from '../TicketSidebar.vue'
 
 import ArticleList from './ArticleList.vue'
@@ -295,12 +297,14 @@ const sidebarContext = computed<TicketSidebarContext>(() => ({
 }))
 
 useProvideTicketSidebar(sidebarContext)
-const { hasSidebar, activeSidebar, switchSidebar } = useTicketSidebar()
+const { hasSidebar, activeSidebar, shownSidebars, switchSidebar } = useTicketSidebar()
 
 const hasInternalArticle = computed(() => (values.value as TicketUpdateFormData).article?.internal)
 
 const formEditAttributeLocation = computed(() => {
-  if (activeSidebar.value === 'information') return '#ticketEditAttributeForm'
+  // Student Hub: the Ticket panel stays open in the left column while others open on the right.
+  if (activeSidebar.value === 'information' || shownSidebars.value.information)
+    return '#ticketEditAttributeForm'
   return '#wrapper-form-ticket-edit'
 })
 
@@ -707,13 +711,16 @@ const handleShowArticleForm = (
     no-padding
     background-variant="primary"
     :show-sidebar="hasSidebar"
+    :sidebar-position="SidebarPosition.Start"
     content-alignment="center"
     no-scrollable
   >
+    <!-- Student Hub: conversation, then the sidebar icons and panels on the right -->
+    <div class="sh-ticket-view flex size-full min-h-0">
     <div
       ref="content-container"
       data-test-id="ticket-detail-content-container"
-      class="@container isolate grid size-full overflow-y-auto overscroll-contain print:h-auto print:overflow-y-visible"
+      class="@container isolate grid size-full min-w-0 overflow-y-auto overscroll-contain print:h-auto print:overflow-y-visible"
       :class="{
         'grid-rows-[0_max-content_max-content_max-content]':
           !newTicketArticlePresent || !isReplyPinned,
@@ -818,6 +825,8 @@ const handleShowArticleForm = (
           @settled="onEditFormSettled"
         />
       </div>
+    </div>
+    <StudenthubTicketSideRail v-if="!!ticket" :context="sidebarContext" />
     </div>
     <!-- Render underlying components only when the ticket is available to avoid providing undefined ticket context -->
     <template v-if="!!ticket" #sideBar>

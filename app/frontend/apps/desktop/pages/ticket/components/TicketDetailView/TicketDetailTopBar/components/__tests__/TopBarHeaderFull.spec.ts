@@ -3,6 +3,7 @@
 import { renderComponent } from '#tests/support/components/index.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 
+import { useStudenthubTopBarCrumbs } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
 import { provideTicketInformationMocks } from '#desktop/entities/ticket/__tests__/mocks/provideTicketInformationMocks.ts'
 import { testOptionsTopBar } from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/__tests__/support/testOptions.ts'
 import TopBarHeaderFull from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/TopBarHeaderFull.vue'
@@ -41,12 +42,23 @@ describe('TopBarHeaderFull', () => {
     })
   })
 
-  it('shows breadcrumb and copy button', () => {
+  // Student Hub: the header shows the number, "Tickets / Ticket#…" moves to the top bar.
+  it('shows the ticket number with a copy button and fills the top bar crumbs', () => {
     const view = renderTopBarHeaderFull()
 
-    expect(view.getByText('Tickets')).toBeInTheDocument()
-    expect(view.getByText('Ticket#89001')).toBeInTheDocument()
+    expect(view.getByText('#89001')).toBeInTheDocument()
     expect(view.getByRole('button', { name: 'Copy ticket number' })).toBeInTheDocument()
+    expect(useStudenthubTopBarCrumbs().value).toEqual([
+      { label: 'Tickets', route: '/tickets/view' },
+      { label: 'Ticket#89001' },
+    ])
+  })
+
+  it('shows the state and priority next to the title', () => {
+    const view = renderTopBarHeaderFull()
+
+    expect(view.getByText(testOptionsTopBar.state.name)).toBeInTheDocument()
+    expect(view.getByText(testOptionsTopBar.priority.name)).toBeInTheDocument()
   })
 
   it('shows highlight actions for editable agent tickets', () => {

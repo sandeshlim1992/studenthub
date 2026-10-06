@@ -16,6 +16,7 @@ import { useAnnouncer } from '#desktop/composables/accessibility/useAnnouncer.ts
 import { useArticleHighlights } from './useArticleHighlights/useArticleHighlights.ts'
 import { useArticleHighlightsA11y } from './useArticleHighlights/useArticleHighlightsA11y.ts'
 import { useArticleHighlightsSelection } from './useArticleHighlights/useArticleHighlightsSelection.ts'
+import StudenthubArticleKind from './StudenthubArticleKind.vue'
 
 interface Props {
   article: TicketArticle
@@ -127,6 +128,7 @@ onMounted(() => {
       <CommonLabel class="line-clamp-1! font-bold" size="small" variant="neutral">
         {{ article.author.fullname }}
       </CommonLabel>
+      <StudenthubArticleKind :article="article" class="ms-2 shrink-0" />
 
       <CommonDateTime
         class="shrink-0 text-xs ltr:ml-auto rtl:mr-auto"

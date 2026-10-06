@@ -3,6 +3,7 @@
 import { computed } from 'vue'
 
 import { renderComponent } from '#tests/support/components/index.ts'
+import { mockPermissions } from '#tests/support/mock-permissions.ts'
 
 import { createDummyArticle } from '#shared/entities/ticket-article/__tests__/mocks/ticket-articles.ts'
 import { createDummyTicket } from '#shared/entities/ticket-article/__tests__/mocks/ticket.ts'
@@ -69,6 +70,21 @@ const renderArticleBubbleActionList = (options?: {
 }
 
 describe('ArticleBubbleActionList', () => {
+  // Student Hub: the actions are for staff; students (customers) only reply.
+  beforeEach(() => {
+    mockPermissions(['ticket.agent'])
+  })
+
+  it('offers students no visibility, split, forward or copy actions', () => {
+    mockPermissions(['ticket.customer'])
+
+    const wrapper = renderArticleBubbleActionList()
+
+    expect(wrapper.queryByRole('button', { name: 'Action menu button' })).not.toBeInTheDocument()
+    expect(wrapper.queryByLabelText('Copy article permalink')).not.toBeInTheDocument()
+    expect(wrapper.queryByLabelText('Set to internal')).not.toBeInTheDocument()
+  })
+
   it('shows top level actions without hover', () => {
     const wrapper = renderArticleBubbleActionList()
 

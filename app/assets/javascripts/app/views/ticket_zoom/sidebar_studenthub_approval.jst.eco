@@ -53,7 +53,7 @@
           <select id="studenthub-approval-approver-<%= @ticketId %>" name="approver_id" class="form-control" required>
             <option value=""><%- @T('Choose a manager') %></option>
             <% for manager in status.managers: %>
-              <option value="<%= manager.id %>" <%= 'disabled' if !manager.can_open_ticket %>><%= manager.name %><% if !manager.can_open_ticket: %> (<%- @T("can't open this ticket") %>)<% end %></option>
+              <option value="<%= manager.id %>"><%= manager.name %></option>
             <% end %>
           </select>
         </div>

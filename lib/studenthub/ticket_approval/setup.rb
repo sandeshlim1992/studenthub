@@ -4,7 +4,9 @@
 # the two overviews and the ticket field definitions. Idempotent. Used by the
 # 20261004090000 migration and by the test suite, which empties all tables between runs.
 module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength -- mostly record definitions
-  OVERVIEW_LINKS = %w[awaiting_my_approval approval_decisions].freeze
+  OVERVIEW_LINKS = %w[awaiting_my_approval sent_for_approval].freeze
+  # Until 5 Oct 2026 the agents' view was "Approval decisions" (decided requests only).
+  PREVIOUS_AGENT_OVERVIEW_LINK = 'approval_decisions'.freeze
 
   def self.ensure!
     create_permissions
@@ -15,9 +17,9 @@ module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength 
   end
 
   def self.remove!
-    Overview.where(link: OVERVIEW_LINKS).destroy_all
+    Overview.where(link: OVERVIEW_LINKS + [PREVIOUS_AGENT_OVERVIEW_LINK]).destroy_all
     ObjectManager::Attribute.where(object_lookup_id: ObjectLookup.by_name('Ticket'), name: Studenthub::TicketApproval::COLUMNS).destroy_all
-    Setting.find_by(name: 'ticket_approval')&.destroy
+    Setting.where(name: %w[ticket_approval ticket_approval_pause_sla ticket_approval_group_id]).destroy_all
     Permission.where(name: [Studenthub::TicketApproval::APPROVER_PERMISSION, 'admin.ticket_approval']).destroy_all
   end
 
@@ -65,6 +67,27 @@ module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength 
       preferences: { permission: ['admin.ticket_approval'], authentication: true },
       frontend:    true
     )
+    Setting.create_if_not_exists(
+      title:       __('Pause SLA while waiting for approval'),
+      name:        'ticket_approval_pause_sla',
+      area:        'Ticket::Approval',
+      description: __('The time a ticket waits for a manager does not count towards its SLA.'),
+      options:     { form: [{ display: '', null: true, name: 'ticket_approval_pause_sla', tag: 'boolean', options: { true => 'yes', false => 'no' } }] },
+      state:       true,
+      preferences: { permission: ['admin.ticket_approval'] },
+      frontend:    false
+    )
+    # The Managers group where tickets wait (see WaitingGroup); set when the feature is turned on.
+    Setting.create_if_not_exists(
+      title:       __('Group for tickets waiting for approval'),
+      name:        'ticket_approval_group_id',
+      area:        'Ticket::Approval',
+      description: __('Tickets wait for approval in this group, which nobody has access to.'),
+      options:     {},
+      state:       nil,
+      preferences: { permission: ['admin.ticket_approval'] },
+      frontend:    false
+    )
   end
 
   def self.register_ticket_attributes
@@ -107,7 +130,6 @@ module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength 
 
   def self.create_overviews
     manager_role = Role.find_by(name: Studenthub::TicketApproval::MANAGER_ROLE)
-    agent_roles  = Role.with_permissions('ticket.agent').where(active: true)
     active       = Studenthub::TicketApproval.enabled?
 
     Overview.create_if_not_exists(
@@ -131,27 +153,52 @@ module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength 
       created_by_id: 1,
     )
 
+    upgrade_agent_overview
     Overview.create_if_not_exists(
-      name:          __('Approval decisions'),
-      link:          'approval_decisions',
+      **agent_overview_attributes,
       prio:          1006,
-      role_ids:      agent_roles.pluck(:id),
-      condition:     {
-        'ticket.approval_state'           => { operator: 'is', value: %w[approved denied] },
+      role_ids:      agent_role_ids,
+      active:        active,
+      updated_by_id: 1,
+      created_by_id: 1,
+    )
+  end
+
+  # The tickets the agent sent that wait for a decision. Once decided they leave this view;
+  # the ticket's owner and state never change, so it is still in the agent's open tickets.
+  def self.agent_overview_attributes
+    {
+      name:      __('Sent for approval'),
+      link:      'sent_for_approval',
+      condition: {
+        'ticket.approval_state'           => { operator: 'is', value: ['pending'] },
         'ticket.approval_requested_by_id' => { operator: 'is', pre_condition: 'current_user.id', value: [] },
         'ticket.state_id'                 => { operator: 'is', value: Ticket::State.by_category_ids(:open) },
       },
-      order:         { by: 'updated_at', direction: 'DESC' },
-      view:          {
+      order:     { by: 'updated_at', direction: 'ASC' },
+      view:      {
         d:                 %w[number title customer approval_state approval_approver_id updated_at],
         s:                 %w[number title customer approval_state approval_approver_id updated_at],
         m:                 %w[number title customer approval_state approval_approver_id updated_at],
         view_mode_default: 's',
       },
-      active:        active,
-      updated_by_id: 1,
-      created_by_id: 1,
-    )
+    }
+  end
+
+  # The agent roles, but not Managers (which carries ticket.agent too): managers approve, they
+  # don't send. A manager who is also an agent gets the view through their agent role.
+  def self.agent_role_ids
+    Role.with_permissions('ticket.agent').where(active: true)
+      .where.not(name: Studenthub::TicketApproval::MANAGER_ROLE).pluck(:id)
+  end
+
+  # Turns the old "Approval decisions" view into "Sent for approval" in place, so agents keep
+  # their own order of views.
+  def self.upgrade_agent_overview
+    overview = Overview.find_by(link: PREVIOUS_AGENT_OVERVIEW_LINK)
+    return if !overview || Overview.exists?(link: 'sent_for_approval')
+
+    overview.update!(**agent_overview_attributes, role_ids: agent_role_ids)
   end
 
   # The overviews only make sense while the feature is on.

@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
@@ -10,7 +10,9 @@ import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface ApprovalSettings {
   enabled: boolean
-  role: { id: number; name: string; active: boolean; groups: Record<string, string[]> } | null
+  pause_sla: boolean
+  group: { id: number; name: string } | null
+  role: { id: number; name: string; active: boolean } | null
   managers: { id: number; name: string; email: string }[]
   overviews: { name: string; link: string; active: boolean }[]
   pending: number
@@ -27,8 +29,6 @@ const breadcrumbItems = [
 const settings = ref<ApprovalSettings | null>(null)
 const isSaving = ref(false)
 const message = ref<{ kind: 'success' | 'error'; text: string } | null>(null)
-
-const roleGroups = computed(() => Object.entries(settings.value?.role?.groups ?? {}))
 
 const request = async (init: RequestInit = {}) => {
   const headers: Record<string, string> = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
@@ -51,15 +51,12 @@ const load = async () => {
   }
 }
 
-const toggle = async (enabled: boolean) => {
+const save = async (changes: Partial<Pick<ApprovalSettings, 'enabled' | 'pause_sla'>>, successText: string) => {
   isSaving.value = true
   message.value = null
   try {
-    settings.value = await request({ method: 'PUT', body: JSON.stringify({ enabled }) })
-    message.value = {
-      kind: 'success',
-      text: enabled ? __('Ticket approvals are on.') : __('Ticket approvals are off.'),
-    }
+    settings.value = await request({ method: 'PUT', body: JSON.stringify(changes) })
+    message.value = { kind: 'success', text: successText }
   } catch (error) {
     message.value = { kind: 'error', text: error instanceof Error ? error.message : String(error) }
   } finally {
@@ -120,18 +117,57 @@ onMounted(load)
               class="mt-1 h-4 w-4 accent-blue-800"
               :checked="settings.enabled"
               :disabled="isSaving"
-              @change="toggle(($event.target as HTMLInputElement).checked)"
+              @change="
+                save(
+                  { enabled: ($event.target as HTMLInputElement).checked },
+                  ($event.target as HTMLInputElement).checked ? __('Ticket approvals are on.') : __('Ticket approvals are off.'),
+                )
+              "
             />
             <span>
               <span class="block text-sm font-bold">{{ $t('Allow agents to send tickets for approval') }}</span>
               <span class="text-xs text-slate-600 dark:text-slate-400">
-                {{ $t('When off, the Approval tab and both overviews are hidden. Existing approvals are kept.') }}
+                {{
+                  $t(
+                    'When off, the Approval tab and both overviews are hidden, and tickets waiting for a decision go back to their teams. Earlier decisions are kept.',
+                  )
+                }}
               </span>
             </span>
           </label>
           <p v-if="settings.pending > 0" class="mt-3 text-xs text-slate-600 dark:text-slate-400">
             {{ $t('%s ticket(s) are waiting for a decision.', settings.pending) }}
           </p>
+        </section>
+
+        <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+          <label for="ticket-approval-pause-sla" class="flex cursor-pointer items-start gap-3">
+            <input
+              id="ticket-approval-pause-sla"
+              type="checkbox"
+              class="mt-1 h-4 w-4 accent-blue-800"
+              :checked="settings.pause_sla"
+              :disabled="isSaving"
+              @change="
+                save(
+                  { pause_sla: ($event.target as HTMLInputElement).checked },
+                  ($event.target as HTMLInputElement).checked
+                    ? __('The SLA pauses while a ticket waits for approval.')
+                    : __('The SLA keeps running while a ticket waits for approval.'),
+                )
+              "
+            />
+            <span>
+              <span class="block text-sm font-bold">{{ $t('Pause the SLA while a ticket waits for approval') }}</span>
+              <span class="text-xs text-slate-600 dark:text-slate-400">
+                {{
+                  $t(
+                    'The deadlines stop when a ticket is sent to a manager. After the decision they are worked out again, without the waiting time. Applies to requests sent from now on.',
+                  )
+                }}
+              </span>
+            </span>
+          </label>
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
@@ -151,27 +187,15 @@ onMounted(load)
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-          <h2 class="mb-1 text-sm font-bold">{{ $t('Group access of the Managers role') }}</h2>
-          <p class="mb-3 text-xs text-slate-600 dark:text-slate-400">
+          <h2 class="mb-1 text-sm font-bold">{{ $t('Where tickets wait') }}</h2>
+          <p class="text-xs text-slate-600 dark:text-slate-400">
             {{
               $t(
-                'Managers can only open tickets in groups their roles can read. Read access is enough to approve or deny. Change it under Roles → Managers.',
+                'While a ticket waits for a decision, it is in the group "%s". Only the chosen manager and the agent who asked can open it, and nobody can pick that group as a team. The decision sends the ticket back to its team and owner. Do not give anyone access to this group.',
+                settings.group?.name || $t('Managers'),
               )
             }}
           </p>
-          <p v-if="roleGroups.length === 0" class="text-sm text-amber-800 dark:text-amber-300">
-            {{ $t('The Managers role has no group access. Managers who have no other agent role cannot open tickets sent to them.') }}
-          </p>
-          <ul v-else class="flex flex-wrap gap-2">
-            <li
-              v-for="[group, access] in roleGroups"
-              :key="group"
-              class="rounded-md border border-slate-200 px-2.5 py-1 text-xs dark:border-slate-700"
-            >
-              <span class="font-semibold">{{ group }}</span>
-              <span class="text-slate-600 dark:text-slate-400"> · {{ access.join(', ') }}</span>
-            </li>
-          </ul>
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
@@ -185,7 +209,7 @@ onMounted(load)
                   {{
                     overview.link === 'awaiting_my_approval'
                       ? $t('for managers: tickets sent to them')
-                      : $t('for agents: answers to their requests, until the ticket is closed')
+                      : $t('for agents: their requests that wait for a decision')
                   }}
                 </span>
               </span>

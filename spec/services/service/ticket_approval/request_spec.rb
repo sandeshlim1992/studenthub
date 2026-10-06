@@ -24,6 +24,39 @@ RSpec.describe Service::TicketApproval::Request, aggregate_failures: true do
     expect(ticket.state.name).to eq('open')
   end
 
+  it 'moves the ticket into the Managers group and remembers its team and owner' do
+    approval = request_approval
+
+    waiting = Studenthub::TicketApproval::WaitingGroup.group
+    expect(waiting).to have_attributes(name: 'Managers', active: true)
+    # Zammad clears the owner: nobody has access to the waiting group.
+    expect(ticket.reload).to have_attributes(group_id: waiting.id, owner_id: 1)
+    expect(approval).to have_attributes(previous_group_id: group.id, previous_owner_id: agent.id, sla_paused: true)
+  end
+
+  it 'lets only the chosen manager and the agent who asked see the waiting ticket' do
+    other_manager = create_manager(groups: [group])
+    team_agent    = create(:agent, groups: [group])
+    request_approval
+    ticket.reload
+
+    expect(TicketPolicy.new(manager, ticket)).to have_attributes(show?: true, update?: false)
+    expect(TicketPolicy.new(agent, ticket)).to have_attributes(show?: true, update?: false)
+    expect(TicketPolicy.new(other_manager, ticket).show?).to be(false)
+    expect(TicketPolicy.new(team_agent, ticket).show?).to be(false)
+
+    expect(TicketPolicy::OverviewScope.new(manager).resolve).to include(ticket)
+    expect(TicketPolicy::ReadScope.new(agent).resolve).to include(ticket)
+    expect(TicketPolicy::ReadScope.new(other_manager).resolve).not_to include(ticket)
+    expect(TicketPolicy::ReadScope.new(team_agent).resolve).not_to include(ticket)
+  end
+
+  it 'records whether the SLA pauses' do
+    Setting.set('ticket_approval_pause_sla', false)
+
+    expect(request_approval.sla_paused).to be(false)
+  end
+
   it 'adds an internal note with the reason' do
     request_approval
 
@@ -55,11 +88,13 @@ RSpec.describe Service::TicketApproval::Request, aggregate_failures: true do
     end
   end
 
-  context 'when the manager cannot open the ticket' do
+  context 'when the manager has no access to the team' do
     let(:manager) { create_manager(groups: []) }
 
-    it 'refuses and explains how to fix it' do
-      expect { request_approval }.to raise_error(Service::TicketApproval::Base::Error, %r{Give the Managers role read access})
+    it 'sends it anyway: the manager opens it through the approval' do
+      request_approval
+
+      expect(TicketPolicy.new(manager, ticket.reload).show?).to be(true)
     end
   end
 

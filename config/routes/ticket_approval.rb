@@ -9,6 +9,9 @@ Zammad::Application.routes.draw do
   match api_path + '/tickets/:ticket_id/approval/approve', to: 'ticket_approvals#approve',         via: :post
   match api_path + '/tickets/:ticket_id/approval/deny',    to: 'ticket_approvals#deny',            via: :post
 
+  match api_path + '/ticket_approval/viewer',              to: 'ticket_approvals#viewer',          via: :get
+  match api_path + '/ticket_approval/dashboard',           to: 'ticket_approvals#dashboard',       via: :get
+  match api_path + '/ticket_approval/managers',            to: 'ticket_approvals#managers',        via: :get
   match api_path + '/ticket_approval/settings',            to: 'ticket_approvals#settings',        via: :get
   match api_path + '/ticket_approval/settings',            to: 'ticket_approvals#update_settings', via: :put
 end

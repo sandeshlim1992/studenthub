@@ -19,7 +19,7 @@ RSpec.describe TicketApprovalsController, aggregate_failures: true, type: :reque
       manager
       get url
       expect(json_response).to include('enabled' => true, 'state' => nil, 'can_request' => true)
-      expect(json_response['managers']).to include(include('name' => manager.fullname, 'can_open_ticket' => true))
+      expect(json_response['managers']).to include({ 'id' => manager.id, 'name' => manager.fullname })
 
       post url, params: { approver_id: manager.id, reason: 'Please approve' }, as: :json
       expect(response).to have_http_status(:ok)
@@ -85,15 +85,108 @@ RSpec.describe TicketApprovalsController, aggregate_failures: true, type: :reque
     end
   end
 
+  describe 'viewer' do
+    it 'tells a managers-only user apart', authenticated_as: :manager do
+      get '/api/v1/ticket_approval/viewer'
+      expect(json_response).to eq('enabled' => true, 'manager_only' => true)
+    end
+
+    it 'is false for agents', authenticated_as: :agent do
+      get '/api/v1/ticket_approval/viewer'
+      expect(json_response).to eq('enabled' => true, 'manager_only' => false)
+    end
+  end
+
+  describe 'managers for a new ticket', authenticated_as: :agent do
+    it 'lists every manager, whatever the team' do
+      manager
+      other_manager = create_manager(firstname: 'Other')
+
+      get '/api/v1/ticket_approval/managers'
+
+      expect(json_response['enabled']).to be(true)
+      expect(json_response['managers']).to include(
+        { 'id' => manager.id, 'name' => manager.fullname },
+        { 'id' => other_manager.id, 'name' => other_manager.fullname },
+      )
+    end
+  end
+
+  describe 'a waiting ticket' do
+    let(:other_manager) { create_manager(groups: [group]) }
+
+    before do
+      Service::TicketApproval::Request.with_current_user(agent).execute(ticket:, approver: manager, reason: 'Please approve')
+    end
+
+    it 'opens for the chosen manager', authenticated_as: :manager do
+      get "/api/v1/tickets/#{ticket.id}"
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it 'is hidden from other managers and from the team', authenticated_as: :other_manager do
+      get "/api/v1/tickets/#{ticket.id}"
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
+  describe 'manager dashboard' do
+    let(:approved_ticket) { create(:ticket, group:, state_name: 'open') }
+
+    before do
+      Service::TicketApproval::Request.with_current_user(agent).execute(ticket:, approver: manager, reason: 'Please approve')
+      Service::TicketApproval::Request.with_current_user(agent).execute(ticket: approved_ticket, approver: manager, reason: 'Laptop')
+      Service::TicketApproval::Decide.with_current_user(manager).execute(ticket: approved_ticket.reload, decision: 'approved', comment: 'Fine')
+      TicketApproval.where(ticket_id: approved_ticket.id).update_all(decided_at: 4.days.ago)
+    end
+
+    it "sums up the manager's own approvals", authenticated_as: :manager do
+      get '/api/v1/ticket_approval/dashboard'
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response['waiting']).to include('count' => 1, 'overdue' => false)
+      expect(json_response['decisions']).to include('approved' => 1, 'denied' => 0, 'approval_rate' => 100)
+      expect(json_response['still_open']).to include('count' => 1)
+      expect(json_response['still_open']['tickets'].first).to include('number' => approved_ticket.number)
+      expect(json_response['recent'].first).to include('state' => 'approved', 'comment' => 'Fine', 'requested_by' => agent.fullname)
+    end
+
+    it 'is for managers only', authenticated_as: :agent do
+      get '/api/v1/ticket_approval/dashboard'
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
+
   describe 'admin switch' do
     it 'turns the feature and its overviews on and off', authenticated_as: -> { create(:admin) } do
       put '/api/v1/ticket_approval/settings', params: { enabled: false }, as: :json
       expect(json_response).to include('enabled' => false)
-      expect(Overview.where(link: %w[awaiting_my_approval approval_decisions]).pluck(:active).uniq).to eq([false])
+      expect(Overview.where(link: %w[awaiting_my_approval sent_for_approval]).pluck(:active).uniq).to eq([false])
 
       put '/api/v1/ticket_approval/settings', params: { enabled: true }, as: :json
       expect(Studenthub::TicketApproval.enabled?).to be(true)
       expect(json_response['overviews'].pluck('active').uniq).to eq([true])
+    end
+
+    it 'sends waiting tickets back to their teams when turned off', authenticated_as: -> { create(:admin) } do
+      Service::TicketApproval::Request.with_current_user(agent).execute(ticket:, approver: manager, reason: 'Please approve')
+
+      put '/api/v1/ticket_approval/settings', params: { enabled: false }, as: :json
+
+      expect(ticket.reload).to have_attributes(group_id: group.id, approval_state: nil)
+      expect(TicketApproval.last.state).to eq('cancelled')
+    end
+
+    it 'switches the SLA pause', authenticated_as: -> { create(:admin) } do
+      Studenthub::TicketApproval::WaitingGroup.ensure!
+
+      put '/api/v1/ticket_approval/settings', params: { pause_sla: false }, as: :json
+
+      expect(json_response).to include('enabled' => true, 'pause_sla' => false)
+      expect(json_response['group']).to include('name' => 'Managers')
     end
 
     it 'is for admins only', authenticated_as: :agent do

@@ -21,12 +21,6 @@ class Service::TicketApproval::Base < Service::Base
     false
   end
 
-  def can_read_ticket?(user)
-    TicketPolicy.new(user, ticket).show?
-  rescue Pundit::NotAuthorizedError, Exceptions::Forbidden
-    false
-  end
-
   def current_round
     TicketApproval.pending.where(ticket_id: ticket.id).reorder(:id).last
   end

@@ -1,6 +1,6 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# The chosen manager (or an admin) approves or denies a ticket.
+# The chosen manager (or an admin) approves or denies a ticket; it goes back to its team.
 class Service::TicketApproval::Decide < Service::TicketApproval::Base
   DECISIONS = %w[approved denied].freeze
 
@@ -18,7 +18,7 @@ class Service::TicketApproval::Decide < Service::TicketApproval::Base
     validate!(approval)
 
     write!(
-      ticket_changes: { approval_state: decision },
+      ticket_changes: { approval_state: decision, **Studenthub::TicketApproval::WaitingGroup.return_changes(ticket, approval) },
       note:           {
         subject: decision == 'approved' ? __('Approved') : __('Denied'),
         body:    note_body,

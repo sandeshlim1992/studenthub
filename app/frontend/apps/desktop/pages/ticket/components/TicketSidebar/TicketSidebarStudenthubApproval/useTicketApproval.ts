@@ -26,9 +26,7 @@ export interface ApprovalRound {
   decided_at: string | null
 }
 
-export interface ApprovalManager extends ApprovalUser {
-  can_open_ticket: boolean
-}
+export type ApprovalManager = ApprovalUser
 
 export interface ApprovalStatus {
   enabled: boolean

@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import LayoutMain from '#desktop/components/layout/LayoutMain.vue'
@@ -11,6 +11,9 @@ import { useOnlineNotificationCount } from '#shared/entities/online-notification
 import { useOnlineNotificationList } from '#shared/entities/online-notification/composables/useOnlineNotificationList.ts'
 import type { OnlineNotification } from '#shared/graphql/types.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
+
+import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
+import StudenthubManagerDashboard from '#desktop/pages/dashboard/components/StudenthubManagerDashboard.vue'
 
 const router = useRouter()
 const session = useSessionStore()
@@ -165,9 +168,17 @@ const refreshAll = async () => {
   await Promise.all([fetchStats(), fetchActivityStream()])
 }
 
-onMounted(() => {
-  refreshAll()
-})
+// Student Hub: managers without another staff role get their own dashboard (approvals) and
+// none of the agent stats below.
+const { isLoaded: isViewerLoaded, isManagerOnly } = useStudenthubApprovalViewer()
+
+watch(
+  isViewerLoaded,
+  (loaded) => {
+    if (loaded && !isManagerOnly.value) refreshAll()
+  },
+  { immediate: true },
+)
 
 // Navigation Handlers (Vue native routes)
 const goToCreateTicket = () => {
@@ -391,7 +402,8 @@ const getActivityDescription = (item: ActivityItem) => {
 </script>
 
 <template>
-  <LayoutMain background-variant="tertiary" class="p-6 md:p-8 bg-slate-50 dark:bg-slate-900/60 min-h-screen">
+  <StudenthubManagerDashboard v-if="isManagerOnly" />
+  <LayoutMain v-else-if="isViewerLoaded" background-variant="tertiary" class="p-6 md:p-8 bg-slate-50 dark:bg-slate-900/60 min-h-screen">
     <div class="max-w-[1440px] mx-auto space-y-8 select-none font-sans text-slate-800 dark:text-slate-100">
       
       <!-- HERO HEADER BAR -->
@@ -453,7 +465,7 @@ const getActivityDescription = (item: ActivityItem) => {
           <!-- New Ticket Native Vue Button -->
           <button
             type="button"
-            class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-all duration-200 hover:scale-102 hover:shadow-md hover:shadow-blue-500/20 active:scale-95 cursor-pointer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-on-app bg-app hover:bg-app-hover rounded-xl shadow-xs transition-all duration-200 hover:scale-102 hover:shadow-md active:scale-95 cursor-pointer"
             @click="goToCreateTicket"
           >
             <svg class="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -775,7 +787,7 @@ const getActivityDescription = (item: ActivityItem) => {
 
             <div class="relative z-10 pt-4 border-t border-slate-100 dark:border-slate-700/80 flex items-center justify-between text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300">
               <span>{{ __('Average per agent:') }} {{ loadMeasure.avg }}</span>
-              <span class="text-blue-600 dark:text-blue-400 font-bold text-xs sm:text-sm inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              <span class="text-app dark:text-slate-100 font-bold text-xs sm:text-sm inline-flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                 {{ __('View Tickets') }} →
               </span>
             </div>

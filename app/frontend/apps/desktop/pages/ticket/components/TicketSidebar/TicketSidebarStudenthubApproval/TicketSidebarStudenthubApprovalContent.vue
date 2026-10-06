@@ -50,17 +50,9 @@ const stateVariants: Record<string, BadgeVariant> = {
   cancelled: 'neutral',
 }
 
-// Zammad's select treats "disabled" options as expandable groups, so managers who
-// can't open this ticket are left out of the list and named in a note instead.
-const selectableManagers = computed(() =>
-  (status.value?.managers ?? []).filter((manager) => manager.can_open_ticket),
-)
-const blockedManagerNames = computed(() =>
-  (status.value?.managers ?? [])
-    .filter((manager) => !manager.can_open_ticket)
-    .map((manager) => manager.name)
-    .join(', '),
-)
+// Every manager, whatever the team: the ticket waits in the Managers group, where the chosen
+// manager can open it.
+const selectableManagers = computed(() => status.value?.managers ?? [])
 
 const requestSchema = computed(
   () =>
@@ -186,23 +178,12 @@ const roundTime = (round: ApprovalRound) => round.decided_at || round.requested_
             <CommonLabel v-if="status.managers.length === 0" size="small">
               {{ $t('There are no managers yet. Give someone the Managers role first.') }}
             </CommonLabel>
-            <CommonLabel v-else-if="selectableManagers.length === 0" size="small">
-              {{
-                $t(
-                  "None of the managers can open this ticket (%s). Give the Managers role read access to this ticket's group.",
-                  blockedManagerNames,
-                )
-              }}
-            </CommonLabel>
             <template v-else>
               <Form
                 ref="requestForm"
                 :schema="requestSchema"
                 @submit="sendForApproval($event as FormSubmitData<{ approver_id: number | string; reason: string }>)"
               />
-              <CommonLabel v-if="blockedManagerNames" size="small" class="text-gray-100 dark:text-neutral-400">
-                {{ $t("Not listed because they can't open this ticket: %s", blockedManagerNames) }}
-              </CommonLabel>
               <div>
                 <CommonButton
                   type="submit"

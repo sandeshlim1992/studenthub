@@ -46,6 +46,20 @@ RSpec.describe Studenthub::TicketViews, aggregate_failures: true do
       expect(sections[:hidden_overview_ids]).to include(vle_team.id)
     end
 
+    it 'lists every Teams view for admins and none for managers, unless they are admins too' do
+      Studenthub::TicketViews::Teams.sync!
+      team_ids = [service_desk, vle].map { |group| Overview.find_by(link: Studenthub::TicketViews::Teams.link(group)).id }
+      manager  = create_manager(groups: [service_desk])
+      manager.roles << agent_role
+      admin_manager = create(:admin)
+      admin_manager.roles << Role.find_by(name: Studenthub::TicketApproval::MANAGER_ROLE)
+
+      expect(described_class.sections_for(create(:admin))[:teams].pluck(:overview_id)).to include(*team_ids)
+      expect(described_class.sections_for(admin_manager)[:teams].pluck(:overview_id)).to include(*team_ids)
+      expect(described_class.sections_for(manager)[:teams]).to be_empty
+      expect(described_class.sections_for(manager)[:hidden_overview_ids]).to include(*team_ids)
+    end
+
     it "keeps admins' one-group overviews under My views for members and hides them for others" do
       sections = described_class.sections_for(agent)
 

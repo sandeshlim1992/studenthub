@@ -6,7 +6,8 @@
 # - The Ticket Approvals overviews ("Awaiting my approval" for managers, "Sent for approval" for
 #   agents) are listed under Approval needed.
 # - Teams lists the Student Hub team views (Studenthub::TicketViews::Teams: one per group, its open
-#   tickets) of the groups the agent can read. Other overviews that show one group's tickets
+#   tickets) of the groups the agent can read through their roles. Admins can read every team group
+#   (Teams.grant_admin_role!); managers don't get Teams, unless they're admins too. Other overviews that show one group's tickets
 #   (condition "group is X" and nothing about the current user) stay under My views for members
 #   of that group. Both kinds are hidden for everyone else, who could not see the tickets anyway.
 # - Institution overviews are created by Studenthub::TicketViews::Setup (links below) and are
@@ -24,6 +25,7 @@ module Studenthub::TicketViews
     member_group_ids = user.group_ids_access('read')
     institution_links = INSTITUTIONS.keys.map { |key| institution_link(key) }
     approval_links = Studenthub::TicketApproval::Setup::OVERVIEW_LINKS
+    no_teams = Studenthub::TicketApproval.manager?(user) && !user.permissions?('admin')
 
     result = { teams: [], hidden_overview_ids: [], institution_overview_ids: [], approval_overview_ids: [] }
 
@@ -41,7 +43,7 @@ module Studenthub::TicketViews
       group_id = team_group_id(overview)
       next if !group_id
 
-      if member_group_ids.exclude?(group_id)
+      if member_group_ids.exclude?(group_id) || (no_teams && Studenthub::TicketViews::Teams.team_view?(overview))
         result[:hidden_overview_ids] << overview.id
       elsif Studenthub::TicketViews::Teams.team_view?(overview)
         result[:teams] << { overview_id: overview.id, group_id: group_id }

@@ -33,6 +33,16 @@ RSpec.describe Studenthub::TicketViews::Teams, aggregate_failures: true do
     expect(team_view(waiting)).to be_nil
   end
 
+  it 'gives the Admin role agent permission and full access to every team group' do
+    vle = create(:group, name: 'VLE')
+    described_class.sync!
+
+    admin_role = Role.find_by(name: 'Admin')
+    expect(admin_role.with_permission?('ticket.agent')).to be(true)
+    expect(admin_role.group_ids_access('full')).to include(service_desk.id, vle.id)
+    expect(team_view(vle).role_ids).to include(admin_role.id)
+  end
+
   it 'syncs in the background when a group changes', performs_jobs: true do
     # The group above already queued one; a waiting job is never queued twice.
     ActiveJobLock.destroy_all

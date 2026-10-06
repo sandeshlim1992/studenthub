@@ -1,13 +1,14 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 # Student Hub: the Teams views, one per group with its open tickets, grouped by agent. The views
-# panel lists them for the agents who can read that group (Studenthub::TicketViews.sections_for).
-# They follow the groups: a new group gets a view, a renamed one is renamed, an inactive or
+# panel lists them for the agents who can read that group, all of them for admins, none for
+# managers (Studenthub::TicketViews.sections_for). They follow the groups: a new group gets a view, a renamed one is renamed, an inactive or
 # removed one loses it. Kept up to date by sync!, which runs in the background whenever groups,
 # roles or ticket states change (see Sync). Admins shouldn't edit these overviews.
 module Studenthub::TicketViews::Teams
   LINK_PREFIX  = 'studenthub_team_'.freeze
   PRIO_START   = 5000
+  ADMIN_ROLE   = 'Admin'.freeze
   VIEW_COLUMNS = %w[number title customer owner state priority escalation_at created_at].freeze
 
   def self.link(group)
@@ -27,8 +28,26 @@ module Studenthub::TicketViews::Teams
     return if !Overview.table_exists?
 
     wanted = groups
+    grant_admin_role!(wanted)
     Overview.where('link LIKE ?', "#{LINK_PREFIX}%").where.not(link: wanted.map { |group| link(group) }).destroy_all
     wanted.each_with_index { |group, index| ensure_view!(group, PRIO_START + index) }
+  end
+
+  # Admins see every team: the Admin role gets full access to each team group. Zammad only keeps
+  # groups on roles with agent permission, so the Admin role becomes an agent role too.
+  def self.grant_admin_role!(groups)
+    role = Role.find_by(name: ADMIN_ROLE)
+    return if !role
+
+    agent   = role.permissions.exists?(name: 'ticket.agent')
+    missing = groups.map(&:id) - RoleGroup.where(role_id: role.id, access: 'full').pluck(:group_id)
+    return if agent && missing.empty?
+
+    Role.transaction do
+      role.permission_grant('ticket.agent')
+      role.group_ids_access_map = role.saved_group_ids_access_map.merge(missing.index_with { 'full' })
+      role.touch # rubocop:disable Rails/SkipsModelValidations
+    end
   end
 
   def self.ensure_view!(group, prio)
@@ -72,7 +91,7 @@ module Studenthub::TicketViews::Teams
     campus ? VIEW_COLUMNS.dup.insert(4, 'campus') : VIEW_COLUMNS
   end
 
-  # Agent roles, not Managers: a manager without an agent role has no group to see anyway.
+  # Agent roles (Admin included, see grant_admin_role!), not Managers: managers don't get Teams.
   def self.agent_role_ids
     Role.with_permissions('ticket.agent').where(active: true)
       .where.not(name: Studenthub::TicketApproval::MANAGER_ROLE).reorder(:id).pluck(:id)

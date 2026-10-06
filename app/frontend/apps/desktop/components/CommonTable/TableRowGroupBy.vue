@@ -17,6 +17,8 @@ export interface Props {
   groupByValueIndex: number
   groupByRowCounts: string[][] | undefined
   remainingItems: number
+  // Student Hub: a fixed label instead of the attribute value (pinned group).
+  label?: string
 }
 
 const props = defineProps<Props>()
@@ -38,7 +40,9 @@ const completedGroup = computed(() => {
       <CommonDivider class="mt-2 mb-1 group-first:mt-0" />
       <div class="h-10 p-2.5">
         <CommonLabel class="cursor-default truncate text-stone-200! dark:text-neutral-500!">
+          <template v-if="label">{{ $t(label) }}</template>
           <ObjectAttributeContent
+            v-else
             mode="table"
             :attribute="attribute as unknown as ObjectAttribute"
             :object="item"

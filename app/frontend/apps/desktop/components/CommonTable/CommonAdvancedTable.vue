@@ -286,11 +286,16 @@ const groupByAttributeItemName = computed(() => {
   return groupByAttribute.value.dataOption?.belongs_to || groupByAttribute.value.name
 })
 
+// Student Hub: rows of the pinned group share one value, so they form one group.
+const PINNED_GROUP_VALUE = '__studenthub_pinned_group__'
+
 const extractGroupByValue = (
   item: TableAdvancedItem,
   name: string,
   isRelation: boolean,
 ): string | number => {
+  if (props.pinnedGroup?.matches(item)) return PINNED_GROUP_VALUE
+
   // Relation: Use related object's identifier in case we're dealing with a relation,
   //   otherwise use item's own value (e.g. state of a ticket).
   const value = (isRelation && item[name] ? (item[name] as ObjectLike).id : item[name]) as
@@ -553,6 +558,7 @@ watch(
           :group-by-value-index="currentGroupByValueIndex"
           :group-by-row-counts="groupByRowCounts"
           :remaining-items="remainingItems"
+          :label="pinnedGroup?.matches(item) ? pinnedGroup.label : undefined"
         />
         <TableRow
           :item="item"

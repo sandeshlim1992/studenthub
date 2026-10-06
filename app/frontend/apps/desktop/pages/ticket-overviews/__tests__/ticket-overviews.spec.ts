@@ -49,7 +49,7 @@ describe('TicketOverviews', () => {
 
     expect(
       within(primaryNavigationSidebar).getByRole('link', {
-        name: 'Overviews',
+        name: 'Tickets',
       }),
     ).toHaveAttribute('href', expect.stringContaining('/desktop/tickets/view'))
 

@@ -6,22 +6,24 @@
 
 :root {
   --sh-app: #14234b;
-  --sh-on-app: #ffffff;
-  --sh-app-hover: color-mix(in srgb, var(--sh-app) 84%, black);
-  --sh-app-soft: color-mix(in srgb, var(--sh-app) 9%, white);
-  --sh-app-border: color-mix(in srgb, var(--sh-app) 35%, white);
-  --sh-on-app-muted: color-mix(in srgb, var(--sh-on-app) 72%, var(--sh-app));
-  --sh-on-app-hover: color-mix(in srgb, var(--sh-on-app) 12%, transparent);
-  --sh-on-app-active: color-mix(in srgb, var(--sh-on-app) 18%, transparent);
-
+  --sh-on-app: #fff;
+  --sh-app-hover: color-mix(in sRGB, var(--sh-app) 84%, black);
+  --sh-app-soft: color-mix(in sRGB, var(--sh-app) 9%, white);
+  --sh-app-border: color-mix(in sRGB, var(--sh-app) 35%, white);
+  --sh-on-app-muted: color-mix(in sRGB, var(--sh-on-app) 72%, var(--sh-app));
+  --sh-on-app-hover: color-mix(in sRGB, var(--sh-on-app) 12%, transparent);
+  --sh-on-app-active: color-mix(in sRGB, var(--sh-on-app) 18%, transparent);
   --sh-page: #f4f5f7;
   --sh-panel: #fafbfc;
-  --sh-card: #ffffff;
+  --sh-card: #fff;
   --sh-ink: #1d2330;
   --sh-ink-2: #4a5262;
   --sh-muted: #5f6878;
   --sh-line: #dfe3e8;
   --sh-zebra: #f8f9fb;
+  --sh-row-hover: color-mix(in sRGB, var(--sh-app) 6%, white);
+  --sh-row-checked: color-mix(in sRGB, var(--sh-app) 10%, white);
+  --sh-mono: ui-monospace, 'SFMono-Regular', menlo, consolas, monospace;
 }
 
 @theme inline {
@@ -40,6 +42,7 @@
 #primary-sidebar .active-nav-item {
   background-color: var(--sh-on-app-active) !important;
   box-shadow: inset 3px 0 0 var(--sh-on-app) !important;
+
   --tw-ring-color: transparent !important;
 }
 
@@ -51,4 +54,1191 @@
 #primary-sidebar .text-slate-400,
 #primary-sidebar .text-slate-400\/80 {
   color: var(--sh-on-app-muted) !important;
+}
+
+/* ---- Ticket lists (overviews and search results): white card, quiet rows ---- */
+.sh-ticket-table-card {
+  background-color: var(--sh-card);
+  border: 1px solid var(--sh-line);
+  border-radius: 0.5rem;
+  overflow: clip; /* not hidden: keeps the sticky header working */
+}
+
+/* Zammad's rows use these colours for stripes, hover and the pressed/focused row. */
+.sh-ticket-table {
+  --color-blue-200: var(--sh-zebra);
+  --color-blue-600: var(--sh-row-hover);
+  --color-blue-800: var(--sh-app);
+
+  width: 100%;
+}
+
+.sh-ticket-table thead th {
+  border-bottom: 1px solid var(--sh-app-hover);
+  font-weight: 600;
+}
+
+/* Square rows; the clip still keeps the ticked-row bar (absolutely positioned) inside its row. */
+.sh-ticket-table tbody tr {
+  clip-path: inset(0) !important;
+}
+
+.sh-ticket-table tbody td {
+  border-bottom: 1px solid var(--sh-line);
+}
+
+.sh-ticket-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sh-ticket-table tbody tr:has([role='checkbox'][aria-checked='true']) {
+  background-color: var(--sh-row-checked);
+}
+
+.sh-ticket-table [role='checkbox'][aria-checked='true']::before {
+  width: 3px;
+}
+
+.sh-ticket-table td[headers='number-header'] a,
+.sh-ticket-table td[headers='number-header'] a * {
+  font-family: var(--sh-mono) !important; /* beats the global Inter rule in custom-theme.css */
+  font-size: 0.8125rem;
+  color: var(--sh-app);
+}
+
+/* One colour for all titles: Zammad's red (high) / grey (low) priority titles are replaced by
+   the priority column. */
+.sh-ticket-table td[headers='title-header'] a {
+  color: var(--sh-ink);
+}
+
+.sh-ticket-table td[headers='title-header'] a {
+  font-weight: 600;
+}
+
+/* ---- Views panel next to the ticket list ---- */
+#ticket-overviews {
+  background-color: var(--sh-panel);
+}
+
+/* Overrides Tailwind's "!" utilities, which only another rule in the same layer can beat. */
+@layer utilities {
+  #ticket-overviews .active-overview-item,
+  #ticket-overviews .active-overview-item:hover {
+    background-color: var(--sh-app-soft) !important;
+    color: var(--sh-app) !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
+  }
+
+  #ticket-overviews a:focus-visible {
+    box-shadow: 0 0 0 2px var(--sh-app) !important;
+  }
+
+  /* The count badge: the link's last span after the (growing) label. */
+  #ticket-overviews nav a > span:last-child:not(.grow) {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: var(--sh-muted) !important;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #ticket-overviews nav a.active-overview-item > span:last-child:not(.grow) {
+    color: var(--sh-app) !important;
+  }
+}
+
+/* ---- Ticket screen ---- */
+.sh-ticket-header {
+  background-color: var(--sh-card) !important;
+  border-bottom-color: var(--sh-line) !important;
+}
+
+.sh-ticket-number {
+  font-family: var(--sh-mono) !important;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--sh-app);
+}
+
+.sh-ticket-header [role='heading'] {
+  font-weight: 700 !important;
+  color: var(--sh-ink);
+}
+
+/* Header actions (Reply, Add note, Assign, Change status, Merge, Resolve) */
+.sh-header-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.375rem;
+  background-color: var(--sh-card);
+  color: var(--sh-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sh-header-action:hover {
+  background-color: var(--sh-app-soft);
+  border-color: var(--sh-app-border);
+}
+
+.sh-header-action:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: 2px;
+}
+
+.sh-header-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.sh-header-action--primary {
+  background-color: var(--sh-app);
+  border-color: var(--sh-app);
+  color: var(--sh-on-app);
+}
+
+.sh-header-action--primary:hover {
+  background-color: var(--sh-app-hover);
+  border-color: var(--sh-app-hover);
+}
+
+/* What a message is: Email, Reply, Internal note… */
+.sh-article-kind {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 0.1875rem;
+  font-size: 0.65625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.sh-article-kind[data-tone='incoming'] { background-color: #e3edf8; color: #1f5aa6; }
+.sh-article-kind[data-tone='reply'] { background-color: color-mix(in sRGB, var(--sh-app) 12%, white); color: var(--sh-app); }
+.sh-article-kind[data-tone='internal'] { background-color: #f6e3b0; color: #6b4600; }
+.sh-article-kind[data-tone='system'] { background-color: #eceef2; color: #4a5262; }
+
+/* Ticket tab: read-only Details list and SLA card (Halo mockup) */
+.sh-details-list {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 40%) 1fr;
+  gap: 0.6rem 0.75rem;
+  padding-block: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.sh-details-list dt {
+  color: var(--sh-muted);
+}
+
+.sh-details-list dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+  color: var(--sh-ink);
+}
+
+.sh-details-list__empty {
+  color: var(--sh-muted);
+  font-weight: 400;
+}
+
+.sh-details-list__missing {
+  display: inline-block;
+  padding: 0 0.375rem;
+  border-radius: 0.25rem;
+  background-color: #fff1cc;
+  color: #8f5b00;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sh-details-list__unsaved {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-inline-start: 0.375rem;
+  border-radius: 9999px;
+  background-color: #d18a00;
+  vertical-align: middle;
+}
+
+.sh-details-edit {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sh-app);
+}
+
+.sh-details-edit:hover,
+.sh-details-edit:focus-visible {
+  background-color: color-mix(in sRGB, var(--sh-app) 10%, transparent);
+}
+
+.sh-sla-box {
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.625rem;
+  background-color: var(--sh-card);
+}
+
+.sh-sla-box__rows {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.sh-sla-box__rows dt {
+  white-space: nowrap;
+  color: var(--sh-ink-2);
+}
+
+.sh-sla-box__rows dd {
+  justify-self: end;
+  text-align: end;
+  white-space: nowrap;
+  color: var(--sh-ink);
+}
+
+.sh-sla-box__bar {
+  grid-column: 1 / -1;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: #e3e6ea;
+}
+
+.sh-sla-box__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+/* Approval card under the last message (managers) */
+.sh-approval-card {
+  --sh-approval-tone: #d18a00;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in sRGB, var(--sh-approval-tone) 35%, var(--sh-line));
+  border-radius: 0.625rem;
+  background-color: color-mix(in sRGB, var(--sh-approval-tone) 4%, var(--sh-card));
+}
+
+.sh-approval-card[data-state='approved'] {
+  --sh-approval-tone: #16794a;
+}
+
+.sh-approval-card[data-state='denied'] {
+  --sh-approval-tone: #b4232f;
+}
+
+.sh-approval-card__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sh-ink);
+}
+
+.sh-approval-card__reason {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  background-color: var(--sh-panel);
+  color: var(--sh-ink);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Ticket screen: sidebar icons on the right edge, other panels open beside them */
+.sh-side-rail-wrap {
+  display: flex;
+  flex-shrink: 0;
+  height: 100%;
+  min-height: 0;
+}
+
+.sh-side-rail-wrap--hidden {
+  display: contents;
+}
+
+.sh-side-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.625rem;
+  border-inline-start: 1px solid var(--sh-line);
+  background-color: var(--sh-panel);
+}
+
+.sh-side-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(20rem, 30vw);
+  min-height: 0;
+  border-inline-start: 1px solid var(--sh-line);
+  background-color: var(--sh-panel);
+}
+
+/* Room for the close button next to the panel's own menu */
+.sh-side-panel__body > div:first-child {
+  padding-inline-end: 2.75rem;
+}
+
+.sh-side-panel__close {
+  position: absolute;
+  top: 0.875rem;
+  inset-inline-end: 0.75rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  color: var(--sh-muted);
+}
+
+.sh-side-panel__close:hover,
+.sh-side-panel__close:focus-visible {
+  background-color: color-mix(in sRGB, var(--sh-app) 10%, transparent);
+  color: var(--sh-ink);
+}
+
+/* Section headings of the ticket sidebar in small capitals, like DETAILS / SLA / RELATED */
+@layer utilities {
+  #content-sidebar header h3 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--sh-muted);
+  }
+}
+
+/* Main button of the bottom bars (Update, Create…) in the application colour, not yellow */
+@layer utilities {
+  #content-sidebar {
+    background-color: var(--sh-panel) !important;
+  }
+
+  footer button.bg-yellow-300,
+  .sh-approval-card button.bg-yellow-300 {
+    background-color: var(--sh-app) !important;
+    color: var(--sh-on-app) !important;
+  }
+
+  footer button.bg-yellow-300:hover,
+  .sh-approval-card button.bg-yellow-300:hover {
+    background-color: var(--sh-app-hover) !important;
+  }
+}
+
+/* Tables everywhere (ticket lists, search, admin lists): header row in the application colour
+   with bold white column titles, no visible dividers between them (the resize handle appears on
+   hover or keyboard focus), bold group labels ("Test Agent 5") and a bold page title ("Ticket
+   distribution by Agents"). Tables inside messages and the editor keep their own look. */
+@layer utilities {
+  :is(thead, thead > tr, thead > tr > th):not(:where(.inner-article-body, [contenteditable], .tiptap) *) {
+    /* Zammad's focus rings */
+    --color-blue-800: var(--sh-on-app);
+
+    border-color: var(--sh-app-hover) !important;
+    background-color: var(--sh-app) !important;
+    color: var(--sh-on-app) !important;
+  }
+
+  thead
+    > tr
+    > th:not(:where(.inner-article-body, [contenteditable], .tiptap) *)
+    :is(span, label, a, button, svg, [role='button'], [role='checkbox']) {
+    color: var(--sh-on-app) !important;
+  }
+
+  thead > tr > th[scope='col'] :is(span, label) {
+    font-weight: 700 !important;
+  }
+
+  thead > tr > th[scope='col'] [role='button']:hover > span {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  thead > tr > th[scope='col'] > button.cursor-col-resize\! {
+    opacity: 0;
+    background-color: var(--sh-on-app-muted) !important;
+    transition: opacity 0.15s;
+  }
+
+  thead > tr > th[scope='col'] > button.cursor-col-resize\!:is(:hover, :focus-visible) {
+    background-color: var(--sh-on-app) !important;
+  }
+
+  thead > tr > th[scope='col']:hover > button.cursor-col-resize\!,
+  thead > tr > th[scope='col'] > button.cursor-col-resize\!:focus-visible {
+    opacity: 1;
+  }
+
+  tbody > tr.group > td[colspan] > div.h-10 > * {
+    font-weight: 700 !important;
+  }
+
+  :root:not([data-theme='dark']) tbody > tr.group > td[colspan] > div.h-10 > * {
+    color: var(--sh-ink) !important;
+  }
+
+  nav > ol > li > h1 {
+    font-weight: 700;
+  }
+
+  :root:not([data-theme='dark']) nav > ol > li > h1 {
+    color: var(--sh-ink);
+  }
+}
+
+/* Staff "New ticket" screen: a page bar (title and actions), then the main column (who, what,
+   more details) and a narrower side column (triage, SLA, approval). */
+.sh-create-bar {
+  /* Zammad's accents (focus rings) in the application colour */
+  --color-blue-800: var(--sh-app);
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem 0.875rem;
+  min-height: 3.75rem;
+  padding: 0.625rem 1.25rem;
+  border-bottom: 1px solid var(--sh-line);
+  background-color: var(--sh-card);
+}
+
+.sh-create-bar__title {
+  min-width: 0;
+  margin-inline-end: auto;
+  overflow-wrap: anywhere;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--sh-ink);
+}
+
+.sh-create-bar__main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sh-create {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+
+  /* "More details" comes after the side column in the page (keyboard order), but sits under
+     the main column on wide screens. */
+  grid-template-areas:
+    'main side'
+    'more side';
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  gap: 1rem 1.25rem;
+  width: 100%;
+  max-width: 84rem;
+  margin-inline: auto;
+}
+
+/* One column when the space is narrow, also when a panel opens beside the form */
+.sh-create-scroll {
+  container: sh-create / inline-size;
+}
+
+@container sh-create (max-width: 56rem) {
+  .sh-create {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'main'
+      'side'
+      'more';
+    grid-template-rows: auto;
+  }
+}
+
+.sh-create__column {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.sh-create__column--side {
+  grid-area: side;
+}
+
+.sh-create__column--more {
+  grid-area: more;
+}
+
+/* "Group by" above a ticket view (the agent's own grouping), its menu button in the
+   application colour */
+@layer utilities {
+  .sh-view-group-by__button {
+    color: var(--sh-app) !important;
+    font-weight: 600;
+  }
+}
+
+.sh-view-group-by {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-end: 0.5rem;
+}
+
+.sh-view-group-by__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sh-ink-2);
+  white-space: nowrap;
+}
+
+/* "Start from a template" above the first panel */
+.sh-template-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.625rem 1rem;
+  padding: 0.75rem 1.125rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.5rem;
+  background-color: var(--sh-card);
+}
+
+.sh-template-picker__text {
+  min-width: 0;
+}
+
+.sh-template-picker__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sh-ink);
+}
+
+.sh-template-picker__hint {
+  font-size: 0.8125rem;
+  color: var(--sh-ink-2);
+}
+
+.sh-template-picker__chevron {
+  flex-shrink: 0;
+  transition: rotate 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-template-picker__chevron {
+    transition: none;
+  }
+}
+
+.sh-create-panel {
+  /* Zammad's fields adapt to their container (e.g. button labels), and so do the rows below */
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+  padding: 1.125rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.5rem;
+  background-color: var(--sh-card);
+}
+
+.sh-create-panel__title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sh-ink);
+}
+
+.sh-create__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.875rem;
+}
+
+/* Two fields side by side: a wide one and a narrow one, or two equal ones */
+.sh-create__row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 0.875rem;
+}
+
+.sh-create__row--even,
+.sh-create__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.875rem;
+}
+
+@container (max-width: 34rem) {
+  .sh-create__row,
+  .sh-create__row--even,
+  .sh-create__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Page bar buttons: Cancel as a text link, Save draft outlined, Create in the application colour */
+@layer utilities {
+  .sh-create-bar__cancel {
+    background: none !important;
+    color: var(--sh-ink-2) !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .sh-create-bar__cancel:hover {
+    color: var(--sh-ink) !important;
+  }
+
+  .sh-create-bar__draft {
+    border: 1px solid #878f9e !important;
+    background-color: var(--sh-card) !important;
+    color: var(--sh-ink) !important;
+    font-weight: 600;
+  }
+
+  .sh-create-bar__draft[aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  .sh-create-bar__draft:hover:not(:disabled) {
+    border-color: var(--sh-ink-2) !important;
+  }
+
+  .sh-template-picker__button {
+    border: 1px solid #878f9e !important;
+    background-color: var(--sh-card) !important;
+    color: var(--sh-ink) !important;
+    font-weight: 600;
+  }
+
+  .sh-template-picker__button:hover,
+  .sh-template-picker__button[aria-expanded='true'] {
+    border-color: var(--sh-ink-2) !important;
+  }
+
+  .sh-create-bar__create {
+    background-color: var(--sh-app) !important;
+    color: var(--sh-on-app) !important;
+    font-weight: 600;
+  }
+
+  .sh-create-bar__create:hover:not(:disabled) {
+    background-color: var(--sh-app-hover) !important;
+  }
+}
+
+/* Priority as buttons in each level's colour (all pass 4.5:1 on white and as fills) */
+.sh-priority {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.sh-priority__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sh-ink-2);
+}
+
+.sh-priority__buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(4.25rem, 1fr));
+  gap: 0.375rem;
+}
+
+.sh-priority__button {
+  min-width: 0;
+  min-height: 2.5rem;
+  padding: 0 0.5rem;
+  border: 1px solid #878f9e;
+  border-radius: 0.5rem;
+  background-color: var(--sh-card);
+  color: var(--sh-priority-color);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease-out,
+    border-color 0.15s ease-out,
+    color 0.15s ease-out;
+}
+
+.sh-priority__button:hover {
+  border-color: var(--sh-priority-color);
+}
+
+.sh-priority__button:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: 2px;
+}
+
+.sh-priority__button--selected {
+  border-color: var(--sh-priority-color);
+  background-color: var(--sh-priority-color);
+  color: #fff;
+}
+
+/* Customer's email: read-only, so it reads as information rather than a field */
+.sh-customer-email {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.sh-customer-email__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sh-ink-2);
+}
+
+.sh-customer-email__value {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  background-color: var(--sh-panel);
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+  color: var(--sh-ink);
+}
+
+.sh-customer-email__value[data-empty] {
+  color: var(--sh-muted);
+}
+
+/* SLA for this priority */
+.sh-sla-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.84375rem;
+}
+
+.sh-sla-preview__rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem 0.75rem;
+}
+
+.sh-sla-preview__rows dt {
+  color: var(--sh-ink-2);
+}
+
+.sh-sla-preview__rows dd {
+  text-align: end;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--sh-ink);
+}
+
+.sh-sla-preview__note {
+  font-size: 0.78125rem;
+  color: var(--sh-muted);
+}
+
+/* Form fields of the New ticket screen and of the ticket sidebar's Details edit form: white
+   boxes with a fine border, a ring in the application colour on focus, and an asterisk for
+   required fields. Zammad paints its field boxes with --color-blue-200 (--color-neutral-50 in
+   the sidebar) and its accents with --color-blue-800, so these are remapped inside the forms. */
+:is(.sh-create, .sh-ticket-edit-form) {
+  /* 3.1:1 against white and the Details panel, so every field outline stays identifiable */
+  --sh-field-line: #878f9e;
+  --sh-field-line-strong: #4a5262;
+  --sh-required: #b4232f;
+  --color-blue-200: var(--sh-card);
+  --color-neutral-50: var(--sh-card);
+
+  /* switches, links and focus outlines in the application colour */
+  --color-blue-800: var(--sh-app);
+}
+
+@layer utilities {
+  :is(.sh-create, .sh-ticket-edit-form) .bg-blue-200 {
+    border-radius: 0.5rem !important;
+    background-color: var(--sh-card) !important;
+    box-shadow: inset 0 0 0 1px var(--sh-field-line);
+    transition: box-shadow 0.15s ease-out;
+  }
+
+  :is(.sh-create, .sh-ticket-edit-form) .bg-blue-200:hover {
+    outline: none !important;
+    box-shadow: inset 0 0 0 1px var(--sh-field-line-strong);
+  }
+
+  :is(.sh-create, .sh-ticket-edit-form) .bg-blue-200:focus-within {
+    outline: none !important;
+    box-shadow:
+      inset 0 0 0 1.5px var(--sh-app),
+      0 0 0 3px color-mix(in sRGB, var(--sh-app) 16%, transparent);
+  }
+
+  /* Search inputs inside a field (customer, tags) are part of that field's box */
+  :is(.sh-create, .sh-ticket-edit-form) .bg-blue-200 .bg-blue-200 {
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  /* Editor: the toolbar sits inside the box, so leave the box outline visible around it */
+  :is(.sh-create, .sh-ticket-edit-form) [data-type='editor'] .sticky.-order-1 {
+    margin: 1px 1px 0;
+    border: 0 !important;
+    border-bottom: 1px solid var(--sh-line) !important;
+    border-radius: calc(0.5rem - 1px) calc(0.5rem - 1px) 0 0;
+    background-color: var(--sh-panel) !important;
+  }
+
+  :is(.sh-create, .sh-ticket-edit-form) [data-invalid] .bg-blue-200,
+  :is(.sh-create, .sh-ticket-edit-form) [data-errors] .bg-blue-200 {
+    box-shadow: inset 0 0 0 1.5px var(--sh-required);
+  }
+
+  :is(.sh-create, .sh-ticket-edit-form) [data-invalid] .bg-blue-200:focus-within,
+  :is(.sh-create, .sh-ticket-edit-form) [data-errors] .bg-blue-200:focus-within {
+    box-shadow:
+      inset 0 0 0 1.5px var(--sh-required),
+      0 0 0 3px color-mix(in sRGB, var(--sh-required) 16%, transparent);
+  }
+
+  :is(.sh-create, .sh-ticket-edit-form) .formkit-label {
+    margin-bottom: 0.375rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600;
+    color: var(--sh-ink-2) !important;
+  }
+
+  /* Empty alt text: the fields are already announced as required, so screen readers skip the "*" */
+  :is(.sh-create, .sh-ticket-edit-form) [data-required] .formkit-label::after {
+    content: '*' / '' !important;
+    width: auto !important;
+    height: auto !important;
+    margin-inline-start: 0.2rem !important;
+    border-radius: 0 !important;
+    background: none !important;
+    vertical-align: baseline !important;
+    font-weight: 700;
+    color: var(--sh-required);
+  }
+
+  :is(.sh-create, .sh-ticket-edit-form) .formkit-help {
+    font-size: 0.75rem;
+    color: var(--sh-muted);
+  }
+
+  :is(.sh-create, .sh-ticket-edit-form) input::placeholder,
+  :is(.sh-create, .sh-ticket-edit-form) textarea::placeholder {
+    color: var(--sh-muted) !important;
+  }
+
+  /* Attachments: a quiet drop zone */
+  .sh-create [data-type='file'] .bg-blue-200 {
+    box-shadow: none;
+    border: 1px dashed var(--sh-field-line-strong);
+    background-color: var(--sh-panel) !important;
+  }
+
+  .sh-create [data-type='file'] .bg-blue-200:hover {
+    border-color: var(--sh-app);
+    box-shadow: none;
+    background-color: var(--sh-app-soft) !important;
+    color: var(--sh-app);
+  }
+}
+
+/* Tags and multi-selects: Zammad paints the scroll covers behind the chips in its own grey field
+   colours, which showed as grey blocks on our white fields. Paint them in the field's colour. */
+.select-scroll-shadows.select-scroll-shadows--base {
+  --sh-scroll-cover: var(--color-blue-200);
+}
+
+.select-scroll-shadows.select-scroll-shadows--alt {
+  --sh-scroll-cover: var(--color-neutral-50);
+}
+
+[data-theme='dark'] .select-scroll-shadows.select-scroll-shadows--base {
+  --sh-scroll-cover: var(--color-gray-700);
+}
+
+[data-theme='dark'] .select-scroll-shadows.select-scroll-shadows--alt {
+  --sh-scroll-cover: var(--color-gray-500);
+}
+
+.select-scroll-shadows.select-scroll-shadows--base,
+.select-scroll-shadows.select-scroll-shadows--alt {
+  background-image:
+    linear-gradient(var(--sh-scroll-cover) 30%, transparent),
+    linear-gradient(transparent, var(--sh-scroll-cover) 70%),
+    radial-gradient(farthest-side at 50% 0, rgba(35, 162, 205, 0.5), transparent),
+    radial-gradient(farthest-side at 50% 100%, rgba(35, 162, 205, 0.5), transparent);
+}
+
+/* ---- Ticket screen (minimal Swiss style, colour where it carries meaning) ---- */
+
+/* Zammad's accent colour (links, tags, switches, + buttons, focus rings) is the application
+   colour on the ticket screen, its light hover blue a light tint of it. Light theme only: the
+   application colour is made for white text, not for dark backgrounds. */
+:root:not([data-theme='dark']) #main-content:has(.sh-ticket-view) {
+  --color-blue-800: var(--sh-app);
+  --color-blue-850: var(--sh-app-hover);
+  --color-blue-600: var(--sh-app-soft);
+}
+
+/* Sidebar sections: before each title a solid square in the application colour with a white icon */
+#content-sidebar header:has(~ :is(#ticket-attributes, #ticket-sla, #ticket-tags, #ticket-links, #ticket-subscribers, #ticket-time-accounting, #ticket-ai-knowledge-base-answers)) h3::before {
+  content: '';
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-inline-end: 0.25rem;
+  border-radius: 0.3125rem;
+  background: var(--sh-section-icon) center / 0.75rem no-repeat var(--sh-app);
+}
+
+#content-sidebar header:has(~ #ticket-attributes) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M5 11.5C5 11.2239 5.22386 11 5.5 11H14.5C14.7761 11 15 11.2239 15 11.5C15 11.7761 14.7761 12 14.5 12H5.5C5.22386 12 5 11.7761 5 11.5Z' /%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M5 7.5C5 7.22386 5.22386 7 5.5 7H14.5C14.7761 7 15 7.22386 15 7.5C15 7.77614 14.7761 8 14.5 8H5.5C5.22386 8 5 7.77614 5 7.5Z' /%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M5 3.5C5 3.22386 5.22386 3 5.5 3H14.5C14.7761 3 15 3.22386 15 3.5C15 3.77614 14.7761 4 14.5 4H5.5C5.22386 4 5 3.77614 5 3.5Z' /%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M2 4.5C2.55228 4.5 3 4.05228 3 3.5C3 2.94772 2.55228 2.5 2 2.5C1.44772 2.5 1 2.94772 1 3.5C1 4.05228 1.44772 4.5 2 4.5Z' /%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M2 8.5C2.55228 8.5 3 8.05228 3 7.5C3 6.94772 2.55228 6.5 2 6.5C1.44772 6.5 1 6.94772 1 7.5C1 8.05228 1.44772 8.5 2 8.5Z' /%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M2 12.5C2.55228 12.5 3 12.0523 3 11.5C3 10.9477 2.55228 10.5 2 10.5C1.44772 10.5 1 10.9477 1 11.5C1 12.0523 1.44772 12.5 2 12.5Z' /%3E%3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-sla) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.49999 5.59997C8.49999 5.32383 8.27613 5.09998 7.99999 5.09998C7.72384 5.09998 7.49999 5.32383 7.49999 5.59998L7.5 8.5H4.5C4.22386 8.5 4 8.72386 4 9C4 9.27614 4.22386 9.5 4.5 9.5H8C8.13261 9.5 8.25979 9.44732 8.35355 9.35355C8.44732 9.25978 8.5 9.13261 8.5 9L8.49999 5.59997Z' /%3E%3Cpath d='M6.5 1C6.5 0.723858 6.72386 0.5 7 0.5H9C9.27614 0.5 9.5 0.723858 9.5 1C9.5 1.27614 9.27614 1.5 9 1.5V2.07094C10.3599 2.26553 11.5936 2.85083 12.5838 3.70947C12.5879 3.70514 12.592 3.70087 12.5962 3.69665L12.9498 3.34309L12.5962 2.98954C12.401 2.79428 12.401 2.4777 12.5962 2.28243C12.7915 2.08717 13.1081 2.08717 13.3033 2.28243L14.7175 3.69665C14.9128 3.89191 14.9128 4.20849 14.7175 4.40375C14.5223 4.59902 14.2057 4.59902 14.0104 4.40375L13.6569 4.0502L13.3033 4.40375C13.2991 4.40797 13.2948 4.41208 13.2905 4.41611C14.3555 5.64417 15 7.24677 15 9C15 12.866 11.866 16 8 16C4.13401 16 1 12.866 1 9C1 5.47347 3.60749 2.55639 7 2.07094V1.5C6.72386 1.5 6.5 1.27614 6.5 1ZM8 3C7.84443 3 7.69034 3.00591 7.53793 3.0175C4.44038 3.25314 2 5.84182 2 9C2 12.3137 4.68629 15 8 15C11.3137 15 14 12.3137 14 9C14 5.84182 11.5596 3.25314 8.46207 3.0175C8.30966 3.00591 8.15557 3 8 3Z' /%3E%3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-tags) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 4.5C6 5.32843 5.32843 6 4.5 6C3.67157 6 3 5.32843 3 4.5C3 3.67157 3.67157 3 4.5 3C5.32843 3 6 3.67157 6 4.5ZM5 4.5C5 4.22386 4.77614 4 4.5 4C4.22386 4 4 4.22386 4 4.5C4 4.77614 4.22386 5 4.5 5C4.77614 5 5 4.77614 5 4.5Z' /%3E%3Cpath d='M2 1H6.58579C6.851 1 7.10536 1.10536 7.29289 1.29289L14.2929 8.29289C14.6834 8.68342 14.6834 9.31658 14.2929 9.70711L9.70711 14.2929C9.31658 14.6834 8.68342 14.6834 8.29289 14.2929L1.29289 7.29289C1.10536 7.10536 1 6.851 1 6.58579V2C1 1.44772 1.44772 1 2 1ZM2 6.58579L9 13.5858L13.5858 9L6.58579 2L2 2L2 6.58579Z' /%3E%3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-links) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16'  xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.71488 6.54244L3.34312 7.9142C2.17155 9.08577 2.17155 10.9853 3.34312 12.1568C4.51469 13.3284 6.41419 13.3284 7.58576 12.1568L9.41419 10.3284C10.5858 9.15684 10.5858 7.25735 9.41419 6.08577C9.16625 5.83784 8.88572 5.64237 8.58638 5.49938L7.99998 6.08578C7.939 6.14675 7.88754 6.21365 7.8456 6.28461C8.16104 6.37499 8.45862 6.54442 8.70708 6.79288C9.48813 7.57393 9.48813 8.84026 8.70708 9.62131L6.87866 11.4497C6.09761 12.2308 4.83128 12.2308 4.05023 11.4497C3.26918 10.6687 3.26918 9.40236 4.05023 8.62131L4.84283 7.8287C4.73064 7.40858 4.68799 6.97375 4.71488 6.54244Z' /%3E%3Cpath d='M6.58576 4.67156C5.41419 5.84313 5.41419 7.74263 6.58576 8.9142C6.8337 9.16214 7.11424 9.3576 7.41358 9.5006L8.18917 8.72501C7.86083 8.63732 7.55046 8.46468 7.29287 8.2071C6.51182 7.42605 6.51182 6.15972 7.29287 5.37867L9.1213 3.55024C9.90235 2.76919 11.1687 2.76919 11.9497 3.55024C12.7308 4.33129 12.7308 5.59762 11.9497 6.37867L11.1571 7.17128C11.2693 7.5914 11.312 8.02623 11.2851 8.45754L12.6568 7.08577C13.8284 5.9142 13.8284 4.01471 12.6568 2.84313C11.4853 1.67156 9.58576 1.67156 8.41419 2.84313L6.58576 4.67156Z' /%3E%3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-subscribers) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16'  xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 14C7 14 6 14 6 13C6 12 7 9 11 9C15 9 16 12 16 13C16 14 15 14 15 14H7Z' /%3E%3Cpath d='M11 8C12.6569 8 14 6.65685 14 5C14 3.34315 12.6569 2 11 2C9.34315 2 8 3.34315 8 5C8 6.65685 9.34315 8 11 8Z' /%3E%3Cpath d='M5.21636 14C5.07556 13.7159 5 13.3791 5 13C5 11.6445 5.67905 10.2506 6.93593 9.27997C6.3861 9.10409 5.7451 9 5 9C1 9 0 12 0 13C0 14 1 14 1 14H5.21636Z' /%3E%3Cpath d='M4.5 8C5.88071 8 7 6.88071 7 5.5C7 4.11929 5.88071 3 4.5 3C3.11929 3 2 4.11929 2 5.5C2 6.88071 3.11929 8 4.5 8Z' /%3E%3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-time-accounting) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10.6437 1.2737C10.43 1.25794 10.2153 1.25 10 1.25V0C10.2461 0 10.4914 0.00907749 10.7356 0.0270902L10.6437 1.2737ZM13.1491 1.83631C12.7482 1.68167 12.3364 1.55675 11.9171 1.4626L12.191 0.242977C12.6702 0.350578 13.1408 0.493332 13.5989 0.670068L13.1491 1.83631ZM14.8612 2.72464C14.6822 2.60502 14.4993 2.49234 14.3129 2.38673L14.929 1.29913C15.1421 1.41983 15.3511 1.5486 15.5557 1.6853C15.7603 1.822 15.9593 1.96587 16.1523 2.11653L15.3833 3.10197C15.2144 2.97015 15.0403 2.84426 14.8612 2.72464ZM17.1539 4.96168C16.9064 4.61036 16.6335 4.27773 16.3372 3.96652L17.2425 3.1046C17.5811 3.46027 17.8931 3.84041 18.1758 4.24191L17.1539 4.96168ZM18.0839 6.65152C18.0016 6.4526 17.9121 6.25728 17.8157 6.06589L18.9323 5.50389C19.0423 5.72262 19.1446 5.94584 19.2388 6.17317C19.333 6.40049 19.4185 6.63066 19.4953 6.86318L18.3084 7.25529C18.2412 7.05184 18.1663 6.85044 18.0839 6.65152ZM18.7474 9.78527C18.7368 9.35569 18.6946 8.92746 18.6212 8.50408L19.8528 8.29039C19.9367 8.77424 19.9849 9.26365 19.997 9.75458L18.7474 9.78527ZM18.5819 11.707C18.6239 11.4959 18.658 11.2837 18.6842 11.0711L19.9248 11.2241C19.8948 11.4671 19.8559 11.7096 19.8079 11.9509C19.7598 12.1922 19.7031 12.4311 19.6378 12.6671L18.433 12.3337C18.4902 12.1272 18.5399 11.9182 18.5819 11.707ZM17.3925 14.6812C17.6224 14.3182 17.8252 13.9387 17.9993 13.5459L19.1421 14.0524C18.9431 14.5014 18.7113 14.9351 18.4485 15.35L17.3925 14.6812ZM16.1872 16.1872C16.3394 16.0349 16.4856 15.8775 16.6256 15.7153L17.5721 16.5317C17.4121 16.7172 17.2451 16.8971 17.0711 17.0711L16.1872 16.1872Z' /%3E%3Cpath d='M10 1.25C8.56106 1.25 7.14432 1.60487 5.87528 2.28319C4.60624 2.9615 3.52408 3.94232 2.72464 5.13876C1.92521 6.3352 1.43318 7.71033 1.29214 9.14235C1.15109 10.5744 1.3654 12.0191 1.91606 13.3485C2.46672 14.6779 3.33674 15.851 4.44906 16.7638C5.56138 17.6767 6.88166 18.3011 8.29296 18.5819C9.70426 18.8626 11.163 18.7909 12.54 18.3732C13.917 17.9555 15.1697 17.2047 16.1872 16.1872L17.0711 17.0711C15.9082 18.2339 14.4765 19.092 12.9028 19.5694C11.3291 20.0468 9.66201 20.1287 8.0491 19.8079C6.43619 19.487 4.92729 18.7734 3.65607 17.7301C2.38485 16.6868 1.39053 15.3462 0.761207 13.8268C0.131881 12.3075 -0.113035 10.6564 0.0481553 9.01983C0.209345 7.38324 0.771666 5.81166 1.68531 4.4443C2.59895 3.07694 3.83571 1.956 5.28603 1.18079C6.73636 0.405571 8.35549 0 10 0V1.25Z' /%3E%3Cpath d='M9.375 3.75C9.72018 3.75 10 4.02982 10 4.375V10.8873L14.0601 13.2073C14.3598 13.3786 14.4639 13.7604 14.2927 14.0601C14.1214 14.3598 13.7396 14.4639 13.4399 14.2927L9.06491 11.7927C8.87018 11.6814 8.75 11.4743 8.75 11.25V4.375C8.75 4.02982 9.02982 3.75 9.375 3.75Z' /%3E%3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-ai-knowledge-base-answers) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 2.82754C1.88498 2.45777 3.1539 2.05941 4.38768 1.93497C5.71799 1.80079 6.8464 1.99806 7.5 2.68668V12.4325C6.56511 11.9025 5.38065 11.8297 4.28732 11.94C3.10693 12.0591 1.91771 12.4011 1 12.751V2.82754ZM8.5 2.68668C9.1536 1.99806 10.282 1.80079 11.6123 1.93497C12.8461 2.05941 14.115 2.45777 15 2.82754V12.751C14.0823 12.4011 12.8931 12.0591 11.7127 11.94C10.6194 11.8297 9.43489 11.9025 8.5 12.4325V2.68668ZM8 1.78303C7.01509 0.936435 5.58683 0.808944 4.28732 0.940018C2.77322 1.09274 1.24459 1.61232 0.293099 2.04481C0.114601 2.12595 0 2.30392 0 2.49999V13.5C0 13.67 0.0863761 13.8284 0.229307 13.9204C0.372238 14.0124 0.55214 14.0255 0.706901 13.9552C1.58875 13.5543 3.01012 13.0739 4.38768 12.935C5.79565 12.793 6.97747 13.0222 7.60957 13.8123C7.70445 13.9309 7.84811 14 8 14C8.15189 14 8.29555 13.9309 8.39043 13.8123C9.02253 13.0222 10.2043 12.793 11.6123 12.935C12.9899 13.0739 14.4113 13.5543 15.2931 13.9552C15.4479 14.0255 15.6278 14.0124 15.7707 13.9204C15.9136 13.8284 16 13.67 16 13.5V2.49999C16 2.30392 15.8854 2.12595 15.7069 2.04481C14.7554 1.61232 13.2268 1.09274 11.7127 0.940018C10.4132 0.808944 8.98491 0.936435 8 1.78303Z' /%3E%3C/svg%3E");
+}
+
+/* Details as a card, like the SLA card below it */
+.sh-details-list {
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.625rem;
+  background-color: var(--sh-card);
+}
+
+/* Tags as chips in a light tint of the application colour */
+#ticket-tags > div > div.rounded-lg {
+  flex-flow: row wrap;
+  gap: 0.375rem;
+  padding: 0;
+  background-color: transparent;
+}
+
+#ticket-tags > div > div.rounded-lg > div.group {
+  flex-grow: 0;
+  height: auto;
+  min-height: 1.75rem;
+  padding: 0.125rem 0.25rem 0.125rem 0.625rem;
+  border: 1px solid var(--sh-app-border);
+  border-radius: 9999px;
+  background-color: var(--sh-app-soft);
+}
+
+/* The chip hugs its name; the remove button stays at its end */
+#ticket-tags > div > div.rounded-lg > div.group > span {
+  flex-grow: 0;
+}
+
+#ticket-tags > div > div.rounded-lg > div.group a {
+  font-weight: 600;
+}
+
+/* Close: the finishing action, in green with its tick */
+.sh-header-action--close {
+  border-color: #8fcaa3;
+  background-color: #eaf6ee;
+  color: #1d6b3b;
+}
+
+.sh-header-action--close:hover {
+  border-color: #1d6b3b;
+  background-color: #dcf0e3;
+}
+
+/* Messages: the channel of incoming messages (Phone, Email…) solid in the application colour,
+   text at a readable line length */
+.sh-article-kind[data-tone='incoming'] {
+  background-color: var(--sh-app);
+  color: var(--sh-on-app);
+}
+
+.sh-ticket-view .inner-article-body :is(p, li, blockquote) {
+  max-width: 75ch;
+}
+
+/* ---- New ticket: panel icons ---- */
+.sh-create-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.sh-create-panel__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: var(--sh-app);
+  color: var(--sh-on-app);
+}
+
+.sh-template-picker {
+  border-color: var(--sh-app-border);
+  background-color: var(--sh-app-soft);
+}
+
+/* Its list: a search on top, about 20 templates visible, the rest scrolls below the search */
+.sh-template-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 18rem;
+  max-height: min(55rem, 75vh);
+}
+
+.sh-template-menu__search {
+  flex-shrink: 0;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--sh-line);
+}
+
+.sh-template-menu__list {
+  min-height: 0;
+  max-height: calc(20 * 2.5rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.sh-template-menu__list section {
+  max-width: none;
+}
+
+.sh-template-menu__empty {
+  padding: 0.75rem 0.875rem;
+  font-size: 0.8125rem;
+  color: var(--sh-muted);
+}
+
+.sh-template-picker__text {
+  flex: 1;
+}
+
+/* ---- Icons in the application colour (New ticket and ticket screen) ---- */
+
+/* Header actions; Reply (filled) and Resolve (green) keep theirs */
+.sh-header-action:not(.sh-header-action--primary, .sh-header-action--close) svg {
+  color: var(--sh-app);
+}
+
+/* Field icons (customer search, add customer, how it came in…), not the open and clear marks */
+:is(.sh-create, .sh-ticket-edit-form) .formkit-inner svg.icon:not(.icon-chevron-down, .icon-chevron-up, .icon-x-lg, .icon-x) {
+  color: var(--sh-app);
+}
+
+/* "Ticket" title of the sidebar */
+#content-sidebar h2 svg {
+  color: var(--sh-app);
+}
+
+/* Message toolbar (permalink, split…); the amber "internal" lock keeps its colour */
+.sh-ticket-view .article-bubble-actions :is(button, a):not([class*='text-amber']) {
+  color: var(--sh-app);
+}
+
+@layer utilities {
+  /* Panel icons on the right edge; the open one filled */
+  .sh-side-rail button {
+    color: var(--sh-app) !important;
+  }
+
+  .sh-side-rail button.text-black\! {
+    background-color: var(--sh-app) !important;
+    color: var(--sh-on-app) !important;
+  }
+}
+
+/* ---- Details edit form: the fields on a card, like the Details list ---- */
+.sh-ticket-edit-form:not(:empty) {
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.625rem;
+  background-color: var(--sh-card);
+}
+
+/* "Done" while editing: filled, so it's clear the form is open */
+.sh-details-edit[aria-pressed='true'] {
+  background-color: var(--sh-app);
+  color: var(--sh-on-app);
+}
+
+.sh-details-edit[aria-pressed='true']:hover,
+.sh-details-edit[aria-pressed='true']:focus-visible {
+  background-color: var(--sh-app-hover);
+}
+
+/* ---- Student reply box: no title row ("Reply") above the text; it stays for screen readers,
+   as it names the reply region. The text box gets the full outline instead. ---- */
+@layer utilities {
+  .sh-reply-panel--student [id='ticketArticleReplyForm'] .rounded-t-2xl {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    border: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .sh-reply-panel--student [id='ticketArticleReplyForm'] .rounded-b-2xl {
+    border-top-width: 1px !important;
+    border-radius: 1rem !important;
+  }
 }

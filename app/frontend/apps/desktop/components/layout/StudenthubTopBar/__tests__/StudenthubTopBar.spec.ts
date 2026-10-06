@@ -5,6 +5,7 @@ import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { waitForNextTick } from '#tests/support/utils.ts'
 
 import StudenthubTopBar from '../StudenthubTopBar.vue'
+import { setStudenthubTopBarCrumbs } from '../useStudenthubTopBarCrumbs.ts'
 
 import '#tests/graphql/builders/mocks.ts'
 
@@ -24,6 +25,19 @@ const renderTopBar = (permissions: string[] = ['ticket.agent']) => {
 }
 
 describe('StudenthubTopBar', () => {
+  afterEach(() => setStudenthubTopBarCrumbs([]))
+
+  it('shows where the user is next to the search', async () => {
+    setStudenthubTopBarCrumbs([{ label: 'Tickets', route: '/tickets/view' }, { label: 'My ALL Tickets' }])
+
+    const view = renderTopBar()
+    const crumbs = view.getByRole('navigation', { name: 'Current page' })
+
+    expect(crumbs).toHaveTextContent('Tickets/My ALL Tickets')
+    expect(view.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', expect.stringContaining('/tickets/view'))
+    expect(view.getByText('My ALL Tickets')).toHaveAttribute('aria-current', 'page')
+  })
+
   it('gives agents search, New ticket, notifications and their avatar menu', () => {
     const view = renderTopBar()
 

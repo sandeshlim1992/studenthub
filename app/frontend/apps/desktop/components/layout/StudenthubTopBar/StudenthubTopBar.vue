@@ -14,6 +14,8 @@ import AdminMenu from '#desktop/components/layout/LayoutSidebar/LeftSidebar/Menu
 import QuickSearch from '#desktop/components/Search/QuickSearch/QuickSearch.vue'
 import QuickSearchInput from '#desktop/components/Search/QuickSearch/QuickSearchInput/QuickSearchInput.vue'
 
+import { useStudenthubTopBarCrumbs } from './useStudenthubTopBarCrumbs.ts'
+
 // Student Hub: Halo-style top bar for staff. Search (with Zammad's quick search results in a
 // drop-down), New ticket, admin menu, notifications and the avatar menu live here instead of
 // in the navigation panel.
@@ -23,6 +25,8 @@ const route = useRoute()
 const { hasPermission } = useSessionStore()
 
 const isAgent = computed(() => hasPermission('ticket.agent'))
+
+const crumbs = useStudenthubTopBarCrumbs()
 
 const searchValue = ref('')
 const isSearchActive = ref(false)
@@ -51,6 +55,25 @@ watch(
     class="relative z-40 flex h-14 shrink-0 items-center gap-3 border-b border-[var(--sh-line)] bg-white px-4 print:hidden"
     :aria-label="$t('Top bar')"
   >
+    <nav
+      v-if="crumbs.length"
+      class="flex max-w-[40%] shrink-0 items-center gap-1.5 text-sm whitespace-nowrap"
+      :aria-label="$t('Current page')"
+    >
+      <template v-for="(crumb, index) in crumbs" :key="crumb.label">
+        <span v-if="index" class="text-[var(--sh-muted)]" aria-hidden="true">/</span>
+        <CommonLink
+          v-if="crumb.route"
+          internal
+          :link="crumb.route"
+          class="font-semibold text-[var(--sh-ink)]! hover:underline"
+        >
+          {{ $t(crumb.label) }}
+        </CommonLink>
+        <span v-else class="truncate text-[var(--sh-ink-2)]" aria-current="page">{{ $t(crumb.label) }}</span>
+      </template>
+    </nav>
+
     <div ref="search-area" class="relative w-full max-w-xl min-w-0">
       <QuickSearchInput v-model="searchValue" v-model:search-active="isSearchActive" class="studenthub-topbar-search" />
       <div

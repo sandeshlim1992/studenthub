@@ -360,8 +360,91 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 - **Top bar (staff):** search with Zammad's quick results in a drop-down, the admin menu, **New ticket**,
   notifications and the avatar menu. The navigation panel keeps the logo, Overviews / Dashboard /
   Administration, recent tabs and the collapse button.
+- **Loading screen:** the application colour with three dots in the college colours (LSST, UKBC, FSB) under
+  "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
 - **Sign-in page:** brand panel in the application colour with the institution logos, sign-in on the right.
   "Continue with Microsoft" now really starts the Microsoft sign-in (it posts to `/auth/microsoft_office365`).
+- **Ticket lists (staff overviews and search results):** white card with quiet rows, a "Views" panel tinted in the
+  application colour, and these cells when an overview has the column: state as a coloured label, priority as bars
+  (read from the "P1"–"P4" names), SLA deadline as time left (red when overdue, amber when "due soon"), campus with
+  an LSST / UKBC / FSB badge. In every table of the new UI (ticket lists, search, admin lists; not tables inside
+  messages) the header row is in the application colour with bold white column titles, the group labels (e.g. an
+  agent's name in a list grouped by owner) and the page title are bold, and the dividers between column titles only
+  appear on hover (they are the column resize handles).
+- **Views panel in groups:** **Approval needed** (the Ticket Approvals overviews, first), **My views** (all overviews
+  not listed elsewhere), **Teams** and **Institutions** (LSST, UKBC and FSB: open tickets by campus, Admin role only).
+  **Teams** has one view per group with its open tickets, grouped by agent, and each agent sees the views of the
+  groups they can read. Student Hub makes these views itself (links `studenthub_team_<group id>`) and keeps them in
+  step with the groups: a new group gets one, a renamed one is renamed, an inactive one loses it (in the background, a
+  few seconds after the change); the Managers group of Ticket Approvals never has one. Admin-made overviews of a
+  single group (e.g. the old Service Desk view of new unassigned tickets) stay under My views for members of that
+  group. The institution overviews are created by a migration with the campus values that existed then; when a new
+  campus is added, tick it in that overview under Administration → Overviews. "Overviews" is called **Tickets** in the
+  new UI's navigation and tab title, and the top bar shows "Tickets / <view>" next to the search (the admin page for
+  managing overviews keeps its name).
+- **Group by and sorting, per agent:** every ticket view has a **Group by** menu (no grouping, Agent, Team, State,
+  Priority, Customer, Organization, and the select fields of tickets such as Category or Campus, including ones admins
+  add), and clicking a column title sorts by it. Both are remembered per agent and view in the agent's preferences, so
+  they are the same on every device; **Reset** goes back to the view's own grouping and order. The server applies the
+  choice where Zammad reads a view's grouping and order (the ticket query, the GraphQL overview type and its cache
+  keys), so lists stay correct and an agent's choice never shows up for colleagues. In the Teams views, tickets without
+  an owner always form the first group, **Unassigned tickets**, whatever the grouping (the server sorts them first).
+- **Recent (staff):** keeps tickets, customer / organisation / search tabs and New ticket drafts saved with **Save
+  draft**. Leaving a New ticket screen with nothing typed closes its tab; with something typed the agent is asked to
+  **Save draft** or **Discard** (closing the question stays on the page). Untouched New ticket tabs left from before
+  were closed once by a migration.
+- **Ticket list colours:** admins choose them under **Administration → Settings → Branding → Ticket list colours**:
+  a colour per ticket state from a fixed palette (every colour passes WCAG AA), and how long before the deadline
+  "due soon" starts (default 1 hour). Settings `studenthub_ticket_state_colors` (state ID → colour) and
+  `studenthub_escalation_warning_minutes`. The first values are guessed from the state names, because Zammad files
+  "Assigned", "In Progress", "Awaiting user Response" and "Resolved" all under the type "open"; states added later
+  get their type's colour until an admin picks one.
+- **Ticket screen (staff):** two columns. On the left, the ticket sidebar with **Details** as a read-only list (user
+  with campus badge, email, team, agent, category › sub-category, every other field on the ticket form, including the
+  ones admins add, then source and opened; state and priority are next to the title instead). Mandatory fields that
+  are empty say **Required**, and changes not saved yet get an amber dot. **Edit** shows Zammad's form, **Done** goes
+  back to the list; the form also opens by itself when Update is refused because of a missing field. Below it, the
+  **SLA** card: first response (Met / Missed, or the time left), next update, resolution due with a bar of the time
+  used, and the time left (the bar uses clock time; Zammad counts SLA time in business hours). In the middle, the
+  conversation. The sidebar icons are on the right edge (no Ticket icon: that panel is always open on the left);
+  Customer, Organization, Checklist, Approval and the other panels open on the right and close with × or their icon.
+  The header shows the ticket number, campus badge, title with the state label and priority bars next to it, and the
+  actions **Reply** (replies to the latest customer message), **Add note**, **Assign**, **Change status**, **Merge**
+  and **Close**. Assign and Change status fill the form's fields; like any other change they are saved with
+  **Update**. **Close** sets the closed state and saves at once (like Update, it opens Details when a required field
+  is empty). Messages keep their sides and are labelled Internal note / Reply / Email / Phone…; internal notes are
+  amber. The top bar shows "Tickets / Ticket#…". Students see the same screen with only **Reply** in the header, no
+  actions on messages (no visibility, split, forward or copy) and a reply box without its title row.
+  Look (minimal Swiss style, from the UI/UX Pro Max skill): Zammad's accent colour (links, tags, switches, + buttons,
+  focus rings) is the application colour on this screen; the sidebar sections have a white icon in a solid square of
+  the application colour, and Details is a card like the SLA card, also while editing (white fields with a fine
+  outline, red asterisks for required fields, **Done** filled); the header, panel and message toolbar icons are in the
+  application colour; tags are chips in a light tint; **Close** is green; customer
+  messages are on a light tint of the application colour with their channel (Phone, Email…) as a solid label, staff
+  replies white, internal notes amber; message text keeps a readable line length (75 characters).
+- **New ticket (staff):** a page bar with the title (the summary once typed), **Cancel** (discards, with a confirm if
+  anything was typed), **Save draft** (keeps the unfinished ticket under Recent) and **Create ticket**. Main column:
+  **Start from a template** (Zammad's Apply template: a list that opens downwards, with a search on top and about 20
+  templates visible, the rest scrolls), **Who is it for?** (customer, campus,
+  the customer's email as read-only "Reply-to email", organisation, how it came in: received call / outbound call /
+  email, plus CC for emails), **What is the issue?** (summary, category › sub-category, details, attachments) and
+  **More details** (every other field of the create screen, including the ones admins add). Side column: **Triage**
+  (priority as buttons, without "None"; team, assign to, state), **SLA for this priority** (the SLA the ticket would
+  get, from `GET /api/v1/studenthub/sla_preview`; your SLAs only set a resolution time) and **Approval**. Fields are
+  white with a fine outline, a ring in the application colour on focus and a red asterisk when required. Each panel
+  title has a white icon in a solid square of the application colour, field icons (customer search, add customer,
+  how it came in) are in the colour, "Start from a template" is tinted, and the file drop area takes the colour on
+  hover.
+  With Ticket Approvals on, **Approval** (off by default) sends the new ticket for approval: choose a manager (every
+  manager is listed) and give a reason; the request is sent right after the ticket is created (if that fails, a
+  message says so and it can be sent from the Approval tab). Managers without another staff role don't get the
+  Approval panel. Customer and the other panels open from the icons on the right edge. Students keep Taxil's wizard.
+  Note: the triggers "Auto Select Priority (New) - P1…P4" set priority, ITIL type, impact and urgency from the
+  sub-category right after a ticket is created, so for those sub-categories the priority chosen here (and the SLA
+  shown) is replaced.
+  Before staff use it on production, switch off these core workflows (they make the form fail to load in the new
+  UI): "First ticket goes to Unassigned Tickets" (staff now pick the group themselves), and the old approval ones
+  "Manager: Status pending for new ticket" and "Manager: Approval state make it readonly" (see Ticket Approvals).
 
 | File(s) | Purpose |
 |---|---|
@@ -370,6 +453,20 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `app/frontend/apps/desktop/utils/studenthubAppColor.ts`, `composables/useStudenthubAppColor.ts` | Applies the admin colour (called in `AppDesktop.vue`) |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubAppColorSetting.vue` | Colour picker on the Branding page |
 | `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |
+| `app/frontend/apps/desktop/components/Ticket/StudenthubTicketCells/` (used by `TicketListTable.vue`), `utils/studenthubTicketList.ts` | State, priority, SLA and campus cells; palette and rules |
+| `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubTicketListSetting.vue` | Ticket list colours on the Branding page |
+| `lib/studenthub/ticket_views.rb`, `app/controllers/studenthub_ticket_views_controller.rb` (`GET /api/v1/studenthub/ticket_views`), `pages/ticket-overviews/composables/useStudenthubTicketViews.ts` | Sorting the views panel into Approval needed / My views / Teams / Institutions |
+| `lib/studenthub/ticket_views/teams.rb`, `app/jobs/studenthub_team_views_sync_job.rb`, `db/migrate/20261006100000_studenthub_team_views.rb` | The Teams views, kept in step with the groups |
+| `lib/studenthub/ticket_views/choice.rb`, `config/initializers/studenthub_ticket_views.rb`, `GET/PUT/DELETE /api/v1/studenthub/ticket_views/:overview_id/choice`, `pages/ticket-overviews/components/StudenthubViewGroupBy.vue`, `composables/studenthubViewChoice.ts` | Each agent's grouping and order of a view |
+| `lib/studenthub/ticket_views/setup.rb`, `db/migrate/20261004200000_studenthub_institution_overviews.rb` | The LSST, UKBC and FSB overviews |
+| `lib/studenthub/theme/ticket_list_setup.rb`, `app/models/setting/validation/studenthub_{ticket_state_colors,escalation_warning_minutes}.rb`, `db/migrate/20261004180000_studenthub_ticket_list_colors.rb` | Settings, first guess per state, server-side checks |
+| `pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderActions.vue`, `StudenthubHeaderMenuButton.vue`; edits in `TopBarHeaderFull.vue`, `TicketInformationBadgeList.vue` | Ticket header: number, state and priority next to the title, actions |
+| `pages/ticket/components/TicketSidebar/TicketSidebarInformation/TicketSidebarInformationContent/StudenthubTicketDetailsList.vue`, `StudenthubTicketSlaBox.vue`, `pages/ticket/composables/useStudenthubTicketDetailsMode.ts`, `utils/studenthubTicketDetails.ts`; edit in `TicketSidebarInformationContent.vue` | Details list with Edit / Done, SLA card |
+| `components/layout/LayoutContent.vue` (`sidebarPosition` prop), `TicketDetailViewContent.vue` | Ticket sidebar on the left |
+| `pages/ticket/components/TicketSidebar/StudenthubTicketSideRail.vue`, `studenthubSidePanel.ts`; edits in `TicketSidebar.vue`, `TicketSidebarWrapper.vue`, `TicketDetailViewContent.vue` | Sidebar icons and other panels on the right |
+| `pages/ticket/components/TicketCreate/StudenthubCreatePanel.vue`, `StudenthubPriorityButtons.vue`, `StudenthubSlaPreview.vue`, `StudenthubCustomerEmail.vue`, `StudenthubTemplatePicker.vue`, `db/migrate/20261006110000_studenthub_close_ghost_create_tabs.rb`; edits in `TicketCreateContent.vue`, `TicketSidebar.vue` | New ticket screen (Taxil's `AgentTicketCreateCard.vue` is no longer used) |
+| `lib/studenthub/sla_preview.rb`, `app/controllers/studenthub_sla_previews_controller.rb` | SLA a new ticket would get |
+| `ArticleBubble/StudenthubArticleKind.vue`; edits in `ArticleBubbleBody.vue`, `useBubbleStyleGuide.ts`, `SystemMessage.vue` | Message labels and colours |
 
 Zammad's own unit tests that expect the notification bell, the quick search or the avatar in the sidebar
 (`LeftSidebarHeader.spec.ts` ×2, `LayoutPage.spec.ts` "expands search…", and `LeftSidebarFooterMenu.spec.ts` ×2,
@@ -431,36 +528,61 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 
 - **Managers** are everyone with the **Managers** role. The role carries the `ticket.approver` permission (created
   by the migration, together with the role itself if it doesn't exist).
-- **Agents** use the **Approval** tab in the ticket sidebar (new UI and classic UI): choose a manager, give a reason,
-  send. They can withdraw a request while it waits, and send again after a denial.
-- **Managers** see the ticket in the **Awaiting my approval** overview and approve or deny it in the same tab
-  (a comment is required to deny). Admins can decide too.
-- The agent who asked (and the ticket owner) are notified in the bell and by email, and the ticket shows in their
-  **Approval decisions** overview until it is closed. The ticket's own state never changes.
+- **Agents** use the **Approval** tab in the ticket sidebar (new UI and classic UI): choose a manager (every
+  manager is listed, whatever the team), give a reason, send. They can withdraw a request while it waits, and send
+  again after a denial. Their requests wait in the **Sent for approval** overview until the manager decides.
+- **While a ticket waits** it is in the **Managers** group, a system group of Ticket Approvals that nobody has
+  access to (so nobody can pick it as a team). Only the chosen manager and the agent who asked can open it, read-only;
+  the team doesn't see it meanwhile, and replies from the customer only reach those two. The decision (or
+  withdrawing it) sends the ticket back to its team and owner; the manager can still read tickets they decided on.
+  This is an extension of Zammad's ticket access rules (`TicketAccess`), not group access, so search with
+  Elasticsearch doesn't find waiting tickets: managers use **Awaiting my approval**. Turning the feature on sets the
+  group up (it takes over an existing "Managers" group, removes all access to it and sends tickets from the old
+  approval process back to the team their history shows); turning it off sends waiting tickets back to their teams.
+- **SLA pause** (on by default, switch on the admin page): while a ticket waits, its SLA stops, as in Zammad's pending
+  states. After the decision the deadlines are worked out again without the waiting time (in business hours). Each
+  request records whether it paused the SLA, so switching later doesn't move past deadlines. The ticket's SLA card
+  says "Paused, waiting for approval".
+- **Managers** see the ticket in the **Awaiting my approval** overview until they decide. In the new UI's views panel
+  both overviews are listed first, under **Approval needed**. In the new UI the request appears as a card
+  under the last message, with **Approve** / **Deny** (a comment is required to deny); the Approval tab offers the same.
+  Admins can decide too, in the tab. Managers who have no other staff role (no Agent or Admin role) get no sidebar
+  icons on the ticket screen at all, only the card (`GET /api/v1/ticket_approval/viewer` tells the UI), and their
+  own **dashboard** instead of the agent one: requests waiting for them (amber after a day), their decisions in the
+  last 30 days with the approval rate, tickets they approved over 3 days ago that are still open, and their last five
+  decisions (`GET /api/v1/ticket_approval/dashboard`, `ticket.approver` permission).
+- The agent who asked (and the ticket owner) are notified in the bell and by email. The ticket leaves both approval
+  overviews and is back in its team with its owner; its state never changes.
 - Every request and decision is added to the ticket as an internal note. The ticket fields `approval_state`,
   `approval_approver_id` and `approval_requested_by_id` can be used in triggers (e.g. a Teams alert) and reports,
   but can only be changed through the approval workflow.
 
 | File(s) | Purpose |
 |---|---|
-| `db/migrate/20261004090000_studenthub_ticket_approval.rb`, `lib/studenthub/ticket_approval*` | Table, ticket fields, role, permissions, setting, overviews, field guard |
-| `config/initializers/studenthub_ticket_approval.rb` | Adds the field guard to `Ticket` without editing it |
+| `db/migrate/20261004090000_studenthub_ticket_approval.rb`, `db/migrate/20261005090000_studenthub_sent_for_approval.rb`, `db/migrate/20261006090000_studenthub_approval_waiting_group.rb`, `lib/studenthub/ticket_approval*` | Table, ticket fields, role, permissions, settings, overviews, field guard |
+| `lib/studenthub/ticket_approval/waiting_group.rb`, `ticket_access.rb`, `sla_pause.rb` | Managers group where tickets wait; who can read a waiting ticket; SLA pause |
+| `config/initializers/studenthub_ticket_approval.rb` | Adds the field guard, the access rules and the SLA pause to Zammad's `Ticket`, `TicketPolicy` and `Escalation` without editing them |
 | `app/models/ticket_approval.rb`, `app/services/service/ticket_approval/` | Approval rounds; request, decide, withdraw, notify |
-| `app/controllers/ticket_approvals_controller.rb` | API (`/api/v1/tickets/:id/approval`, `/api/v1/ticket_approval/settings`) |
+| `app/controllers/ticket_approvals_controller.rb` | API (`/api/v1/tickets/:id/approval`, `/api/v1/ticket_approval/{settings,viewer,dashboard,managers}`) |
+| `app/frontend/apps/desktop/pages/ticket/components/TicketCreate/useStudenthubCreateApproval.ts` | "Send for approval" on the New ticket screen |
 | `app/frontend/apps/desktop/pages/ticket/components/TicketSidebar/plugins/studenthub-approval.ts`, `…/TicketSidebarStudenthubApproval/` | Approval tab in the new UI's ticket sidebar (picked up automatically from the plugins folder) |
+| `…/TicketSidebarStudenthubApproval/StudenthubApprovalDecisionCard.vue` (shown by `ArticleList.vue`), `app/frontend/apps/desktop/composables/useStudenthubApprovalViewer.ts` | Decision card under the messages; managers-only check for the sidebar icons |
+| `app/services/service/ticket_approval/dashboard.rb`, `app/frontend/apps/desktop/pages/dashboard/components/StudenthubManagerDashboard.vue` (shown by `Dashboard.vue`) | Manager dashboard |
 | `app/assets/javascripts/app/controllers/ticket_zoom/sidebar_studenthub_approval.coffee` | Approval tab in the classic ticket sidebar |
 | `app/views/mailer/ticket_approval_*` | Notification emails |
 | `app/frontend/apps/desktop/pages/manage/views/TicketApproval.vue` | Admin page |
 
 **Going live on production (once):**
 
-1. Give the **Managers** role **read** access to the agent groups (Service Desk, VLE, Infrastructure, …). Managers
-   who have no other agent role can't open tickets otherwise; the Approval tab marks them "can't open this ticket".
-2. Turn the feature on in the admin page.
-3. Retire the old approval setup: deactivate core workflows "Manager: Status pending for new ticket" and
-   "Manager: Approval state make it readonly", hide the "Manager Approval Status" field (its data is kept), and
-   deactivate the "Managers Approval" overview and trigger 65 (Managers-group Teams alert). To keep a Teams alert,
-   point a trigger at "Approval is Waiting for approval" instead.
+1. Turn the feature on in the admin page. This takes over the "Managers" group: everyone's access to it is removed,
+   and tickets in it go back to the team their history shows (tickets created directly in it stay, and are listed in
+   the log; move them by hand). Managers need no access to the teams.
+2. Retire the old approval setup: deactivate core workflows "Manager: Status pending for new ticket",
+   "Manager: Approval state make it readonly" and 57 "Assign right Member - Manager", hide the "Manager Approval
+   Status" field (its data is kept), and deactivate the "Managers Approval" overview and trigger 65 (Managers-group
+   Teams alert). To keep a Teams alert, point a trigger at "Approval is Waiting for approval" instead.
+3. Check the triggers that react to a team change (e.g. the Teams alerts 31, 32 and 35): a ticket changes team twice
+   during an approval (into Managers and back).
 
 ---
 

@@ -15,7 +15,7 @@ UI work added on top.
 
 | | |
 |---|---|
-| **Base product** | Zammad **7.2.x (pre-release)**, a `develop` branch snapshot, *not* a tagged release |
+| **Base product** | Zammad **7.2.x (pre-release)**, a `develop` branch snapshot, _not_ a tagged release |
 | **Forked from Zammad at** | commit `91916cb`, 17 Jul 2026 (between the `7.2.0-alpha` and `7.2.0` tags) |
 | **Custom work** | 6 commits by Taxil Kathiriya, 21 Jul to 23 Sep 2026 (~53,000 lines) |
 | **Main branch** | `develop` (default; the only branch we use) |
@@ -156,11 +156,13 @@ devcontainer, so don't install them in Windows or Ubuntu.
 Windows → WSL 2 → Ubuntu (repo lives here) → Docker → devcontainer (Ruby, Node, pnpm, Postgres, Redis)
 ```
 
-1. **WSL + Ubuntu.** In a *normal* (not admin) PowerShell:
+1. **WSL + Ubuntu.** In a _normal_ (not admin) PowerShell:
+
    ```powershell
    wsl --install -d Ubuntu
    wsl --set-default Ubuntu
    ```
+
    Check with `wsl -l -v`: Ubuntu should be VERSION 2 with a `*`. (`docker-desktop` in
    that list is Docker's internal distro; don't work in it.)
    On work PCs, don't use "Run as administrator": it can install Ubuntu under a
@@ -170,6 +172,7 @@ Windows → WSL 2 → Ubuntu (repo lives here) → Docker → devcontainer (Ruby
    quit Docker Desktop from the tray, run `wsl --shutdown`, restart it and click
    **Refetch distros**.
 3. **Clone inside Ubuntu** (in `~`, not under `/mnt/c`, which is much slower):
+
    ```sh
    sudo apt update && sudo apt install -y git gh
    git config --global user.name "Your Name"
@@ -177,14 +180,17 @@ Windows → WSL 2 → Ubuntu (repo lives here) → Docker → devcontainer (Ruby
    gh auth login        # GitHub.com → HTTPS → authenticate Git → browser
    cd ~ && gh repo clone sandeshlim1992/studenthub
    ```
+
 4. **VS Code.** Install the **WSL** and **Dev Containers** extensions. Then
-   F1 → *Connect to WSL using Distro* → Ubuntu → open `~/studenthub` →
-   F1 → *Dev Containers: Reopen in Container*. The first build can take 10+ minutes.
+   F1 → _Connect to WSL using Distro_ → Ubuntu → open `~/studenthub` →
+   F1 → _Dev Containers: Reopen in Container_. The first build can take 10+ minutes.
 5. **Claude Code** (in the container terminal; reinstall after a container rebuild):
+
    ```sh
    curl -fsSL https://claude.ai/install.sh | bash
    claude --rc          # continue the session from the Claude phone app
    ```
+
    Keep the PC awake (not just locked) while using it from your phone.
 
 ### Switching between PCs
@@ -245,8 +251,8 @@ This repo is **not** a GitHub fork, so there is no "Sync fork" button. Updates f
 ### Repository settings this relies on
 
 - **Settings → Actions → General**
-  - Actions permissions: *Allow all actions and reusable workflows*
-  - Workflow permissions: *Read and write* + *Allow GitHub Actions to create and approve pull requests*
+  - Actions permissions: _Allow all actions and reusable workflows_
+  - Workflow permissions: _Read and write_ + _Allow GitHub Actions to create and approve pull requests_
 - **Settings → General → Pull Requests**: only **merge commits** allowed (squash and rebase
   turned off). Squash or rebase would rewrite Taxil's commits and break the sync.
 - **Zammad's own workflows are disabled** in the Actions tab (`CI`, `docker-ci`,
@@ -543,6 +549,10 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
   states. After the decision the deadlines are worked out again without the waiting time (in business hours). Each
   request records whether it paused the SLA, so switching later doesn't move past deadlines. The ticket's SLA card
   says "Paused, waiting for approval".
+- **The two approval overviews** (**Awaiting my approval** for the Managers role, **Sent for approval** for every
+  agent role) are managed by Student Hub: on while Ticket Approvals is on, hidden while it is off. They are locked
+  on `/desktop/manage/overviews`, and changes made elsewhere (classic admin, API) or a new agent role are put right
+  in the background a few seconds later.
 - **Managers** see the ticket in the **Awaiting my approval** overview until they decide. In the new UI's views panel
   both overviews are listed first, under **Approval needed**. In the new UI the request appears as a card
   under the last message, with **Approve** / **Deny** (a comment is required to deny); the Approval tab offers the same.

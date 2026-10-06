@@ -63,25 +63,20 @@ describe('TicketDetailTopBar', () => {
     })
   })
 
-  it('renders the compact and full headers without a channel alert by default', () => {
+  it('renders only the full header (no compact header while scrolling) without a channel alert by default', () => {
     const view = renderTicketDetailTopBar()
 
-    expect(view.getByTestId('ticket-detail-top-bar-clipped-details')).toBeInTheDocument()
+    expect(view.queryByTestId('ticket-detail-top-bar-clipped-details')).not.toBeInTheDocument()
     expect(view.getByTestId('ticket-detail-top-bar-full-details')).toBeInTheDocument()
     expect(view.queryByTestId('common-alert')).not.toBeInTheDocument()
   })
 
-  it('wraps both headers with a channel alert for an editable agent ticket that has one', () => {
+  it('shows the channel alert under the header for an editable agent ticket that has one', () => {
     const view = renderTicketDetailTopBar({ ticket: withChannelAlert() })
 
-    const alerts = view.getAllByRole('alert')
-
-    expect(alerts).toHaveLength(2)
-    alerts.forEach((alert) => {
-      expect(alert).toHaveTextContent(
-        'The 24 hour customer service window is now closed, no further WhatsApp messages can be sent.',
-      )
-    })
+    expect(view.getByRole('alert')).toHaveTextContent(
+      'The 24 hour customer service window is now closed, no further WhatsApp messages can be sent.',
+    )
   })
 
   it('does not wrap the headers with a channel alert when the ticket is not agent-visible', () => {
@@ -92,7 +87,6 @@ describe('TicketDetailTopBar', () => {
     const view = renderTicketDetailTopBar({ ticket })
 
     expect(view.queryByTestId('common-alert')).not.toBeInTheDocument()
-    expect(view.getByTestId('ticket-detail-top-bar-clipped-details')).toBeInTheDocument()
     expect(view.getByTestId('ticket-detail-top-bar-full-details')).toBeInTheDocument()
   })
 
@@ -104,7 +98,6 @@ describe('TicketDetailTopBar', () => {
     const view = renderTicketDetailTopBar({ ticket })
 
     expect(view.queryByTestId('common-alert')).not.toBeInTheDocument()
-    expect(view.getByTestId('ticket-detail-top-bar-clipped-details')).toBeInTheDocument()
     expect(view.getByTestId('ticket-detail-top-bar-full-details')).toBeInTheDocument()
   })
 })

@@ -5,6 +5,7 @@ Setup steps live in README.md; agent rules live in CLAUDE.md. Don't duplicate th
 Never put passwords, tokens or keys in this file.
 
 ## Environment
+
 - Windows 11 → WSL 2 → Ubuntu → Docker Desktop → devcontainer
 - Repo lives in Ubuntu at `~/studenthub` (not on C:)
 - All work happens **inside the devcontainer** (Ruby, Node 24, pnpm, Postgres, Redis)
@@ -12,6 +13,7 @@ Never put passwords, tokens or keys in this file.
 - Two PCs (home + work), each with its own container and its own dev database
 
 ## Decisions
+
 - Devcontainer (Option A) is the standard setup; manual setup is fallback only
 - `develop` is the only branch; merge commits only (no squash/rebase) — keeps Taxil sync working
 - Prefer new files over editing Zammad's originals (fewer upstream merge conflicts)
@@ -38,18 +40,22 @@ Never put passwords, tokens or keys in this file.
   all. For that the Teams sync makes the Admin role an agent role with full access to every team group
 - Teams views are locked on `/desktop/manage/overviews` ("Managed automatically": no on/off, reorder or delete),
   because the sync resets them; remove one by switching off its group
+- The approval overviews (Awaiting my approval, Sent for approval) are system-managed like the Teams views:
+  on/off follows the Ticket Approvals switch, roles are fixed (Managers / every agent role), locked on the
+  Overviews page, hand changes undone by the background sync. The old "Managers Approval" overview stays off
 - Recent keeps tickets, customer/organisation/search tabs and saved New ticket drafts; untouched New ticket tabs
   close when left, typed ones ask "Save draft / Discard"
 - Students on the ticket screen: only Reply (no staff header actions, no message actions, no reply title row)
 - New UI look follows the UI/UX Pro Max "minimal Swiss" guidance, all accents from the application colour
   (UI/UX Pro Max is a user-level Claude Code plugin; reinstall after a container rebuild)
-- New UI design: Halo-style (mockup https://claude.ai/artifact/6H4uc22Wb4zTiUfy3PhXfj), application colour chosen
+- New UI design: Halo-style (mockup <https://claude.ai/artifact/6H4uc22Wb4zTiUfy3PhXfj>), application colour chosen
   by admins under Branding (default navy), staff top bar, ticket screen restyled but not restructured, student
   portal keeps Taxil's layout with the new look; built on branch `studenthub-newUI`, one local commit per step
 - Student Hub migrations have no "new setup" guard; their records come from `lib/studenthub/*/setup.rb`,
   which spec support re-runs after the test DB reset (Zammad's seed list is fixed, so no seed files)
 
 ## Known issues
+
 - Zammad's Claude hooks need pnpm → errors if Claude runs outside the container
   (switched off on the test server with `disableAllHooks` in `.claude/settings.local.json`)
 - Test server: Elasticsearch isn't running → search index jobs fail and fill the log
@@ -86,10 +92,11 @@ Never put passwords, tokens or keys in this file.
 - This container picks up Node 22 from `.mise.toml` (project needs 24): pnpm warns "Unsupported engine"
 
 ## In progress
+
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
-  dev-only test users agent@, manager@ and student@example.com and `[TEST]` tickets #886839/#886840
+  dev-only test users agent@, manager@ and <student@example.com> and `[TEST]` tickets #886839/#886840
 - Work PC container: headless Google Chrome + Chrome DevTools MCP (user-level; redo after a rebuild)
 - New UI redesign from `studenthub-newUI`, merged into `develop` on 6 Oct (not yet deployed): colour setting, navigation panel, top bar,
   sign-in page, ticket lists (Teams views, Group by, colours), ticket screen, New ticket screen, manager
@@ -98,12 +105,13 @@ Never put passwords, tokens or keys in this file.
   Overviews admin page reworked (on/off switch, reorder keeps order numbers, locked Teams views) — not yet
   checked in a browser
 - Dev DB (this container, 6 Oct): branch migrations run; Admin role is now an agent role (Teams sync);
-  dev-only test users agent@ (Agent : Service Desk), manager@ (Managers), student@example.com, password `test`
+  dev-only test users agent@ (Agent : Service Desk), manager@ (Managers), <student@example.com>, password `test`
 - Test server switched to this repo on 2 Oct (`develop` at `f8f9b99dc9`). The logo build fix is
   applied there by hand (uncommitted); nginx `/cable` + `/ws` now forward the Host header; old
   branding edits are in `git stash` and `~ticketadmi/server-branding/` (old `custom.css` in `disabled-live/`)
 
 ## Next steps
+
 - [ ] Set up the same environment on the home PC (check data-protection rules before copying real data)
 - [ ] Test server: stash the hand-applied logo fix, install the deploy script, run the first scripted deploy
 - [ ] Rehearse the first production deploy on a fresh clone of the production VM, then do it
@@ -128,6 +136,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser
 
 ## Log
+
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
 - 2026-09-30: App running on work PC; restored test-server DB locally; read-only review of Taxil's changes
 - 2026-10-02: Deploy key for test server; removed `auto_wizard.json` from repo; merged Taxil's reports/ticket-wizard commit (PR #2)
@@ -148,3 +157,6 @@ Never put passwords, tokens or keys in this file.
   on/off switch, table fixes, Teams views locked; merged `studenthub-newUI` into `develop`
 - 2026-10-06: Top bar shows "Tickets / <group> / Ticket#…" on ticket pages (group links to its Teams view);
   a page leaving no longer clears the next page's breadcrumbs
+- 2026-10-06: Approval overviews managed by the system (follow the Ticket Approvals switch, locked on the
+  Overviews page, hand changes undone); dev DB: switched back on
+- 2026-10-06: Ticket screen: no compact header sliding in at the top while scrolling (the top bar has the ticket number)

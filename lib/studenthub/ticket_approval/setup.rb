@@ -137,10 +137,7 @@ module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength 
       link:          'awaiting_my_approval',
       prio:          1005,
       role_ids:      [manager_role&.id].compact,
-      condition:     {
-        'ticket.approval_state'       => { operator: 'is', value: ['pending'] },
-        'ticket.approval_approver_id' => { operator: 'is', pre_condition: 'current_user.id', value: [] },
-      },
+      condition:     managed_overview_attributes(active)['awaiting_my_approval'][:condition],
       order:         { by: 'updated_at', direction: 'ASC' },
       view:          {
         d:                 %w[number title customer group owner updated_at],
@@ -201,8 +198,64 @@ module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength 
     overview.update!(**agent_overview_attributes, role_ids: agent_role_ids)
   end
 
-  # The overviews only make sense while the feature is on.
-  def self.sync_overviews(active)
-    Overview.where(link: OVERVIEW_LINKS).find_each { |overview| overview.update!(active: active) }
+  # The two overviews are managed by Student Hub, not by admins: on while the feature is on, off
+  # (hidden for everyone) while it is off, always for the same roles and with the same conditions.
+  # Runs when the feature is switched, and in the background after a role or one of these
+  # overviews changed (StudenthubTeamViewsSyncJob), so changes made by hand are undone.
+  def self.sync_overviews(active = Studenthub::TicketApproval.enabled?)
+    return if !Setting.exists?(name: 'ticket_approval')
+
+    create_overviews
+    managed_overview_attributes(active).each do |link, attributes|
+      overview = Overview.find_by(link: link)
+      next if !overview || !overview_changed?(overview, attributes)
+
+      overview.update!(**attributes, updated_by_id: 1)
+    end
+  end
+
+  def self.managed_overview_attributes(active)
+    manager_role = Role.find_by(name: Studenthub::TicketApproval::MANAGER_ROLE)
+
+    {
+      'awaiting_my_approval' => {
+        name:      __('Awaiting my approval'),
+        condition: {
+          'ticket.approval_state'       => { operator: 'is', value: ['pending'] },
+          'ticket.approval_approver_id' => { operator: 'is', pre_condition: 'current_user.id', value: [] },
+        },
+        role_ids:  [manager_role&.id].compact,
+        active:    active,
+      },
+      'sent_for_approval'    => {
+        **agent_overview_attributes.slice(:name, :condition),
+        role_ids: agent_role_ids,
+        active:   active,
+      },
+    }
+  end
+
+  def self.overview_changed?(overview, attributes)
+    overview.name != attributes[:name] || overview.active != attributes[:active] ||
+      overview.role_ids.sort != attributes[:role_ids].sort ||
+      overview.condition.to_h.deep_stringify_keys != attributes[:condition].deep_stringify_keys
+  end
+
+  # Added to Overview: an approval overview changed by hand is put back in the background.
+  module OverviewSync
+    extend ActiveSupport::Concern
+
+    included do
+      after_commit :studenthub_sync_approval_overviews
+    end
+
+    private
+
+    def studenthub_sync_approval_overviews
+      return if Setting.get('import_mode')
+      return if OVERVIEW_LINKS.exclude?(link) && OVERVIEW_LINKS.exclude?(link_before_last_save)
+
+      StudenthubTeamViewsSyncJob.perform_later
+    end
   end
 end

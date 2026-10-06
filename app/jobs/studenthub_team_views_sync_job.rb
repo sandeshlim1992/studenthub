@@ -1,11 +1,14 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# Student Hub: brings the Teams views up to date after a group, role or ticket state changed
-# (Studenthub::TicketViews::Teams). One job at a time; changes made meanwhile are picked up by it.
+# Student Hub: brings the views Student Hub manages up to date after a group, role, ticket state or
+# one of the approval overviews changed: the Teams views (Studenthub::TicketViews::Teams) and the
+# Ticket Approvals overviews (Studenthub::TicketApproval::Setup.sync_overviews). One job at a time;
+# changes made meanwhile are picked up by it.
 class StudenthubTeamViewsSyncJob < ApplicationJob
   include HasActiveJobLock
 
   def perform
     Studenthub::TicketViews::Teams.sync!
+    Studenthub::TicketApproval::Setup.sync_overviews
   end
 end

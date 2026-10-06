@@ -97,10 +97,34 @@ const actionMenuPosition = ref({ top: 0, right: 0 })
 const actionError = ref('')
 const togglingIds = ref<Record<number, boolean>>({})
 
-// Teams views follow the groups (Studenthub::TicketViews::Teams): the sync switches them back on
-// and resets their order, so their toggle, order and delete are locked here.
+// Views Student Hub manages, so their toggle, order and delete are locked here: the Teams views
+// follow the groups (Studenthub::TicketViews::Teams), the approval views follow the Ticket
+// Approvals switch (Studenthub::TicketApproval::Setup.sync_overviews). The sync undoes changes.
 const TEAM_LINK_PREFIX = 'studenthub_team_'
-const isManaged = (overview: OverviewItem) => overview.link?.startsWith(TEAM_LINK_PREFIX) ?? false
+const APPROVAL_LINKS = new Set(['awaiting_my_approval', 'sent_for_approval'])
+const managedKind = (overview: OverviewItem): 'team' | 'approval' | null => {
+  if (overview.link?.startsWith(TEAM_LINK_PREFIX)) return 'team'
+  if (overview.link && APPROVAL_LINKS.has(overview.link)) return 'approval'
+  return null
+}
+const isManaged = (overview: OverviewItem) => managedKind(overview) !== null
+
+const managedOrderTitle = (overview: OverviewItem) =>
+  managedKind(overview) === 'team'
+    ? __('Teams views follow the groups and are sorted by name.')
+    : __('Approval views are always listed first, under Approval needed.')
+
+const managedBadgeTitle = (overview: OverviewItem) =>
+  managedKind(overview) === 'team'
+    ? __('Kept in step with the groups: switch off or remove the group to remove this view.')
+    : __('Kept in step with Ticket Approvals: on for managers and agents while it is on, hidden while it is off.')
+
+const managedSwitchTitle = (overview: OverviewItem) => {
+  if (managedKind(overview) === 'team') return __('Teams views are always on. Switch off the group instead.')
+  return overview.active
+    ? __('On while Ticket Approvals is on.')
+    : __('Off while Ticket Approvals is off.')
+}
 
 // Drag and drop state
 const draggedOverviewId = ref<number | null>(null)
@@ -171,10 +195,11 @@ const toggleActionMenu = (overviewId: number, event: Event) => {
   activeActionMenuOverviewId.value = overviewId
 }
 
-// The overview open in the drawer is a Teams view
-const editingManaged = computed(() =>
-  formState.value.id !== null && overviews.value.some((o) => o.id === formState.value.id && isManaged(o))
+// The overview open in the drawer is managed by Student Hub
+const editingOverview = computed(() =>
+  formState.value.id === null ? undefined : overviews.value.find((o) => o.id === formState.value.id)
 )
+const editingManaged = computed(() => editingOverview.value !== undefined && isManaged(editingOverview.value))
 
 const actionMenuOverview = computed(() =>
   overviews.value.find((o) => o.id === activeActionMenuOverviewId.value) ?? null
@@ -825,7 +850,7 @@ onUnmounted(() => {
             >
               <!-- Order & Drag Handle -->
               <td class="py-3 px-6 text-center" @click.stop>
-                <div v-if="isManaged(overview)" class="flex items-center justify-center text-slate-300 dark:text-slate-600" :title="__('Teams views follow the groups and are sorted by name.')">
+                <div v-if="isManaged(overview)" class="flex items-center justify-center text-slate-300 dark:text-slate-600" :title="managedOrderTitle(overview)">
                   <CommonIcon name="lock" class="w-3.5 h-3.5" />
                 </div>
                 <div v-else-if="canReorder" class="flex items-center justify-center gap-1.5">
@@ -861,7 +886,7 @@ onUnmounted(() => {
                   <span
                     v-if="isManaged(overview)"
                     class="shrink-0 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-semibold"
-                    :title="__('Kept in step with the groups: switch off or remove the group to remove this view.')"
+                    :title="managedBadgeTitle(overview)"
                   >{{ __('Managed automatically') }}</span>
                 </div>
               </td>
@@ -893,7 +918,7 @@ onUnmounted(() => {
                   role="switch"
                   :aria-checked="overview.active"
                   :aria-label="__('Switch %s on or off').replace('%s', overview.name)"
-                  :title="isManaged(overview) ? __('Teams views are always on. Switch off the group instead.') : (overview.active ? __('Active') : __('Inactive'))"
+                  :title="isManaged(overview) ? managedSwitchTitle(overview) : (overview.active ? __('Active') : __('Inactive'))"
                   :disabled="isManaged(overview) || togglingIds[overview.id]"
                   class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 align-middle"
                   :class="overview.active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-700'"
@@ -1280,7 +1305,7 @@ onUnmounted(() => {
             <div>
               <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ __('Active') }} <span class="text-red-500">*</span></h3>
               <p class="text-xs text-slate-500 mt-0.5">{{ __('Determine if the overview is enabled for authorized users.') }}</p>
-              <p v-if="editingManaged" class="text-xs text-blue-600 dark:text-blue-400 mt-1">{{ __('Teams views are kept in step with the groups: name, roles, conditions, on/off and position are set automatically.') }}</p>
+              <p v-if="editingManaged" class="text-xs text-blue-600 dark:text-blue-400 mt-1">{{ editingOverview && managedKind(editingOverview) === 'approval' ? __('Approval views are kept in step with Ticket Approvals: name, roles, conditions and on/off are set automatically.') : __('Teams views are kept in step with the groups: name, roles, conditions, on/off and position are set automatically.') }}</p>
             </div>
             <button type="button" role="switch" :aria-checked="formState.active" :disabled="editingManaged" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50" :class="formState.active ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'" @click="formState.active = !formState.active">
               <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200" :class="formState.active ? 'rtl:-translate-x-5 ltr:translate-x-5' : 'rtl:-translate-x-0 ltr:translate-x-0'"></span>

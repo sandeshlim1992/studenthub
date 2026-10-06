@@ -2,9 +2,11 @@
 
 # Student Hub Ticket Approvals, added to Zammad's classes without editing them: protect the
 # approval columns on tickets, let the chosen manager and the requesting agent read a ticket
-# that waits for approval, and pause its SLA meanwhile.
+# that waits for approval, pause its SLA meanwhile, and put the approval overviews back when
+# they are changed by hand.
 Rails.application.config.to_prepare do
   Ticket.include(Studenthub::TicketApproval::TicketGuard) if !(Ticket < Studenthub::TicketApproval::TicketGuard)
+  Overview.include(Studenthub::TicketApproval::Setup::OverviewSync) if !(Overview < Studenthub::TicketApproval::Setup::OverviewSync)
 
   {
     TicketPolicy               => Studenthub::TicketApproval::TicketAccess::Policy,

@@ -120,6 +120,39 @@ RSpec.describe Studenthub::TicketApproval, aggregate_failures: true do
       expect(Overview.where(link: %w[awaiting_my_approval sent_for_approval]).pluck(:active)).to eq([true, true])
     end
 
+    it 'puts the overviews back when they are changed by hand' do
+      Setting.set('ticket_approval', true)
+      awaiting = Overview.find_by(link: 'awaiting_my_approval')
+      sent     = Overview.find_by(link: 'sent_for_approval')
+      vle_role = create(:role, name: 'Agent : VLE', permission_names: ['ticket.agent'])
+      awaiting.update!(active: false, role_ids: [Role.find_by(name: 'Agent').id])
+      sent.destroy!
+
+      Studenthub::TicketApproval::Setup.sync_overviews
+
+      expect(awaiting.reload).to have_attributes(active: true, role_ids: [Role.find_by(name: 'Managers').id])
+      expect(Overview.find_by(link: 'sent_for_approval')).to have_attributes(active: true)
+      expect(Overview.find_by(link: 'sent_for_approval').role_ids).to include(vle_role.id, Role.find_by(name: 'Agent').id)
+    end
+
+    it 'keeps the overviews off while the feature is off' do
+      Setting.set('ticket_approval', false)
+      Overview.find_by(link: 'sent_for_approval').update!(active: true)
+
+      Studenthub::TicketApproval::Setup.sync_overviews
+
+      expect(Overview.where(link: %w[awaiting_my_approval sent_for_approval]).pluck(:active)).to eq([false, false])
+    end
+
+    it 'syncs in the background when an approval overview changes, not for other overviews', performs_jobs: true do
+      ActiveJobLock.destroy_all
+      expect { Overview.find_by(link: 'awaiting_my_approval').update!(active: true) }.to have_enqueued_job(StudenthubTeamViewsSyncJob)
+
+      ActiveJobLock.destroy_all
+      clear_jobs
+      expect { create(:overview) }.not_to have_enqueued_job(StudenthubTeamViewsSyncJob)
+    end
+
     it 'turns the old "Approval decisions" view into "Sent for approval", keeping it' do
       overview = Overview.find_by(link: 'sent_for_approval')
       overview.update!(name: 'Approval decisions', link: 'approval_decisions')

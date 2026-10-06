@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import { until } from '@vueuse/core'
-import { computed, onActivated, onBeforeUnmount, onDeactivated, toRef, watch } from 'vue'
+import { computed, toRef } from 'vue'
 
 import { useSessionStore } from '#shared/stores/session.ts'
 import hasPermission from '#shared/utils/hasPermission.ts'
@@ -11,7 +11,7 @@ import CommonEmptyMessage from '#desktop/components/CommonEmptyMessage/CommonEmp
 import type { NavigationTab } from '#desktop/components/CommonTabs/types.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import LayoutSidebar from '#desktop/components/layout/LayoutSidebar.vue'
-import { setStudenthubTopBarCrumbs } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
+import { useStudenthubTopBarCrumbsWhileShown } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
 import { SidebarName } from '#desktop/components/layout/types.ts'
 import DragAndDropBulkWrapper from '#desktop/components/Ticket/DragAndDropBulk/DragAndDropBulkWrapper.vue'
 import { useDragAndDropBulk } from '#desktop/components/Ticket/DragAndDropBulk/useDragAndDropBulk.ts'
@@ -131,18 +131,7 @@ const topBarCrumbs = computed(() =>
     : [{ label: __('Tickets'), route: '/tickets/view' }, { label: currentOverview.value.name }],
 )
 
-// The page is kept alive: only touch the top bar while it is shown.
-let isShown = true
-watch(topBarCrumbs, (crumbs) => isShown && setStudenthubTopBarCrumbs(crumbs), { immediate: true })
-onActivated(() => {
-  isShown = true
-  setStudenthubTopBarCrumbs(topBarCrumbs.value)
-})
-onDeactivated(() => {
-  isShown = false
-  setStudenthubTopBarCrumbs([])
-})
-onBeforeUnmount(() => setStudenthubTopBarCrumbs([]))
+useStudenthubTopBarCrumbsWhileShown(topBarCrumbs)
 </script>
 
 <template>
@@ -164,7 +153,7 @@ onBeforeUnmount(() => setStudenthubTopBarCrumbs([]))
     <LayoutContent
       class="relative"
       :active-tab="activeTab"
-      :breadcrumb-items="isCustomer ? undefined : (currentOverview ? breadcrumbItems : undefined)"
+      :breadcrumb-items="isCustomer ? undefined : currentOverview ? breadcrumbItems : undefined"
       :tabs="isCustomer ? undefined : overviewsTabs"
       no-scrollable
       :no-padding="isCustomer"
@@ -172,7 +161,10 @@ onBeforeUnmount(() => setStudenthubTopBarCrumbs([]))
     >
       <template #headerRight>
         <!-- Student Hub: the agent's own grouping of this view -->
-        <StudenthubViewGroupBy v-if="!isCustomer && currentOverview" :overview-id="currentOverview.id" />
+        <StudenthubViewGroupBy
+          v-if="!isCustomer && currentOverview"
+          :overview-id="currentOverview.id"
+        />
         <TicketBulkEditButton
           v-if="!isCustomer"
           :checked-ticket-ids="checkedTicketIds"
@@ -189,7 +181,9 @@ onBeforeUnmount(() => setStudenthubTopBarCrumbs([]))
         :order-by="currentOverview.orderBy"
         :order-direction="currentOverview.orderDirection"
         :group-by="currentOverview.groupBy || undefined"
-        :pinned-group="isStudenthubTeamView(currentOverview.link) ? STUDENTHUB_UNASSIGNED_GROUP : undefined"
+        :pinned-group="
+          isStudenthubTeamView(currentOverview.link) ? STUDENTHUB_UNASSIGNED_GROUP : undefined
+        "
         :overview-count="currentOverviewCount"
       />
       <CommonEmptyMessage

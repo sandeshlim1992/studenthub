@@ -1,5 +1,7 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+import { reactive, ref } from 'vue'
+
 import { renderComponent } from '#tests/support/components/index.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 
@@ -7,6 +9,13 @@ import { useStudenthubTopBarCrumbs } from '#desktop/components/layout/Studenthub
 import { provideTicketInformationMocks } from '#desktop/entities/ticket/__tests__/mocks/provideTicketInformationMocks.ts'
 import { testOptionsTopBar } from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/__tests__/support/testOptions.ts'
 import TopBarHeaderFull from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/TopBarHeaderFull.vue'
+
+// The overviews store needs the server; the header only reads which Teams views the agent has.
+const overviewsByLink = ref<Record<string, unknown>>({})
+
+vi.mock('#desktop/entities/ticket/stores/ticketOverviews.ts', () => ({
+  useTicketOverviewsStore: () => reactive({ overviewsByLink }),
+}))
 
 const copyToClipboardMock = vi.fn()
 
@@ -42,16 +51,28 @@ describe('TopBarHeaderFull', () => {
     })
   })
 
-  // Student Hub: the header shows the number, "Tickets / Ticket#…" moves to the top bar.
+  // Student Hub: the header shows the number, "Tickets / Users / Ticket#…" moves to the top bar.
   it('shows the ticket number with a copy button and fills the top bar crumbs', () => {
+    overviewsByLink.value = {}
     const view = renderTopBarHeaderFull()
 
     expect(view.getByText('#89001')).toBeInTheDocument()
     expect(view.getByRole('button', { name: 'Copy ticket number' })).toBeInTheDocument()
     expect(useStudenthubTopBarCrumbs().value).toEqual([
       { label: 'Tickets', route: '/tickets/view' },
+      { label: 'Users', route: undefined },
       { label: 'Ticket#89001' },
     ])
+  })
+
+  it("links the ticket's group to its Teams view when the agent has it", () => {
+    overviewsByLink.value = { studenthub_team_1: { id: 'gid://zammad/Overview/1' } }
+    renderTopBarHeaderFull()
+
+    expect(useStudenthubTopBarCrumbs().value[1]).toEqual({
+      label: 'Users',
+      route: '/tickets/view/studenthub_team_1',
+    })
   })
 
   it('shows the state and priority next to the title', () => {

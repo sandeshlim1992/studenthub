@@ -1,5 +1,7 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+import { reactive, ref } from 'vue'
+
 import { renderComponent } from '#tests/support/components/index.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 
@@ -8,6 +10,13 @@ import { EnumChannelArea } from '#shared/graphql/types.ts'
 import { provideTicketInformationMocks } from '#desktop/entities/ticket/__tests__/mocks/provideTicketInformationMocks.ts'
 import { testOptionsTopBar } from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/__tests__/support/testOptions.ts'
 import TicketDetailTopBar from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/TicketDetailTopBar.vue'
+
+// The overviews store needs the server; the header only reads which Teams views the agent has.
+const overviewsByLink = ref<Record<string, unknown>>({})
+
+vi.mock('#desktop/entities/ticket/stores/ticketOverviews.ts', () => ({
+  useTicketOverviewsStore: () => reactive({ overviewsByLink }),
+}))
 
 const withChannelAlert = (
   overrides: Partial<typeof testOptionsTopBar> = {},

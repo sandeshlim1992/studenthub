@@ -12,7 +12,8 @@ import {
 } from 'vue'
 
 // Student Hub: "Tickets / My ALL Tickets" next to the search in the top bar. A page sets its
-// crumbs while it is shown and clears them when it is left (pages are kept alive).
+// crumbs while it is shown and clears them when it is left (pages are kept alive). A page only
+// clears crumbs it set itself: the next page sets its crumbs before the old one is hidden.
 
 export interface StudenthubTopBarCrumb {
   label: string
@@ -20,9 +21,17 @@ export interface StudenthubTopBarCrumb {
 }
 
 const crumbs = ref<StudenthubTopBarCrumb[]>([])
+let crumbsOwner: symbol | undefined
 
-export const setStudenthubTopBarCrumbs = (items: StudenthubTopBarCrumb[]) => {
+export const setStudenthubTopBarCrumbs = (items: StudenthubTopBarCrumb[], owner?: symbol) => {
   crumbs.value = items
+  crumbsOwner = owner
+}
+
+export const clearStudenthubTopBarCrumbs = (owner: symbol) => {
+  if (crumbsOwner !== owner) return
+
+  setStudenthubTopBarCrumbs([])
 }
 
 export const useStudenthubTopBarCrumbs = () => readonly(crumbs)
@@ -32,10 +41,11 @@ export const useStudenthubTopBarCrumbs = () => readonly(crumbs)
 export const useStudenthubTopBarCrumbsWhileShown = (
   items: MaybeRefOrGetter<StudenthubTopBarCrumb[]>,
 ) => {
+  const owner = Symbol('studenthub-top-bar-crumbs')
   let isShown = true
 
   const update = () => {
-    if (isShown) setStudenthubTopBarCrumbs(toValue(items))
+    if (isShown) setStudenthubTopBarCrumbs(toValue(items), owner)
   }
 
   watch(() => toValue(items), update, { immediate: true, deep: true })
@@ -47,8 +57,8 @@ export const useStudenthubTopBarCrumbsWhileShown = (
 
   onDeactivated(() => {
     isShown = false
-    setStudenthubTopBarCrumbs([])
+    clearStudenthubTopBarCrumbs(owner)
   })
 
-  onBeforeUnmount(() => setStudenthubTopBarCrumbs([]))
+  onBeforeUnmount(() => clearStudenthubTopBarCrumbs(owner))
 }

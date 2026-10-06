@@ -5,7 +5,10 @@ import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { waitForNextTick } from '#tests/support/utils.ts'
 
 import StudenthubTopBar from '../StudenthubTopBar.vue'
-import { setStudenthubTopBarCrumbs } from '../useStudenthubTopBarCrumbs.ts'
+import {
+  clearStudenthubTopBarCrumbs,
+  setStudenthubTopBarCrumbs,
+} from '../useStudenthubTopBarCrumbs.ts'
 
 import '#tests/graphql/builders/mocks.ts'
 
@@ -28,14 +31,50 @@ describe('StudenthubTopBar', () => {
   afterEach(() => setStudenthubTopBarCrumbs([]))
 
   it('shows where the user is next to the search', async () => {
-    setStudenthubTopBarCrumbs([{ label: 'Tickets', route: '/tickets/view' }, { label: 'My ALL Tickets' }])
+    setStudenthubTopBarCrumbs([
+      { label: 'Tickets', route: '/tickets/view' },
+      { label: 'My ALL Tickets' },
+    ])
 
     const view = renderTopBar()
     const crumbs = view.getByRole('navigation', { name: 'Current page' })
 
     expect(crumbs).toHaveTextContent('Tickets/My ALL Tickets')
-    expect(view.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', expect.stringContaining('/tickets/view'))
+    expect(view.getByRole('link', { name: 'Tickets' })).toHaveAttribute(
+      'href',
+      expect.stringContaining('/tickets/view'),
+    )
     expect(view.getByText('My ALL Tickets')).toHaveAttribute('aria-current', 'page')
+  })
+
+  it("keeps the next page's crumbs when the previous page is left", async () => {
+    const listPage = Symbol('list')
+    const ticketPage = Symbol('ticket')
+
+    setStudenthubTopBarCrumbs(
+      [{ label: 'Tickets', route: '/tickets/view' }, { label: 'Service Desk' }],
+      listPage,
+    )
+    setStudenthubTopBarCrumbs(
+      [
+        { label: 'Tickets', route: '/tickets/view' },
+        { label: 'Service Desk' },
+        { label: 'Ticket#884456' },
+      ],
+      ticketPage,
+    )
+    clearStudenthubTopBarCrumbs(listPage)
+
+    const view = renderTopBar()
+
+    expect(view.getByRole('navigation', { name: 'Current page' })).toHaveTextContent(
+      'Tickets/Service Desk/Ticket#884456',
+    )
+
+    clearStudenthubTopBarCrumbs(ticketPage)
+    await waitForNextTick()
+
+    expect(view.queryByRole('navigation', { name: 'Current page' })).not.toBeInTheDocument()
   })
 
   it('gives agents search, New ticket, notifications and their avatar menu', () => {

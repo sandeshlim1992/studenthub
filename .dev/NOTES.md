@@ -146,3 +146,5 @@ Never put passwords, tokens or keys in this file.
   pushed `studenthub-newUI`
 - 2026-10-06: Teams only for the agent's own groups, none for managers, all for admins; Overviews admin page:
   on/off switch, table fixes, Teams views locked; merged `studenthub-newUI` into `develop`
+- 2026-10-06: Top bar shows "Tickets / <group> / Ticket#…" on ticket pages (group links to its Teams view);
+  a page leaving no longer clears the next page's breadcrumbs

@@ -1,63 +1,18 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# Student Hub: one overview per institution (LSST, UKBC, FSB) with its open tickets, for the
-# Admin role only. Zammad can't filter "campus starts with LSST", so each overview lists the
-# campus values that exist when it is created; a campus added later has to be ticked in the
-# overview by an admin. Existing overviews are left alone, so admin edits survive.
+# Student Hub ticket views: what the Teams and Institutions views share. Until 6 Oct 2026 this
+# made the LSST / UKBC / FSB overviews by campus; the Institutions views by organisation
+# (Studenthub::TicketViews::Institutions) replaced them, and ensure!/remove! are kept for the
+# 20261004200000 migration.
 module Studenthub::TicketViews::Setup
   CLOSED_STATE_TYPES = %w[closed merged removed].freeze
-  VIEW_COLUMNS = %w[number title customer group owner state campus updated_at].freeze
 
   def self.ensure!
-    return if !ObjectManager::Attribute.get(object: 'Ticket', name: 'campus')
-
-    Studenthub::TicketViews::INSTITUTIONS.each_with_index do |(key, name), index|
-      link = Studenthub::TicketViews.institution_link(key)
-      next if Overview.exists?(link: link)
-
-      values = campus_values(name)
-      next if values.empty?
-
-      Overview.create!(
-        name:          name,
-        link:          link,
-        prio:          9000 + index,
-        roles:         Role.where(name: 'Admin'),
-        condition:     {
-          'ticket.state_id' => { operator: 'is', value: open_state_ids },
-          'ticket.campus'   => { operator: 'is', value: values },
-        },
-        order:         { by: 'created_at', direction: 'DESC' },
-        view:          { s: VIEW_COLUMNS },
-        user_ids:      [],
-        active:        true,
-        created_by_id: 1,
-        updated_by_id: 1,
-      )
-    end
+    Studenthub::TicketViews::Institutions.sync!
   end
 
   def self.remove!
-    links = Studenthub::TicketViews::INSTITUTIONS.keys.map { |key| Studenthub::TicketViews.institution_link(key) }
-    Overview.where(link: links).destroy_all
-  end
-
-  # Campus field options plus values already on tickets (some older ones differ in case).
-  def self.campus_values(institution)
-    attribute = ObjectManager::Attribute.get(object: 'Ticket', name: 'campus')
-    options = flatten_options(attribute&.data_option&.dig(:options) || attribute&.data_option&.dig('options'))
-    (options + used_campus_values).map(&:to_s).uniq.grep(%r{\A#{Regexp.escape(institution)}\b}i).sort
-  end
-
-  def self.used_campus_values
-    Ticket.where.not(campus: [nil, '']).distinct.pluck(:campus)
-  end
-
-  def self.flatten_options(options)
-    Array(options).flat_map do |option|
-      option = option.with_indifferent_access
-      [option[:value], *flatten_options(option[:children])]
-    end.compact
+    Studenthub::TicketViews::Institutions.remove!
   end
 
   def self.open_state_ids

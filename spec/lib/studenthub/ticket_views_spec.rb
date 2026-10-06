@@ -80,44 +80,12 @@ RSpec.describe Studenthub::TicketViews, aggregate_failures: true do
     end
   end
 
-  describe 'institution overviews', db_strategy: :reset do
-    let(:admin) { create(:admin) }
+  describe 'institution views' do
+    it 'lists them for admins only' do
+      create(:organization, name: 'LSST')
+      Studenthub::TicketViews::Institutions.sync!
 
-    before do
-      # The campus field only exists on Student Hub systems, so the test adds it.
-      campus = create(:object_manager_attribute_tree_select, name: 'campus')
-      campus.update!(data_option: campus.data_option.merge('options' => [
-                                                             { 'name' => 'LSST Wembley', 'value' => 'LSST Wembley' },
-                                                             { 'name' => 'FSB Croydon', 'value' => 'FSB Croydon', 'children' => [{ 'name' => 'Annex', 'value' => 'FSB Croydon::Annex' }] },
-                                                             { 'name' => 'MEMO House', 'value' => 'MEMO House' },
-                                                           ]))
-      ObjectManager::Attribute.migration_execute
-      allow(Studenthub::TicketViews::Setup).to receive(:used_campus_values).and_return(['UKBC leicester', 'FSB leicester'])
-
-      Studenthub::TicketViews::Setup.ensure!
-    end
-
-    it 'creates one admin-only overview per institution with its campus values' do
-      lsst, ukbc, fsb = %w[lsst ukbc fsb].map { |key| Overview.find_by(link: described_class.institution_link(key)) }
-
-      expect(lsst.condition.dig('ticket.campus', 'value')).to eq(['LSST Wembley'])
-      expect(ukbc.condition.dig('ticket.campus', 'value')).to eq(['UKBC leicester'])
-      expect(fsb.condition.dig('ticket.campus', 'value')).to eq(['FSB Croydon', 'FSB Croydon::Annex', 'FSB leicester'])
-      expect([lsst, ukbc, fsb].map { |o| o.roles.map(&:name) }).to all(eq(['Admin']))
-      expect(lsst.condition.dig('ticket.state_id', 'value')).not_to include(Ticket::State.find_by(name: 'closed').id.to_s)
-    end
-
-    it 'keeps existing overviews (and admin edits) when run again' do
-      Overview.find_by(link: described_class.institution_link('lsst')).update!(name: 'LSST (edited)')
-
-      expect { Studenthub::TicketViews::Setup.ensure! }.not_to change(Overview, :count)
-      expect(Overview.find_by(link: described_class.institution_link('lsst')).name).to eq('LSST (edited)')
-    end
-
-    it 'shows them to admins only' do
-      admin_ids = described_class.sections_for(admin)[:institution_overview_ids]
-
-      expect(admin_ids.size).to eq(3)
+      expect(described_class.sections_for(create(:admin))[:institution_overview_ids]).not_to be_empty
       expect(described_class.sections_for(agent)[:institution_overview_ids]).to be_empty
     end
   end

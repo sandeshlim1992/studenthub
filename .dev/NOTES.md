@@ -40,6 +40,8 @@ Never put passwords, tokens or keys in this file.
   all. For that the Teams sync makes the Admin role an agent role with full access to every team group
 - Teams views are locked on `/desktop/manage/overviews` ("Managed automatically": no on/off, reorder or delete),
   because the sync resets them; remove one by switching off its group
+- Institutions views: one per active organisation (its customers' open tickets), Admin role only, kept in step
+  with the organisations and locked like Teams (replaced the LSST / UKBC / FSB views by campus)
 - The approval overviews (Awaiting my approval, Sent for approval) are system-managed like the Teams views:
   on/off follows the Ticket Approvals switch, roles are fixed (Managers / every agent role), locked on the
   Overviews page, hand changes undone by the background sync. The old "Managers Approval" overview stays off
@@ -160,3 +162,4 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-06: Approval overviews managed by the system (follow the Ticket Approvals switch, locked on the
   Overviews page, hand changes undone); dev DB: switched back on
 - 2026-10-06: Ticket screen: no compact header sliding in at the top while scrolling (the top bar has the ticket number)
+- 2026-10-06: Institutions views by organisation (every active one), managed by the system; dev DB migrated

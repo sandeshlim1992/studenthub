@@ -378,14 +378,17 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   agent's name in a list grouped by owner) and the page title are bold, and the dividers between column titles only
   appear on hover (they are the column resize handles).
 - **Views panel in groups:** **Approval needed** (the Ticket Approvals overviews, first), **My views** (all overviews
-  not listed elsewhere), **Teams** and **Institutions** (LSST, UKBC and FSB: open tickets by campus, Admin role only).
+  not listed elsewhere), **Teams** and **Institutions** (one view per organisation, e.g. LSST, UKBC and FSB: open tickets
+  of that organisation's customers, Admin role only).
   **Teams** has one view per group with its open tickets, grouped by agent, and each agent sees the views of the
   groups they can read. Student Hub makes these views itself (links `studenthub_team_<group id>`) and keeps them in
   step with the groups: a new group gets one, a renamed one is renamed, an inactive one loses it (in the background, a
   few seconds after the change); the Managers group of Ticket Approvals never has one. Admin-made overviews of a
   single group (e.g. the old Service Desk view of new unassigned tickets) stay under My views for members of that
-  group. The institution overviews are created by a migration with the campus values that existed then; when a new
-  campus is added, tick it in that overview under Administration → Overviews. "Overviews" is called **Tickets** in the
+  group. The **Institutions** views work the same way with the organisations (links `studenthub_institution_<organisation
+  id>`): every active organisation gets one, sorted by name; switch an organisation off to remove its view. Teams,
+  Institutions and the two approval views are locked on the Overviews admin page ("Managed automatically"), and changes
+  made to them elsewhere are undone by the background sync. "Overviews" is called **Tickets** in the
   new UI's navigation and tab title, and the top bar shows "Tickets / <view>" next to the search (the admin page for
   managing overviews keeps its name).
 - **Group by and sorting, per agent:** every ticket view has a **Group by** menu (no grouping, Agent, Team, State,
@@ -464,7 +467,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `lib/studenthub/ticket_views.rb`, `app/controllers/studenthub_ticket_views_controller.rb` (`GET /api/v1/studenthub/ticket_views`), `pages/ticket-overviews/composables/useStudenthubTicketViews.ts` | Sorting the views panel into Approval needed / My views / Teams / Institutions |
 | `lib/studenthub/ticket_views/teams.rb`, `app/jobs/studenthub_team_views_sync_job.rb`, `db/migrate/20261006100000_studenthub_team_views.rb` | The Teams views, kept in step with the groups |
 | `lib/studenthub/ticket_views/choice.rb`, `config/initializers/studenthub_ticket_views.rb`, `GET/PUT/DELETE /api/v1/studenthub/ticket_views/:overview_id/choice`, `pages/ticket-overviews/components/StudenthubViewGroupBy.vue`, `composables/studenthubViewChoice.ts` | Each agent's grouping and order of a view |
-| `lib/studenthub/ticket_views/setup.rb`, `db/migrate/20261004200000_studenthub_institution_overviews.rb` | The LSST, UKBC and FSB overviews |
+| `lib/studenthub/ticket_views/institutions.rb`, `db/migrate/20261006120000_studenthub_institution_views_by_organization.rb` | The Institutions views, kept in step with the organisations |
 | `lib/studenthub/theme/ticket_list_setup.rb`, `app/models/setting/validation/studenthub_{ticket_state_colors,escalation_warning_minutes}.rb`, `db/migrate/20261004180000_studenthub_ticket_list_colors.rb` | Settings, first guess per state, server-side checks |
 | `pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderActions.vue`, `StudenthubHeaderMenuButton.vue`; edits in `TopBarHeaderFull.vue`, `TicketInformationBadgeList.vue` | Ticket header: number, state and priority next to the title, actions |
 | `pages/ticket/components/TicketSidebar/TicketSidebarInformation/TicketSidebarInformationContent/StudenthubTicketDetailsList.vue`, `StudenthubTicketSlaBox.vue`, `pages/ticket/composables/useStudenthubTicketDetailsMode.ts`, `utils/studenthubTicketDetails.ts`; edit in `TicketSidebarInformationContent.vue` | Details list with Edit / Done, SLA card |

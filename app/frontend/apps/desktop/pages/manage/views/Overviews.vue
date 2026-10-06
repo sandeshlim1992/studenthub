@@ -98,29 +98,35 @@ const actionError = ref('')
 const togglingIds = ref<Record<number, boolean>>({})
 
 // Views Student Hub manages, so their toggle, order and delete are locked here: the Teams views
-// follow the groups (Studenthub::TicketViews::Teams), the approval views follow the Ticket
-// Approvals switch (Studenthub::TicketApproval::Setup.sync_overviews). The sync undoes changes.
+// follow the groups (Studenthub::TicketViews::Teams), the Institutions views the organisations
+// (Studenthub::TicketViews::Institutions), the approval views the Ticket Approvals switch
+// (Studenthub::TicketApproval::Setup.sync_overviews). The sync undoes changes.
 const TEAM_LINK_PREFIX = 'studenthub_team_'
+const INSTITUTION_LINK_PREFIX = 'studenthub_institution_'
 const APPROVAL_LINKS = new Set(['awaiting_my_approval', 'sent_for_approval'])
-const managedKind = (overview: OverviewItem): 'team' | 'approval' | null => {
+const managedKind = (overview: OverviewItem): 'team' | 'institution' | 'approval' | null => {
   if (overview.link?.startsWith(TEAM_LINK_PREFIX)) return 'team'
+  if (overview.link?.startsWith(INSTITUTION_LINK_PREFIX)) return 'institution'
   if (overview.link && APPROVAL_LINKS.has(overview.link)) return 'approval'
   return null
 }
 const isManaged = (overview: OverviewItem) => managedKind(overview) !== null
 
-const managedOrderTitle = (overview: OverviewItem) =>
-  managedKind(overview) === 'team'
-    ? __('Teams views follow the groups and are sorted by name.')
-    : __('Approval views are always listed first, under Approval needed.')
+const managedOrderTitle = (overview: OverviewItem) => {
+  if (managedKind(overview) === 'team') return __('Teams views follow the groups and are sorted by name.')
+  if (managedKind(overview) === 'institution') return __('Institutions views follow the organizations and are sorted by name.')
+  return __('Approval views are always listed first, under Approval needed.')
+}
 
-const managedBadgeTitle = (overview: OverviewItem) =>
-  managedKind(overview) === 'team'
-    ? __('Kept in step with the groups: switch off or remove the group to remove this view.')
-    : __('Kept in step with Ticket Approvals: on for managers and agents while it is on, hidden while it is off.')
+const managedBadgeTitle = (overview: OverviewItem) => {
+  if (managedKind(overview) === 'team') return __('Kept in step with the groups: switch off or remove the group to remove this view.')
+  if (managedKind(overview) === 'institution') return __('Kept in step with the organizations: switch off or remove the organization to remove this view.')
+  return __('Kept in step with Ticket Approvals: on for managers and agents while it is on, hidden while it is off.')
+}
 
 const managedSwitchTitle = (overview: OverviewItem) => {
   if (managedKind(overview) === 'team') return __('Teams views are always on. Switch off the group instead.')
+  if (managedKind(overview) === 'institution') return __('Institutions views are always on. Switch off the organization instead.')
   return overview.active
     ? __('On while Ticket Approvals is on.')
     : __('Off while Ticket Approvals is off.')
@@ -200,6 +206,12 @@ const editingOverview = computed(() =>
   formState.value.id === null ? undefined : overviews.value.find((o) => o.id === formState.value.id)
 )
 const editingManaged = computed(() => editingOverview.value !== undefined && isManaged(editingOverview.value))
+const managedDrawerNote = computed(() => {
+  const kind = editingOverview.value ? managedKind(editingOverview.value) : null
+  if (kind === 'approval') return __('Approval views are kept in step with Ticket Approvals: name, roles, conditions and on/off are set automatically.')
+  if (kind === 'institution') return __('Institutions views are kept in step with the organizations: name, roles, conditions, on/off and position are set automatically.')
+  return __('Teams views are kept in step with the groups: name, roles, conditions, on/off and position are set automatically.')
+})
 
 const actionMenuOverview = computed(() =>
   overviews.value.find((o) => o.id === activeActionMenuOverviewId.value) ?? null
@@ -1305,7 +1317,7 @@ onUnmounted(() => {
             <div>
               <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ __('Active') }} <span class="text-red-500">*</span></h3>
               <p class="text-xs text-slate-500 mt-0.5">{{ __('Determine if the overview is enabled for authorized users.') }}</p>
-              <p v-if="editingManaged" class="text-xs text-blue-600 dark:text-blue-400 mt-1">{{ editingOverview && managedKind(editingOverview) === 'approval' ? __('Approval views are kept in step with Ticket Approvals: name, roles, conditions and on/off are set automatically.') : __('Teams views are kept in step with the groups: name, roles, conditions, on/off and position are set automatically.') }}</p>
+              <p v-if="editingManaged" class="text-xs text-blue-600 dark:text-blue-400 mt-1">{{ managedDrawerNote }}</p>
             </div>
             <button type="button" role="switch" :aria-checked="formState.active" :disabled="editingManaged" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50" :class="formState.active ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'" @click="formState.active = !formState.active">
               <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200" :class="formState.active ? 'rtl:-translate-x-5 ltr:translate-x-5' : 'rtl:-translate-x-0 ltr:translate-x-0'"></span>

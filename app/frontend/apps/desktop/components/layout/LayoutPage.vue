@@ -1,13 +1,11 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { type MaybeElementRef, useCurrentElement, type VueInstance } from '@vueuse/core'
 import { delay } from 'lodash-es'
-import { computed, onBeforeMount, ref, toRef, useTemplateRef, watch } from 'vue'
+import { computed, onBeforeMount, ref, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { useReducedMotion } from '#shared/composables/useReducedMotion.ts'
-import { useTrapTab } from '#shared/composables/useTrapTab.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 import emitter from '#shared/utils/emitter.ts'
@@ -18,9 +16,9 @@ import CustomerSidebar from '#desktop/components/Customer/CustomerSidebar.vue'
 import LeftSidebarFooterMenu from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarFooterMenu.vue'
 import LeftSidebarHeader from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarHeader.vue'
 import LayoutSidebar from '#desktop/components/layout/LayoutSidebar.vue'
+import StudenthubTopBar from '#desktop/components/layout/StudenthubTopBar/StudenthubTopBar.vue'
 import { numberOfPermanentItems } from '#desktop/components/PageNavigation/firstLevelRoutes.ts'
 import PageNavigation from '#desktop/components/PageNavigation/PageNavigation.vue'
-import QuickSearch from '#desktop/components/Search/QuickSearch/QuickSearch.vue'
 import UserTaskbarTabs from '#desktop/components/UserTaskbarTabs/UserTaskbarTabs.vue'
 import { useAppBreakpoints } from '#desktop/composables/responsiveness/useAppBreakpoints.ts'
 import { useResizeGridColumns } from '#desktop/composables/useResizeGridColumns.ts'
@@ -31,18 +29,6 @@ import { useSidebarDisplay } from './useSidebarDisplay.ts'
 const config = toRef(useApplicationStore(), 'config')
 
 const noTransition = ref(false)
-
-const layoutSidebarInstance = useTemplateRef('layout-sidebar')
-
-const isQuickSearchActive = ref(false)
-const quickSearchValue = ref('')
-
-const { deactivateTabTrap, activateTabTrap } = useTrapTab(
-  useCurrentElement(layoutSidebarInstance as MaybeElementRef<VueInstance> | undefined),
-  true,
-)
-
-watch(isQuickSearchActive, (isActive) => (isActive ? activateTabTrap() : deactivateTabTrap()))
 
 const { isSmallScreen, isSmallestScreen } = useAppBreakpoints()
 
@@ -168,7 +154,6 @@ const showCustomerSidebar = computed(() => {
     <LayoutSidebar
       v-if="!isCustomer"
       id="primary-sidebar"
-      ref="layout-sidebar"
       :name="SidebarName.Primary"
       :aria-label="$t('Main sidebar')"
       :current-width="currentSidebarWidth"
@@ -178,7 +163,7 @@ const showCustomerSidebar = computed(() => {
         collapseButton: 'z-51',
         resizeLine: 'z-51',
       }"
-      :collapsible="!isQuickSearchActive"
+      collapsible
       resizable
       no-scroll
       no-padding
@@ -191,65 +176,18 @@ const showCustomerSidebar = computed(() => {
     >
       <template #default="{ isCollapsed }">
         <div class="flex h-full flex-col" data-theme="dark">
-          <LeftSidebarHeader
-            v-model:search="quickSearchValue"
-            v-model:search-active="isQuickSearchActive"
-            class="px-3 pt-2.5 pb-1"
-            :collapsed="isCollapsed"
-          />
-
-          <!-- Attractive Subtle Divider -->
-          <div v-if="!isCollapsed" class="flex w-full items-center justify-center gap-2 px-4 my-2 opacity-60 select-none">
-            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-            <div class="h-1 w-1 rounded-full bg-white/30 ring-2 ring-white/10" />
-            <div class="h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-transparent" />
-          </div>
-          <div v-else class="flex w-full items-center justify-center my-2 opacity-40 select-none">
-            <div class="w-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          </div>
-
-          <QuickSearch
-            v-show="isQuickSearchActive"
-            :search="quickSearchValue"
-            class="mb-3 px-3"
-            :collapsed="isCollapsed"
-          />
-          <PageNavigation
-            v-show="!isQuickSearchActive"
-            class="px-3"
-            :class="{ 'mb-1': !isCollapsed }"
-            :collapsed="isCollapsed"
-          />
-
-          <!-- Attractive Subtle Divider -->
-          <div v-if="!isCollapsed && !isQuickSearchActive" class="flex w-full items-center justify-center gap-2 px-4 my-2 opacity-60 select-none">
-            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-            <div class="h-1 w-1 rounded-full bg-white/30 ring-2 ring-white/10" />
-            <div class="h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-transparent" />
-          </div>
-          <div v-else-if="!isQuickSearchActive" class="flex w-full items-center justify-center my-2 opacity-40 select-none">
-            <div class="w-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          </div>
-
-          <UserTaskbarTabs v-show="!isQuickSearchActive" class="px-3" :collapsed="isCollapsed" />
-
-          <!-- Attractive Subtle Divider before footer -->
-          <div v-if="!isCollapsed && !isQuickSearchActive" class="flex w-full items-center justify-center gap-2 px-4 mt-auto mb-1 opacity-60 select-none">
-            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-            <div class="h-1 w-1 rounded-full bg-white/30 ring-2 ring-white/10" />
-            <div class="h-px flex-1 bg-gradient-to-l from-transparent via-white/15 to-transparent" />
-          </div>
-
-          <LeftSidebarFooterMenu
-            v-show="!isQuickSearchActive"
-            class="mt-auto"
-            :class="{ 'p-3': !isCollapsed }"
-          />
+          <LeftSidebarHeader class="px-3 pt-3 pb-2" :collapsed="isCollapsed" />
+          <PageNavigation class="px-3" :class="{ 'mb-1': !isCollapsed }" :collapsed="isCollapsed" />
+          <div class="my-2 h-px bg-white/15" :class="isCollapsed ? 'mx-auto w-6' : 'mx-4'" />
+          <UserTaskbarTabs class="px-3" :collapsed="isCollapsed" />
+          <LeftSidebarFooterMenu class="mt-auto" :class="{ 'p-3': !isCollapsed }" />
         </div>
       </template>
     </LayoutSidebar>
 
-    <div id="main-content" class="relative">
+    <div id="main-content" class="relative flex min-h-0 flex-col">
+      <StudenthubTopBar />
+      <div class="relative min-h-0 flex-1">
       <RouterView #default="{ Component, route: currentRoute }">
         <KeepAlive :exclude="['ErrorTab']" :max="config.ui_task_mananger_max_task_count">
           <component
@@ -266,6 +204,7 @@ const showCustomerSidebar = computed(() => {
           />
         </KeepAlive>
       </RouterView>
+      </div>
     </div>
   </div>
 </template>

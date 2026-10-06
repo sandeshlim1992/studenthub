@@ -13,6 +13,7 @@ import ArticleBubble from '#desktop/pages/ticket/components/TicketDetailView/Art
 import ArticleMore from '#desktop/pages/ticket/components/TicketDetailView/ArticleMore.vue'
 import DeliveryMessage from '#desktop/pages/ticket/components/TicketDetailView/DeliveryMessage.vue'
 import SystemMessage from '#desktop/pages/ticket/components/TicketDetailView/SystemMessage.vue'
+import StudenthubApprovalDecisionCard from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarStudenthubApproval/StudenthubApprovalDecisionCard.vue'
 import { useArticleContext } from '#desktop/pages/ticket/composables/useArticleContext.ts'
 import { useTicketArticleRows } from '#desktop/pages/ticket/composables/useTicketArticlesRows.ts'
 
@@ -239,5 +240,7 @@ defineExpose({ goToAdjacentArticle })
         />
       </article>
     </template>
+    <!-- Student Hub: the manager's approval decision, below the last message -->
+    <StudenthubApprovalDecisionCard v-if="!isLoadingArticles" />
   </section>
 </template>

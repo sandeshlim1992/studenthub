@@ -8,8 +8,6 @@ import { useBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import { showFeedbackConsent } from '#desktop/components/BetaUi/composables/useBetaUiFeedbackConsent.ts'
 import { useFeedbackDialog } from '#desktop/components/BetaUi/FeedbackDialog/useFeedbackDialog.ts'
 import CollapseButton from '#desktop/components/CollapseButton/CollapseButton.vue'
-import AvatarMenu from '#desktop/components/layout/LayoutSidebar/LeftSidebar/AvatarMenu/AvatarMenu.vue'
-import MenuContainer from '#desktop/components/layout/LayoutSidebar/LeftSidebar/MenuContainer/MenuContainer.vue'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 
 import { SidebarName } from '../../types.ts'
@@ -81,71 +79,7 @@ const { openFeedbackDialog } = useFeedbackDialog()
           :expand-label="$t('Expand sidebar')"
           @toggle-collapse="toggleSidebar"
         />
-
-        <div
-          class="flex items-center justify-start"
-          :class="{ 'justify-center!': isSidebarCollapsed }"
-        >
-          <AvatarMenu />
-        </div>
-
-        <div
-          class="flex flex-1 items-center justify-end"
-          :class="{ 'justify-center!': isSidebarCollapsed }"
-        >
-          <MenuContainer />
-        </div>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-:deep([aria-label*="New ticket" i]),
-:deep([href*="/tickets/create"]),
-:deep(a[href="/tickets/create"]) {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  color: #ffffff !important;
-  border-radius: 0.5rem;
-  padding: 0.375rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 150ms ease;
-}
-:deep([aria-label*="New ticket" i]:hover),
-:deep([href*="/tickets/create"]:hover),
-:deep(a[href="/tickets/create"]:hover) {
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
-}
-:deep([aria-label*="New ticket" i] svg),
-:deep([href*="/tickets/create"] svg),
-:deep(a[href="/tickets/create"] svg) {
-  fill: #ffffff !important;
-  color: #ffffff !important;
-}
-
-:deep([aria-label*="Administration" i]),
-:deep([aria-label*="admin" i]),
-:deep([aria-label*="Manage" i]),
-:deep(button[aria-label*="Administration" i]),
-:deep(button[aria-label*="Admin" i]) {
-  color: #94a3b8 !important;
-  transition: color 150ms ease;
-}
-:deep([aria-label*="Administration" i]:hover),
-:deep([aria-label*="admin" i]:hover),
-:deep([aria-label*="Manage" i]:hover),
-:deep(button[aria-label*="Administration" i]:hover),
-:deep(button[aria-label*="Admin" i]:hover) {
-  color: #ffffff !important;
-}
-:deep([aria-label*="Administration" i] svg),
-:deep([aria-label*="admin" i] svg),
-:deep([aria-label*="Manage" i] svg),
-:deep(button[aria-label*="Administration" i] svg),
-:deep(button[aria-label*="Admin" i] svg) {
-  fill: currentColor !important;
-}
-</style>

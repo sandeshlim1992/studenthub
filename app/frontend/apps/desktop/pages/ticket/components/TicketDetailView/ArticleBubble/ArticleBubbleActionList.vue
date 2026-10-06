@@ -7,6 +7,7 @@ import { useTicketArticleReplyAction } from '#shared/entities/ticket/composables
 import type { TicketArticle } from '#shared/entities/ticket/types.ts'
 import { createArticleActions } from '#shared/entities/ticket-article/action/plugins/index.ts'
 import { getArticleSelection } from '#shared/entities/ticket-article/composables/getArticleSelection.ts'
+import { useSessionStore } from '#shared/stores/session.ts'
 import log from '#shared/utils/log.ts'
 
 import CommonActionMenu from '#desktop/components/CommonActionMenu/CommonActionMenu.vue'
@@ -59,7 +60,7 @@ const articleSelection = (articleInternalId: number) => {
   }
 }
 
-const QUICK_ACTION_NAMES = ['changeVisibility', 'split', 'article-permalink']
+const QUICK_ACTION_NAMES = new Set(['changeVisibility', 'split', 'article-permalink'])
 
 const getActionColorClass = (action: MenuItem & { key: string }) => {
   if (action.key === 'changeVisibility') {
@@ -71,6 +72,9 @@ const getActionColorClass = (action: MenuItem & { key: string }) => {
 
   return 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white'
 }
+
+const session = useSessionStore()
+const isAgent = computed(() => session.hasPermission('ticket.agent'))
 
 const actions = computed(() => {
   // Recalculation trigger ID cannot be less than 0, so it's just a hint for Vue to recalculate this computed property.
@@ -99,6 +103,9 @@ const actions = computed(() => {
   const overflowActions: MenuItem[] = []
 
   articleActions.forEach((action) => {
+    // Student Hub: students only reply (no visibility, split, forward or copy actions).
+    if (!isAgent.value && !/reply/i.test(action.name)) return
+
     const mappedAction = {
       key: action.name,
       label: action.label,
@@ -125,7 +132,7 @@ const actions = computed(() => {
     } else {
       popoverActions.push(mappedAction)
 
-      if (QUICK_ACTION_NAMES.includes(action.name)) {
+      if (QUICK_ACTION_NAMES.has(action.name)) {
         quickActions.push(mappedAction)
       } else {
         overflowActions.push(mappedAction)

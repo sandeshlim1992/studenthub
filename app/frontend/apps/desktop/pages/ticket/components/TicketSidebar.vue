@@ -1,6 +1,8 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import { useTouchDevice } from '#shared/composables/useTouchDevice.ts'
 
 import CollapseButton from '#desktop/components/CollapseButton/CollapseButton.vue'
@@ -8,14 +10,21 @@ import { SidebarName } from '#desktop/components/layout/types.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 
 import { useTicketSidebar } from '../composables/useTicketSidebar.ts'
-
-import type { TicketSidebarContext } from '../types/sidebar.ts'
+import { TicketSidebarScreenType, type TicketSidebarContext } from '../types/sidebar.ts'
 
 interface Props {
   context: TicketSidebarContext
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+// Student Hub: on the ticket screen and the staff "New ticket" screen the icons and the
+// panels are on the right (StudenthubTicketSideRail); this column only holds the Ticket panel.
+const hasSideRail = computed(
+  () =>
+    props.context.screenType === TicketSidebarScreenType.TicketDetailView ||
+    (props.context.screenType === TicketSidebarScreenType.TicketCreate && props.context.view === 'agent'),
+)
 
 const { isSidebarCollapsed, toggleSidebar } = useSidebarDisplay(SidebarName.TicketContent)
 
@@ -41,6 +50,7 @@ const { isTouchDevice } = useTouchDevice()
   <div class="flex h-full justify-end">
     <div v-show="!isSidebarCollapsed" id="ticketSidebar" class="flex grow flex-col" />
     <div
+      v-if="!hasSideRail"
       class="flex flex-col items-center gap-2.5 border-neutral-100 px-2.5 py-3 transition-[border] dark:border-gray-900"
       :class="{ 'border-s': !isSidebarCollapsed }"
     >

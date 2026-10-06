@@ -94,6 +94,13 @@ export interface TableAttribute {
   dataOption?: ObjectAttribute['dataOption']
 }
 
+// Student Hub: rows that form their own first group, whatever the table is grouped by (e.g.
+// unassigned tickets in the Teams views). The rows must come first in the data.
+export interface TablePinnedGroup {
+  label: string
+  matches: (item: TableAdvancedItem) => boolean
+}
+
 export interface AdvancedTableProps extends BaseTableProps {
   items: TableAdvancedItem[]
   headers: string[]
@@ -133,6 +140,7 @@ export interface AdvancedTableProps extends BaseTableProps {
   scrollContainer?: HTMLElement | null
 
   groupBy?: string
+  pinnedGroup?: TablePinnedGroup
 
   orderBy?: string
   orderDirection?: EnumOrderDirection
@@ -146,6 +154,7 @@ export interface ListTableProps<T> {
   orderDirection?: EnumOrderDirection
   orderBy?: string
   groupBy?: string
+  pinnedGroup?: TablePinnedGroup
   caption: string
   reachedScrollTop?: boolean
   scrollContainer?: HTMLElement | null

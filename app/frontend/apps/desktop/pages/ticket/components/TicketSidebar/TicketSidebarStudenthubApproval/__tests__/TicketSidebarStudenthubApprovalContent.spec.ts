@@ -115,8 +115,8 @@ describe('TicketSidebarStudenthubApprovalContent.vue', () => {
     const { view, approval } = await renderApproval({
       can_request: true,
       managers: [
-        { id: 3, name: 'Test Manager', can_open_ticket: true },
-        { id: 4, name: 'Other Manager', can_open_ticket: false },
+        { id: 3, name: 'Test Manager' },
+        { id: 4, name: 'Other Manager' },
       ],
     })
 
@@ -124,8 +124,8 @@ describe('TicketSidebarStudenthubApprovalContent.vue', () => {
     const dropdown = view.getByRole('menu')
     const options = getAllByRole(dropdown, 'option')
 
-    expect(options.map((option) => option.textContent?.trim())).toEqual(['Test Manager'])
-    expect(view.getByText("Not listed because they can't open this ticket: Other Manager")).toBeInTheDocument()
+    // Every manager, whatever the team.
+    expect(options.map((option) => option.textContent?.trim())).toEqual(['Test Manager', 'Other Manager'])
 
     await view.events.click(getByRole(dropdown, 'option', { name: 'Test Manager' }))
     await view.events.type(view.getByLabelText('Reason'), 'Needs a new laptop')
@@ -141,16 +141,6 @@ describe('TicketSidebarStudenthubApprovalContent.vue', () => {
     expect(view.queryByRole('button', { name: 'Send for approval' })).not.toBeInTheDocument()
   })
 
-  it('explains when no manager can open the ticket', async () => {
-    const { view } = await renderApproval({
-      can_request: true,
-      managers: [{ id: 4, name: 'Other Manager', can_open_ticket: false }],
-    })
-
-    expect(view.getByText(/None of the managers can open this ticket \(Other Manager\)/)).toBeInTheDocument()
-    expect(view.queryByRole('button', { name: 'Send for approval' })).not.toBeInTheDocument()
-  })
-
   it('shows errors from the server', async () => {
     const { view } = await renderApproval({}, { errorMessage: 'Please say why the request is denied.' })
 
@@ -161,7 +151,7 @@ describe('TicketSidebarStudenthubApprovalContent.vue', () => {
     const { view } = await renderApproval({
       state: 'denied',
       can_request: true,
-      managers: [{ id: 3, name: 'Test Manager', can_open_ticket: true }],
+      managers: [{ id: 3, name: 'Test Manager' }],
       history: [
         { ...pendingRound, id: 8, state: 'denied', comment: 'No budget left', decided_at: '2026-10-04T10:00:00Z' },
       ],

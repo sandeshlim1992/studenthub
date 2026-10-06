@@ -36,6 +36,7 @@ import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonEmptyMessage from '#desktop/components/CommonEmptyMessage/CommonEmptyMessage.vue'
 import { useSkeletonLoadingCount } from '#desktop/components/CommonTable/composables/useSkeletonLoadingCount.ts'
 import { useTicketBulkEdit } from '#desktop/components/Ticket/TicketBulkEditFlyout/useTicketBulkEdit.ts'
+import type { TablePinnedGroup } from '#desktop/components/CommonTable/types.ts'
 import TicketListTable from '#desktop/components/Ticket/TicketListTable.vue'
 import { useElementScroll } from '#desktop/composables/useElementScroll.ts'
 import { useScrollPosition } from '#desktop/composables/useScrollPosition.ts'
@@ -43,6 +44,7 @@ import { useTicketsCachedByOverviewCache } from '#desktop/entities/ticket/compos
 import { useTicketsCachedByOverviewQuery } from '#desktop/entities/ticket/graphql/queries/ticketsCachedByOverview.api.ts'
 import { useTicketOverviewsStore } from '#desktop/entities/ticket/stores/ticketOverviews.ts'
 import { useLifetimeCustomerTicketsCount } from '#desktop/entities/user/current/composables/useLifetimeCustomerTicketsCount.ts'
+import { saveStudenthubViewOrder } from '#desktop/pages/ticket-overviews/composables/studenthubViewChoice.ts'
 import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 
 const MAX_ITEMS = 2000
@@ -54,6 +56,8 @@ interface Props {
   headers: string[]
   overviewName: string
   groupBy?: string
+  // Student Hub: e.g. unassigned tickets first in the Teams views
+  pinnedGroup?: TablePinnedGroup
   overviewCount?: number
 }
 
@@ -216,6 +220,9 @@ const resort = (column: string, direction: EnumOrderDirection) => {
   })
 
   refreshRefetchAbortController()
+
+  // Student Hub: remember the order for this agent and view (on every device).
+  saveStudenthubViewOrder(props.overviewId, column, direction)
 
   sort(
     column,
@@ -1110,6 +1117,7 @@ defineExpose({ tickets: readonly(tickets) })
       :order-by="localOrderBy"
       :order-direction="localOrderDirection"
       :group-by="groupBy"
+      :pinned-group="pinnedGroup"
       :reached-scroll-top="reachedTop"
       :scroll-container="scrollContainerElement"
       :items="tickets"

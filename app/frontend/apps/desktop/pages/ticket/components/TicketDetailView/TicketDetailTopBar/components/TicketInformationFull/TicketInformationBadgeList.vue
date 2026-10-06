@@ -7,8 +7,6 @@ import { useTicketView } from '#shared/entities/ticket/composables/useTicketView
 import { useApplicationStore } from '#shared/stores/application.ts'
 
 import CommonTicketEscalationIndicator from '#desktop/components/CommonTicketEscalationIndicator/CommonTicketEscalationIndicator.vue'
-import CommonTicketPriorityIndicator from '#desktop/components/CommonTicketPriorityIndicator/CommonTicketPriorityIndicator.vue'
-import CommonTicketStateIndicator from '#desktop/components/CommonTicketStateIndicator/CommonTicketStateIndicator.vue'
 import ChecklistBadgeList from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/TicketInformationFull/TicketInformationBadgeList/ChecklistBadgeList.vue'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 
@@ -25,21 +23,14 @@ const isChecklistFeatureEnabled = computed(() => !!config.value.checklist)
   <div v-if="ticket" class="flex max-w-full flex-wrap items-center gap-2.5 text-nowrap *:h-7">
     <CommonTicketEscalationIndicator v-if="isTicketAgent" :ticket="ticket" has-popover />
 
-    <CommonTicketStateIndicator :color-code="ticket.stateColorCode" :label="ticket.state.name" />
-
-    <CommonTicketPriorityIndicator v-if="isTicketAgent" :priority="ticket.priority" />
-
-    <CommonBadge
-      variant="tertiary"
-      rounded
-      class="uppercase tracking-wider font-bold text-slate-500! bg-slate-100/90! border! border-slate-200/80! shadow-2xs px-3 py-1 text-xs"
-    >
-      <CommonDateTime :date-time="ticket.createdAt" absolute-format="date" class="ms-1">
+    <!-- Student Hub: state and priority sit next to the title (TopBarHeaderFull) -->
+    <span class="flex items-center text-sm text-gray-100 dark:text-neutral-400">
+      <CommonDateTime :date-time="ticket.createdAt" absolute-format="date">
         <template #prefix>
           {{ $t('Created') }}
         </template>
       </CommonDateTime>
-    </CommonBadge>
+    </span>
 
     <ChecklistBadgeList v-if="isTicketAgent && isChecklistFeatureEnabled" />
   </div>

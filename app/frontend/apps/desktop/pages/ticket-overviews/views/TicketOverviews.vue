@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import { until } from '@vueuse/core'
-import { computed, toRef } from 'vue'
+import { computed, onActivated, onBeforeUnmount, onDeactivated, toRef, watch } from 'vue'
 
 import { useSessionStore } from '#shared/stores/session.ts'
 import hasPermission from '#shared/utils/hasPermission.ts'
@@ -11,13 +11,19 @@ import CommonEmptyMessage from '#desktop/components/CommonEmptyMessage/CommonEmp
 import type { NavigationTab } from '#desktop/components/CommonTabs/types.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import LayoutSidebar from '#desktop/components/layout/LayoutSidebar.vue'
+import { setStudenthubTopBarCrumbs } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
 import { SidebarName } from '#desktop/components/layout/types.ts'
 import DragAndDropBulkWrapper from '#desktop/components/Ticket/DragAndDropBulk/DragAndDropBulkWrapper.vue'
 import { useDragAndDropBulk } from '#desktop/components/Ticket/DragAndDropBulk/useDragAndDropBulk.ts'
 import TicketBulkEditButton from '#desktop/components/Ticket/TicketBulkEditButton.vue'
 import { useTicketBulkEdit } from '#desktop/components/Ticket/TicketBulkEditFlyout/useTicketBulkEdit.ts'
+import StudenthubViewGroupBy from '#desktop/pages/ticket-overviews/components/StudenthubViewGroupBy.vue'
 import TicketList from '#desktop/pages/ticket-overviews/components/TicketList.vue'
 import TicketOverviewsSidebar from '#desktop/pages/ticket-overviews/components/TicketOverviewsSidebar.vue'
+import {
+  isStudenthubTeamView,
+  STUDENTHUB_UNASSIGNED_GROUP,
+} from '#desktop/pages/ticket-overviews/composables/studenthubViewChoice.ts'
 import { useTicketOverviews } from '#desktop/pages/ticket-overviews/composables/useTicketOverviews.ts'
 
 interface Props {
@@ -92,11 +98,8 @@ const currentOverviewCount = computed(
   () => overviewsTicketCountById.value[currentOverview.value?.id],
 )
 
+// Student Hub: "Tickets / <view>" sits in the top bar; the page keeps the view name and count.
 const breadcrumbItems = computed(() => [
-  {
-    label: __('Overviews'),
-    route: '/tickets/view',
-  },
   {
     label: currentOverview.value?.name,
     count: currentOverviewCount.value,
@@ -121,6 +124,25 @@ const isCustomer = computed(
     hasPermission('ticket.customer', user.value?.permissions?.names ?? []) &&
     !hasPermission('ticket.agent', user.value?.permissions?.names ?? []),
 )
+
+const topBarCrumbs = computed(() =>
+  isCustomer.value || !currentOverview.value
+    ? []
+    : [{ label: __('Tickets'), route: '/tickets/view' }, { label: currentOverview.value.name }],
+)
+
+// The page is kept alive: only touch the top bar while it is shown.
+let isShown = true
+watch(topBarCrumbs, (crumbs) => isShown && setStudenthubTopBarCrumbs(crumbs), { immediate: true })
+onActivated(() => {
+  isShown = true
+  setStudenthubTopBarCrumbs(topBarCrumbs.value)
+})
+onDeactivated(() => {
+  isShown = false
+  setStudenthubTopBarCrumbs([])
+})
+onBeforeUnmount(() => setStudenthubTopBarCrumbs([]))
 </script>
 
 <template>
@@ -149,6 +171,8 @@ const isCustomer = computed(
       :content-padding="!isCustomer"
     >
       <template #headerRight>
+        <!-- Student Hub: the agent's own grouping of this view -->
+        <StudenthubViewGroupBy v-if="!isCustomer && currentOverview" :overview-id="currentOverview.id" />
         <TicketBulkEditButton
           v-if="!isCustomer"
           :checked-ticket-ids="checkedTicketIds"
@@ -165,6 +189,7 @@ const isCustomer = computed(
         :order-by="currentOverview.orderBy"
         :order-direction="currentOverview.orderDirection"
         :group-by="currentOverview.groupBy || undefined"
+        :pinned-group="isStudenthubTeamView(currentOverview.link) ? STUDENTHUB_UNASSIGNED_GROUP : undefined"
         :overview-count="currentOverviewCount"
       />
       <CommonEmptyMessage

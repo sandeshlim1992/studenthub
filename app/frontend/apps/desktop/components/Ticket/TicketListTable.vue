@@ -22,6 +22,10 @@ import UserPopoverWithTrigger from '#desktop/components/User/UserPopoverWithTrig
 
 import { useListTable } from '../CommonTable/composables/useListTable.ts'
 
+import StudenthubCampusBadge from './StudenthubTicketCells/StudenthubCampusBadge.vue'
+import StudenthubTicketEscalation from './StudenthubTicketCells/StudenthubTicketEscalation.vue'
+import StudenthubTicketPriority from './StudenthubTicketCells/StudenthubTicketPriority.vue'
+import StudenthubTicketStateLabel from './StudenthubTicketCells/StudenthubTicketStateLabel.vue'
 import { useTicketBulkEdit } from './TicketBulkEditFlyout/useTicketBulkEdit.ts'
 
 import type { ListTableEmits, ListTableProps } from '../CommonTable/types.ts'
@@ -77,6 +81,23 @@ const userPopoverSlots: {
   { slotName: 'column-cell-owner_id', ticketAttribute: 'owner' },
 ]
 
+// Student Hub: SLA deadline columns show the time left (StudenthubTicketEscalation).
+const escalationSlots: {
+  slotName: string
+  ticketAttribute: keyof TicketByList
+}[] = [
+  { slotName: 'column-cell-escalation_at', ticketAttribute: 'escalationAt' },
+  { slotName: 'column-cell-first_response_escalation_at', ticketAttribute: 'firstResponseEscalationAt' },
+  { slotName: 'column-cell-update_escalation_at', ticketAttribute: 'updateEscalationAt' },
+  { slotName: 'column-cell-close_escalation_at', ticketAttribute: 'closeEscalationAt' },
+]
+
+const escalationOf = (ticket: TicketByList, attribute: keyof TicketByList) =>
+  ticket[attribute] as string | null | undefined
+
+const campusOf = (ticket: TicketByList) =>
+  ticket.objectAttributeValues?.find((entry) => entry.attribute.name === 'campus')?.value
+
 // Matching the general ticket structure for the default layout column width
 const columnWidths = computed(() =>
   [
@@ -103,10 +124,11 @@ const skeletonColumns = computed(() => columnWidths.value.length)
 
     <slot v-if="!loading && !items.length" name="empty-list" />
 
-    <div v-else-if="items.length">
+    <div v-else-if="items.length" class="sh-ticket-table-card">
       <CommonAdvancedTable
         v-model:checked-item-ids="checkedTicketIds"
         v-model:select-all-active="selectAllActive"
+        class="sh-ticket-table"
         :has-bulk-action="bulkEditActive"
         :disable-bulk-action="isBulkTaskRunning"
         :caption="caption"
@@ -115,6 +137,7 @@ const skeletonColumns = computed(() => columnWidths.value.length)
         :order-by="orderBy"
         :order-direction="orderDirection"
         :group-by="groupBy"
+        :pinned-group="pinnedGroup"
         :reached-scroll-top="reachedScrollTop"
         :scroll-container="scrollContainer"
         :attributes="[
@@ -252,6 +275,26 @@ const skeletonColumns = computed(() => columnWidths.value.length)
             :aria-labelledby="(item as TicketByList).id"
             icon-size="tiny"
           />
+        </template>
+        <!-- Student Hub: coloured state, priority, SLA and campus cells -->
+        <template #column-cell-state_id="{ item }">
+          <StudenthubTicketStateLabel :state="(item as TicketByList).state" />
+        </template>
+        <template #column-cell-priority_id="{ item }">
+          <StudenthubTicketPriority
+            v-if="(item as TicketByList).priority"
+            :priority="(item as TicketByList).priority"
+          />
+        </template>
+        <template
+          v-for="{ slotName, ticketAttribute } in escalationSlots"
+          :key="slotName"
+          #[slotName]="{ item }"
+        >
+          <StudenthubTicketEscalation :value="escalationOf(item as TicketByList, ticketAttribute)" />
+        </template>
+        <template #column-cell-campus="{ item }">
+          <StudenthubCampusBadge :value="campusOf(item as TicketByList)" />
         </template>
       </CommonAdvancedTable>
     </div>

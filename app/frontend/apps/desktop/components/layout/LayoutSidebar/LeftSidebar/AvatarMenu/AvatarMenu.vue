@@ -10,6 +10,7 @@ import { useSessionStore } from '#shared/stores/session.ts'
 
 import { useDialog } from '#desktop/components/CommonDialog/useDialog.ts'
 import CommonPopover from '#desktop/components/CommonPopover/CommonPopover.vue'
+import type { Placement } from '#desktop/components/CommonPopover/types.ts'
 import { usePopover } from '#desktop/components/CommonPopover/usePopover.ts'
 import CommonPopoverMenu from '#desktop/components/CommonPopoverMenu/CommonPopoverMenu.vue'
 import type { MenuItem } from '#desktop/components/CommonPopoverMenu/types.ts'
@@ -22,7 +23,18 @@ const user = toRef(useSessionStore(), 'user')
 
 const { isSidebarCollapsed } = useSidebarDisplay(SidebarName.Primary)
 
-const avatarSize = computed(() => (isSidebarCollapsed?.value ? 'small' : 'normal'))
+// Student Hub: the top bar shows a small avatar whose menu opens towards the left.
+interface Props {
+  size?: 'small' | 'normal'
+  placement?: Placement
+}
+
+const props = defineProps<Props>()
+
+const avatarSize = computed(() => props.size ?? (isSidebarCollapsed?.value ? 'small' : 'normal'))
+const popoverPlacement = computed<Placement>(
+  () => props.placement ?? (isSidebarCollapsed.value ? 'start' : 'arrowStart'),
+)
 
 const { popover, popoverTarget, toggle, isOpen: popoverIsOpen } = usePopover()
 
@@ -169,7 +181,7 @@ const menuItems = computed<MenuItem[]>(() => {
     :hide-arrow="isSidebarCollapsed"
     z-index="52"
     orientation="autoVertical"
-    :placement="isSidebarCollapsed ? 'start' : 'arrowStart'"
+    :placement="popoverPlacement"
   >
     <CommonPopoverMenu
       :popover="popover"

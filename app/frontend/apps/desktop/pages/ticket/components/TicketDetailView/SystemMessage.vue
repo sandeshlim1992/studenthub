@@ -13,7 +13,8 @@ defineProps<Props>()
 </script>
 
 <template>
-  <div class="relative rounded-lg border border-current p-3 text-center text-neutral-500">
+  <!-- Student Hub: automatic messages as a quiet line instead of a box -->
+  <div class="relative px-3 py-1 text-center text-xs text-gray-100 dark:text-neutral-400">
     <CommonLabel>&quot;{{ subject }}&quot;</CommonLabel>
     <template v-if="to">
       -&gt;

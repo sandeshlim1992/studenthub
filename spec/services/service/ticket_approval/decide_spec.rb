@@ -28,6 +28,16 @@ RSpec.describe Service::TicketApproval::Decide, aggregate_failures: true do
     expect(ticket.articles.last.body).to include('Approved by', 'Go ahead')
   end
 
+  it 'sends the ticket back to its team and owner; the manager can still read it' do
+    expect(ticket.reload.group_id).to eq(Studenthub::TicketApproval::WaitingGroup.group_id)
+
+    decide
+
+    expect(ticket.reload).to have_attributes(group_id: group.id, owner_id: owner.id)
+    expect(TicketPolicy.new(manager, ticket)).to have_attributes(show?: true, update?: false)
+    expect(TicketPolicy.new(owner, ticket).update?).to be(true)
+  end
+
   it 'denies with a comment' do
     decide(decision: 'denied', comment: 'No budget left')
 

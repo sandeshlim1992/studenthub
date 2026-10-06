@@ -6,6 +6,9 @@ import { useRouter } from 'vue-router'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
+import StudenthubAppColorSetting from '../components/Branding/StudenthubAppColorSetting.vue'
+import StudenthubTicketListSetting from '../components/Branding/StudenthubTicketListSetting.vue'
+
 interface SettingRecord {
   id: number
   name: string
@@ -511,6 +514,12 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
+        <!-- Student Hub: application colour of the new UI -->
+        <StudenthubAppColorSetting />
+
+        <!-- Student Hub: ticket state colours and "due soon" point of the ticket lists -->
+        <StudenthubTicketListSetting />
 
         <!-- 2. Product Identity (Product Name & Organization) -->
         <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">

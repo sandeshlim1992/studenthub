@@ -15,20 +15,19 @@ import useLoginTwoFactor from '#shared/composables/authentication/useLoginTwoFac
 import { useThirdPartyAuthentication } from '#shared/composables/authentication/useThirdPartyAuthentication.ts'
 import type { LoginCredentials } from '#shared/entities/two-factor/types.ts'
 import UserError from '#shared/errors/UserError.ts'
-import { EnumPublicLinksScreen } from '#shared/graphql/types.ts'
+import { EnumAuthenticationProvider, EnumPublicLinksScreen } from '#shared/graphql/types.ts'
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useAuthenticationStore } from '#shared/stores/authentication.ts'
 
-import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
-import lsstImg from '#desktop/assets/images/lsst.png'
 import fsbImg from '#desktop/assets/images/fsb.png'
+import lsstImg from '#desktop/assets/images/lsst.png'
+import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 import ukbcImg from '#desktop/assets/images/ukbc.png'
-
 import { useBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonPublicLinks from '#desktop/components/CommonPublicLinks/CommonPublicLinks.vue'
 import LayoutPublicPage from '#desktop/components/layout/LayoutPublicPage/LayoutPublicPage.vue'
-import LoginThirdParty from '#desktop/pages/authentication/components/LoginThirdParty.vue'
 
 import { ensureAfterAuth } from '../after-auth/composable/useAfterAuthPlugins.ts'
 import LoginRecoveryCode from '../components/LoginRecoveryCode.vue'
@@ -44,6 +43,9 @@ const route = useRoute()
 const authentication = useAuthenticationStore()
 
 const { enabledProviders, hasEnabledProviders } = useThirdPartyAuthentication()
+
+// Needed by the third-party sign-in forms (POST /auth/<provider>).
+const csrfToken = getCSRFToken()
 
 const passwordLoginErrorMessage = ref('')
 const showLocalLogin = ref(false)
@@ -195,28 +197,63 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0F1729] flex flex-col items-center justify-center p-6 font-sans select-none relative overflow-hidden text-white">
-    <!-- Background gradients -->
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-      <div class="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-blue-500/20 rounded-full blur-[120px]"></div>
-      <div class="absolute -bottom-1/2 -left-1/4 w-[600px] h-[600px] bg-blue-400/20 rounded-full blur-[100px]"></div>
-    </div>
-
-    <!-- MAIN CARD -->
-    <div class="w-full max-w-[400px] bg-white rounded-2xl pt-12 px-10 pb-10 shadow-2xl shadow-black/50 relative overflow-hidden card-enter z-10">
-      <!-- 3. TOP ACCENT LINE -->
-      <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
-
-      <!-- LOGO SECTION -->
-      <div class="flex flex-col items-center mb-8">
-        <img
-          :src="studentHubLogo"
-          class="w-28 h-28 sm:w-32 sm:h-32 object-contain mx-auto mb-3 transition-transform hover:scale-105 duration-200"
-          alt="Student Hub"
-        />
-        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Welcome to Student Hub</h1>
-        <span class="text-xs text-gray-400 mt-1 font-medium">Your support, simplified.</span>
+  <div
+    class="grid min-h-screen bg-[var(--sh-page)] text-[var(--sh-ink)] md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]"
+  >
+    <!-- Brand panel in the application colour (Administration → Branding) -->
+    <aside
+      class="relative flex flex-col justify-between gap-8 overflow-hidden bg-app px-6 py-8 text-on-app md:px-11 md:py-12"
+      :aria-label="$t('About Student Hub')"
+    >
+      <div
+        aria-hidden="true"
+        class="pointer-events-none absolute -bottom-28 hidden h-[340px] w-[340px] rounded-full border-[56px] border-white/[0.07] md:block rtl:-left-28 ltr:-right-28"
+      />
+      <div class="relative z-10 flex flex-col gap-4">
+        <div class="flex h-[76px] w-[76px] items-center justify-center rounded-2xl bg-white shadow-lg">
+          <img :src="studentHubLogo" alt="Student Hub" class="h-[60px] w-[60px] object-contain" />
+        </div>
+        <p class="text-3xl leading-tight font-bold tracking-tight md:text-[34px]">Student Hub</p>
+        <p class="text-lg text-white/90">{{ $t('Your support, simplified.') }}</p>
+        <p class="max-w-[36ch] text-white/80">
+          {{
+            $t(
+              'IT and student support for LSST, FSB and UKBC. Ask for help, follow your requests and find answers in one place.',
+            )
+          }}
+        </p>
       </div>
+      <div class="relative z-10 flex flex-col gap-2.5">
+        <span class="text-[11.5px] font-semibold tracking-widest text-white/75 uppercase">
+          {{ $t('Supported institutions') }}
+        </span>
+        <div class="studenthub-institutions flex flex-wrap items-center gap-2.5">
+        <a href="https://www.lsst.ac/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+          <img :src="lsstImg" class="h-10 sm:h-11 w-auto object-contain" alt="LSST" />
+        </a>
+                <a href="https://fsb.ac.uk/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+          <img :src="fsbImg" class="h-10 sm:h-11 w-auto object-contain" alt="FSB" />
+        </a>
+                <a href="https://ukbusinesscollege.org/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
+          <img :src="ukbcImg" class="h-10 sm:h-11 w-auto object-contain rounded-lg" alt="UKBC" />
+        </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Sign-in -->
+    <main class="flex items-center justify-center px-5 py-10">
+      <div class="card-enter flex w-full max-w-[400px] flex-col gap-4">
+        <div>
+          <h1 class="text-[26px] leading-tight font-bold tracking-tight">{{ $t('Sign in to Student Hub') }}</h1>
+          <p class="mt-1 text-[var(--sh-ink-2)]">
+            {{
+              hasEnabledProviders
+                ? $t('Use your college Microsoft account.')
+                : $t('Sign in with your Student Hub account.')
+            }}
+          </p>
+        </div>
 
       <!-- MAINTENANCE / ALERTS -->
       <div v-if="$c.maintenance_mode" class="mb-3 rounded-xl bg-red-500 px-4 py-2.5 text-xs text-white">
@@ -237,27 +274,40 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
         $t(verifyTokenMessage)
       }}</CommonAlert>
 
-      <!-- MICROSOFT BUTTON (SSO) -->
-      <div v-if="hasEnabledProviders && loginFlow.state === 'credentials'" class="w-full">
-        <button
-          type="button"
-          class="w-full h-12 bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2.5 cursor-pointer transition-all duration-150 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-px active:translate-y-0 border-none"
-        >
-          <svg class="w-[18px] h-[18px]" viewBox="0 0 18 18" fill="none">
-            <rect width="8.5" height="8.5" fill="#f25022" />
-            <rect x="9.5" width="8.5" height="8.5" fill="#7fba00" />
-            <rect y="9.5" width="8.5" height="8.5" fill="#00a4ef" />
-            <rect x="9.5" y="9.5" width="8.5" height="8.5" fill="#ffb900" />
-          </svg>
-          <span>Continue with Microsoft</span>
-        </button>
+      <!-- Third-party sign-in (Microsoft): posts to /auth/<provider> like Zammad's own buttons -->
+      <div v-if="hasEnabledProviders && loginFlow.state === 'credentials'" class="flex w-full flex-col gap-2">
+        <form v-for="provider in enabledProviders" :key="provider.name" method="post" :action="provider.url">
+          <input type="hidden" name="authenticity_token" :value="csrfToken" />
+          <button
+            type="submit"
+            class="flex h-[46px] w-full cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-[#8c8c8c] bg-white text-[15px] font-semibold text-[#3b3b3b] transition-colors hover:bg-[#f3f3f3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sh-app)]"
+          >
+            <svg
+              v-if="provider.name === EnumAuthenticationProvider.MicrosoftOffice365"
+              class="h-[19px] w-[19px]"
+              viewBox="0 0 18 18"
+              aria-hidden="true"
+            >
+              <rect width="8.5" height="8.5" fill="#f25022" />
+              <rect x="9.5" width="8.5" height="8.5" fill="#7fba00" />
+              <rect y="9.5" width="8.5" height="8.5" fill="#00a4ef" />
+              <rect x="9.5" y="9.5" width="8.5" height="8.5" fill="#ffb900" />
+            </svg>
+            <CommonIcon v-else :name="provider.icon" size="small" decorative />
+            <span>{{
+              provider.name === EnumAuthenticationProvider.MicrosoftOffice365
+                ? $t('Continue with Microsoft')
+                : $t('Continue with %s', provider.label)
+            }}</span>
+          </button>
+        </form>
       </div>
 
       <!-- DIVIDER -->
-      <div v-if="hasEnabledProviders && showPasswordLogin && loginFlow.state === 'credentials'" class="flex items-center gap-3 my-5">
-        <div class="flex-1 h-px bg-gray-100"></div>
-        <span class="text-xs text-gray-300 font-medium">or</span>
-        <div class="flex-1 h-px bg-gray-100"></div>
+      <div v-if="hasEnabledProviders && showPasswordLogin && loginFlow.state === 'credentials'" class="flex items-center gap-3">
+        <div class="h-px flex-1 bg-[var(--sh-line)]"></div>
+        <span class="text-xs text-[var(--sh-muted)]">{{ $t('or') }}</span>
+        <div class="h-px flex-1 bg-[var(--sh-line)]"></div>
       </div>
 
       <!-- ADMIN / LOCAL LOGIN SECTION -->
@@ -270,12 +320,13 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
         <div v-if="hasEnabledProviders && loginFlow.state === 'credentials'" class="w-full mb-2">
           <button
             type="button"
-            class="w-full flex items-center justify-between px-4 py-3 bg-[#f1f5f9] hover:bg-[#e2e8f0] border border-[#e2e8f0] rounded-xl text-sm text-[#374151] font-medium cursor-pointer transition-all duration-150"
+            class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-[var(--sh-line)] bg-white px-3.5 py-3 text-sm font-semibold text-[var(--sh-ink)] transition-colors hover:bg-[var(--sh-panel)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sh-app)]"
+            :aria-expanded="showLocalLogin"
             @click="showLocalLogin = !showLocalLogin"
           >
-            <span>Admin / Local Login</span>
+            <span>{{ $t('Admin / Local Login') }}</span>
             <svg
-              class="w-4 h-4 text-[#374151] transition-transform duration-300"
+              class="h-4 w-4 text-[var(--sh-muted)] transition-transform duration-300"
               :class="{ 'rotate-180': showLocalLogin }"
               fill="none"
               stroke="currentColor"
@@ -305,16 +356,16 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
             >
               <template #after-fields>
                 <!-- REGISTER LINE STYLING -->
-                <div v-if="$c.user_create_account" class="text-xs text-center text-gray-400 my-3">
+                <div v-if="$c.user_create_account" class="my-3 text-center text-sm text-[var(--sh-ink-2)]">
                   <span>{{ $t('New user?') }}</span>
-                  <CommonLink link="/signup" class="text-blue-600 font-medium hover:text-blue-700 ml-1" size="medium">{{
+                  <CommonLink link="/signup" class="studenthub-link rtl:mr-1 ltr:ml-1" size="medium">{{
                     $t('Register')
                   }}</CommonLink>
                 </div>
                 <button
                   type="submit"
                   :disabled="isDisabled || isLoggingIn"
-                  class="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl cursor-pointer transition-all duration-150 border-none disabled:opacity-75 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-gray-900/10 active:scale-[0.99]"
+                  class="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-none bg-app text-sm font-semibold text-on-app transition-colors hover:bg-app-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sh-app)] disabled:cursor-not-allowed disabled:opacity-75"
                 >
                   <template v-if="isLoggingIn">
                     <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -364,7 +415,7 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
             >
               <CommonLabel>
                 {{ $t('Having problems?') }}
-                <CommonLink link="#" class="select-none text-blue-600 hover:text-blue-700" size="medium" @click="updateState('2fa-select')">
+                <CommonLink link="#" class="studenthub-link select-none" size="medium" @click="updateState('2fa-select')">
                   {{ $t('Try another method') }}
                 </CommonLink>
               </CommonLabel>
@@ -372,27 +423,12 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
           </div>
         </div>
       </template>
-    </div>
 
-    <!-- INSTITUTION LOGOS SECTION (ENLARGED WHITE CARD) -->
-    <div class="mt-4 bg-white rounded-2xl px-6 py-4 shadow-sm border border-gray-100 w-full max-w-[400px]">
-      <p class="text-center text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">
-        Supported Institutions
-      </p>
-      <div class="flex items-center justify-center gap-6">
-        <a href="https://www.lsst.ac/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
-          <img :src="lsstImg" class="h-10 sm:h-11 w-auto object-contain" alt="LSST" />
-        </a>
-        <div class="w-px h-6 bg-gray-200"></div>
-        <a href="https://fsb.ac.uk/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
-          <img :src="fsbImg" class="h-10 sm:h-11 w-auto object-contain" alt="FSB" />
-        </a>
-        <div class="w-px h-6 bg-gray-200"></div>
-        <a href="https://ukbusinesscollege.org/" target="_blank" rel="noopener noreferrer" class="hover:scale-105 transition-transform duration-150">
-          <img :src="ukbcImg" class="h-10 sm:h-11 w-auto object-contain rounded-lg" alt="UKBC" />
-        </a>
+        <p class="text-center text-sm text-[var(--sh-ink-2)]">
+          {{ $t('Trouble signing in? Contact the IT Service Desk.') }}
+        </p>
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
@@ -410,6 +446,34 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
 
 .card-enter {
   animation: cardIn 350ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-enter {
+    animation: none;
+  }
+}
+
+/* Institution logos sit on white tiles in the brand panel. */
+.studenthub-institutions a {
+  display: grid;
+  place-items: center;
+  height: 3.375rem;
+  min-width: 5.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  background: #ffffff;
+}
+
+.studenthub-institutions img {
+  max-height: 2.375rem;
+  width: auto;
+}
+
+.studenthub-link {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .accordion-body {
@@ -450,7 +514,7 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
   background-color: #ffffff !important;
   background: #ffffff !important;
   border: 1px solid #e2e8f0 !important;
-  border-radius: 0.75rem !important; /* rounded-xl */
+  border-radius: 0.5rem !important;
   padding-left: 1rem !important;
   padding-right: 2.5rem !important;
   font-size: 0.875rem !important;
@@ -465,8 +529,8 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
 :deep(input[type='text']:focus),
 :deep(input[type='password']:focus),
 :deep(input[type='email']:focus) {
-  border-color: #2563eb !important; /* border-blue-500 */
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  border-color: var(--sh-app) !important; /* border-blue-500 */
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sh-app) 18%, transparent) !important;
 }
 
 :deep(input[type='text']::placeholder),
@@ -551,18 +615,18 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
 }
 
 :deep([data-is-checked='true'] .formkit-decorator) {
-  background-color: #2563eb !important;
-  border-color: #2563eb !important;
+  background-color: var(--sh-app) !important;
+  border-color: var(--sh-app) !important;
   color: #ffffff !important;
 }
 
 :deep(a) {
-  color: #2563eb !important;
+  color: var(--sh-app) !important;
   font-size: 0.75rem !important;
   transition: color 150ms ease !important;
 }
 
 :deep(a:hover) {
-  color: #1d4ed8 !important;
+  color: var(--sh-app-hover) !important;
 }
 </style>

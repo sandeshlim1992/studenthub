@@ -2,9 +2,11 @@
 
 <script setup lang="ts">
 import { isEqual } from 'lodash-es'
-import { computed, markRaw, nextTick, provide, reactive, ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, markRaw, nextTick, onActivated, provide, reactive, ref, watch } from 'vue'
+import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router'
 
+import { NotificationTypes } from '#shared/components/CommonNotifications/types.ts'
+import { useNotifications } from '#shared/components/CommonNotifications/useNotifications.ts'
 import { EXTENSION_NAME as TEXT_TOOL_EXTENSION_NAME } from '#shared/components/Form/fields/FieldEditor/extensions/AiAssistantTextTools.ts'
 import type { FieldFileContext } from '#shared/components/Form/fields/FieldFile/types.ts'
 import Form from '#shared/components/Form/Form.vue'
@@ -30,29 +32,46 @@ import { useWalker } from '#shared/router/walker.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
+
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonContentPanel from '#desktop/components/CommonContentPanel/CommonContentPanel.vue'
 import { useFieldCustomerOption } from '#desktop/components/Form/fields/FieldCustomer/useFieldCustomerOption.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import { useStudenthubTopBarCrumbsWhileShown } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
 import { usePage } from '#desktop/composables/usePage.ts'
+import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
 import { useTicketCreateTitle } from '#desktop/entities/ticket/composables/useTicketCreateTitle.ts'
 import { useUserCreate } from '#desktop/entities/user/composables/useUserCreate.ts'
 import { useTaskbarTab } from '#desktop/entities/user/current/composables/useTaskbarTab.ts'
 import { useTaskbarTabStateUpdates } from '#desktop/entities/user/current/composables/useTaskbarTabStateUpdates.ts'
+import { useUserCurrentTaskbarTabsStore } from '#desktop/entities/user/current/stores/taskbarTabs.ts'
 import type { TaskbarTabContext } from '#desktop/entities/user/current/types.ts'
 
 import { useProvideTicketSidebar, useTicketSidebar } from '../../composables/useTicketSidebar.ts'
 import { TicketSidebarScreenType, type TicketSidebarContext } from '../../types/sidebar.ts'
+import StudenthubTicketSideRail from '../TicketSidebar/StudenthubTicketSideRail.vue'
 import TicketSidebar from '../TicketSidebar.vue'
 
-import AgentTicketCreateCard from './AgentTicketCreateCard.vue'
 import ApplyTemplate from './ApplyTemplate.vue'
 import CustomerTicketCreateCard from './CustomerTicketCreateCard.vue'
 import CustomerTicketCreateWizard, {
   type CategoryKey,
   type WizardData,
 } from './CustomerTicketCreateWizard.vue'
+import StudenthubCreatePanel from './StudenthubCreatePanel.vue'
+import StudenthubCustomerEmail from './StudenthubCustomerEmail.vue'
+import StudenthubPriorityButtons from './StudenthubPriorityButtons.vue'
+import StudenthubSlaPreview from './StudenthubSlaPreview.vue'
+import StudenthubTemplatePicker from './StudenthubTemplatePicker.vue'
 import TicketDuplicateDetectionAlert from './TicketDuplicateDetectionAlert.vue'
+import {
+  APPROVAL_MANAGER_FIELD,
+  APPROVAL_REASON_FIELD,
+  STUDENTHUB_DRAFT_FIELD,
+  APPROVAL_SEND_FIELD,
+  useStudenthubCreateApproval,
+  type StudenthubCreateApprovalValues,
+} from './useStudenthubCreateApproval.ts'
 
 interface Props {
   tabId?: string
@@ -64,8 +83,16 @@ const router = useRouter()
 const walker = useWalker()
 const route = useRoute()
 
-const { form, isDisabled, isDirty, isInitialSettled, formNodeId, values, triggerFormUpdater } =
-  useForm()
+const {
+  form,
+  isDisabled,
+  isDirty,
+  isInitialSettled,
+  formNodeId,
+  values,
+  triggerFormUpdater,
+  updateFieldValues,
+} = useForm()
 
 const tabContext = computed<TaskbarTabContext>((currentContext) => {
   if (!isInitialSettled.value) return {}
@@ -101,6 +128,21 @@ const { ticketArticleSenderTypeField, defaultTicketCreateArticleType } = useTick
 const { isTicketCustomer } = useTicketCreateView()
 
 const isWizardMode = ref(route.query.mode === 'form' ? false : isTicketCustomer.value)
+
+// Student Hub: "Send for approval" for staff, when Ticket Approvals is on. Not for managers
+// without another staff role: they approve, they don't send (hidden until that's known).
+const { isLoaded: isApprovalViewerLoaded, isManagerOnly } = useStudenthubApprovalViewer()
+const isApprovalAvailable = computed(
+  () =>
+    !isTicketCustomer.value &&
+    Boolean(application.config.ticket_approval) &&
+    isApprovalViewerLoaded.value &&
+    !isManagerOnly.value,
+)
+const { managerOptions, managerHint, sendForApproval } = useStudenthubCreateApproval(isApprovalAvailable)
+// Set on submit, sent once the ticket exists (see redirectAfterCreate).
+let pendingApproval: StudenthubCreateApprovalValues | null = null
+
 const createdTicketInfo = ref<{ id: number; number: string } | null>(null)
 const isSubmittingWizard = ref(false)
 
@@ -115,10 +157,15 @@ watch(
   },
 )
 
+// Student Hub: leaving the New ticket screen on purpose (Cancel, Discard, Save draft, Create)
+// skips the leave guard below.
+let isLeavingOnPurpose = false
+
 const redirectAfterCreate = (
   internalId?: number,
   ticket?: TicketAttributesFragment | null,
 ) => {
+  isLeavingOnPurpose = true
   if (isWizardMode.value && (ticket || internalId)) {
     createdTicketInfo.value = {
       id: internalId || ticket?.internalId || 0,
@@ -129,6 +176,8 @@ const redirectAfterCreate = (
   }
 
   if (internalId) {
+    if (pendingApproval) void sendForApproval(internalId, pendingApproval)
+    pendingApproval = null
     router.replace(`/tickets/${internalId}`)
     return
   }
@@ -144,6 +193,16 @@ const goBack = () => {
 const { createTicket } = useTicketCreate(form, redirectAfterCreate)
 
 const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
+  const data = event as Record<string, unknown>
+  pendingApproval =
+    isApprovalAvailable.value && data[APPROVAL_SEND_FIELD] === true
+      ? {
+          send: true,
+          approverId: Number(data[APPROVAL_MANAGER_FIELD]),
+          reason: String(data[APPROVAL_REASON_FIELD] ?? ''),
+        }
+      : null
+
   return createTicket(event)
     .then((result) => {
       isSubmittingWizard.value = false
@@ -177,10 +236,10 @@ const wizardInitialValues = computed<Partial<WizardData>>(() => {
     if (!rawCat) rawCat = 'Software'
   } else if (catKey === 'account' || catKey === 'service_request') {
     catKey = 'service_request'
-    if (!rawCat) rawCat = 'Service Request'
+    if (!rawCat) rawCat = __('Service Request')
   } else if (catKey === 'general') {
     catKey = 'service_request'
-    if (!rawCat) rawCat = 'Service Request'
+    if (!rawCat) rawCat = __('Service Request')
   } else if (catKey === 'hardware') {
     catKey = 'hardware'
     if (!rawCat) rawCat = 'Hardware'
@@ -200,7 +259,7 @@ const wizardInitialValues = computed<Partial<WizardData>>(() => {
 
   let catName = rawCat
   if (!catName && catKey) {
-    if (catKey === 'service_request') catName = 'Service Request'
+    if (catKey === 'service_request') catName = __('Service Request')
     else if (catKey === 'software') catName = 'Software'
     else if (catKey === 'hardware') catName = 'Hardware'
     else catName = catKey
@@ -241,7 +300,7 @@ const handleWizardSubmit = async (data: WizardData) => {
     const categoryName =
       data.category ||
       (data.categoryKey === 'service_request'
-        ? 'Service Request'
+        ? __('Service Request')
         : data.categoryKey === 'software'
           ? 'Software'
           : data.categoryKey === 'hardware'
@@ -264,7 +323,7 @@ const handleWizardSubmit = async (data: WizardData) => {
     const rawCategory =
       data.category ||
       (data.categoryKey === 'service_request'
-        ? 'Service Request'
+        ? __('Service Request')
         : data.categoryKey === 'software'
           ? 'Software'
           : data.categoryKey === 'hardware'
@@ -387,6 +446,7 @@ const handleBackToDashboard = () => {
 }
 
 const defaultTitle = __('New ticket')
+const createHint = __('Fill in the details on the left and the message on the right, then press Create.')
 
 const { openUserCreateFlyout } = useUserCreate()
 
@@ -439,31 +499,82 @@ const defaultSchema = [
     },
     children: '',
   },
+  // Student Hub: staff "New ticket" (Halo layout). Main column: who it is for, what the issue is,
+  // more details (every other field of the create screen, including the ones admins add).
+  // Side column: triage, the SLA for the chosen priority, approval. Fields placed by name are
+  // left out when Zammad expands a screen (create_middle / create_bottom) later in the form.
   {
     isLayout: true,
-    component: 'AgentTicketCreateCard',
+    element: 'div',
+    attrs: {
+      class: 'sh-create',
+    },
     children: [
-      {
-        if: '$isTicketCustomer === false',
-        ...ticketArticleSenderTypeField,
-        outerClass: 'channel-tabs-outer flex justify-center w-full mb-1',
-        blockClass: 'channel-tabs-block',
-        innerClass: 'channel-tabs-inner',
-        inputClass: 'channel-tabs-strip',
-        classes: {
-          input: 'channel-tabs-strip',
-          inner: 'channel-tabs-inner',
-          outer: 'channel-tabs-outer',
-        },
-      },
       {
         isLayout: true,
         element: 'div',
         attrs: {
-          class: 'grid grid-cols-1 gap-5',
+          class: 'sh-create__column',
+        },
+        children: [
+      {
+        isLayout: true,
+        component: 'StudenthubTemplatePicker',
+        props: {
+          onSelect: '$applyTemplate',
+        },
+      },
+      {
+        isLayout: true,
+        component: 'StudenthubCreatePanel',
+        props: {
+          title: __('Who is it for?'),
+          icon: 'user',
         },
         children: [
           {
+            isLayout: true,
+            element: 'div',
+            attrs: {
+              class: 'sh-create__row',
+            },
+            children: [
+              {
+                name: 'customer_id',
+                screen: 'create_top',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+              {
+                name: 'campus',
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+            ],
+          },
+          {
+            isLayout: true,
+            element: 'div',
+            attrs: {
+              class: 'sh-create__row',
+            },
+            children: [
+              {
+                isLayout: true,
+                component: 'StudenthubCustomerEmail',
+                props: {
+                  customerId: '$values.customer_id',
+                },
+              },
+              {
+                if: '$isTicketCustomer === false',
+                ...ticketArticleSenderTypeField,
+                type: 'select',
+                label: __('Came in by'),
+              },
+            ],
+          },
+          {
+            name: 'organization_id',
             screen: 'create_top',
             object: EnumObjectManagerObjects.Ticket,
           },
@@ -485,10 +596,46 @@ const defaultSchema = [
             label: __('Security'),
             type: 'security',
           },
+        ],
+      },
+      {
+        isLayout: true,
+        component: 'StudenthubCreatePanel',
+        props: {
+          title: __('What is the issue?'),
+          icon: 'chat-left-text',
+        },
+        children: [
+          {
+            name: 'title',
+            screen: 'create_top',
+            object: EnumObjectManagerObjects.Ticket,
+            label: __('Summary'),
+          },
+          {
+            isLayout: true,
+            element: 'div',
+            attrs: {
+              class: 'sh-create__row sh-create__row--even',
+            },
+            children: [
+              {
+                name: 'category2',
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+              {
+                name: 'subcategory',
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+            ],
+          },
           {
             name: 'body',
             screen: 'create_top',
             object: EnumObjectManagerObjects.TicketArticle,
+            label: __('Details'),
             required: true,
             props: {
               meta: {
@@ -520,14 +667,168 @@ const defaultSchema = [
               multiple: true,
             },
           },
+        ],
+      },
+        ],
+      },
+      {
+        isLayout: true,
+        element: 'div',
+        attrs: {
+          class: 'sh-create__column sh-create__column--side',
+        },
+        children: [
+      {
+        isLayout: true,
+        component: 'StudenthubCreatePanel',
+        props: {
+          title: __('Triage'),
+          icon: 'speedometer2',
+        },
+        children: [
+          {
+            isLayout: true,
+            component: 'StudenthubPriorityButtons',
+            props: {
+              label: __('Priority'),
+              options: '$fields.priority_id.props.options',
+              value: '$values.priority_id',
+              onSelect: '$selectPriority',
+            },
+          },
+          {
+            name: 'priority_id',
+            screen: 'create_middle',
+            object: EnumObjectManagerObjects.Ticket,
+            // Zammad's field stays in the form (options, default, validation); the buttons above set it.
+            outerClass: 'hidden',
+          },
+          {
+            name: 'group_id',
+            screen: 'create_middle',
+            object: EnumObjectManagerObjects.Ticket,
+            label: __('Team'),
+          },
+          {
+            name: 'owner_id',
+            screen: 'create_middle',
+            object: EnumObjectManagerObjects.Ticket,
+            label: __('Assign to'),
+          },
+          {
+            name: 'state_id',
+            screen: 'create_middle',
+            object: EnumObjectManagerObjects.Ticket,
+          },
+          {
+            name: 'pending_time',
+            screen: 'create_middle',
+            object: EnumObjectManagerObjects.Ticket,
+          },
+        ],
+      },
+      {
+        isLayout: true,
+        component: 'StudenthubCreatePanel',
+        props: {
+          title: __('SLA for this priority'),
+          icon: 'stopwatch',
+        },
+        children: [
+          {
+            isLayout: true,
+            component: 'StudenthubSlaPreview',
+            props: {
+              priorityId: '$values.priority_id',
+              groupId: '$values.group_id',
+              stateId: '$values.state_id',
+            },
+          },
+        ],
+      },
+      {
+        if: '$approvalAvailable === true',
+        isLayout: true,
+        component: 'StudenthubCreatePanel',
+        props: {
+          title: __('Approval'),
+          icon: 'check2-circle',
+        },
+        children: [
           {
             isLayout: true,
             element: 'div',
             attrs: {
-              class:
-                'grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-neutral-700/80',
+              class: 'sh-create__fields',
             },
             children: [
+              {
+                name: APPROVAL_SEND_FIELD,
+                type: 'toggle',
+                label: __('Send for approval'),
+                value: false,
+                help: __('A manager approves or denies the ticket once it is created.'),
+                props: {
+                  variants: {
+                    true: 'yes',
+                    false: 'no',
+                  },
+                },
+              },
+              {
+                if: `$values.${APPROVAL_SEND_FIELD} === true`,
+                name: APPROVAL_MANAGER_FIELD,
+                type: 'select',
+                label: __('Manager'),
+                required: true,
+                // Clearable: Zammad would otherwise preselect the first manager.
+                props: {
+                  clearable: true,
+                  noOptionsLabelTranslation: true,
+                  options: [],
+                },
+              },
+              {
+                if: `$values.${APPROVAL_SEND_FIELD} === true`,
+                name: APPROVAL_REASON_FIELD,
+                type: 'textarea',
+                label: __('Reason'),
+                required: true,
+                props: {
+                  rows: 3,
+                  maxlength: 5000,
+                },
+              },
+            ],
+          },
+        ],
+      },
+        ],
+      },
+      // Optional fields last: after triage for the keyboard, under the main column on wide screens.
+      {
+        isLayout: true,
+        element: 'div',
+        attrs: {
+          class: 'sh-create__column sh-create__column--more',
+        },
+        children: [
+      {
+        isLayout: true,
+        component: 'StudenthubCreatePanel',
+        props: {
+          title: __('More details'),
+          icon: 'list-ul',
+        },
+        children: [
+          {
+            isLayout: true,
+            element: 'div',
+            attrs: {
+              class: 'sh-create__grid',
+            },
+            children: [
+              // Every other field of the create screen, including the ones admins add.
               {
                 screen: 'create_middle',
                 object: EnumObjectManagerObjects.Ticket,
@@ -538,6 +839,8 @@ const defaultSchema = [
               },
             ],
           },
+        ],
+      },
         ],
       },
     ],
@@ -552,6 +855,11 @@ const defaultSchema = [
   },
   {
     name: 'link_ticket_id',
+    type: 'hidden',
+  },
+  // Student Hub: set by "Save draft", kept with the tab's form values (see the leave guard).
+  {
+    name: STUDENTHUB_DRAFT_FIELD,
     type: 'hidden',
   },
   {
@@ -680,6 +988,10 @@ const additionalCreateNotes = computed(
 
 const schemaData = reactive({
   defaultTitle,
+  createHint,
+  approvalAvailable: isApprovalAvailable,
+  selectPriority: (value: string | number) => updateFieldValues({ priority_id: value }),
+  applyTemplate: (templateId: string) => applyTemplate(templateId),
   isTicketCustomer,
   securityIntegration,
   getTabLabel: (value: string) => `tab-label-${value}`,
@@ -726,9 +1038,31 @@ if (isTicketCustomer.value) {
       placeholder: __('e.g. Unable to access student portal, timetable inquiry...'),
     },
   })
+} else {
+  Object.assign(changedFields, {
+    title: {
+      placeholder: __('One line, e.g. Cannot see timetable for this term'),
+    },
+  })
 }
 
+// Student Hub: the managers to choose from.
+watch(
+  [managerOptions, managerHint],
+  ([options, hint]) => {
+    changedFields[APPROVAL_MANAGER_FIELD] = { props: { options }, help: hint }
+  },
+  { immediate: true },
+)
+
 const { signatureHandling } = useTicketSignature()
+
+// Student Hub: "Tickets / New ticket" in the top bar for staff.
+useStudenthubTopBarCrumbsWhileShown(() =>
+  isTicketCustomer.value
+    ? []
+    : [{ label: __('Tickets'), route: '/tickets/view' }, { label: __('New ticket') }],
+)
 
 const sidebarContext = computed<TicketSidebarContext>(() => ({
   screenType: TicketSidebarScreenType.TicketCreate,
@@ -742,15 +1076,122 @@ useProvideTicketSidebar(sidebarContext)
 
 const { hasSidebar } = useTicketSidebar()
 
-const { waitForVariantConfirmation } = useConfirmation()
+const { waitForConfirmation, waitForVariantConfirmation } = useConfirmation()
 
 const discardChanges = async () => {
   const confirm = await waitForVariantConfirmation('unsaved')
   if (!confirm) return
 
+  isLeavingOnPurpose = true
   goBack()
   currentTaskbarTabDelete()
 }
+
+// Student Hub: header actions of the staff screen. An unfinished new ticket stays in Recent
+// (Zammad keeps the tab); Cancel removes it. Zammad marks a new form as changed as soon as it
+// fills in its defaults, so "has the agent entered anything" is checked on the fields instead.
+const { notify } = useNotifications()
+
+const hasContent = computed(() => {
+  const formValues = values.value as Record<string, unknown>
+  const body = String(formValues.body ?? '').replace(/<[^>]*>|&nbsp;|\s/g, '')
+  const attachments = formValues.attachments as unknown[] | undefined
+
+  return Boolean(formValues.title || formValues.customer_id || body || attachments?.length)
+})
+
+const cancelCreate = async () => {
+  if (hasContent.value) {
+    await discardChanges()
+    return
+  }
+
+  isLeavingOnPurpose = true
+  goBack()
+  currentTaskbarTabDelete()
+}
+
+// After a refused Create, take the agent to the first field that needs attention (FormKit marks
+// the fields, it doesn't move focus).
+const focusFirstInvalidField = () => {
+  window.setTimeout(() => {
+    const field = document
+      .getElementById(formNodeId.value)
+      ?.querySelector<HTMLElement>(
+        "[data-invalid] :is(input:not([type='hidden']), textarea, [role='combobox'], [contenteditable='true'])",
+      )
+    if (!field) return
+
+    field.scrollIntoView({ block: 'center' })
+    field.focus({ preventScroll: true })
+  }, 50)
+}
+
+const markAsDraft = () => updateFieldValues({ [STUDENTHUB_DRAFT_FIELD]: '1' })
+
+const saveDraft = () => {
+  markAsDraft()
+  notify({
+    id: 'ticket-create-draft',
+    type: NotificationTypes.Success,
+    message: __('Draft saved. Continue it from Recent.'),
+  })
+  isLeavingOnPurpose = true
+  goBack()
+}
+
+// Student Hub: Recent keeps tickets and drafts only. Leaving an untouched New ticket closes its
+// tab; with something typed the agent chooses to save it as a draft or discard it (closing the
+// dialog stays here). The tab is closed once the next page is shown.
+const closeTabAfterLeaving = () => {
+  const removeHook = router.afterEach(() => {
+    removeHook()
+    currentTaskbarTabDelete()
+  })
+}
+
+const taskbarTabsStore = useUserCurrentTaskbarTabsStore()
+
+// The dialog runs outside the navigation (which is held back), then the agent is taken on.
+const askBeforeLeaving = async (target: string) => {
+  const keep = await waitForConfirmation(
+    __('Save this new ticket as a draft? Drafts stay under Recent until you finish them.'),
+    {
+      headerTitle: __('Unfinished new ticket'),
+      buttonLabel: __('Save draft'),
+      cancelLabel: __('Discard'),
+    },
+  )
+  if (keep === undefined) return
+
+  if (keep) {
+    markAsDraft()
+  } else {
+    closeTabAfterLeaving()
+  }
+  isLeavingOnPurpose = true
+  router.push(target)
+}
+
+onBeforeRouteLeave((to) => {
+  if (isTicketCustomer.value || isLeavingOnPurpose) return true
+  // Closed from Recent: Zammad already asked about unsaved changes.
+  if (!currentTaskbarTabId.value || taskbarTabsStore.taskbarTabIDsInDeletion.includes(currentTaskbarTabId.value))
+    return true
+  if ((values.value as Record<string, unknown>)[STUDENTHUB_DRAFT_FIELD] === '1') return true
+
+  if (!hasContent.value) {
+    closeTabAfterLeaving()
+    return true
+  }
+
+  askBeforeLeaving(to.fullPath)
+  return false
+})
+
+onActivated(() => {
+  isLeavingOnPurpose = false
+})
 
 const applyTemplate = (templateId: string) => {
   triggerFormUpdater({
@@ -772,10 +1213,49 @@ const formAdditionalRouteQueryParams = computed(() => ({
     name="ticket-create"
     background-variant="primary"
     content-alignment="center"
-    :show-sidebar="hasSidebar && (!isTicketCustomer || !isWizardMode)"
-    :no-padding="isTicketCustomer"
+    :show-sidebar="hasSidebar && isTicketCustomer && !isWizardMode"
+    no-padding
+    :no-scrollable="!isTicketCustomer"
   >
-    <div class="w-full max-w-5xl px-4 py-8">
+    <!-- Student Hub: staff get the ticket screen's layout (two columns, panels on the right edge) -->
+    <div :class="isTicketCustomer ? 'contents' : 'flex size-full min-h-0'">
+    <div :class="isTicketCustomer ? 'contents' : 'flex min-w-0 flex-1 flex-col'">
+    <header v-if="!isTicketCustomer" class="sh-create-bar">
+      <h1 class="sh-create-bar__title" aria-current="page">{{ currentTitle || $t('New ticket') }}</h1>
+      <!-- One group, so the buttons wrap together on narrow screens -->
+      <div class="sh-create-bar__main">
+        <CommonButton class="sh-create-bar__cancel" size="large" variant="tertiary" @click="cancelCreate">{{
+          $t('Cancel')
+        }}</CommonButton>
+        <CommonButton
+          class="sh-create-bar__draft"
+          size="large"
+          variant="secondary"
+          :disabled="isDisabled || !hasContent"
+          @click="saveDraft"
+        >
+          {{ $t('Save draft') }}
+        </CommonButton>
+        <CommonButton
+          class="sh-create-bar__create"
+          size="large"
+          variant="submit"
+          type="submit"
+          :form="formNodeId"
+          :disabled="isDisabled"
+          @click="focusFirstInvalidField"
+        >
+          {{ $t('Create ticket') }}
+        </CommonButton>
+      </div>
+    </header>
+    <div
+      :class="
+        isTicketCustomer
+          ? 'w-full max-w-5xl px-4 py-8'
+          : 'sh-create-scroll min-h-0 flex-1 overflow-y-auto px-5 py-5'
+      "
+    >
       <CustomerTicketCreateWizard
         v-if="isTicketCustomer && isWizardMode"
         :form-id="currentTaskbarTabFormId"
@@ -799,7 +1279,11 @@ const formAdditionalRouteQueryParams = computed(() => ({
           :schema-component-library="{
             CommonContentPanel: markRaw(CommonContentPanel),
             CustomerTicketCreateCard: markRaw(CustomerTicketCreateCard),
-            AgentTicketCreateCard: markRaw(AgentTicketCreateCard),
+            StudenthubCreatePanel: markRaw(StudenthubCreatePanel),
+            StudenthubCustomerEmail: markRaw(StudenthubCustomerEmail),
+            StudenthubPriorityButtons: markRaw(StudenthubPriorityButtons),
+            StudenthubSlaPreview: markRaw(StudenthubSlaPreview),
+            StudenthubTemplatePicker: markRaw(StudenthubTemplatePicker),
             TicketDuplicateDetectionAlert: markRaw(TicketDuplicateDetectionAlert),
           }"
           :schema-data="schemaData"
@@ -813,10 +1297,14 @@ const formAdditionalRouteQueryParams = computed(() => ({
         />
       </div>
     </div>
+    </div>
+    <StudenthubTicketSideRail v-if="!isTicketCustomer" :context="sidebarContext" />
+    </div>
     <template #sideBar>
       <TicketSidebar :context="sidebarContext" />
     </template>
-    <template v-if="!isTicketCustomer || !isWizardMode" #bottomBar>
+    <!-- Student Hub: staff have the actions in the header -->
+    <template v-if="isTicketCustomer && !isWizardMode" #bottomBar>
       <template v-if="isInitialSettled">
         <CommonButton
           v-if="isDirty"

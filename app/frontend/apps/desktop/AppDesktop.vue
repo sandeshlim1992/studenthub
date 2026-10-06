@@ -35,6 +35,7 @@ import { useAppUsageStore } from '#desktop/stores/appUsage.ts'
 import { useBetaUi } from './components/BetaUi/composables/useBetaUi.ts'
 import { useBetaUiFeedbackRouteGuard } from './components/BetaUi/composables/useBetaUiFeedbackRouteGuard.ts'
 import { useMobileDetection } from './composables/responsiveness/useMobileDetection.ts'
+import { useStudenthubAppColor } from './composables/useStudenthubAppColor.ts'
 
 import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 
@@ -50,6 +51,9 @@ onBeforeMount(() => {
   application.setLoaded()
 })
 useAppMaintenanceCheck()
+
+// Student Hub: application colour chosen by admins under Branding.
+useStudenthubAppColor()
 usePushMessages()
 
 // Add a check for authenticated changes (e.g. login/logout in a other

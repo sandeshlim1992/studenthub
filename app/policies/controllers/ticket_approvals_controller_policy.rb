@@ -4,4 +4,5 @@
 class Controllers::TicketApprovalsControllerPolicy < Controllers::ApplicationControllerPolicy
   default_permit!('ticket.agent')
   permit! %i[settings update_settings], to: 'admin.ticket_approval'
+  permit! :dashboard, to: 'ticket.approver'
 end

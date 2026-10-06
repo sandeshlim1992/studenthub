@@ -36,44 +36,19 @@ describe('TicketInformationBadgeList', () => {
     })
   })
 
-  it('displays a open ticket badge', () => {
-    ticket = createDummyTicket()
-    const wrapper = renderComponent(TicketInformationBadgeList, {})
-
-    const badges = wrapper.getAllByTestId('common-badge')
-
-    expect(badges.at(0)).toHaveTextContent(ticket.state.name)
-  })
-
-  it('displays a ticket priority badge', () => {
-    ticket = createDummyTicket()
-    const wrapper = renderComponent(TicketInformationBadgeList, {})
-
-    const badges = wrapper.getAllByTestId('common-badge')
-
-    expect(badges.at(1)).toHaveTextContent(ticket.priority.name)
-  })
-
-  it('do not display a ticket priority badge if user has no agent permissions', () => {
+  // Student Hub: state and priority moved next to the title (TopBarHeaderFull), "Created" is plain text.
+  it('do not display the ticket priority if user has no agent permissions', () => {
     ticket = createDummyTicket({ defaultPolicy: { update: false, agentReadAccess: false } })
 
     const wrapper = renderComponent(TicketInformationBadgeList, {})
 
-    const badges = wrapper.getAllByTestId('common-badge')
-
-    // Verify that no badge contains priority content.
-    badges.forEach((badge) => {
-      expect(badge).not.toHaveTextContent(ticket.priority.name)
-    })
+    expect(wrapper.queryByText(ticket.priority.name)).not.toBeInTheDocument()
   })
 
-  it('displays a ticket created at badge', () => {
+  it('displays when the ticket was created', () => {
     ticket = createDummyTicket()
     const wrapper = renderComponent(TicketInformationBadgeList, {})
 
-    const badges = wrapper.getAllByTestId('common-badge')
-
-    // gap is css based -> Created 13 years ago
-    expect(badges.at(2)).toHaveTextContent('Created13 years ago')
+    expect(wrapper.container).toHaveTextContent('Created13 years ago')
   })
 })

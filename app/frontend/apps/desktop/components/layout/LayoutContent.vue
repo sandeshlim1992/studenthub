@@ -52,6 +52,8 @@ export interface Props {
    */
   noScrollable?: boolean
   tabs?: NavigationTab[]
+  /** Student Hub: side of the content sidebar (the ticket screen puts it on the left). */
+  sidebarPosition?: SidebarPosition
   activeTab?: NavigationTab['key']
 }
 
@@ -79,7 +81,7 @@ const {
   gridColumns,
   resizeSidebar,
   resetSidebarWidth,
-} = useResizeGridColumns(SidebarName.TicketContent, SidebarPosition.End)
+} = useResizeGridColumns(SidebarName.TicketContent, props.sidebarPosition ?? SidebarPosition.End)
 
 const { transitions } = useTransitionConfig()
 
@@ -185,7 +187,7 @@ const { hasReducedMotion } = useReducedMotion()
         v-show="showSidebar"
         id="content-sidebar"
         :name="SidebarName.TicketContent"
-        :position="SidebarPosition.End"
+        :position="sidebarPosition ?? SidebarPosition.End"
         :aria-label="$t('Content sidebar')"
         collapsible
         resizable
@@ -196,6 +198,7 @@ const { hasReducedMotion } = useReducedMotion()
         no-scroll
         class="bg-neutral-50! dark:bg-gray-500!"
         :class="{
+          'order-first': sidebarPosition === SidebarPosition.Start,
           'max-h-[calc(100dvh-3.5rem)]!': $slots.bottomBar,
         }"
         @collapse="emitter.emit('resize-layout')"

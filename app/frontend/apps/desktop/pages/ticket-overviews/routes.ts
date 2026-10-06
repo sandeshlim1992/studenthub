@@ -10,7 +10,7 @@ const route: RouteRecordRaw[] = [
     alias: ['/', '/ticket/view/:overviewLink?'],
     props: true,
     meta: {
-      title: __('Overviews'),
+      title: __('Tickets'),
       requiresAuth: true,
       icon: 'all-tickets',
       requiredPermission: ['ticket.agent', 'ticket.customer'],

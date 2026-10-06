@@ -1,8 +1,9 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface OverviewItem {
@@ -49,13 +50,13 @@ const TICKET_ATTRIBUTES = [
   { value: 'owner', label: 'Owner' },
   { value: 'state', label: 'State' },
   { value: 'priority', label: 'Priority' },
-  { value: 'escalation_at', label: 'First response escalation' },
-  { value: 'close_escalation_at', label: 'Close escalation' },
-  { value: 'pending_time', label: 'Pending till' },
+  { value: 'escalation_at', label: __('First response escalation') },
+  { value: 'close_escalation_at', label: __('Close escalation') },
+  { value: 'pending_time', label: __('Pending till') },
   { value: 'tags', label: 'Tags' },
   { value: 'campus', label: 'Campus' },
-  { value: 'created_at', label: 'Created at' },
-  { value: 'updated_at', label: 'Updated at' },
+  { value: 'created_at', label: __('Created at') },
+  { value: 'updated_at', label: __('Updated at') },
 ]
 
 const TICKET_SORT_ATTRIBUTES = [
@@ -67,11 +68,11 @@ const TICKET_SORT_ATTRIBUTES = [
   { value: 'owner', label: 'Owner' },
   { value: 'state', label: 'State' },
   { value: 'priority', label: 'Priority' },
-  { value: 'escalation_at', label: 'First response escalation' },
-  { value: 'close_escalation_at', label: 'Close escalation' },
-  { value: 'pending_time', label: 'Pending till' },
-  { value: 'created_at', label: 'Created at' },
-  { value: 'updated_at', label: 'Updated at' },
+  { value: 'escalation_at', label: __('First response escalation') },
+  { value: 'close_escalation_at', label: __('Close escalation') },
+  { value: 'pending_time', label: __('Pending till') },
+  { value: 'created_at', label: __('Created at') },
+  { value: 'updated_at', label: __('Updated at') },
 ]
 
 const GROUP_BY_ATTRIBUTES = [
@@ -83,7 +84,7 @@ const GROUP_BY_ATTRIBUTES = [
   { value: 'owner', label: 'Owner' },
   { value: 'organization', label: 'Organization' },
   { value: 'campus', label: 'Campus' },
-  { value: 'itil_type', label: 'ITIL Type' },
+  { value: 'itil_type', label: __('ITIL Type') },
 ]
 
 const router = useRouter()
@@ -92,10 +93,18 @@ const isLoading = ref(true)
 const errorText = ref('')
 const searchQuery = ref('')
 const activeActionMenuOverviewId = ref<number | null>(null)
+const actionMenuPosition = ref({ top: 0, right: 0 })
+const actionError = ref('')
+const togglingIds = ref<Record<number, boolean>>({})
+
+// Teams views follow the groups (Studenthub::TicketViews::Teams): the sync switches them back on
+// and resets their order, so their toggle, order and delete are locked here.
+const TEAM_LINK_PREFIX = 'studenthub_team_'
+const isManaged = (overview: OverviewItem) => overview.link?.startsWith(TEAM_LINK_PREFIX) ?? false
 
 // Drag and drop state
-const draggedOverviewIndex = ref<number | null>(null)
-const dragOverIndex = ref<number | null>(null)
+const draggedOverviewId = ref<number | null>(null)
+const dragOverId = ref<number | null>(null)
 
 const rolesList = ref<{ id: number; name: string }[]>([])
 const groupsList = ref<{ id: number; name: string }[]>([])
@@ -150,10 +159,26 @@ const breadcrumbItems = [
   { label: __('Overviews') }
 ]
 
+// The menu is drawn over the page (Teleport), so the table box can't cut it off.
 const toggleActionMenu = (overviewId: number, event: Event) => {
   event.stopPropagation()
-  activeActionMenuOverviewId.value = activeActionMenuOverviewId.value === overviewId ? null : overviewId
+  if (activeActionMenuOverviewId.value === overviewId) {
+    activeActionMenuOverviewId.value = null
+    return
+  }
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  actionMenuPosition.value = { top: rect.bottom + 4, right: window.innerWidth - rect.right }
+  activeActionMenuOverviewId.value = overviewId
 }
+
+// The overview open in the drawer is a Teams view
+const editingManaged = computed(() =>
+  formState.value.id !== null && overviews.value.some((o) => o.id === formState.value.id && isManaged(o))
+)
+
+const actionMenuOverview = computed(() =>
+  overviews.value.find((o) => o.id === activeActionMenuOverviewId.value) ?? null
+)
 
 const closeActionMenu = () => { activeActionMenuOverviewId.value = null }
 
@@ -258,8 +283,9 @@ const fetchPreview = async () => {
 }
 
 // Fetch all overviews
-const fetchOverviews = async () => {
-  isLoading.value = true
+// silent: refresh after a change without blanking the table
+const fetchOverviews = async (silent = false) => {
+  if (!silent) isLoading.value = true
   errorText.value = ''
   try {
     const res = await fetch('/api/v1/overviews?expand=true', {
@@ -497,7 +523,7 @@ const saveOverview = async () => {
     })
     if (res.ok) {
       showDrawer.value = false
-      fetchOverviews()
+      fetchOverviews(true)
     } else {
       const d = await res.json()
       alert(d.error_human || d.error || __('Failed to save overview.'))
@@ -509,82 +535,107 @@ const saveOverview = async () => {
   }
 }
 
-// Drag & drop priority reordering
-const onDragStart = (event: DragEvent, index: number) => {
-  draggedOverviewIndex.value = index
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', String(index))
-  }
+// Reordering: not while searching (the rows shown aren't the whole list), and only among the
+// rows that aren't managed. They swap their existing order numbers, so the Teams (5000+) and
+// institution (9000+) numbers stay where they are.
+const canReorder = computed(() => !searchQuery.value.trim())
+
+const reorderableIds = computed(() => overviews.value.filter((o) => !isManaged(o)).map((o) => o.id))
+
+const canMove = (overview: OverviewItem, direction: 'up' | 'down') => {
+  const ids = reorderableIds.value
+  const pos = ids.indexOf(overview.id)
+  return pos !== -1 && (direction === 'up' ? pos > 0 : pos < ids.length - 1)
 }
 
-const onDragOver = (event: DragEvent, index: number) => {
-  event.preventDefault()
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move'
+const postHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'X-Requested-With': 'XMLHttpRequest',
+  'X-CSRF-Token': getCsrf()
+})
+
+const saveOrder = async (orderedIds: number[]) => {
+  const byId = new Map(overviews.value.map((o) => [o.id, o]))
+  const prios = orderedIds.map((id) => byId.get(id)?.prio ?? 0).sort((a, b) => a - b)
+  // Overviews sharing a number would not move, so make each one higher than the last.
+  for (let i = 1; i < prios.length; i++) {
+    if (prios[i] <= prios[i - 1]) prios[i] = prios[i - 1] + 1
   }
-  dragOverIndex.value = index
-}
+  const changed = orderedIds
+    .map((id, idx): [number, number] => [id, prios[idx]])
+    .filter(([id, prio]) => byId.get(id)?.prio !== prio)
+  if (changed.length === 0) return
 
-const onDrop = async (event: DragEvent, targetIndex: number) => {
-  event.preventDefault()
-  const fromIndex = draggedOverviewIndex.value
-  draggedOverviewIndex.value = null
-  dragOverIndex.value = null
+  const setPrios = (prioById: Map<number, number>) => {
+    overviews.value.forEach((o) => {
+      const prio = prioById.get(o.id)
+      if (prio !== undefined) o.prio = prio
+    })
+    overviews.value.sort((a, b) => a.prio - b.prio)
+  }
+  const previousPrios = new Map(changed.map(([id]): [number, number] => [id, byId.get(id)?.prio ?? 0]))
+  setPrios(new Map(changed))
+  actionError.value = ''
 
-  if (fromIndex === null || fromIndex === targetIndex) return
-
-  const list = [...overviews.value]
-  const [movedItem] = list.splice(fromIndex, 1)
-  list.splice(targetIndex, 0, movedItem)
-  overviews.value = list
-
-  const prios = list.map((item, idx) => [item.id, idx + 1])
   try {
     const res = await fetch('/api/v1/overviews_prio', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': getCsrf()
-      },
-      body: JSON.stringify({ prios })
+      headers: postHeaders(),
+      body: JSON.stringify({ prios: changed })
     })
-    if (res.ok) fetchOverviews()
+    if (!res.ok) throw new Error(`Status ${res.status}`)
+    fetchOverviews(true)
   } catch (e) {
-    console.error('Failed to save overview priority order:', e)
+    console.error('Failed to save overview order:', e)
+    setPrios(previousPrios)
+    actionError.value = __('The new order could not be saved.')
   }
+}
+
+const moveOverview = (fromId: number, toId: number) => {
+  const ids = [...reorderableIds.value]
+  const from = ids.indexOf(fromId)
+  const to = ids.indexOf(toId)
+  if (from === -1 || to === -1 || from === to) return
+  ids.splice(to, 0, ...ids.splice(from, 1))
+  saveOrder(ids)
+}
+
+// Drag & drop
+const onDragStart = (event: DragEvent, overview: OverviewItem) => {
+  draggedOverviewId.value = overview.id
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData('text/plain', String(overview.id))
+  }
+}
+
+const onDragOver = (event: DragEvent, overview: OverviewItem) => {
+  if (draggedOverviewId.value === null || isManaged(overview)) return
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  dragOverId.value = overview.id
 }
 
 const onDragEnd = () => {
-  draggedOverviewIndex.value = null
-  dragOverIndex.value = null
+  draggedOverviewId.value = null
+  dragOverId.value = null
 }
 
-// Move priority using arrow buttons
-const movePriority = async (index: number, direction: 'up' | 'down') => {
-  const newIndex = direction === 'up' ? index - 1 : index + 1
-  if (newIndex < 0 || newIndex >= overviews.value.length) return
-  const list = [...overviews.value]
-  const temp = list[index]; list[index] = list[newIndex]; list[newIndex] = temp
-  overviews.value = list
-  const prios = list.map((item, idx) => [item.id, idx + 1])
-  try {
-    const res = await fetch('/api/v1/overviews_prio', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': getCsrf()
-      },
-      body: JSON.stringify({ prios })
-    })
-    if (res.ok) fetchOverviews()
-  } catch (e) {
-    console.error('Failed to swap priorities:', e)
-  }
+const onDrop = (event: DragEvent, overview: OverviewItem) => {
+  event.preventDefault()
+  const fromId = draggedOverviewId.value
+  onDragEnd()
+  if (fromId !== null) moveOverview(fromId, overview.id)
+}
+
+// Arrow buttons: swap with the next movable overview above or below
+const movePriority = (overview: OverviewItem, direction: 'up' | 'down') => {
+  const ids = reorderableIds.value
+  const pos = ids.indexOf(overview.id)
+  const target = ids[direction === 'up' ? pos - 1 : pos + 1]
+  if (pos !== -1 && target !== undefined) moveOverview(overview.id, target)
 }
 
 // Delete overview
@@ -594,42 +645,59 @@ const handleDeleteOverview = async (overviewId: number, name: string) => {
   try {
     const res = await fetch(`/api/v1/overviews/${overviewId}`, {
       method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': getCsrf()
-      }
+      headers: postHeaders()
     })
-    if (res.ok) fetchOverviews()
+    if (res.ok) fetchOverviews(true)
     else { const d = await res.json(); alert(d.error || __('Failed to delete overview.')) }
   } catch (e) {
     console.error('Failed to delete overview:', e)
   }
 }
 
-// Toggle active state
+// Toggle active state: switches at once, goes back if the save fails
 const toggleActiveState = async (overview: OverviewItem) => {
+  if (isManaged(overview) || togglingIds.value[overview.id]) return
+  const active = !overview.active
+  const setActive = (value: boolean) => {
+    const row = overviews.value.find((o) => o.id === overview.id)
+    if (row) row.active = value
+  }
+
+  togglingIds.value = { ...togglingIds.value, [overview.id]: true }
+  actionError.value = ''
+  setActive(active)
   try {
     const res = await fetch(`/api/v1/overviews/${overview.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': getCsrf()
-      },
-      body: JSON.stringify({ active: !overview.active })
+      headers: postHeaders(),
+      body: JSON.stringify({ active })
     })
-    if (res.ok) fetchOverviews()
+    if (!res.ok) throw new Error(`Status ${res.status}`)
   } catch (e) {
     console.error('Failed to update active state:', e)
+    setActive(!active)
+    actionError.value = __('"%s" could not be switched on or off.').replace('%s', overview.name)
+  } finally {
+    const rest = { ...togglingIds.value }
+    delete rest[overview.id]
+    togglingIds.value = rest
   }
 }
+
+const closeActionMenuOnScroll = () => { activeActionMenuOverviewId.value = null }
 
 onMounted(() => {
   fetchOverviews()
   fetchMetadata()
   window.addEventListener('click', closeActionMenu)
+  window.addEventListener('scroll', closeActionMenuOnScroll, true)
+  window.addEventListener('resize', closeActionMenuOnScroll)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeActionMenu)
+  window.removeEventListener('scroll', closeActionMenuOnScroll, true)
+  window.removeEventListener('resize', closeActionMenuOnScroll)
 })
 </script>
 
@@ -641,19 +709,19 @@ onMounted(() => {
       <div class="flex items-center justify-between mb-8">
         <div class="flex items-center gap-3">
           <button
-            @click="router.push('/manage')"
             class="flex items-center justify-center w-8 h-8 rounded-full border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             :title="__('Back')"
+            @click="router.push('/manage')"
           >
             <CommonIcon name="arrow-left" class="w-4 h-4" />
           </button>
           <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
-            {{ __('Overviews') }} <span class="text-sm font-normal text-slate-500 dark:text-slate-400 ml-1">{{ __('Management') }}</span>
+            {{ __('Overviews') }} <span class="text-sm font-normal text-slate-500 dark:text-slate-400 rtl:mr-1 ltr:ml-1">{{ __('Management') }}</span>
           </h1>
         </div>
         <button
-          @click="handleNewOverview"
           class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-medium transition-colors shadow-xs cursor-pointer flex items-center gap-2"
+          @click="handleNewOverview"
         >
           <CommonIcon name="plus" class="w-4 h-4" />
           {{ __('New Overview') }}
@@ -667,17 +735,26 @@ onMounted(() => {
             v-model="searchQuery"
             type="text"
             :placeholder="__('Search for overviews')"
-            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-200 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all"
+            class="w-full py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-200 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all rtl:pr-10 ltr:pl-10 rtl:pl-4 ltr:pr-4"
           />
-          <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+          <div class="absolute top-1/2 -translate-y-1/2 text-slate-400 rtl:right-3.5 ltr:left-3.5">
             <CommonIcon name="search" class="w-4 h-4" />
           </div>
         </div>
       </div>
 
+      <!-- Error from a toggle or reorder -->
+      <div v-if="actionError" class="mb-4 flex items-center gap-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+        <CommonIcon name="exclamation-triangle" class="w-4 h-4 shrink-0" />
+        <span class="flex-1">{{ actionError }}</span>
+        <button class="p-1 rounded cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30" :title="__('Dismiss')" @click="actionError = ''">
+          <CommonIcon name="x-lg" class="w-3 h-3" />
+        </button>
+      </div>
+
       <!-- Table Section -->
-      <div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs mb-6 overflow-hidden">
-        <table class="w-full text-left border-collapse">
+      <div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs mb-6 overflow-x-auto">
+        <table class="w-full min-w-[56rem] text-left border-collapse">
           <thead>
             <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
               <th class="py-4 px-6 text-center w-28">{{ __('Order') }}</th>
@@ -698,7 +775,7 @@ onMounted(() => {
               <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-32"></div></td>
               <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-32"></div></td>
               <td class="py-4 px-6"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-24"></div></td>
-              <td class="py-4 px-6 text-center"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded-full w-4 mx-auto"></div></td>
+              <td class="py-4 px-6 text-center"><div class="h-5 bg-slate-200 dark:bg-slate-800 rounded-full w-9 mx-auto"></div></td>
               <td class="py-4 px-6"></td>
             </tr>
           </tbody>
@@ -731,54 +808,66 @@ onMounted(() => {
           <!-- Data rows with Drag & Drop -->
           <tbody v-else class="divide-y divide-slate-100 dark:divide-slate-800/60 text-slate-700 dark:text-slate-300">
             <tr
-              v-for="(overview, index) in filteredOverviews"
+              v-for="overview in filteredOverviews"
               :key="overview.id"
-              draggable="true"
-              @dragstart="onDragStart($event, index)"
-              @dragover="onDragOver($event, index)"
-              @drop="onDrop($event, index)"
-              @dragend="onDragEnd"
+              :draggable="canReorder && !isManaged(overview)"
               class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
               :class="{
-                'opacity-40 bg-slate-100 dark:bg-slate-800': draggedOverviewIndex === index,
-                'border-t-2 border-blue-500': dragOverIndex === index && draggedOverviewIndex !== index
+                'opacity-40 bg-slate-100 dark:bg-slate-800': draggedOverviewId === overview.id,
+                'border-t-2 border-blue-500': dragOverId === overview.id && draggedOverviewId !== overview.id,
+                'opacity-60': !overview.active
               }"
+              @dragstart="onDragStart($event, overview)"
+              @dragover="onDragOver($event, overview)"
+              @drop="onDrop($event, overview)"
+              @dragend="onDragEnd"
               @click="handleEditOverview(overview)"
             >
               <!-- Order & Drag Handle -->
               <td class="py-3 px-6 text-center" @click.stop>
-                <div class="flex items-center justify-center gap-1.5">
+                <div v-if="isManaged(overview)" class="flex items-center justify-center text-slate-300 dark:text-slate-600" :title="__('Teams views follow the groups and are sorted by name.')">
+                  <CommonIcon name="lock" class="w-3.5 h-3.5" />
+                </div>
+                <div v-else-if="canReorder" class="flex items-center justify-center gap-1.5">
                   <span class="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1" :title="__('Drag to reorder')">
-                    <CommonIcon name="three-dots-vertical" class="w-3.5 h-3.5 inline -mr-1" />
+                    <CommonIcon name="three-dots-vertical" class="w-3.5 h-3.5 inline rtl:-ml-1 ltr:-mr-1" />
                     <CommonIcon name="three-dots-vertical" class="w-3.5 h-3.5 inline" />
                   </span>
                   <div class="flex items-center gap-0.5">
                     <button
-                      @click="movePriority(index, 'up')"
-                      :disabled="index === 0"
+                      :disabled="!canMove(overview, 'up')"
                       class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                       :title="__('Move up')"
+                      @click="movePriority(overview, 'up')"
                     >
                       <CommonIcon name="chevron-up" class="w-3 h-3" />
                     </button>
                     <button
-                      @click="movePriority(index, 'down')"
-                      :disabled="index === overviews.length - 1"
+                      :disabled="!canMove(overview, 'down')"
                       class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                       :title="__('Move down')"
+                      @click="movePriority(overview, 'down')"
                     >
                       <CommonIcon name="chevron-down" class="w-3 h-3" />
                     </button>
                   </div>
                 </div>
+                <span v-else class="text-xs text-slate-400" :title="__('Clear the search to reorder')">{{ overview.prio }}</span>
               </td>
               <!-- Name -->
               <td class="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">
-                {{ overview.name }}
+                <div class="flex items-center gap-2">
+                  <span>{{ overview.name }}</span>
+                  <span
+                    v-if="isManaged(overview)"
+                    class="shrink-0 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] font-semibold"
+                    :title="__('Kept in step with the groups: switch off or remove the group to remove this view.')"
+                  >{{ __('Managed automatically') }}</span>
+                </div>
               </td>
               <!-- Link -->
               <td class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 font-mono">
-                <span class="hover:text-blue-600 transition-colors">{{ overview.link || '-' }}</span>
+                <span class="block max-w-60 truncate" :title="overview.link">{{ overview.link || '-' }}</span>
               </td>
               <!-- Access Roles -->
               <td class="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">
@@ -786,7 +875,7 @@ onMounted(() => {
                   <span
                     v-for="rId in overview.role_ids"
                     :key="rId"
-                    class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-xs"
+                    class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded text-xs whitespace-nowrap"
                   >
                     {{ rolesMap[rId] || (overview.roles ? overview.roles[overview.role_ids.indexOf(rId)] : `#${rId}`) }}
                   </span>
@@ -800,64 +889,81 @@ onMounted(() => {
               <!-- Active -->
               <td class="py-4 px-6 text-center" @click.stop>
                 <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="overview.active"
+                  :aria-label="__('Switch %s on or off').replace('%s', overview.name)"
+                  :title="isManaged(overview) ? __('Teams views are always on. Switch off the group instead.') : (overview.active ? __('Active') : __('Inactive'))"
+                  :disabled="isManaged(overview) || togglingIds[overview.id]"
+                  class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 align-middle"
+                  :class="overview.active ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-700'"
                   @click="toggleActiveState(overview)"
-                  class="inline-flex items-center justify-center w-6 h-6 rounded-full transition-colors cursor-pointer"
-                  :class="overview.active ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600'"
                 >
-                  <CommonIcon name="check2" class="w-4 h-4" />
+                  <span
+                    class="pointer-events-none inline-block size-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out"
+                    :class="overview.active ? 'ltr:translate-x-4 rtl:-translate-x-4' : 'rtl:-translate-x-0 ltr:translate-x-0'"
+                  />
                 </button>
               </td>
               <!-- Actions -->
-              <td class="py-4 px-6 text-right relative" @click.stop>
+              <td class="py-4 px-6 text-right" @click.stop>
                 <button
-                  @click="toggleActionMenu(overview.id, $event)"
                   class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  :aria-label="__('Actions')"
+                  @click="toggleActionMenu(overview.id, $event)"
                 >
                   <CommonIcon name="three-dots-vertical" class="w-4 h-4" />
                 </button>
-                <div
-                  v-if="activeActionMenuOverviewId === overview.id"
-                  class="absolute right-6 mt-1 w-44 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl z-20 overflow-hidden text-left"
-                  @click.stop
-                >
-                  <div class="py-1.5">
-                    <button
-                      @click="handleEditOverview(overview)"
-                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                    >
-                      <CommonIcon name="pencil" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
-                      {{ __('Edit') }}
-                    </button>
-                    <button
-                      @click="handleCloneOverview(overview)"
-                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                    >
-                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
-                      {{ __('Clone') }}
-                    </button>
-                    <button
-                      v-if="overview.link"
-                      @click="handleViewOverview(overview)"
-                      class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                    >
-                      <CommonIcon name="card-list" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
-                      {{ __('View Tickets') }}
-                    </button>
-                    <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
-                    <button
-                      @click="handleDeleteOverview(overview.id, overview.name)"
-                      class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                    >
-                      <CommonIcon name="trash3" class="w-3.5 h-3.5 mr-2.5 text-red-400" />
-                      {{ __('Delete') }}
-                    </button>
-                  </div>
-                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Row actions, drawn over the page so the table box doesn't cut them off -->
+      <Teleport to="body">
+        <div
+          v-if="actionMenuOverview"
+          class="fixed w-44 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl z-40 overflow-hidden text-left"
+          :style="{ top: `${actionMenuPosition.top}px`, right: `${actionMenuPosition.right}px` }"
+          @click.stop
+        >
+          <div class="py-1.5">
+            <button
+              class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              @click="handleEditOverview(actionMenuOverview)"
+            >
+              <CommonIcon name="pencil" class="w-3.5 h-3.5 text-slate-400 rtl:ml-2.5 ltr:mr-2.5" />
+              {{ __('Edit') }}
+            </button>
+            <button
+              class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              @click="handleCloneOverview(actionMenuOverview)"
+            >
+              <CommonIcon name="copy" class="w-3.5 h-3.5 text-slate-400 rtl:ml-2.5 ltr:mr-2.5" />
+              {{ __('Clone') }}
+            </button>
+            <button
+              v-if="actionMenuOverview.link"
+              class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+              @click="handleViewOverview(actionMenuOverview)"
+            >
+              <CommonIcon name="card-list" class="w-3.5 h-3.5 text-slate-400 rtl:ml-2.5 ltr:mr-2.5" />
+              {{ __('View Tickets') }}
+            </button>
+            <template v-if="!isManaged(actionMenuOverview)">
+              <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
+              <button
+                class="flex w-full items-center px-4 py-2.5 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                @click="handleDeleteOverview(actionMenuOverview.id, actionMenuOverview.name)"
+              >
+                <CommonIcon name="trash3" class="w-3.5 h-3.5 text-red-400 rtl:ml-2.5 ltr:mr-2.5" />
+                {{ __('Delete') }}
+              </button>
+            </template>
+          </div>
+        </div>
+      </Teleport>
 
     </div>
   </LayoutContent>
@@ -875,7 +981,7 @@ onMounted(() => {
             </div>
             <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ drawerTitle }}</h2>
           </div>
-          <button @click="showDrawer = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+          <button class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" @click="showDrawer = false">
             <CommonIcon name="x-lg" class="w-4 h-4" />
           </button>
         </div>
@@ -898,7 +1004,7 @@ onMounted(() => {
                 class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border rounded-lg text-xs cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors"
                 :class="formState.role_ids.includes(role.id) ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'"
               >
-                <input type="checkbox" :value="role.id" v-model="formState.role_ids" class="rounded text-blue-600" />
+                <input v-model="formState.role_ids" type="checkbox" :value="role.id" class="rounded text-blue-600" />
                 <span class="font-medium text-slate-700 dark:text-slate-200">{{ role.name }}</span>
               </label>
             </div>
@@ -917,9 +1023,9 @@ onMounted(() => {
                   class="flex items-center gap-2 px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/40"
                   :class="formState.user_ids.includes(user.id) ? 'bg-blue-50 dark:bg-blue-950/20' : 'bg-white dark:bg-transparent'"
                 >
-                  <input type="checkbox" :value="user.id" v-model="formState.user_ids" class="rounded text-blue-600" />
+                  <input v-model="formState.user_ids" type="checkbox" :value="user.id" class="rounded text-blue-600" />
                   <span class="text-slate-700 dark:text-slate-200">{{ user.fullname || user.login }}</span>
-                  <span class="text-slate-400 dark:text-slate-500 ml-auto text-[10px]">{{ user.login }}</span>
+                  <span class="text-slate-400 dark:text-slate-500 text-[10px] rtl:mr-auto ltr:ml-auto">{{ user.login }}</span>
                 </label>
                 <div v-if="filteredUsers.length === 0" class="px-3 py-4 text-xs text-slate-400 text-center bg-white dark:bg-transparent">{{ __('No users found') }}</div>
               </div>
@@ -933,8 +1039,8 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
             <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200 flex-1">{{ __('Only available for users with shared organizations') }}</h3>
             <div class="flex items-center gap-3 shrink-0">
-              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input type="radio" :value="true" v-model="formState.organization_shared" class="text-blue-600" />{{ __('yes') }}</label>
-              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input type="radio" :value="false" v-model="formState.organization_shared" class="text-blue-600" />{{ __('no') }}</label>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input v-model="formState.organization_shared" type="radio" :value="true" class="text-blue-600" />{{ __('yes') }}</label>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input v-model="formState.organization_shared" type="radio" :value="false" class="text-blue-600" />{{ __('no') }}</label>
             </div>
           </div>
 
@@ -942,8 +1048,8 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
             <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200 flex-1">{{ __('Only available for users which are absence replacements for other users.') }}</h3>
             <div class="flex items-center gap-3 shrink-0">
-              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input type="radio" :value="true" v-model="formState.out_of_office" class="text-blue-600" />{{ __('yes') }}</label>
-              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input type="radio" :value="false" v-model="formState.out_of_office" class="text-blue-600" />{{ __('no') }}</label>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input v-model="formState.out_of_office" type="radio" :value="true" class="text-blue-600" />{{ __('yes') }}</label>
+              <label class="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer"><input v-model="formState.out_of_office" type="radio" :value="false" class="text-blue-600" />{{ __('no') }}</label>
             </div>
           </div>
 
@@ -957,13 +1063,13 @@ onMounted(() => {
             </div>
             <div class="space-y-3">
               <div v-for="(cond, idx) in formState.conditions" :key="idx" class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative">
-                <button @click="formState.conditions.splice(idx, 1)" class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer">
+                <button class="absolute top-3 text-slate-400 hover:text-red-500 cursor-pointer rtl:left-3 ltr:right-3" @click="formState.conditions.splice(idx, 1)">
                   <CommonIcon name="trash3" class="w-4 h-4" />
                 </button>
-                <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
+                <div class="grid grid-cols-2 gap-3 mb-3 rtl:pl-8 ltr:pr-8">
                   <div>
                     <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select v-model="cond.field" @change="cond.values = []; delete cond.pre_condition; cond.text_value = ''" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500">
+                    <select v-model="cond.field" class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500" @change="cond.values = []; delete cond.pre_condition; cond.text_value = ''">
                       <option value="state">{{ __('State') }}</option>
                       <option value="priority">{{ __('Priority') }}</option>
                       <option value="group">{{ __('Group') }}</option>
@@ -997,21 +1103,21 @@ onMounted(() => {
                   <!-- State -->
                   <div v-if="cond.field === 'state'" class="flex flex-wrap gap-1.5">
                     <label v-for="state in ticketStatesList" :key="state.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(state.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
-                      <input type="checkbox" :value="String(state.id)" v-model="cond.values" class="rounded text-blue-600" /><span>{{ state.name }}</span>
+                      <input v-model="cond.values" type="checkbox" :value="String(state.id)" class="rounded text-blue-600" /><span>{{ state.name }}</span>
                     </label>
                   </div>
 
                   <!-- Priority -->
                   <div v-else-if="cond.field === 'priority'" class="flex flex-wrap gap-1.5">
                     <label v-for="prio in ticketPrioritiesList" :key="prio.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(prio.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
-                      <input type="checkbox" :value="String(prio.id)" v-model="cond.values" class="rounded text-blue-600" /><span>{{ prio.name }}</span>
+                      <input v-model="cond.values" type="checkbox" :value="String(prio.id)" class="rounded text-blue-600" /><span>{{ prio.name }}</span>
                     </label>
                   </div>
 
                   <!-- Group -->
                   <div v-else-if="cond.field === 'group'" class="flex flex-wrap gap-1.5">
                     <label v-for="grp in groupsList" :key="grp.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(grp.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
-                      <input type="checkbox" :value="String(grp.id)" v-model="cond.values" class="rounded text-blue-600" /><span>{{ grp.name }}</span>
+                      <input v-model="cond.values" type="checkbox" :value="String(grp.id)" class="rounded text-blue-600" /><span>{{ grp.name }}</span>
                     </label>
                   </div>
 
@@ -1019,17 +1125,17 @@ onMounted(() => {
                   <div v-else-if="cond.field === 'owner'" class="space-y-2">
                     <div class="flex items-center gap-4">
                       <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
-                        <input type="radio" :checked="cond.pre_condition === 'current_user.id'" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" class="text-blue-600" />
+                        <input type="radio" :checked="cond.pre_condition === 'current_user.id'" class="text-blue-600" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" />
                         <span>{{ __('Current User') }}</span>
                       </label>
                       <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'not_set' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
-                        <input type="radio" :checked="cond.pre_condition === 'not_set'" @change="() => { cond.pre_condition = 'not_set'; cond.values = [] }" class="text-blue-600" />
+                        <input type="radio" :checked="cond.pre_condition === 'not_set'" class="text-blue-600" @change="() => { cond.pre_condition = 'not_set'; cond.values = [] }" />
                         <span>{{ __('Unassigned (Not Set)') }}</span>
                       </label>
                     </div>
                     <div class="flex flex-wrap gap-1.5 pt-1">
                       <label v-for="user in usersList.slice(0, 30)" :key="user.id" class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.values.includes(String(user.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'">
-                        <input type="checkbox" :value="String(user.id)" v-model="cond.values" @change="() => { if (cond.values.length > 0) delete cond.pre_condition }" class="rounded text-blue-600" />
+                        <input v-model="cond.values" type="checkbox" :value="String(user.id)" class="rounded text-blue-600" @change="() => { if (cond.values.length > 0) delete cond.pre_condition }" />
                         <span>{{ user.fullname || user.login }}</span>
                       </label>
                     </div>
@@ -1038,7 +1144,7 @@ onMounted(() => {
                   <!-- Customer -->
                   <div v-else-if="cond.field === 'customer'">
                     <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
-                      <input type="radio" :checked="cond.pre_condition === 'current_user.id'" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" class="text-blue-600" />
+                      <input type="radio" :checked="cond.pre_condition === 'current_user.id'" class="text-blue-600" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" />
                       <span>{{ __('Current User') }}</span>
                     </label>
                   </div>
@@ -1046,7 +1152,7 @@ onMounted(() => {
                   <!-- Organization -->
                   <div v-else-if="cond.field === 'organization'">
                     <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.organization_id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
-                      <input type="radio" :checked="cond.pre_condition === 'current_user.organization_id'" @change="() => { cond.pre_condition = 'current_user.organization_id'; cond.values = [] }" class="text-blue-600" />
+                      <input type="radio" :checked="cond.pre_condition === 'current_user.organization_id'" class="text-blue-600" @change="() => { cond.pre_condition = 'current_user.organization_id'; cond.values = [] }" />
                       <span>{{ __("Current User's Organization") }}</span>
                     </label>
                   </div>
@@ -1073,7 +1179,7 @@ onMounted(() => {
                 </div>
               </div>
 
-              <button @click="formState.conditions.push({ field: 'state', operator: 'is', values: [] })" class="w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1">
+              <button class="w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1" @click="formState.conditions.push({ field: 'state', operator: 'is', values: [] })">
                 <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Condition') }}
               </button>
             </div>
@@ -1083,7 +1189,7 @@ onMounted(() => {
           <div>
             <div class="flex items-center justify-between mb-2">
               <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{{ __('Preview') }}</label>
-              <button @click="fetchPreview" class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer">
+              <button class="flex items-center gap-1.5 px-3 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer" @click="fetchPreview">
                 <CommonIcon name="arrow-clockwise" class="w-3 h-3" />{{ __('Refresh') }}
               </button>
             </div>
@@ -1129,7 +1235,7 @@ onMounted(() => {
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">{{ __('Attributes') }} <span class="text-red-500">*</span></label>
             <div class="grid grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">
               <label v-for="attr in TICKET_ATTRIBUTES" :key="attr.value" class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 border rounded-lg text-xs cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-colors" :class="formState.view_s.includes(attr.value) ? 'border-blue-400 dark:border-blue-600 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'">
-                <input type="checkbox" :value="attr.value" v-model="formState.view_s" class="rounded text-blue-600 shrink-0" />
+                <input v-model="formState.view_s" type="checkbox" :value="attr.value" class="rounded text-blue-600 shrink-0" />
                 <span class="font-medium text-slate-700 dark:text-slate-200">{{ __(attr.label) }}</span>
               </label>
             </div>
@@ -1174,24 +1280,25 @@ onMounted(() => {
             <div>
               <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">{{ __('Active') }} <span class="text-red-500">*</span></h3>
               <p class="text-xs text-slate-500 mt-0.5">{{ __('Determine if the overview is enabled for authorized users.') }}</p>
+              <p v-if="editingManaged" class="text-xs text-blue-600 dark:text-blue-400 mt-1">{{ __('Teams views are kept in step with the groups: name, roles, conditions, on/off and position are set automatically.') }}</p>
             </div>
-            <button @click="formState.active = !formState.active" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-hidden" :class="formState.active ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'">
-              <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200" :class="formState.active ? 'translate-x-5' : 'translate-x-0'"></span>
+            <button type="button" role="switch" :aria-checked="formState.active" :disabled="editingManaged" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50" :class="formState.active ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'" @click="formState.active = !formState.active">
+              <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200" :class="formState.active ? 'rtl:-translate-x-5 ltr:translate-x-5' : 'rtl:-translate-x-0 ltr:translate-x-0'"></span>
             </button>
           </div>
 
           <!-- Position -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{{ __('Position') }}</label>
-            <input v-model.number="formState.prio" type="number" min="1" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500" />
+            <input v-model.number="formState.prio" type="number" min="1" :disabled="editingManaged" class="disabled:opacity-50 disabled:cursor-not-allowed w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:outline-hidden focus:border-blue-500" />
           </div>
 
         </div>
 
         <!-- Drawer Footer -->
         <div class="px-6 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0">
-          <button @click="showDrawer = false" class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium transition-colors cursor-pointer">{{ __('Cancel') }}</button>
-          <button @click="saveOverview" :disabled="submitting" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center min-w-20 disabled:opacity-50 disabled:cursor-not-allowed">
+          <button class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium transition-colors cursor-pointer" @click="showDrawer = false">{{ __('Cancel') }}</button>
+          <button :disabled="submitting" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center min-w-20 disabled:opacity-50 disabled:cursor-not-allowed" @click="saveOverview">
             <span v-if="submitting">{{ __('Saving...') }}</span>
             <span v-else>{{ __('Save') }}</span>
           </button>

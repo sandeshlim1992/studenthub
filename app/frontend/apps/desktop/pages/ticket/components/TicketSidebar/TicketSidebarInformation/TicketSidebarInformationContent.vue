@@ -1,8 +1,9 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, toRef, useTemplateRef } from 'vue'
+import { computed, toRef, useTemplateRef, watch } from 'vue'
 
+import { useForm } from '#shared/components/Form/useForm.ts'
 import { useTicketView } from '#shared/entities/ticket/composables/useTicketView.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
@@ -11,6 +12,7 @@ import type { ObjectLike } from '#shared/types/utils.ts'
 import { useFlyout } from '#desktop/components/CommonFlyout/useFlyout.ts'
 import type { MenuItem } from '#desktop/components/CommonPopoverMenu/types.ts'
 import CommonSectionCollapse from '#desktop/components/CommonSectionCollapse/CommonSectionCollapse.vue'
+import { useStudenthubTicketDetailsMode } from '#desktop/pages/ticket/composables/useStudenthubTicketDetailsMode.ts'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 import { type TicketSidebarContentProps } from '#desktop/pages/ticket/types/sidebar.ts'
 
@@ -20,6 +22,8 @@ import {
 } from '../../TicketDetailView/actions/useTicketHistory.ts'
 import TicketSidebarContent from '../TicketSidebarContent.vue'
 
+import StudenthubTicketDetailsList from './TicketSidebarInformationContent/StudenthubTicketDetailsList.vue'
+import StudenthubTicketSlaBox from './TicketSidebarInformationContent/StudenthubTicketSlaBox.vue'
 import TicketAccountedTime from './TicketSidebarInformationContent/TicketAccountedTime.vue'
 import TicketAIKnowledgeBaseAnswers from './TicketSidebarInformationContent/TicketAIKnowledgeBaseAnswers.vue'
 import TicketAISuggestedKnowledgeBaseAnswers from './TicketSidebarInformationContent/TicketAISuggestedKnowledgeBaseAnswers.vue'
@@ -31,11 +35,24 @@ const props = defineProps<TicketSidebarContentProps>()
 
 const persistentStates = defineModel<ObjectLike>({ required: true })
 
-const { ticket } = useTicketInformation()
+const { ticket, ticketInternalId, form } = useTicketInformation()
 
 const ticketLinksInstance = useTemplateRef('ticket-links')
 
 const { isTicketAgent, isTicketEditable } = useTicketView(ticket)
+
+// Student Hub: Details is a read-only list for agents; "Edit" shows Zammad's form (which stays
+// mounted while hidden, so Update and the header actions keep working).
+const { isEditingDetails } = useStudenthubTicketDetailsMode(ticketInternalId)
+const showDetailsList = computed(() => isTicketAgent.value && !isEditingDetails.value)
+
+// Open the form when Update is refused because a field is missing or wrong.
+const { isSubmitted } = useForm(form)
+watch(isSubmitted, (submitted) => {
+  if (!submitted || !isTicketAgent.value) return
+  if (form?.value?.findNodeByName('ticket')?.context?.state.valid === false)
+    isEditingDetails.value = true
+})
 const config = toRef(useApplicationStore(), 'config')
 const { hasPermission } = useSessionStore()
 
@@ -120,9 +137,41 @@ const actions = computed<MenuItem[]>(() => [
     <CommonSectionCollapse
       id="ticket-attributes"
       v-model="persistentStates.collapseAttributes"
-      :title="__('Attributes')"
+      :title="__('Details')"
     >
-      <div id="ticketEditAttributeForm" data-test-id="ticket-edit-attribute-form" />
+      <template #title="{ title, size }">
+        <CommonLabel class="grow text-current! select-none" :size="size" tag="h3">
+          {{ $t(title) }}
+        </CommonLabel>
+        <button
+          v-if="isTicketAgent && isTicketEditable"
+          type="button"
+          class="sh-details-edit"
+          :aria-pressed="isEditingDetails"
+          @click.stop="isEditingDetails = !isEditingDetails"
+          @keydown.enter.stop
+        >
+          {{ isEditingDetails ? $t('Done') : $t('Edit') }}
+        </button>
+      </template>
+
+      <StudenthubTicketDetailsList v-if="showDetailsList" />
+      <div
+        v-show="!showDetailsList"
+        id="ticketEditAttributeForm"
+        class="sh-ticket-edit-form"
+        data-test-id="ticket-edit-attribute-form"
+      />
+    </CommonSectionCollapse>
+
+    <!-- Student Hub: SLA card right below the ticket details -->
+    <CommonSectionCollapse
+      v-if="isTicketAgent && ticket"
+      id="ticket-sla"
+      v-model="persistentStates.collapseSla"
+      :title="__('SLA')"
+    >
+      <StudenthubTicketSlaBox :ticket="ticket" />
     </CommonSectionCollapse>
 
     <CommonSectionCollapse

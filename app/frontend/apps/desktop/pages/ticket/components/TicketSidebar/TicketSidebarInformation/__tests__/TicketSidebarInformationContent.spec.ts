@@ -69,12 +69,33 @@ describe('TicketSidebarInformationContent', () => {
 
       const wrapper = renderInformationSidebar()
 
-      expect(wrapper.getByRole('heading', { name: 'Attributes', level: 3 })).toBeInTheDocument()
+      expect(wrapper.getByRole('heading', { name: 'Details', level: 3 })).toBeInTheDocument()
 
       expect(wrapper.getByTestId('ticket-edit-attribute-form')).toHaveAttribute(
         'id',
         'ticketEditAttributeForm',
       )
+    })
+
+    // Student Hub: Details is a read-only list; Edit shows the form, which stays in the page.
+    it('shows the details as a list and the form after Edit', async () => {
+      mockPermissions(['ticket.agent'])
+
+      const wrapper = renderInformationSidebar()
+
+      expect(wrapper.getByTestId('studenthub-ticket-details')).toHaveTextContent(
+        defaultTicket.customer.fullname!,
+      )
+      expect(wrapper.getByTestId('ticket-edit-attribute-form')).not.toBeVisible()
+
+      await wrapper.events.click(wrapper.getByRole('button', { name: 'Edit' }))
+
+      expect(wrapper.queryByTestId('studenthub-ticket-details')).not.toBeInTheDocument()
+      expect(wrapper.getByTestId('ticket-edit-attribute-form')).toBeVisible()
+
+      await wrapper.events.click(wrapper.getByRole('button', { name: 'Done' }))
+
+      expect(wrapper.getByTestId('studenthub-ticket-details')).toBeInTheDocument()
     })
 
     it('displays tags and heading', () => {

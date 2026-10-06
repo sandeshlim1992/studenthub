@@ -86,6 +86,8 @@ onMounted(() => {
     ref="article-panel"
     class="mx-auto flex w-full flex-col"
     :class="{
+      // Student Hub: students get the text box without the title row and its buttons
+      'sh-reply-panel--student': isTicketCustomer,
       'overflow-hidden border-t border-t-neutral-300 bg-blue-200 dark:border-t-gray-900 dark:bg-gray-700':
         isPinned,
       'relative h-fit max-w-4xl py-4': !isPinned,
@@ -127,6 +129,7 @@ onMounted(() => {
             <!-- Overlaid on the trailing end of the channel/visibility row. `top-2` matches the header's `py-2`,
                  and the height depends on the user permissions, so the actions are vertically aligned. -->
             <div
+              v-if="!isTicketCustomer"
               class="absolute inset-e-3 top-2 z-20 flex items-center gap-2"
               :class="{
                 'h-6': isTicketCustomer,

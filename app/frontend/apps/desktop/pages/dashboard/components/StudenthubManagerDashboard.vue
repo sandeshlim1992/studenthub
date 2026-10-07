@@ -1,15 +1,18 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
 
 import { useSessionStore } from '#shared/stores/session.ts'
 
 import LayoutMain from '#desktop/components/layout/LayoutMain.vue'
 
+import StudenthubManagerSiteStats from './StudenthubManagerSiteStats.vue'
+
 // Student Hub: the dashboard of managers who have no other staff role (Ticket Approvals).
 // Their own approvals only: what waits for them, what they decided, and what they approved
-// that is still open (GET /api/v1/ticket_approval/dashboard).
+// that is still open (GET /api/v1/ticket_approval/dashboard), and the numbers of the sites
+// assigned to them (StudenthubManagerSiteStats).
 
 interface TicketRef {
   ticket_id: number
@@ -60,6 +63,10 @@ const load = () => {
     })
 }
 
+const siteStats = useTemplateRef<InstanceType<typeof StudenthubManagerSiteStats>>('site-stats')
+
+const refreshAll = () => Promise.all([load(), siteStats.value?.load()])
+
 onMounted(load)
 
 const decidedTotal = computed(() =>
@@ -76,7 +83,7 @@ const ticketLink = (ticket: TicketRef) => `/tickets/${ticket.ticket_id}`
 <template>
   <LayoutMain
     background-variant="tertiary"
-    class="min-h-screen bg-slate-50 p-6 md:p-8 dark:bg-slate-900/60"
+    class="bg-slate-50 p-6 md:p-8 dark:bg-slate-900/60"
   >
     <div class="mx-auto max-w-[1440px] space-y-8 text-slate-800 dark:text-slate-100">
       <header
@@ -94,7 +101,7 @@ const ticketLink = (ticket: TicketRef) => `/tickets/${ticket.ticket_id}`
           type="button"
           class="flex items-center gap-2 self-start rounded-xl border border-slate-200/80 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200/80 md:self-auto dark:border-slate-600 dark:bg-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-700"
           :disabled="isLoading"
-          @click="load"
+          @click="refreshAll"
         >
           <CommonIcon name="arrow-repeat" size="tiny" decorative :class="{ 'animate-spin': isLoading }" />
           {{ isLoading ? $t('Refreshing…') : $t('Refresh') }}
@@ -218,6 +225,8 @@ const ticketLink = (ticket: TicketRef) => `/tickets/${ticket.ticket_id}`
           <p v-else class="text-sm text-slate-600 dark:text-slate-300">{{ $t('You have not decided any requests yet.') }}</p>
         </section>
       </div>
+
+      <StudenthubManagerSiteStats ref="site-stats" />
     </div>
   </LayoutMain>
 </template>

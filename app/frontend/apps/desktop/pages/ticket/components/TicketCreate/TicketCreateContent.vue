@@ -60,6 +60,9 @@ import CustomerTicketCreateWizard, {
 } from './CustomerTicketCreateWizard.vue'
 import StudenthubCreatePanel from './StudenthubCreatePanel.vue'
 import StudenthubCustomerEmail from './StudenthubCustomerEmail.vue'
+import StudenthubManagerCreateLanding, {
+  type ManagerCreateCategory,
+} from './StudenthubManagerCreateLanding.vue'
 import StudenthubPriorityButtons from './StudenthubPriorityButtons.vue'
 import StudenthubSlaPreview from './StudenthubSlaPreview.vue'
 import StudenthubTemplatePicker from './StudenthubTemplatePicker.vue'
@@ -127,11 +130,44 @@ const session = useSessionStore()
 const { ticketArticleSenderTypeField, defaultTicketCreateArticleType } = useTicketCreateArticleType()
 const { isTicketCustomer } = useTicketCreateView()
 
-const isWizardMode = ref(route.query.mode === 'form' ? false : isTicketCustomer.value)
-
 // Student Hub: "Send for approval" for staff, when Ticket Approvals is on. Not for managers
 // without another staff role: they approve, they don't send (hidden until that's known).
-const { isLoaded: isApprovalViewerLoaded, isManagerOnly } = useStudenthubApprovalViewer()
+const {
+  isLoaded: isApprovalViewerLoaded,
+  isManagerOnly,
+  isCustomerManager,
+} = useStudenthubApprovalViewer()
+
+// Student Hub: managers without another staff role who are also customers raise tickets for
+// themselves on the student screens in the application colour: first the "How can we help?"
+// card with the categories, then the form ("Raise a New Ticket") or the wizard (a category).
+// The route guard waits until this is known (TicketCreate.vue).
+const isManagerCreate = isCustomerManager.value
+const isCustomerStyle = isTicketCustomer.value || isManagerCreate
+const isManagerLanding = computed(() => isManagerCreate && !route.query.mode)
+
+const isWizardMode = ref(
+  isManagerCreate
+    ? route.query.mode === 'wizard'
+    : route.query.mode === 'form'
+      ? false
+      : isTicketCustomer.value,
+)
+
+const openManagerForm = () => {
+  router.replace({ query: { ...route.query, mode: 'form' } })
+}
+
+const openManagerCategory = (category: ManagerCreateCategory) => {
+  router.replace({
+    query: {
+      ...route.query,
+      mode: 'wizard',
+      category: category.key,
+      categoryValue: category.categoryValue,
+    },
+  })
+}
 const isApprovalAvailable = computed(
   () =>
     !isTicketCustomer.value &&
@@ -190,7 +226,9 @@ const goBack = () => {
   walker.back('/')
 }
 
-const { createTicket } = useTicketCreate(form, redirectAfterCreate)
+const { createTicket } = useTicketCreate(form, redirectAfterCreate, {
+  asCustomer: () => isManagerCreate,
+})
 
 const submitCreateTicket = async (event: FormSubmitData<TicketFormData>) => {
   const data = event as Record<string, unknown>
@@ -976,7 +1014,107 @@ const customerSchema = [
   },
 ]
 
-const formSchema = defineFormSchema(isTicketCustomer.value ? customerSchema : defaultSchema)
+// Student Hub: the student form for managers who are also customers. Their staff permission
+// would show the staff fields of the screens (customer, owner, state…), so the fields are named.
+const managerSchema = [
+  {
+    isLayout: true,
+    component: 'CustomerTicketCreateCard',
+    children: [
+      {
+        if: '$values.ticket_duplicate_detection.count > 0',
+        isLayout: true,
+        component: 'TicketDuplicateDetectionAlert',
+        props: {
+          tickets: '$values.ticket_duplicate_detection.items',
+        },
+        children: '',
+      },
+      {
+        isLayout: true,
+        element: 'div',
+        attrs: {
+          class: 'grid grid-cols-1 gap-5',
+        },
+        children: [
+          {
+            name: 'title',
+            screen: 'create_top',
+            object: EnumObjectManagerObjects.Ticket,
+          },
+          {
+            name: 'body',
+            screen: 'create_top',
+            object: EnumObjectManagerObjects.TicketArticle,
+            required: true,
+            props: {
+              meta: {
+                mentionKnowledgeBase: {
+                  attachmentsNodeName: 'attachments',
+                },
+              },
+            },
+          },
+          {
+            type: 'file',
+            name: 'attachments',
+            label: __('Attachment'),
+            labelSrOnly: true,
+            props: {
+              multiple: true,
+            },
+          },
+          {
+            isLayout: true,
+            element: 'div',
+            attrs: {
+              class:
+                'grid @md:grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-neutral-700/80',
+            },
+            children: [
+              {
+                name: 'group_id',
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+              {
+                name: 'campus',
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+              {
+                name: 'category2',
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+              {
+                name: 'subcategory',
+                screen: 'create_middle',
+                object: EnumObjectManagerObjects.Ticket,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'ticket_duplicate_detection',
+        type: 'hidden',
+        value: {
+          count: 0,
+          items: [],
+        },
+      },
+      {
+        name: 'link_ticket_id',
+        type: 'hidden',
+      },
+    ],
+  },
+]
+
+const formSchema = defineFormSchema(
+  isManagerCreate ? managerSchema : isTicketCustomer.value ? customerSchema : defaultSchema,
+)
 
 const securityIntegration = computed<boolean>(
   () => (application.config.smime_integration || application.config.pgp_integration) ?? false,
@@ -1032,7 +1170,7 @@ const changedFields = reactive<Record<string, Partial<FormSchemaField>>>({
   },
 })
 
-if (isTicketCustomer.value) {
+if (isCustomerStyle) {
   Object.assign(changedFields, {
     title: {
       placeholder: __('e.g. Unable to access student portal, timetable inquiry...'),
@@ -1174,7 +1312,7 @@ const askBeforeLeaving = async (target: string) => {
 }
 
 onBeforeRouteLeave((to) => {
-  if (isTicketCustomer.value || isLeavingOnPurpose) return true
+  if (isCustomerStyle || isLeavingOnPurpose) return true
   // Closed from Recent: Zammad already asked about unsaved changes.
   if (!currentTaskbarTabId.value || taskbarTabsStore.taskbarTabIDsInDeletion.includes(currentTaskbarTabId.value))
     return true
@@ -1215,12 +1353,12 @@ const formAdditionalRouteQueryParams = computed(() => ({
     content-alignment="center"
     :show-sidebar="hasSidebar && isTicketCustomer && !isWizardMode"
     no-padding
-    :no-scrollable="!isTicketCustomer"
+    :no-scrollable="!isCustomerStyle"
   >
     <!-- Student Hub: staff get the ticket screen's layout (two columns, panels on the right edge) -->
-    <div :class="isTicketCustomer ? 'contents' : 'flex size-full min-h-0'">
-    <div :class="isTicketCustomer ? 'contents' : 'flex min-w-0 flex-1 flex-col'">
-    <header v-if="!isTicketCustomer" class="sh-create-bar">
+    <div :class="isCustomerStyle ? 'contents' : 'flex size-full min-h-0'">
+    <div :class="isCustomerStyle ? 'contents' : 'flex min-w-0 flex-1 flex-col'">
+    <header v-if="!isCustomerStyle" class="sh-create-bar">
       <h1 class="sh-create-bar__title" aria-current="page">{{ currentTitle || $t('New ticket') }}</h1>
       <!-- One group, so the buttons wrap together on narrow screens -->
       <div class="sh-create-bar__main">
@@ -1251,13 +1389,18 @@ const formAdditionalRouteQueryParams = computed(() => ({
     </header>
     <div
       :class="
-        isTicketCustomer
-          ? 'w-full max-w-5xl px-4 py-8'
+        isCustomerStyle
+          ? ['w-full max-w-5xl px-4 py-8', { 'sh-manager-create': isManagerCreate }]
           : 'sh-create-scroll min-h-0 flex-1 overflow-y-auto px-5 py-5'
       "
     >
+      <StudenthubManagerCreateLanding
+        v-if="isManagerLanding"
+        @raise="openManagerForm"
+        @category="openManagerCategory"
+      />
       <CustomerTicketCreateWizard
-        v-if="isTicketCustomer && isWizardMode"
+        v-else-if="isCustomerStyle && isWizardMode"
         :form-id="currentTaskbarTabFormId"
         :is-submitting="isSubmittingWizard"
         :created-ticket-info="createdTicketInfo"
@@ -1268,7 +1411,7 @@ const formAdditionalRouteQueryParams = computed(() => ({
         @view-ticket="handleViewTicket"
         @back-to-dashboard="handleBackToDashboard"
       />
-      <div v-show="!isTicketCustomer || !isWizardMode" class="w-full">
+      <div v-show="!isCustomerStyle || (!isWizardMode && !isManagerLanding)" class="w-full">
         <Form
           id="ticket-create"
           ref="form"
@@ -1298,13 +1441,13 @@ const formAdditionalRouteQueryParams = computed(() => ({
       </div>
     </div>
     </div>
-    <StudenthubTicketSideRail v-if="!isTicketCustomer" :context="sidebarContext" />
+    <StudenthubTicketSideRail v-if="!isCustomerStyle" :context="sidebarContext" />
     </div>
     <template #sideBar>
       <TicketSidebar :context="sidebarContext" />
     </template>
     <!-- Student Hub: staff have the actions in the header -->
-    <template v-if="isTicketCustomer && !isWizardMode" #bottomBar>
+    <template v-if="isCustomerStyle && !isWizardMode && !isManagerLanding" #bottomBar>
       <template v-if="isInitialSettled">
         <CommonButton
           v-if="isDirty"
@@ -1319,7 +1462,7 @@ const formAdditionalRouteQueryParams = computed(() => ({
         }}</CommonButton>
       </template>
 
-      <ApplyTemplate v-if="!isTicketCustomer" @select-template="applyTemplate" />
+      <ApplyTemplate v-if="!isCustomerStyle" @select-template="applyTemplate" />
 
       <CommonButton
         size="large"

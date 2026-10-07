@@ -4,14 +4,10 @@
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-import LayoutMain from '#desktop/components/layout/LayoutMain.vue'
-import NotificationPopover from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarHeader/OnlineNotification/NotificationPopover.vue'
-import { useOnlineNotificationActions } from '#shared/entities/online-notification/composables/useOnlineNotificationActions.ts'
-import { useOnlineNotificationCount } from '#shared/entities/online-notification/composables/useOnlineNotificationCount.ts'
-import { useOnlineNotificationList } from '#shared/entities/online-notification/composables/useOnlineNotificationList.ts'
-import type { OnlineNotification } from '#shared/graphql/types.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
+import LayoutMain from '#desktop/components/layout/LayoutMain.vue'
+import { useStudenthubTopBarCrumbsWhileShown } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
 import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
 import StudenthubManagerDashboard from '#desktop/pages/dashboard/components/StudenthubManagerDashboard.vue'
 
@@ -35,33 +31,10 @@ interface ActivityItem {
 const activityStream = ref<ActivityItem[]>([])
 const activityStreamLoading = ref(false)
 
-// Notifications State & Dialog
+// Student Hub: the drawer shows the activity stream only; notifications are in the top bar's bell.
 const showNotificationsDialog = ref(false)
-const { unseenCount } = useOnlineNotificationCount()
-const {
-  notificationList,
-  loading: isNotificationLoading,
-  hasUnseenNotification,
-} = useOnlineNotificationList()
-const { markAllRead, deleteNotification, seenNotification } = useOnlineNotificationActions()
 
-const runMarkAsSeen = async (notification: OnlineNotification) => {
-  if (notification.seen) return
-  await seenNotification(notification.id)
-}
-
-const removeNotification = async (notification: OnlineNotification) => {
-  await deleteNotification(notification.id)
-}
-
-const runMarkAllRead = async () => {
-  const ids = notificationList.value.map((notification) => notification.id)
-  await markAllRead(ids)
-}
-
-const totalActivityCount = computed(() => {
-  return (unseenCount.value ?? 0) + activityStream.value.length
-})
+const totalActivityCount = computed(() => activityStream.value.length)
 
 // Live Stats Store Interface (Parity with Legacy StatsStore)
 interface DashboardStatsData {
@@ -172,6 +145,9 @@ const refreshAll = async () => {
 // none of the agent stats below.
 const { isLoaded: isViewerLoaded, isManagerOnly } = useStudenthubApprovalViewer()
 
+// Student Hub: "Dashboard" in the top bar, for the staff and the manager dashboard.
+useStudenthubTopBarCrumbsWhileShown([{ label: __('Dashboard') }])
+
 watch(
   isViewerLoaded,
   (loaded) => {
@@ -181,10 +157,6 @@ watch(
 )
 
 // Navigation Handlers (Vue native routes)
-const goToCreateTicket = () => {
-  router.push('/ticket/create')
-}
-
 const goToMyAssignedTickets = () => {
   router.push('/ticket/view/my_assigned')
 }
@@ -403,7 +375,7 @@ const getActivityDescription = (item: ActivityItem) => {
 
 <template>
   <StudenthubManagerDashboard v-if="isManagerOnly" />
-  <LayoutMain v-else-if="isViewerLoaded" background-variant="tertiary" class="p-6 md:p-8 bg-slate-50 dark:bg-slate-900/60 min-h-screen">
+  <LayoutMain v-else-if="isViewerLoaded" background-variant="tertiary" class="p-6 md:p-8 bg-slate-50 dark:bg-slate-900/60">
     <div class="max-w-[1440px] mx-auto space-y-8 select-none font-sans text-slate-800 dark:text-slate-100">
       
       <!-- HERO HEADER BAR -->
@@ -462,17 +434,7 @@ const getActivityDescription = (item: ActivityItem) => {
             </span>
           </button>
 
-          <!-- New Ticket Native Vue Button -->
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold text-on-app bg-app hover:bg-app-hover rounded-xl shadow-xs transition-all duration-200 hover:scale-102 hover:shadow-md active:scale-95 cursor-pointer"
-            @click="goToCreateTicket"
-          >
-            <svg class="w-4 h-4 transition-transform duration-200 group-hover:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            <span>{{ __('New Ticket') }}</span>
-          </button>
+          <!-- Student Hub: New ticket is in the top bar -->
         </div>
       </div>
 
@@ -501,7 +463,7 @@ const getActivityDescription = (item: ActivityItem) => {
                 </div>
                 <div>
                   <h4 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">{{ __('Activity Stream') }}</h4>
-                  <p class="text-xs text-slate-400 font-medium">{{ __('Live system notifications & updates') }}</p>
+                  <p class="text-xs text-slate-400 font-medium">{{ __('Recent system updates') }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-2">
@@ -522,17 +484,6 @@ const getActivityDescription = (item: ActivityItem) => {
 
             <!-- DRAWER CONTENT -->
             <div class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/60 p-3">
-              <NotificationPopover
-                v-if="notificationList && notificationList.length > 0"
-                :loading="isNotificationLoading"
-                :has-unseen-notification="hasUnseenNotification"
-                :notification-list="notificationList"
-                @visited="showNotificationsDialog = false"
-                @seen="runMarkAsSeen"
-                @remove="removeNotification"
-                @seen-all="runMarkAllRead"
-              />
-
               <div v-if="activityStreamLoading" class="p-8 text-center text-xs text-slate-400 font-medium">
                 {{ __('Loading activity stream...') }}
               </div>

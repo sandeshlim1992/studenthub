@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import StudenthubManagerSitesCard from '#desktop/pages/manage/components/TicketApproval/StudenthubManagerSitesCard.vue'
 
 interface ApprovalSettings {
   enabled: boolean
@@ -185,6 +186,8 @@ onMounted(load)
             </li>
           </ul>
         </section>
+
+        <StudenthubManagerSitesCard />
 
         <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
           <h2 class="mb-1 text-sm font-bold">{{ $t('Where tickets wait') }}</h2>

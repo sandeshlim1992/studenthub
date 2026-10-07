@@ -10,6 +10,7 @@ import emitter from '#shared/utils/emitter.ts'
 
 import CommonSectionCollapse from '#desktop/components/CommonSectionCollapse/CommonSectionCollapse.vue'
 import { sortedFirstLevelRoutes } from '#desktop/components/PageNavigation/firstLevelRoutes.ts'
+import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
 
 import CommonButton from '../CommonButton/CommonButton.vue'
 import { SidebarName } from '../layout/types.ts'
@@ -32,8 +33,16 @@ const openSearch = () => {
   nextTick(() => emitter.emit('focus-quick-search-field'))
 }
 
+// Student Hub: some pages (Members) aren't for managers without another staff role, whose
+// Managers role carries ticket.agent too.
+const { isManagerOnly } = useStudenthubApprovalViewer()
+
 const permittedRoutes = computed(() =>
-  sortedFirstLevelRoutes.filter((route) => hasPermission(route.meta.requiredPermission)),
+  sortedFirstLevelRoutes.filter(
+    (route) =>
+      hasPermission(route.meta.requiredPermission) &&
+      !(route.meta.studenthubHideFromManagersOnly && isManagerOnly.value),
+  ),
 )
 
 const isRouteActive = (route: any) => {

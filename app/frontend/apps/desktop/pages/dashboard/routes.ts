@@ -18,23 +18,22 @@ const route: RouteRecordRaw[] = [
   },
 ]
 
-// Temporary until we work on the dashboard
-if (import.meta.env.DEV || VITE_TEST_MODE) {
-  route.push({
-    path: '/dashboard',
-    name: 'Dashboard',
-    props: true,
-    component: () => import('./views/Dashboard.vue'),
-    meta: {
-      title: __('Dashboard'),
-      requiresAuth: true,
-      icon: 'speedometer2',
-      requiredPermission: ['ticket.agent', 'admin'],
-      order: 1,
-      level: 1,
-      permanentItem: true,
-    },
-  })
-}
+// Student Hub: the dashboard (agent stats, manager dashboard, Activity Stream) is in production builds too;
+// Zammad only registered it in development and test mode.
+route.push({
+  path: '/dashboard',
+  name: 'Dashboard',
+  props: true,
+  component: () => import('./views/Dashboard.vue'),
+  meta: {
+    title: __('Dashboard'),
+    requiresAuth: true,
+    icon: 'speedometer2',
+    requiredPermission: ['ticket.agent', 'admin'],
+    order: 1,
+    level: 1,
+    permanentItem: true,
+  },
+})
 
 export default route

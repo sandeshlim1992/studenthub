@@ -98,102 +98,33 @@ describe('OnlineNotification', () => {
     )
   })
 
-  it('makes a notification sound if a new unseen message comes in', async () => {
+  // Student Hub: notifications stay inside the platform and are silent.
+  it('stays silent and inside the platform when a new notification comes in', async () => {
     const requestPermissionSpy = vi.fn(() => Promise.resolve('granted'))
+    const NotificationSpy = vi.fn()
 
     Object.assign(window.Notification, {
-      permission: undefined,
+      permission: 'granted',
       requestPermission: requestPermissionSpy,
     })
+    vi.stubGlobal('Notification', Object.assign(NotificationSpy, window.Notification))
 
-    renderComponent(OnlineNotification)
-
-    await getOnlineNotificationsCountSubscriptionHandler().trigger({
-      onlineNotificationsCount: {
-        unseenCount: 1,
-      },
-    })
-
-    expect(requestPermissionSpy).toHaveBeenCalled()
-  })
-
-  it('does not play a notification sound if the sound is disabled', async () => {
-    Object.assign(Notification, {
-      permission: undefined,
-    })
-
-    mockUserCurrent({
-      preferences: {
-        notification_sound: {
-          enabled: false,
-          notification_sound: 'Xylo.mp3',
-        },
-      },
-    })
-
-    renderComponent(OnlineNotification, {
-      router: true,
-    })
+    const wrapper = renderComponent(OnlineNotification, { router: true })
 
     await getOnlineNotificationsCountSubscriptionHandler().trigger({
-      onlineNotificationsCount: {
-        unseenCount: 1,
-      },
+      onlineNotificationsCount: { unseenCount: 0 },
     })
-
-    expect(playSoundSpy).not.toHaveBeenCalled()
-  })
-
-  it('asks for notification permission if session starts for the first time', async () => {
-    Object.assign(Notification, {
-      permission: undefined,
+    await getOnlineNotificationsCountSubscriptionHandler().trigger({
+      onlineNotificationsCount: { unseenCount: 1 },
     })
-
-    const spy = vi.spyOn(Notification, 'requestPermission')
-
-    renderComponent(OnlineNotification, {
-      router: true,
-    })
-
     await waitForNextTick()
 
-    expect(spy).toHaveBeenCalled()
-  })
-
-  it('does not play a sound if the user has not granted permission', async () => {
-    Object.assign(Notification, {
-      permission: 'denied',
-    })
-
-    renderComponent(OnlineNotification, {
-      router: true,
-    })
-
-    await getOnlineNotificationsCountSubscriptionHandler().trigger({
-      onlineNotificationsCount: {
-        unseenCount: 1,
-      },
-    })
-
+    expect(wrapper.getByRole('status', { name: 'Unseen notifications count' })).toHaveTextContent('1')
     expect(playSoundSpy).not.toHaveBeenCalled()
-  })
+    expect(requestPermissionSpy).not.toHaveBeenCalled()
+    expect(NotificationSpy).not.toHaveBeenCalled()
 
-  it('does not play a sound if the user has a pending permission prompt', async () => {
-    Object.assign(Notification, {
-      permission: 'prompt',
-    })
-
-    renderComponent(OnlineNotification, {
-      router: true,
-    })
-
-    await getOnlineNotificationsCountSubscriptionHandler().trigger({
-      onlineNotificationsCount: {
-        unseenCount: 1,
-      },
-    })
-
-    expect(playSoundSpy).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
   })
 
   it('marks all notifications as read.', async () => {

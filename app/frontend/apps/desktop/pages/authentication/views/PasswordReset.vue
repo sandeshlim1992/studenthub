@@ -161,6 +161,8 @@ const goToLogin = () => {
           </a>
         </div>
       </div>
+      <!-- Student Hub: links admins add under Administration → Public Links -->
+      <CommonPublicLinks :screen="EnumPublicLinksScreen.PasswordReset" />
     </template>
   </LayoutPublicPage>
 </template>

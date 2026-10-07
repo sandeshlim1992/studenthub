@@ -1242,3 +1242,102 @@
     border-radius: 1rem !important;
   }
 }
+
+/* ---- New ticket for managers who are also customers: the student wizard and form in the
+   application colour instead of green. Outside a layer, so these win over the utilities; the
+   field rules match the form card's own (scoped, !important) rules with one class more. ---- */
+.sh-manager-create {
+  --color-emerald-50: color-mix(in sRGB, var(--sh-app) 6%, white);
+  --color-emerald-100: color-mix(in sRGB, var(--sh-app) 12%, white);
+  --color-emerald-200: color-mix(in sRGB, var(--sh-app) 25%, white);
+  --color-emerald-300: color-mix(in sRGB, var(--sh-app) 40%, white);
+  --color-emerald-400: color-mix(in sRGB, var(--sh-app) 60%, white);
+  --color-emerald-500: color-mix(in sRGB, var(--sh-app) 80%, white);
+  --color-emerald-600: var(--sh-app);
+  --color-emerald-700: var(--sh-app);
+  --color-emerald-800: var(--sh-app-hover);
+  --color-emerald-900: color-mix(in sRGB, var(--sh-app) 70%, black);
+  --color-emerald-950: color-mix(in sRGB, var(--sh-app) 55%, black);
+  --color-teal-400: color-mix(in sRGB, var(--sh-app) 60%, white);
+}
+
+.sh-manager-create [class~='bg-[#16a34a]'] {
+  background-color: var(--sh-app);
+}
+
+.sh-manager-create [class~='hover:bg-[#15803d]']:hover {
+  background-color: var(--sh-app-hover);
+}
+
+.sh-manager-create [class~='text-[#16a34a]'],
+.sh-manager-create [class~='hover:text-[#16a34a]']:hover,
+.sh-manager-create .group:hover [class~='group-hover:text-[#16a34a]'] {
+  color: var(--sh-app);
+}
+
+.sh-manager-create [class~='text-[#15803d]'] {
+  color: var(--sh-app-hover);
+}
+
+.sh-manager-create [class~='border-[#16a34a]'],
+.sh-manager-create [class~='focus:border-[#16a34a]']:focus {
+  border-color: var(--sh-app);
+}
+
+.sh-manager-create [class~='focus-visible:ring-[#16a34a]']:focus-visible {
+  --tw-ring-color: var(--sh-app);
+}
+
+.sh-manager-create [class~='to-[#15803d]'] {
+  --tw-gradient-to: var(--sh-app-hover);
+}
+
+/* The wizard's progress line */
+.sh-manager-create [class~='via-[#16a34a]'] {
+  background-image: none;
+  background-color: var(--sh-app);
+}
+
+.sh-manager-create .formkit-inner:hover,
+.sh-manager-create .field-editor:hover [class*='border-blue-200'],
+.sh-manager-create .field-editor:hover .editor-input-container {
+  border-color: var(--sh-app-border) !important;
+}
+
+.sh-manager-create .formkit-inner:focus-within,
+.sh-manager-create .field-editor:focus-within [class*='border-blue-200'],
+.sh-manager-create .field-editor:focus-within .editor-input-container {
+  border-color: var(--sh-app) !important;
+}
+
+.sh-manager-create .formkit-inner:focus-within,
+.sh-manager-create .field-editor:focus-within {
+  box-shadow: 0 0 0 3px color-mix(in sRGB, var(--sh-app) 15%, transparent) !important;
+}
+
+.sh-manager-create .required::after {
+  background-color: var(--sh-app) !important;
+  box-shadow: 0 0 0 2px color-mix(in sRGB, var(--sh-app) 20%, transparent) !important;
+}
+
+.sh-manager-create .action-button:hover,
+.sh-manager-create .action-toolbar button:hover {
+  background-color: var(--sh-app-soft) !important;
+  color: var(--sh-app) !important;
+}
+
+.sh-manager-create .file-list-container:hover {
+  background-color: var(--sh-app-soft) !important;
+  border-color: var(--sh-app-border) !important;
+}
+
+.sh-manager-create .file-list-container button:hover {
+  background-color: var(--sh-app) !important;
+  border-color: var(--sh-app) !important;
+  box-shadow: 0 4px 6px -1px color-mix(in sRGB, var(--sh-app) 25%, transparent) !important;
+}
+
+.sh-manager-create .formkit-inner:hover .fill-stone-200,
+.sh-manager-create .formkit-inner:focus-within .fill-stone-200 {
+  fill: var(--sh-app) !important;
+}

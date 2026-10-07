@@ -10,8 +10,9 @@
 #   (Teams.grant_admin_role!); managers don't get Teams, unless they're admins too. Other overviews that show one group's tickets
 #   (condition "group is X" and nothing about the current user) stay under My views for members
 #   of that group. Both kinds are hidden for everyone else, who could not see the tickets anyway.
-# - Institutions lists one view per active organisation (Studenthub::TicketViews::Institutions),
-#   for the Admin role only.
+# - Institutions (Sites in the UI) lists one view per active organisation for the Admin role
+#   (Studenthub::TicketViews::Institutions), and for managers the views of the sites assigned to them
+#   (Studenthub::TicketViews::ManagerSites).
 # - Everything else stays under My views.
 module Studenthub::TicketViews
   def self.sections_for(user)
@@ -28,7 +29,7 @@ module Studenthub::TicketViews
         next
       end
 
-      if Studenthub::TicketViews::Institutions.institution_view?(overview)
+      if Studenthub::TicketViews::Institutions.institution_view?(overview) || Studenthub::TicketViews::ManagerSites.site_view?(overview)
         result[:institution_overview_ids] << overview.id
         next
       end

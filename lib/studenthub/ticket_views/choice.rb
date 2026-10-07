@@ -168,6 +168,7 @@ module Studenthub::TicketViews::Choice
         super,
         Studenthub::TicketViews::Choice.cache_key_part(user, overview),
         Studenthub::TicketApproval::TicketAccess.cache_key_part(user),
+        Studenthub::ManagerSites.cache_key_part(user),
       ].compact.join('-')
     end
   end

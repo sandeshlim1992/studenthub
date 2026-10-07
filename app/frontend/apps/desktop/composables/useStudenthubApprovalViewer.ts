@@ -3,6 +3,8 @@
 // Student Hub Ticket Approvals: whether the signed-in user is a manager without another staff
 // role (GET /api/v1/ticket_approval/viewer). Such managers only approve: the ticket screen
 // leaves out the sidebar icons and shows the decision under the messages. Asked once per user.
+// Those who are also customers raise tickets for themselves on a student-style New ticket screen;
+// the others can't raise tickets.
 
 import { computed, ref } from 'vue'
 
@@ -16,12 +18,13 @@ interface Viewer {
 const viewer = ref<Viewer | null>(null)
 const loadedFor = ref<string | null>(null)
 let requestedFor: string | null = null
+let loading: Promise<void> = Promise.resolve()
 
 const load = (userId: string) => {
   requestedFor = userId
   loadedFor.value = null
   // fetch can throw at once (tests), so start it inside the promise chain.
-  Promise.resolve()
+  loading = Promise.resolve()
     .then(() =>
       fetch('/api/v1/ticket_approval/viewer', {
         credentials: 'same-origin',
@@ -53,5 +56,21 @@ export const useStudenthubApprovalViewer = () => {
     () => isApprover.value && loadedFor.value === session.userId && !!viewer.value?.manager_only,
   )
 
-  return { isApprover, isLoaded, isManagerOnly }
+  const isCustomerManager = computed(
+    () => isManagerOnly.value && session.hasPermission('ticket.customer'),
+  )
+
+  const cannotCreateTickets = computed(
+    () => isManagerOnly.value && !session.hasPermission('ticket.customer'),
+  )
+
+  return { isApprover, isLoaded, isManagerOnly, isCustomerManager, cannotCreateTickets }
+}
+
+// For route guards, which need the answer before the page opens.
+export const waitForStudenthubApprovalViewer = async () => {
+  const viewerState = useStudenthubApprovalViewer()
+  if (!viewerState.isLoaded.value) await loading
+
+  return viewerState
 }

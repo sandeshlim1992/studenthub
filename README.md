@@ -363,9 +363,12 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   (setting `studenthub_app_color`, default navy `#14234b`). Presets or any hex colour; the server refuses colours
   too light for white text (below 4.5:1). It colours the navigation panel, the sign-in brand panel and the main
   buttons, via the CSS variable `--sh-app`.
-- **Top bar (staff):** search with Zammad's quick results in a drop-down, the admin menu, **New ticket**,
+- **Top bar (staff):** search with Zammad's quick results in a drop-down, **New ticket**,
   notifications and the avatar menu. The navigation panel keeps the logo, Overviews / Dashboard /
-  Administration, recent tabs and the collapse button.
+  Administration and Reporting (the gear menu; not repeated in the top bar), recent tabs and the collapse button.
+- **Dashboard:** in production builds too (`pages/dashboard/routes.ts`; Zammad registers it only in development and
+  test mode). Agents and admins get the stats and the Activity Stream, managers without another staff role their own
+  dashboard.
 - **Loading screen:** the application colour with three dots in the college colours (LSST, UKBC, FSB) under
   "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
 - **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in on the right.
@@ -564,6 +567,17 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
   own **dashboard** instead of the agent one: requests waiting for them (amber after a day), their decisions in the
   last 30 days with the approval rate, tickets they approved over 3 days ago that are still open, and their last five
   decisions (`GET /api/v1/ticket_approval/dashboard`, `ticket.approver` permission).
+- **Manager sites:** admins assign sites (organisations) to managers in the **Manager sites** card of the Ticket
+  Approvals admin page. A manager can then read (not change) the tickets of their sites, gets a view of each site's
+  open tickets under **Sites** in their views panel (only for the managers of that site; the admins' Sites views are
+  unchanged), and a **My sites** section on their dashboard: open, new (7 days), waiting, escalated, closed (30 days),
+  open tickets by team and top categories, with a link to the site view.
+- **Raising tickets as a manager:** managers with no other staff role raise tickets only if they also have the
+  **Customer** role. Their **New ticket** page is a copy of the student portal's "How can we help?" card and category
+  cards in the application colour, without "Talk to Student Support": **Raise a New Ticket** opens the student form, a
+  category the step-by-step wizard. The ticket is theirs, like a student's, in one of the groups customers may choose
+  (setting `customer_ticket_create_group_ids`; all active groups when it is empty). Managers without the Customer role
+  see no **New ticket** button, and the page refuses them.
 - The agent who asked (and the ticket owner) are notified in the bell and by email. The ticket leaves both approval
   overviews and is back in its team with its owner; its state never changes.
 - Every request and decision is added to the ticket as an internal note. The ticket fields `approval_state`,
@@ -584,6 +598,9 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 | `app/assets/javascripts/app/controllers/ticket_zoom/sidebar_studenthub_approval.coffee` | Approval tab in the classic ticket sidebar |
 | `app/views/mailer/ticket_approval_*` | Notification emails |
 | `app/frontend/apps/desktop/pages/manage/views/TicketApproval.vue` | Admin page |
+| `db/migrate/20261007100000_studenthub_manager_sites.rb`, `app/models/studenthub_manager_site.rb`, `lib/studenthub/manager_sites.rb`, `lib/studenthub/ticket_views/manager_sites.rb` | Manager sites: assignments, read access (prepended to `TicketPolicy`), the managers' site views |
+| `app/controllers/studenthub_manager_sites_controller.rb`, `app/services/service/studenthub_manager_sites/stats.rb`, `…/manage/components/TicketApproval/StudenthubManagerSitesCard.vue`, `…/dashboard/components/StudenthubManagerSiteStats.vue` | API (`/api/v1/studenthub/manager_sites`, `…/stats`), admin card, My sites on the manager dashboard |
+| `lib/studenthub/ticket_approval/manager_create.rb`, `app/frontend/apps/desktop/pages/ticket/components/TicketCreate/StudenthubManagerCreateLanding.vue` (shown by `TicketCreateContent.vue`; `.sh-manager-create` in `studenthub-halo.css`) | New ticket for managers who are also customers: customer groups; card and categories; application colour on the student wizard and form |
 
 **Going live on production (once):**
 
@@ -596,6 +613,97 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
    Teams alert). To keep a Teams alert, point a trigger at "Approval is Waiting for approval" instead.
 3. Check the triggers that react to a team change (e.g. the Teams alerts 31, 32 and 35): a ticket changes team twice
    during an approval (into Managers and back).
+4. Give the **Customer** role to the managers who should raise tickets themselves.
+
+---
+
+## Sign-in and notifications
+
+- **No self-registration.** The sign-in page has no "New user? Register" link, and the migration
+  `db/migrate/20261007090000_studenthub_disable_self_signup.rb` switches Zammad's **New user accounts** setting off, so the
+  sign-up page and API refuse in both UIs. Accounts come from Microsoft 365 sign-in or the admins (who can switch the setting
+  back on under Security).
+- **Notifications stay inside the platform and are silent.** New notifications update the bell count and its list, in
+  the new and the classic UI, but there is no browser pop-up, no request for browser permission and no sound
+  (`OnlineNotification.vue`, `widget/online_notification.coffee`). Emails, triggers and Teams alerts are unchanged.
+- **The dashboard's Activity Stream** (new UI) lists recent system activity only; notifications are in the top bar's
+  bell, not in it (`Dashboard.vue`).
+
+---
+
+## Members
+
+Agents and admins see who of them is online and when each last signed in: a people button with the number online in
+the top bar (its drop-down lists them) and the **Members** page in the navigation panel (`/desktop/members`: online
+now, then everyone else by last login; search and team filter). Managers with no other staff role, and customers,
+don't see it and aren't listed.
+
+**Online** means signed in and active in the last 5 minutes: every request of a signed-in browser touches its session.
+The list refreshes every minute while the top bar is shown, which also keeps the viewer's own session active, so staff
+with the new UI open stay online; staff who only use the classic UI show as offline while idle. **Last login** is
+Zammad's own `last_login`. Email addresses aren't shown.
+
+| File(s) | Purpose |
+|---|---|
+| `app/services/service/studenthub_members/list.rb`, `app/controllers/studenthub_members_controller.rb`, `app/policies/controllers/studenthub_members_controller_policy.rb`, `config/routes/studenthub_members.rb` | API (`GET /api/v1/studenthub/members`, agents and admins only) |
+| `app/frontend/apps/desktop/composables/useStudenthubMembers.ts` | One list for the button and the page, refreshed every minute |
+| `app/frontend/apps/desktop/components/layout/StudenthubTopBar/StudenthubMembersButton.vue` | Top bar button and drop-down |
+| `app/frontend/apps/desktop/pages/members/` | Members page (hidden from managers-only in `PageNavigation.vue`) |
+
+---
+
+## Moved from the classic UI
+
+These classic features now also work in the new UI. Each page reads through a small Student Hub endpoint where
+Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and permissions still apply.
+
+- **Knowledge Base** (`/desktop/knowledge-base`, in the navigation panel for staff with Knowledge Base access):
+  categories on the left with a title filter, the start page (categories, answers changed last, full-text search),
+  categories, answers with their text, files and tags, and for editors: new and edited answers (rich text, in the
+  language chosen in the side panel), publishing (draft → internal → public → archived and back), files, and new,
+  renamed, moved and deleted categories (only empty ones). Who sees and edits what follows Zammad's Knowledge Base
+  permissions, including per-category ones. Images in answers are kept when an answer is edited (the page gives
+  them back their `cid`, and pasted images are sent embedded so Zammad stores them as attachments).
+- **Knowledge Base answers in search:** the top bar's search drop-down lists matching answers under "Found
+  knowledge base answers" (title and text; Zammad's own Knowledge Base search, which also works without
+  Elasticsearch), and "More in the Knowledge Base" opens all results on the Knowledge Base page.
+- **Scheduler** (`/desktop/manage/scheduler`): jobs with when they run (days, hours, minutes), conditions (state,
+  priority, team, owner incl. unassigned, organisation, select fields such as Category and Campus, tags, title,
+  and times such as "updated more than 2 days ago" or "escalation within the next hour") and actions (state,
+  priority, team, owner, select fields, tags, internal note, email, webhook, delete). The editor shows how many
+  tickets match now. Settings it doesn't know (e.g. expert-mode conditions, SMS) are kept as they are.
+- **Roles** (`/desktop/manage/roles`): permissions grouped as admin area, agent work, customers and profile
+  settings, and team access per team (read, create, change, overview, full). Warns before an admin removes their own
+  admin access. The Admin role's team access is still kept in step by the Teams views.
+- **LDAP** (`/desktop/manage/system/integrations/ldap`, also from **Configure** on the Integrations page): on/off,
+  servers, the last sync and **Sync now**, and the classic wizard for a server: connect, sign in with the service
+  account, map LDAP attributes to user fields (login required) and groups to roles, a trial run that changes nothing,
+  save. The service account password is never sent to the browser; it stays as it is unless a new one is typed.
+- **Customer feedback** in the ticket sidebar of closed tickets (star icon on the right): the rating and comment from
+  Feedback Collection.
+- **Public Links** (`/desktop/manage/public-links`): links shown under the sign-in form (and on the password reset
+  page if chosen), in the order set there. The new sign-in page shows them again.
+- **Ticket States**, **Ticket Priorities** and **Tags** (`/desktop/manage/ticket-states`, `…/ticket-priorities`,
+  `…/tags`): add, change and switch off states and priorities (only unused ones can be deleted; merged/removed states
+  are Zammad's own); add, rename (renaming to an existing tag merges them) and delete tags, and whether agents may
+  create new tags.
+
+Still only in the classic admin: BETA UI and KB Answer Generation; the live chat console and the phone (CTI) log
+(both unused); setup screens for Exchange, S/MIME, PGP and Clearbit.
+
+| File(s) | Purpose |
+|---|---|
+| `app/frontend/apps/desktop/utils/studenthubApi.ts` | REST calls from the new UI with the CSRF token and Zammad's error messages |
+| `app/services/service/studenthub_knowledge_base/`, `app/controllers/studenthub_knowledge_base_controller.rb`, `config/routes/studenthub_knowledge_base.rb` | Knowledge Base tree, answer and search (`GET /api/v1/studenthub/knowledge_base`, `…/answers/:id`, `…/search`) |
+| `app/frontend/apps/desktop/pages/knowledge-base/` | Knowledge Base page |
+| `app/frontend/apps/desktop/composables/useStudenthubKnowledgeBaseSearch.ts`, `components/Search/QuickSearch/StudenthubQuickSearchKnowledgeBase.vue` (in `QuickSearchResultList.vue`) | Answers in the quick search |
+| `app/services/service/studenthub_automation/options.rb`, `app/controllers/studenthub_automation_controller.rb` | Choices for conditions and actions (`GET /api/v1/studenthub/automation/options`) |
+| `pages/manage/components/Automation/`, `pages/manage/views/Scheduler.vue`, `SchedulerJob.vue` | Scheduler pages, condition / action / schedule editors |
+| `app/services/service/studenthub_roles/overview.rb`, `app/controllers/studenthub_roles_controller.rb`, `pages/manage/components/Roles/`, `views/Roles.vue`, `RoleEdit.vue` | Roles (`GET /api/v1/studenthub/roles`) |
+| `app/services/service/studenthub_ldap/options.rb`, `app/controllers/studenthub_ldap_controller.rb`, `pages/manage/components/Ldap/`, `views/Ldap.vue`, `LdapSource.vue` | LDAP (`GET/PUT /api/v1/studenthub/ldap`) |
+| `pages/ticket/components/TicketSidebar/plugins/studenthub-feedback.ts`, `…/TicketSidebarStudenthubFeedback/` | Customer feedback panel |
+| `pages/manage/views/PublicLinks.vue`; `CommonPublicLinks` in `Login.vue`, `PasswordReset.vue` | Public Links |
+| `app/services/service/studenthub_ticket_fields/`, `app/controllers/studenthub_ticket_fields_controller.rb`, `views/TicketStates.vue`, `TicketPriorities.vue`, `Tags.vue` | States and priorities with their tickets, the "new tags" setting |
 
 ---
 

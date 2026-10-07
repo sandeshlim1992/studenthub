@@ -137,7 +137,7 @@ useStudenthubTopBarCrumbsWhileShown(topBarCrumbs)
 <template>
   <div
     class="h-full"
-    :class="{ 'grid grid-cols-1 lg:grid-cols-[260px_1fr]': hasOverviews && !isCustomer }"
+    :class="{ 'grid grid-cols-1 grid-rows-1 lg:grid-cols-[260px_1fr]': hasOverviews && !isCustomer }"
   >
     <LayoutSidebar
       v-if="hasOverviews && !isCustomer"

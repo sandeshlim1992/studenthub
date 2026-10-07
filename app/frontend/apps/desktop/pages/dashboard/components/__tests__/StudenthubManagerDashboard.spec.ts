@@ -36,10 +36,16 @@ const dashboard = {
 describe('StudenthubManagerDashboard', () => {
   beforeEach(() => {
     mockUserCurrent({ firstname: 'Waliul' })
+    // A new response per request (a body can be read once): the dashboard, and the manager's sites (none).
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify(dashboard), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+      vi.fn((url: string) =>
+        Promise.resolve(
+          new Response(JSON.stringify(url.includes('/manager_sites/') ? { sites: [] } : dashboard), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+        ),
       ),
     )
   })

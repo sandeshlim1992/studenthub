@@ -6,6 +6,7 @@ import { ErrorRouteType, redirectErrorRoute } from '#shared/router/error.ts'
 import { ErrorStatusCodes } from '#shared/types/error.ts'
 
 import LayoutTaskbarTabContent from '#desktop/components/layout/LayoutTaskbarTabContent.vue'
+import { waitForStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
 
 import TicketCreateContent from '../components/TicketCreate/TicketCreateContent.vue'
 
@@ -14,7 +15,7 @@ interface Props {
 }
 
 defineOptions({
-  beforeRouteEnter(to) {
+  async beforeRouteEnter(to) {
     const { ticketCreateEnabled, checkUniqueTicketCreateRoute } = useTicketCreateView()
 
     if (!ticketCreateEnabled.value)
@@ -22,6 +23,16 @@ defineOptions({
         type: ErrorRouteType.AuthenticatedError,
         title: __('Forbidden'),
         message: __('Creating new tickets via web is disabled.'),
+        statusCode: ErrorStatusCodes.Forbidden,
+      })
+
+    // Student Hub: managers without another staff role raise tickets only if they are also customers.
+    const { cannotCreateTickets } = await waitForStudenthubApprovalViewer()
+    if (cannotCreateTickets.value)
+      return redirectErrorRoute({
+        type: ErrorRouteType.AuthenticatedError,
+        title: __('Forbidden'),
+        message: __('Managers can only raise tickets when they also have the Customer role.'),
         statusCode: ErrorStatusCodes.Forbidden,
       })
 

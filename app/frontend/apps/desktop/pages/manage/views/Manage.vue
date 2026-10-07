@@ -49,6 +49,12 @@ const categories = ref<Category[]>([
         description: __('Organize agents and assign ticket permissions.'),
       },
       {
+        name: __('Roles'),
+        icon: 'key',
+        target: '/manage/roles',
+        description: __('Decide what users with each role may do, and which teams agents work in.'),
+      },
+      {
         name: __('Organizations'),
         icon: 'buildings',
         target: '/manage/organizations',
@@ -113,6 +119,36 @@ const categories = ref<Category[]>([
         icon: 'check2-circle',
         target: '/manage/ticket-approvals',
         description: __('Let agents send tickets to a manager to approve or deny.'),
+      },
+      {
+        name: __('Ticket States'),
+        icon: 'check2-square',
+        target: '/manage/ticket-states',
+        description: __('Set the states a ticket can be in.'),
+      },
+      {
+        name: __('Ticket Priorities'),
+        icon: 'priority-high-micro-2',
+        target: '/manage/ticket-priorities',
+        description: __('Set the priorities a ticket can have.'),
+      },
+      {
+        name: __('Tags'),
+        icon: 'tag',
+        target: '/manage/tags',
+        description: __('Add, rename, merge and delete ticket tags.'),
+      },
+      {
+        name: __('Scheduler'),
+        icon: 'clock-history',
+        target: '/manage/scheduler',
+        description: __('Run jobs at set times that change matching tickets.'),
+      },
+      {
+        name: __('Public Links'),
+        icon: 'link-45deg',
+        target: '/manage/public-links',
+        description: __('Add links under the sign-in form, e.g. IT help pages or a privacy notice.'),
       },
       {
         name: __('Calendars'),

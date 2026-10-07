@@ -2,8 +2,9 @@
 
 # Student Hub ticket views, added to Zammad's classes without editing them: each agent's own
 # grouping and order of a view (Studenthub::TicketViews::Choice), the Teams views that follow
-# the groups (Studenthub::TicketViews::Teams) and the Institutions views that follow the
-# organisations (Studenthub::TicketViews::Institutions).
+# the groups (Studenthub::TicketViews::Teams), the Institutions views that follow the
+# organisations (Studenthub::TicketViews::Institutions) and the managers' site views
+# (Studenthub::TicketViews::ManagerSites).
 Rails.application.config.to_prepare do
   choice = Studenthub::TicketViews::Choice
 
@@ -20,4 +21,7 @@ Rails.application.config.to_prepare do
   institutions = Studenthub::TicketViews::Institutions
   Organization.include(institutions::Sync) if Organization.ancestors.exclude?(institutions::Sync)
   Overview.include(institutions::OverviewSync) if Overview.ancestors.exclude?(institutions::OverviewSync)
+
+  manager_sites = Studenthub::TicketViews::ManagerSites
+  Overview.include(manager_sites::OverviewSync) if Overview.ancestors.exclude?(manager_sites::OverviewSync)
 end

@@ -122,6 +122,9 @@ Never put passwords, tokens or keys in this file.
 - Tickets created directly in the old Managers group have no team to go back to (dev: #885944) → invisible
   until moved by hand
 - The triggers "Auto Select Priority (New) - P1…P4" replace the priority chosen on the New ticket screen
+- Patched a Zammad bug in `TicketList.vue` (onActivated): coming back to the kept-alive Tickets page with another
+  view refetched the old one at the same time, so the tickets query went out without an overview (error on
+  "View team" from the Dashboard). Keep the patch when merging Zammad updates unless they fixed it
 - Zammad's own create / ticket-screen specs fail by design (renamed labels, moved buttons); 4 overview specs
   fail on the committed code too; Taxil's `AgentTicketCreateCard.vue` is unused
 - `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
@@ -242,3 +245,4 @@ Never put passwords, tokens or keys in this file.
   width when there are only one or two
 - 2026-10-08: Staff land on the Dashboard after signing in (and on `/`); students keep their ticket list
 - 2026-10-08: "Sent for approval" no longer goes to the Admin role (agents keep it)
+- 2026-10-08: Fixed "View team" on the Dashboard (Zammad bug when returning to Tickets with another view)

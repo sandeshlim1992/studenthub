@@ -189,8 +189,18 @@ const isLoadingTickets = ticketsQuery.loadingWithoutCachedResult()
 
 const tickets = computed(() => edgesToArray(ticketsResult.value?.ticketsCachedByOverview))
 
+// Student Hub: the view shown when the page was left (kept alive, e.g. while on the Dashboard).
+let deactivatedOverviewId: string | undefined
+
 onActivated(() => {
   if (foreground.value) return
+
+  // Student Hub: back on Tickets with another view (e.g. "View team" on the Dashboard): the view
+  // change loads it fresh. Refetching the old view at the same time broke the query (no overviewId).
+  if (props.overviewId !== deactivatedOverviewId) {
+    foreground.value = true
+    return
+  }
 
   ticketsQuery.refetch({
     renewCache: true,
@@ -200,6 +210,7 @@ onActivated(() => {
 
 onDeactivated(() => {
   foreground.value = false
+  deactivatedOverviewId = props.overviewId
 })
 
 const resort = (column: string, direction: EnumOrderDirection) => {

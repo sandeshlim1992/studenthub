@@ -5,8 +5,8 @@ import { computed } from 'vue'
 
 import { useSessionStore } from '#shared/stores/session.ts'
 
+import { useStudenthubTicketViews } from '#desktop/entities/ticket/composables/useStudenthubTicketViews.ts'
 import TicketOverviewsList from '#desktop/pages/ticket-overviews/components/TicketOverviewsSidebar/TicketOverviewsList.vue'
-import { useStudenthubTicketViews } from '#desktop/pages/ticket-overviews/composables/useStudenthubTicketViews.ts'
 
 const { hasPermission } = useSessionStore()
 
@@ -22,7 +22,9 @@ const { overviewsBySection } = useStudenthubTicketViews()
   <section class="flex flex-col gap-2.5">
     <!-- Group labels are not headings: the sidebar and each list already have accessible names. -->
     <template v-if="overviewsBySection.approvals.length">
-      <p class="flex min-h-10 items-center ps-2.5 text-sm font-extrabold tracking-wide text-slate-800 uppercase">
+      <p
+        class="flex min-h-10 items-center ps-2.5 text-sm font-extrabold tracking-wide text-slate-800 uppercase"
+      >
         {{ $t('Approval needed') }}
       </p>
       <TicketOverviewsList section="approvals" :label="__('Approval views')" />
@@ -32,7 +34,9 @@ const { overviewsBySection } = useStudenthubTicketViews()
       class="flex min-h-10 items-center justify-between gap-2 ps-2.5"
       :class="{ 'mt-3': overviewsBySection.approvals.length }"
     >
-      <p class="text-sm font-extrabold tracking-wide text-slate-800 uppercase">{{ $t('My views') }}</p>
+      <p class="text-sm font-extrabold tracking-wide text-slate-800 uppercase">
+        {{ $t('My views') }}
+      </p>
       <CommonLink
         v-if="hasOverviewSortingPreference"
         class="my-2.5"
@@ -40,7 +44,7 @@ const { overviewsBySection } = useStudenthubTicketViews()
         link="/personal-setting/ticket-overviews"
       >
         <CommonLabel
-          class="text-app! hover:text-app-hover! font-semibold"
+          class="font-semibold text-app! hover:text-app-hover!"
           prefix-icon="list-columns-reverse"
           size="small"
         >
@@ -52,7 +56,9 @@ const { overviewsBySection } = useStudenthubTicketViews()
     <TicketOverviewsList />
 
     <template v-if="overviewsBySection.teams.length">
-      <p class="mt-3 ps-2.5 text-sm font-extrabold tracking-wide text-slate-800 uppercase">{{ $t('Teams') }}</p>
+      <p class="mt-3 ps-2.5 text-sm font-extrabold tracking-wide text-slate-800 uppercase">
+        {{ $t('Teams') }}
+      </p>
       <TicketOverviewsList section="teams" :label="__('Team views')" />
     </template>
 

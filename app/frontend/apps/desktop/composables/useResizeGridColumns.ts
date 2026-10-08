@@ -23,6 +23,9 @@ export const SIDEBAR_COLLAPSED_WIDTH = 56
 export const useResizeGridColumns = (
   sidebarName: SidebarName,
   position: SidebarPosition = SidebarPosition.Start,
+  // Student Hub: a width of its own (the agents' ticket panels on the right), instead of the one
+  // shared by every sidebar of that name.
+  storageName?: string,
 ) => {
   const defaultSidebarWidth =
     position === SidebarPosition.Start ? DEFAULT_START_SIDEBAR_WIDTH : DEFAULT_END_SIDEBAR_WIDTH
@@ -39,7 +42,7 @@ export const useResizeGridColumns = (
 
   const { isSmallScreen } = useAppBreakpoints()
 
-  const storage = `${sidebarName}-sidebar-width`
+  const storage = `${storageName ?? sidebarName}-sidebar-width`
 
   const persistedSidebarWidth = sidebarName
     ? useLocalStorage(storage, defaultSidebarWidth)

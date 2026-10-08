@@ -422,6 +422,238 @@
   color: var(--sh-ink);
 }
 
+/* Agents' ticket screen: the queue beside the ticket (StudenthubTicketQueue.vue) */
+.sh-queue {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 18.5rem;
+  min-height: 0;
+  border-inline-end: 1px solid var(--sh-line);
+  background-color: var(--sh-card);
+}
+
+.sh-queue--collapsed {
+  align-items: center;
+  gap: 0.5rem;
+  width: 2.75rem;
+  padding-block: 0.75rem;
+  background-color: var(--sh-panel);
+}
+
+.sh-queue__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem 0.5rem 0.875rem;
+}
+
+.sh-queue__view {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  margin-inline-start: -0.375rem;
+  padding: 0.25rem 0.375rem;
+  border-radius: 0.375rem;
+  color: var(--sh-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.sh-queue__view:hover,
+.sh-queue__view:focus-visible,
+.sh-queue__icon-button:hover,
+.sh-queue__icon-button:focus-visible {
+  background-color: color-mix(in sRGB, var(--sh-app) 10%, transparent);
+  color: var(--sh-ink);
+}
+
+.sh-queue__count {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  color: var(--sh-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.sh-queue__icon-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.375rem;
+  color: var(--sh-muted);
+}
+
+.sh-queue__badge {
+  min-width: 1.5rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 999px;
+  background-color: var(--sh-app);
+  color: var(--sh-on-app);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-queue__filter {
+  display: flex;
+  gap: 0.125rem;
+  margin: 0 0.875rem 0.625rem;
+  padding: 0.1875rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.4375rem;
+}
+
+.sh-queue__filter button {
+  flex: 1;
+  padding-block: 0.25rem;
+  border-radius: 0.3125rem;
+  color: var(--sh-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sh-queue__filter button[aria-pressed='true'] {
+  background-color: var(--sh-app);
+  color: var(--sh-on-app);
+}
+
+.sh-queue__filter button:focus-visible,
+.sh-queue__more:focus-visible,
+.sh-queue__row:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: -2px;
+}
+
+.sh-queue__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-top: 1px solid var(--sh-line);
+}
+
+.sh-queue__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-queue__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.125rem 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--sh-line);
+  color: var(--sh-ink);
+  text-decoration: none;
+}
+
+.sh-queue__row:hover {
+  background-color: var(--sh-row-hover);
+}
+
+.sh-queue__row--current,
+.sh-queue__row--current:hover {
+  background-color: var(--sh-row-checked);
+  box-shadow: inset 3px 0 0 var(--sh-app);
+}
+
+.sh-queue__number {
+  color: var(--sh-muted);
+  font-family: var(--sh-mono) !important; /* beats the global Inter rule in custom-theme.css */
+  font-size: 0.75rem;
+}
+
+/* Time left (StudenthubTicketEscalation) or, without a deadline, the state */
+.sh-queue__due {
+  justify-self: end;
+  min-width: 0;
+  max-width: 9.5rem;
+}
+
+.sh-queue__due > span,
+.sh-queue__state {
+  display: block;
+  overflow: hidden;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-queue__state {
+  color: var(--sh-muted);
+}
+
+.sh-queue__title {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-queue__who {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  color: var(--sh-muted);
+  font-size: 0.75rem;
+}
+
+.sh-queue__note {
+  padding: 1rem 0.875rem;
+  color: var(--sh-muted);
+  font-size: 0.8125rem;
+}
+
+.sh-queue__more {
+  display: block;
+  width: calc(100% - 1.75rem);
+  margin: 0.625rem 0.875rem;
+  padding: 0.375rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.375rem;
+  background-color: var(--sh-card);
+  color: var(--sh-app);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sh-queue__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.875rem;
+  border-top: 1px solid var(--sh-line);
+  color: var(--sh-muted);
+  font-size: 0.75rem;
+}
+
+.sh-queue__foot kbd {
+  min-width: 1.125rem;
+  padding-inline: 0.3125rem;
+  border: 1px solid #c9cdd4;
+  border-bottom-width: 2px;
+  border-radius: 0.25rem;
+  background-color: var(--sh-card);
+  color: var(--sh-ink-2);
+  font: 600 0.6875rem/1.4 var(--sh-mono);
+  font-family: var(--sh-mono) !important;
+  text-align: center;
+}
+
+.sh-queue__foot span {
+  margin-inline-start: 0.25rem;
+}
+
 /* Section headings of the ticket sidebar in small capitals, like DETAILS / SLA / RELATED */
 @layer utilities {
   #content-sidebar header h3 {

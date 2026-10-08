@@ -55,6 +55,8 @@ export interface Props {
   tabs?: NavigationTab[]
   /** Student Hub: side of the content sidebar (the ticket screen puts it on the left). */
   sidebarPosition?: SidebarPosition
+  /** Student Hub: keep the sidebar's width under this name instead of the shared one. */
+  sidebarWidthName?: string
   activeTab?: NavigationTab['key']
 }
 
@@ -68,7 +70,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 // Student Hub: Administration and Reporting show the breadcrumb trail in the top bar.
-const { isInTopBar: isBreadcrumbInTopBar } = useStudenthubLayoutCrumbs(toRef(props, 'breadcrumbItems'))
+const { isInTopBar: isBreadcrumbInTopBar } = useStudenthubLayoutCrumbs(
+  toRef(props, 'breadcrumbItems'),
+)
 
 const maxWidth = computed(() => (props.width === 'narrow' ? '600px' : undefined))
 
@@ -85,7 +89,11 @@ const {
   gridColumns,
   resizeSidebar,
   resetSidebarWidth,
-} = useResizeGridColumns(SidebarName.TicketContent, props.sidebarPosition ?? SidebarPosition.End)
+} = useResizeGridColumns(
+  SidebarName.TicketContent,
+  props.sidebarPosition ?? SidebarPosition.End,
+  props.sidebarWidthName,
+)
 
 const { transitions } = useTransitionConfig()
 

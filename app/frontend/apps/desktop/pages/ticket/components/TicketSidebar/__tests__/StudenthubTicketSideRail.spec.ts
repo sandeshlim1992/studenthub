@@ -62,11 +62,13 @@ vi.mock('#desktop/composables/useStudenthubApprovalViewer.ts', () => ({
   }),
 }))
 
-const renderRail = (view: 'agent' | 'customer' = 'agent') =>
+const renderRail = (view: 'agent' | 'customer' = 'agent', mode: 'split' | 'column' = 'split') =>
   renderComponent(StudenthubTicketSideRail, {
     props: {
       context: { screenType: TicketSidebarScreenType.TicketDetailView, formValues: {}, view },
+      mode,
     },
+    store: true,
   })
 
 describe('StudenthubTicketSideRail', () => {
@@ -117,6 +119,24 @@ describe('StudenthubTicketSideRail', () => {
     expect(view.container.querySelector('nav[aria-label="Ticket panels"]')).not.toBeVisible()
     expect(view.queryByText('Customer')).not.toBeInTheDocument()
     expect(view.getByText('Ticket open')).toBeInTheDocument()
+  })
+
+  // Agents, with the queue beside the ticket: every panel in the sidebar column, one at a time.
+  it('opens every panel in the column, with an icon for Ticket too', async () => {
+    const view = renderRail('agent', 'column')
+
+    expect(await view.findByRole('button', { name: 'Ticket' })).toBeVisible()
+    expect(view.queryByTestId('studenthub-side-panel')).not.toBeInTheDocument()
+
+    await view.events.click(view.getByRole('button', { name: 'Customer' }))
+    expect(activeSidebar.value).toBe('customer')
+    expect(view.getByText('Customer open')).toBeInTheDocument()
+    // The Ticket panel stays mounted (it holds the ticket form), hidden by its wrapper.
+    expect(view.getByText('Ticket open')).toBeInTheDocument()
+
+    await view.events.click(view.getByRole('button', { name: 'Customer' }))
+    expect(activeSidebar.value).toBe('information')
+    expect(view.queryByText('Customer open')).not.toBeInTheDocument()
   })
 
   it('leaves the icons out for customers', () => {

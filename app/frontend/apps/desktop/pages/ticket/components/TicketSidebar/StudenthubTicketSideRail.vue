@@ -3,31 +3,47 @@
 <script setup lang="ts">
 import { computed, provide, ref, watch } from 'vue'
 
+import { SidebarName } from '#desktop/components/layout/types.ts'
+import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
 
 import { useTicketSidebar } from '../../composables/useTicketSidebar.ts'
 
-import { STUDENTHUB_SIDE_PANEL_KEY } from './studenthubSidePanel.ts'
+import { STUDENTHUB_SIDE_PANEL_KEY, type StudenthubSidePanelMode } from './studenthubSidePanel.ts'
 
 import type { TicketSidebarContext } from '../../types/sidebar.ts'
 
-// Student Hub: the ticket sidebar's icons on the right edge of the ticket screen. The Ticket
-// panel (Details, SLA…) always stays in the left column; every other panel (Customer,
-// Checklist, Approval…) opens here on the right. Zammad's "active sidebar" decides which one:
-// back on "information" means the right panel is closed. Customers and managers without
-// another staff role get no icons at all (managers decide under the messages instead).
+// Student Hub: the ticket sidebar's icons on the right edge of the ticket screen.
+// - "split" (students, New ticket): the Ticket panel (Details, SLA…) always stays in the sidebar
+//   column on the left; every other panel (Customer, Checklist, Approval…) opens here on the right.
+// - "column" (agents, with the queue beside the ticket; the rail sits in the sidebar column on the
+//   right): every panel opens in that column, one at a time, and the Ticket panel has an icon too.
+// Zammad's "active sidebar" decides which one: back on "information" means the Ticket panel.
+// Customers and managers without another staff role get no icons at all (managers decide under
+// the messages instead).
 interface Props {
   context: TicketSidebarContext
+  mode?: StudenthubSidePanelMode
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  mode: 'split',
+})
 
 const INFORMATION = 'information'
 
-const { activeSidebar, availableSidebarPlugins, shownSidebars, showSidebar, hideSidebar, switchSidebar } =
-  useTicketSidebar()
+const isColumn = computed(() => props.mode === 'column')
 
-provide(STUDENTHUB_SIDE_PANEL_KEY, { leftPanel: INFORMATION })
+const {
+  activeSidebar,
+  availableSidebarPlugins,
+  shownSidebars,
+  showSidebar,
+  hideSidebar,
+  switchSidebar,
+} = useTicketSidebar()
+
+const { isSidebarCollapsed } = useSidebarDisplay(SidebarName.TicketContent)
 
 const { isLoaded: isViewerLoaded, isManagerOnly } = useStudenthubApprovalViewer()
 
@@ -40,7 +56,9 @@ const isRailHidden = computed(
 const railPlugins = computed(() =>
   isRailHidden.value
     ? Object.fromEntries(
-        Object.entries(availableSidebarPlugins.value).filter(([sidebar]) => sidebar === INFORMATION),
+        Object.entries(availableSidebarPlugins.value).filter(
+          ([sidebar]) => sidebar === INFORMATION,
+        ),
       )
     : availableSidebarPlugins.value,
 )
@@ -65,8 +83,16 @@ const openPanelTitle = computed(() =>
 )
 
 const hasIcons = computed(() =>
-  Object.keys(railPlugins.value).some((sidebar) => sidebar !== INFORMATION && shownSidebars.value[sidebar]),
+  Object.keys(railPlugins.value).some(
+    (sidebar) => sidebar !== INFORMATION && shownSidebars.value[sidebar],
+  ),
 )
+
+provide(STUDENTHUB_SIDE_PANEL_KEY, {
+  leftPanel: INFORMATION,
+  mode: props.mode,
+  visiblePanel: computed(() => openPanel.value ?? INFORMATION),
+})
 
 const close = () => {
   isDismissed.value = true
@@ -74,7 +100,8 @@ const close = () => {
 }
 
 const toggle = (sidebar: string) => {
-  if (openPanel.value === sidebar) {
+  // A collapsed column opens on the panel that was clicked (switchSidebar expands it).
+  if (openPanel.value === sidebar && !(isColumn.value && isSidebarCollapsed.value)) {
     close()
     return
   }
@@ -89,6 +116,7 @@ const toggle = (sidebar: string) => {
     :class="{ 'sh-side-rail-wrap--hidden': isRailHidden || !hasIcons }"
   >
     <section
+      v-if="!isColumn"
       v-show="openPanel"
       class="sh-side-panel"
       :aria-label="$t(openPanelTitle)"
@@ -106,12 +134,12 @@ const toggle = (sidebar: string) => {
     </section>
 
     <nav v-show="!isRailHidden && hasIcons" class="sh-side-rail" :aria-label="$t('Ticket panels')">
-      <!-- The Ticket panel needs its plugin mounted (it moves itself to the left column), but
-           not its button: it is always open. -->
+      <!-- The Ticket panel needs its plugin mounted (it moves itself to the sidebar column), but
+           in "split" not its button: it is always open there. -->
       <component
         :is="sidebarPlugin.component"
         v-for="(sidebarPlugin, sidebar) of railPlugins"
-        v-show="shownSidebars[sidebar] && sidebar !== INFORMATION"
+        v-show="shownSidebars[sidebar] && (isColumn || sidebar !== INFORMATION)"
         :key="sidebar"
         :selected="sidebar === INFORMATION || openPanel === sidebar"
         :sidebar="sidebar"

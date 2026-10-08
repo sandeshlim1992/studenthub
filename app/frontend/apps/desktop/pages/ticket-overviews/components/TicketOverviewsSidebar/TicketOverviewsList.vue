@@ -8,7 +8,7 @@ import type { NavigationMenuEntry } from '#desktop/components/NavigationMenu/typ
 import {
   type StudenthubTicketViewSection,
   useStudenthubTicketViews,
-} from '#desktop/pages/ticket-overviews/composables/useStudenthubTicketViews.ts'
+} from '#desktop/entities/ticket/composables/useStudenthubTicketViews.ts'
 import { useTicketOverviews } from '#desktop/pages/ticket-overviews/composables/useTicketOverviews.ts'
 
 // Student Hub: the list can show one group of the views panel (see TicketOverviewsSidebar).

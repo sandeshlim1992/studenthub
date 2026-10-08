@@ -8,8 +8,8 @@ import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { EnumOrderDirection } from '#shared/graphql/types.ts'
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
 
+import { sectionOfOverview } from '#desktop/entities/ticket/composables/useStudenthubTicketViews.ts'
 import TicketOverviewsSidebar from '#desktop/pages/ticket-overviews/components/TicketOverviewsSidebar.vue'
-import { sectionOfOverview } from '#desktop/pages/ticket-overviews/composables/useStudenthubTicketViews.ts'
 
 import { mockDefaultOverviewQueries } from '../../__tests__/mocks/ticket-overviews-mocks.ts'
 
@@ -48,7 +48,10 @@ describe('views panel groups', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(
-        new Response(JSON.stringify(sections), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+        new Response(JSON.stringify(sections), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
       ),
     )
     mockPermissions(['ticket.agent'])
@@ -69,7 +72,9 @@ describe('views panel groups', () => {
     expect(within(sites).getByRole('link', { name: /LSST/ })).toBeInTheDocument()
 
     const approvals = view.getByRole('navigation', { name: 'Approval views' })
-    expect(within(approvals).getByRole('link', { name: /Awaiting my approval/ })).toBeInTheDocument()
+    expect(
+      within(approvals).getByRole('link', { name: /Awaiting my approval/ }),
+    ).toBeInTheDocument()
     expect(view.getByText('Approval needed')).toBeInTheDocument()
 
     const mine = view.getByRole('navigation', { name: 'Overview navigation list' })

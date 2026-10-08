@@ -1,14 +1,16 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 
 import { getIdFromGraphQLId } from '#shared/graphql/utils.ts'
 
-import { useTicketOverviews } from './useTicketOverviews.ts'
+import { useTicketOverviewsStore } from '#desktop/entities/ticket/stores/ticketOverviews.ts'
 
 // Student Hub: sorts the overviews of the views panel into "Approval needed", "My views", "Teams"
-// and "Institutions" (GET /api/v1/studenthub/ticket_views, see Studenthub::TicketViews).
-// If the request fails, everything simply stays under "My views".
+// and "Institutions" (GET /api/v1/studenthub/ticket_views, see Studenthub::TicketViews), also used
+// by the view menu of the queue beside the ticket. If the request fails, everything simply stays
+// under "My views".
 
 export type StudenthubTicketViewSection = 'approvals' | 'mine' | 'teams' | 'institutions'
 
@@ -55,7 +57,7 @@ export const sectionOfOverview = (
 }
 
 export const useStudenthubTicketViews = () => {
-  const { overviews } = useTicketOverviews()
+  const { overviews } = storeToRefs(useTicketOverviewsStore())
 
   load()
 

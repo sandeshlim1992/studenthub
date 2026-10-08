@@ -442,15 +442,18 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   `studenthub_escalation_warning_minutes`. The first values are guessed from the state names, because Zammad files
   "Assigned", "In Progress", "Awaiting user Response" and "Resolved" all under the type "open"; states added later
   get their type's colour until an admin picks one.
-- **Ticket screen (staff):** two columns. On the left, the ticket sidebar with **Details** as a read-only list (user
+- **Ticket screen (staff):** three columns: the **queue** of a view (see below), the conversation in the middle and, on
+  the right, the ticket sidebar with **Details** as a read-only list (user
   with campus badge, email, team, agent, category › sub-category, every other field on the ticket form, including the
   ones admins add, then source and opened; state and priority are next to the title instead). Mandatory fields that
   are empty say **Required**, and changes not saved yet get an amber dot. **Edit** shows Zammad's form, **Done** goes
   back to the list; the form also opens by itself when Update is refused because of a missing field. Below it, the
   **SLA** card: first response (Met / Missed, or the time left), next update, resolution due with a bar of the time
-  used, and the time left (the bar uses clock time; Zammad counts SLA time in business hours). In the middle, the
-  conversation. The sidebar icons are on the right edge (no Ticket icon: that panel is always open on the left);
-  Customer, Organization, Checklist, Approval and the other panels open on the right and close with × or their icon.
+  used, and the time left (the bar uses clock time; Zammad counts SLA time in business hours). The panel icons are on
+  the right edge, Ticket (Details and SLA) among them; Customer, Organization, Checklist, Approval and the other panels
+  open in the same column, one at a time (Ticket stays loaded underneath, as it holds the ticket form). The column
+  keeps its own width and collapses to the icons. Students and managers without another staff role have no queue and
+  keep the sidebar on the left.
   The header shows the ticket number, campus badge, title with the state label and priority bars next to it, and the
   actions **Reply** (replies to the latest customer message), **Add note**, **Assign**, **Change status**, **Merge**
   and **Close**. Assign and Change status fill the form's fields; like any other change they are saved with
@@ -465,6 +468,17 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   application colour; tags are chips in a light tint; **Close** is green; customer
   messages are on a light tint of the application colour with their channel (Phone, Email…) as a solid label, staff
   replies white, internal notes amber; message text keeps a readable line length (75 characters).
+- **Queue beside the ticket (staff):** the tickets of the view last open on the Tickets page (otherwise the view used
+  last), in its order with the agent's own Group by and sorting; the menu at the top switches the view, and the Tickets
+  page follows. Each row has the number, the time left until the SLA deadline (red when overdue, amber when due soon,
+  the state when there is no deadline), the title, the student and the campus badge; the open ticket is marked.
+  **Mine / Unassigned / All** filter the tickets loaded so far (30 at a time, then **Show more**). **J** / **K** open the
+  next / previous ticket (not while typing). After a ticket is closed (**Close**, Update with a closed state, or a
+  macro's "Next in overview") the next ticket of the queue opens; the closed ticket's tab stays under Recent unless the
+  agent's tab setting closes it. Every ticket opened from the queue still gets its own Recent tab. The queue shares the
+  Tickets page's cache and refreshes like it, only while the ticket is on screen. **Hide the queue** collapses it to a
+  strip (kept in the browser; collapsed at first on screens narrower than 1440 px). It is option B of the design board
+  (<https://claude.ai/artifact/SKNJWEgQtaeSMKD3GwPTZJ>).
 - **Ticket screen (students):** instead of the staff Details, the left column has four sections.
   - **Your request:** reference number (with a copy button), status, Category › Sub-category, Campus, Team, when it
     was opened and the last reply from staff.
@@ -515,15 +529,16 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |
 | `app/frontend/apps/desktop/components/Ticket/StudenthubTicketCells/` (used by `TicketListTable.vue`), `utils/studenthubTicketList.ts` | State, priority, SLA and campus cells; palette and rules |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubTicketListSetting.vue` | Ticket list colours on the Branding page |
-| `lib/studenthub/ticket_views.rb`, `app/controllers/studenthub_ticket_views_controller.rb` (`GET /api/v1/studenthub/ticket_views`), `pages/ticket-overviews/composables/useStudenthubTicketViews.ts` | Sorting the views panel into Approval needed / My views / Teams / Institutions |
+| `lib/studenthub/ticket_views.rb`, `app/controllers/studenthub_ticket_views_controller.rb` (`GET /api/v1/studenthub/ticket_views`), `entities/ticket/composables/useStudenthubTicketViews.ts` | Sorting the views panel (and the queue's view menu) into Approval needed / My views / Teams / Institutions |
 | `lib/studenthub/ticket_views/teams.rb`, `app/jobs/studenthub_team_views_sync_job.rb`, `db/migrate/20261006100000_studenthub_team_views.rb` | The Teams views, kept in step with the groups |
 | `lib/studenthub/ticket_views/choice.rb`, `config/initializers/studenthub_ticket_views.rb`, `GET/PUT/DELETE /api/v1/studenthub/ticket_views/:overview_id/choice`, `pages/ticket-overviews/components/StudenthubViewGroupBy.vue`, `composables/studenthubViewChoice.ts` | Each agent's grouping and order of a view |
 | `lib/studenthub/ticket_views/institutions.rb`, `db/migrate/20261006120000_studenthub_institution_views_by_organization.rb` | The Sites views (internally "Institutions"), kept in step with the organisations |
 | `lib/studenthub/theme/ticket_list_setup.rb`, `app/models/setting/validation/studenthub_{ticket_state_colors,escalation_warning_minutes}.rb`, `db/migrate/20261004180000_studenthub_ticket_list_colors.rb` | Settings, first guess per state, server-side checks |
 | `pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderActions.vue`, `StudenthubHeaderMenuButton.vue`; edits in `TopBarHeaderFull.vue`, `TicketInformationBadgeList.vue` | Ticket header: number, state and priority next to the title, actions |
 | `pages/ticket/components/TicketSidebar/TicketSidebarInformation/TicketSidebarInformationContent/StudenthubTicketDetailsList.vue`, `StudenthubTicketSlaBox.vue`, `pages/ticket/composables/useStudenthubTicketDetailsMode.ts`, `utils/studenthubTicketDetails.ts`; edit in `TicketSidebarInformationContent.vue` | Details list with Edit / Done, SLA card |
-| `components/layout/LayoutContent.vue` (`sidebarPosition` prop), `TicketDetailViewContent.vue` | Ticket sidebar on the left |
-| `pages/ticket/components/TicketSidebar/StudenthubTicketSideRail.vue`, `studenthubSidePanel.ts`; edits in `TicketSidebar.vue`, `TicketSidebarWrapper.vue`, `TicketDetailViewContent.vue` | Sidebar icons and other panels on the right |
+| `components/layout/LayoutContent.vue` (`sidebarPosition`, `sidebarWidthName` props), `composables/useResizeGridColumns.ts`, `TicketDetailViewContent.vue` | Ticket sidebar: on the right for staff (its own width), on the left for students and managers-only |
+| `pages/ticket/components/TicketSidebar/StudenthubTicketSideRail.vue`, `studenthubSidePanel.ts`; edits in `TicketSidebar.vue`, `TicketSidebarWrapper.vue`, `TicketDetailViewContent.vue` | Panel icons: staff get every panel in the right column, one at a time ("column"); students and New ticket open them beside the left column ("split") |
+| `pages/ticket/components/TicketDetailView/StudenthubTicketQueue.vue`, `pages/ticket/composables/useStudenthubTicketQueue.ts`; edits in `TicketDetailViewContent.vue` (layout, next ticket after closing) | Queue beside the ticket |
 | `pages/ticket/components/TicketCreate/StudenthubCreatePanel.vue`, `StudenthubPriorityButtons.vue`, `StudenthubSlaPreview.vue`, `StudenthubCustomerEmail.vue`, `StudenthubTemplatePicker.vue`, `db/migrate/20261006110000_studenthub_close_ghost_create_tabs.rb`; edits in `TicketCreateContent.vue`, `TicketSidebar.vue` | New ticket screen (Taxil's `AgentTicketCreateCard.vue` is no longer used) |
 | `lib/studenthub/sla_preview.rb`, `app/controllers/studenthub_sla_previews_controller.rb` | SLA a new ticket would get |
 | `ArticleBubble/StudenthubArticleKind.vue`; edits in `ArticleBubbleBody.vue`, `useBubbleStyleGuide.ts`, `SystemMessage.vue` | Message labels and colours |

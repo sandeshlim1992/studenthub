@@ -79,6 +79,9 @@ Never put passwords, tokens or keys in this file.
   activity), managers their approvals; users with more than one switch between Team overview / My work / Approvals
   (kept in the browser); "open" counts every state except closed/merged, so "5. Resolved" is open
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
+- Staff ticket screen = option B of the design board (<https://claude.ai/artifact/SKNJWEgQtaeSMKD3GwPTZJ>): the queue of
+  a view on the left (J / K, next ticket after closing), conversation, every panel in one column on the right; students
+  and managers-only keep the sidebar on the left. Ticket tabs still go to Recent (Zammad's tabs left as they are)
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
@@ -128,6 +131,11 @@ Never put passwords, tokens or keys in this file.
   "View team" from the Dashboard). Keep the patch when merging Zammad updates unless they fixed it
 - Zammad's own create / ticket-screen specs fail by design (renamed labels, moved buttons); 4 overview specs
   fail on the committed code too; Taxil's `AgentTicketCreateCard.vue` is unused
+- Running all of `pages/ticket` at once, about 100 tests fail on the committed code too: some by design (above), many
+  by timing out at 5 s under load (e.g. the screen behaviour and a11y specs, which pass when run on their own)
+- The staff ticket layout edits more Zammad files (`TicketDetailViewContent.vue`, `TicketSidebar.vue`,
+  `TicketSidebarWrapper.vue`, `LayoutContent.vue`, `useResizeGridColumns.ts`): expect conflicts when merging Zammad
+- Queue: Mine / Unassigned only filter the tickets loaded so far (30 per page)
 - `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
 - Zammad's lint hook type-checks the whole frontend whenever a `.vue`/`.ts` file is uncommitted; ~100 old type
   errors make it fail on every reply until the work is committed
@@ -196,6 +204,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser
 - [ ] Check the new manager dashboard in a browser as manager@ (with and without waiting requests); decide whether
       to commit `PRODUCT.md`
+- [ ] Check the queue beside the ticket in a browser (1280 px and 1440 px+, J / K, Close moving on, panels on the right)
 
 ## Log
 
@@ -249,3 +258,5 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-08: Fixed "View team" on the Dashboard (Zammad bug when returning to Tickets with another view)
 - 2026-10-08: Dashboard switch has Approvals for managers who also have another dashboard (up to three views).
   Not yet checked in a browser
+- 2026-10-08: Staff ticket screen: queue of a view beside the ticket (option B), panels in one column on the right,
+  next ticket after closing. Not yet checked in a browser

@@ -183,10 +183,12 @@ module Studenthub::TicketApproval::Setup # rubocop:disable Metrics/ModuleLength 
   end
 
   # The agent roles, but not Managers (which carries ticket.agent too): managers approve, they
-  # don't send. A manager who is also an agent gets the view through their agent role.
+  # don't send. Not Admin either: the Teams sync makes it an agent role, but admins who send
+  # requests have an agent role too. Someone with both gets the view through their agent role.
+  NOT_SENDING_ROLES = [Studenthub::TicketApproval::MANAGER_ROLE, 'Admin'].freeze
+
   def self.agent_role_ids
-    Role.with_permissions('ticket.agent').where(active: true)
-      .where.not(name: Studenthub::TicketApproval::MANAGER_ROLE).pluck(:id)
+    Role.with_permissions('ticket.agent').where(active: true).where.not(name: NOT_SENDING_ROLES).pluck(:id)
   end
 
   # Turns the old "Approval decisions" view into "Sent for approval" in place, so agents keep

@@ -85,11 +85,13 @@ RSpec.describe Studenthub::TicketApproval, aggregate_failures: true do
       expect(Overview.find_by(link: 'awaiting_my_approval').role_ids).to eq([Role.find_by(name: 'Managers').id])
     end
 
-    it 'gives "Sent for approval" to the agent roles but not to Managers' do
+    it 'gives "Sent for approval" to the agent roles but not to Managers or Admin' do
+      Role.find_by(name: 'Admin').permission_grant('ticket.agent')
+      Studenthub::TicketApproval::Setup.sync_overviews
       role_ids = Overview.find_by(link: 'sent_for_approval').role_ids
 
       expect(role_ids).to include(Role.find_by(name: 'Agent').id)
-      expect(role_ids).not_to include(Role.find_by(name: 'Managers').id)
+      expect(role_ids).not_to include(Role.find_by(name: 'Managers').id, Role.find_by(name: 'Admin').id)
     end
 
     # Zammad lists a view's tickets only from groups with "overview" access ("read" only opens

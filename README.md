@@ -366,6 +366,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 - **Top bar (staff):** search with Zammad's quick results in a drop-down, **New ticket**,
   notifications and the avatar menu. The navigation panel keeps the logo, Overviews / Dashboard /
   Administration and Reporting (the gear menu; not repeated in the top bar), recent tabs and the collapse button.
+- **Start page:** staff (Agent, Admin and Managers roles) land on the Dashboard after signing in (password or Microsoft)
+  and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
+  (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
 - **Dashboard:** in production builds too (`pages/dashboard/routes.ts`; Zammad registers it only in development and
   test mode), first in the navigation. Three dashboards (`views/Dashboard.vue` picks one):
   - **Agents, "Briefing":** one sentence on their day (escalated tickets, how long students waited compared with the
@@ -604,7 +607,8 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
   request records whether it paused the SLA, so switching later doesn't move past deadlines. The ticket's SLA card
   says "Paused, waiting for approval".
 - **The two approval overviews** (**Awaiting my approval** for the Managers role, **Sent for approval** for every
-  agent role) are managed by Student Hub: on while Ticket Approvals is on, hidden while it is off. They are locked
+  agent role except Managers and Admin) are managed by Student Hub: on while Ticket Approvals is on, hidden while it
+  is off. They are locked
   on `/desktop/manage/overviews`, and changes made elsewhere (classic admin, API) or a new agent role are put right
   in the background a few seconds later.
 - **Managers** see the ticket in the **Awaiting my approval** overview until they decide. In the new UI's views panel

@@ -47,7 +47,8 @@ Never put passwords, tokens or keys in this file.
   only, kept in step
   with the organisations and locked like Teams (replaced the LSST / UKBC / FSB views by campus)
 - The approval overviews (Awaiting my approval, Sent for approval) are system-managed like the Teams views:
-  on/off follows the Ticket Approvals switch, roles are fixed (Managers / every agent role), locked on the
+  on/off follows the Ticket Approvals switch, roles are fixed (Managers / every agent role except Managers and
+  Admin), locked on the
   Overviews page, hand changes undone by the background sync. The old "Managers Approval" overview stays off
 - Recent keeps tickets, customer/organisation/search tabs and saved New ticket drafts; untouched New ticket tabs
   close when left, typed ones ask "Save draft / Discard"; newest tab on top (a new tab opens at the top, drag still
@@ -79,6 +80,7 @@ Never put passwords, tokens or keys in this file.
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
+- Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
 - Student Hub migrations always create their tables and columns, but records (roles, settings, overviews) only on
   a seeded database (`Studenthub::Setup.seeded?`). On a new database (devcontainer, CI) migrations run before the
   seeds, so `lib/tasks/studenthub_setup.rake` runs `Studenthub::Setup.ensure_all!` after `db:seed` (not in test:
@@ -238,3 +240,5 @@ Never put passwords, tokens or keys in this file.
   count, the three waiting longest, link to the Teams view). Not yet checked in a browser
 - 2026-10-08: Recent lists the newest tab on top (Zammad's order flipped); the unassigned team cards share the full
   width when there are only one or two
+- 2026-10-08: Staff land on the Dashboard after signing in (and on `/`); students keep their ticket list
+- 2026-10-08: "Sent for approval" no longer goes to the Admin role (agents keep it)

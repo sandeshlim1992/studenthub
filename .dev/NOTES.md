@@ -231,3 +231,5 @@ Never put passwords, tokens or keys in this file.
   in review when empty; dashboard API returns the waiting requests and month figures. Not yet checked in a browser
 - 2026-10-08: Fixed new databases (devcontainer setup failed: Ticket Approvals migration created the Managers role
   before user #1 existed); Student Hub records now come after `db:seed` there
+- 2026-10-08: Fixed the new UI's stylesheet: the merge `ed514cb3a7` dropped a `}` in `studenthub-halo.css`, so
+  Tailwind failed on `main.css` (new UI unstyled in dev, frontend build failed)

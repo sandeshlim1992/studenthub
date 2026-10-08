@@ -1,21 +1,17 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, inject, nextTick } from 'vue'
+import { computed, nextTick } from 'vue'
 
 import { useForm } from '#shared/components/Form/useForm.ts'
-import { useTicketArticleReplyAction } from '#shared/entities/ticket/composables/useTicketArticleReplyAction.ts'
-import type { TicketArticle } from '#shared/entities/ticket/types.ts'
-import { createArticleActions } from '#shared/entities/ticket-article/action/plugins/index.ts'
 import { getIdFromGraphQLId } from '#shared/graphql/utils.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
-import { edgesToArray } from '#shared/utils/helpers.ts'
 
 import { useFlyout } from '#desktop/components/CommonFlyout/useFlyout.ts'
 import type { MenuItem } from '#desktop/components/CommonPopoverMenu/types.ts'
 import { useUserCurrentTaskbarTabsStore } from '#desktop/entities/user/current/stores/taskbarTabs.ts'
-import { ARTICLES_INFORMATION_KEY } from '#desktop/pages/ticket/composables/useArticleContext.ts'
 import { useStudenthubTicketDetailsMode } from '#desktop/pages/ticket/composables/useStudenthubTicketDetailsMode.ts'
+import { useStudenthubTicketReply } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 
 import StudenthubHeaderMenuButton from './StudenthubHeaderMenuButton.vue'
@@ -25,55 +21,17 @@ import StudenthubHeaderMenuButton from './StudenthubHeaderMenuButton.vue'
 // Assign / Change status fill the Owner and State fields (saved with Update, like every other
 // change), Merge opens Zammad's merge dialog, Close sets a closed state and saves at once.
 // Students (customers) only get Reply.
-
-const { ticket, ticketInternalId, form, isTicketEditable, showTicketArticleReplyForm } =
-  useTicketInformation()
-// The article list provides this; the default keeps the header usable without it.
-const articleContext = inject(ARTICLES_INFORMATION_KEY, null)
-const { openReplyForm, getNewArticleBody } = useTicketArticleReplyAction(form, showTicketArticleReplyForm)
-const session = useSessionStore()
-const isAgent = computed(() => session.hasPermission('ticket.agent'))
-
-const articles = computed<TicketArticle[]>(() => {
-  const data = articleContext?.articles.value
-  if (!data) return []
-  return [...edgesToArray(data.firstArticles), ...edgesToArray(data.articles)] as TicketArticle[]
-})
-
-// The newest public message from the customer, otherwise the newest public message.
-const replyTarget = computed(() => {
-  const visible = articles.value.filter((article) => !article.internal)
-  return (
-    visible.findLast((article) => article.sender?.name === 'Customer') ?? visible.at(-1) ?? null
-  )
-})
-
-const replyAction = computed(() => {
-  if (!ticket.value || !replyTarget.value) return null
-  return (
-    createArticleActions(ticket.value, replyTarget.value, 'desktop', {
-      onDispose: () => {},
-      recalculate: () => {},
-    }).find((action) => action.name.endsWith('-reply') && action.perform) ?? null
-  )
-})
-
-const reply = () => {
-  if (!ticket.value) return
-
-  if (replyAction.value && replyTarget.value) {
-    replyAction.value.perform!(ticket.value, replyTarget.value, {
-      formId: form?.value?.formId ?? '',
-      openReplyForm,
-      getNewArticleBody,
-    })
-    return
-  }
-
-  openReplyForm({ articleType: isAgent.value ? 'email' : 'web', internal: false })
+// Compact (agents' compact header, design option B): Reply and Add note are in the reply bar
+// under the messages; Assign and Change status are icon buttons, Merge is under ⋯.
+interface Props {
+  compact?: boolean
 }
 
-const addNote = () => openReplyForm({ articleType: 'note', internal: true })
+defineProps<Props>()
+
+const { ticket, ticketInternalId, form, isTicketEditable } = useTicketInformation()
+const { reply, addNote, isAgent } = useStudenthubTicketReply()
+const session = useSessionStore()
 
 // ---- fields of the ticket form (sidebar) ----
 
@@ -93,7 +51,9 @@ const stateOptions = computed(() => {
 
 // "6. Closed" and the like, not "pending close".
 const closedState = computed(() =>
-  stateOptions.value.find((option) => /\bclosed?\b/i.test(option.label) && !/pending/i.test(option.label)),
+  stateOptions.value.find(
+    (option) => /\bclosed?\b/i.test(option.label) && !/pending/i.test(option.label),
+  ),
 )
 
 const setState = (stateId: number) => updateFieldValues({ state_id: stateId })
@@ -152,12 +112,54 @@ const { open: openMergeFlyout } = useFlyout({
 
 // The tab id lets Zammad close this tab after the merge.
 const merge = () =>
-  openMergeFlyout({ ticket, currentTaskbarTabId: useUserCurrentTaskbarTabsStore().activeTaskbarTabId })
+  openMergeFlyout({
+    ticket,
+    currentTaskbarTabId: useUserCurrentTaskbarTabsStore().activeTaskbarTabId,
+  })
+
+const moreItems = computed<MenuItem[]>(() => [
+  { key: 'merge', label: __('Merge'), icon: 'merge', onClick: merge },
+])
 </script>
 
 <template>
   <div
-    v-if="ticket && isTicketEditable"
+    v-if="ticket && isTicketEditable && compact && isAgent"
+    class="flex items-center gap-1.5 print:hidden"
+    role="toolbar"
+    :aria-label="$t('Ticket header actions')"
+  >
+    <StudenthubHeaderMenuButton
+      :label="__('Assign')"
+      icon="user-add"
+      icon-only
+      :items="assignItems"
+    />
+    <StudenthubHeaderMenuButton
+      v-if="statusItems.length"
+      :label="__('Change status')"
+      icon="arrow-repeat"
+      icon-only
+      :items="statusItems"
+    />
+    <StudenthubHeaderMenuButton
+      :label="__('More actions')"
+      icon="three-dots-vertical"
+      icon-only
+      :items="moreItems"
+    />
+    <button
+      v-if="closedState"
+      type="button"
+      class="sh-header-action sh-header-action--close"
+      @click="closeTicket"
+    >
+      <CommonIcon name="check2-circle" size="xs" decorative />
+      {{ $t('Close') }}
+    </button>
+  </div>
+  <div
+    v-else-if="ticket && isTicketEditable && !compact"
     class="flex flex-wrap items-center gap-2 print:hidden"
     role="toolbar"
     :aria-label="$t('Ticket header actions')"

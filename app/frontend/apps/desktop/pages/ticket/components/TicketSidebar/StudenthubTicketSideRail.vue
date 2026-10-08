@@ -9,7 +9,11 @@ import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubA
 
 import { useTicketSidebar } from '../../composables/useTicketSidebar.ts'
 
-import { STUDENTHUB_SIDE_PANEL_KEY, type StudenthubSidePanelMode } from './studenthubSidePanel.ts'
+import {
+  STUDENTHUB_PANELS_WITHOUT_TAB,
+  STUDENTHUB_SIDE_PANEL_KEY,
+  type StudenthubSidePanelMode,
+} from './studenthubSidePanel.ts'
 
 import type { TicketSidebarContext } from '../../types/sidebar.ts'
 
@@ -17,7 +21,8 @@ import type { TicketSidebarContext } from '../../types/sidebar.ts'
 // - "split" (students, New ticket): the Ticket panel (Details, SLA…) always stays in the sidebar
 //   column on the left; every other panel (Customer, Checklist, Approval…) opens here on the right.
 // - "column" (agents, with the queue beside the ticket; the rail sits in the sidebar column on the
-//   right): every panel opens in that column, one at a time, and the Ticket panel has an icon too.
+//   right): every panel opens in that column, one at a time, chosen with named tabs above it (icons
+//   while the column is collapsed); Ticket has a tab too, Organization none.
 // Zammad's "active sidebar" decides which one: back on "information" means the Ticket panel.
 // Customers and managers without another staff role get no icons at all (managers decide under
 // the messages instead).
@@ -54,13 +59,12 @@ const isRailHidden = computed(
 
 // Without the rail only the Ticket panel is mounted: it shows itself in the left column.
 const railPlugins = computed(() =>
-  isRailHidden.value
-    ? Object.fromEntries(
-        Object.entries(availableSidebarPlugins.value).filter(
-          ([sidebar]) => sidebar === INFORMATION,
-        ),
-      )
-    : availableSidebarPlugins.value,
+  Object.fromEntries(
+    Object.entries(availableSidebarPlugins.value).filter(([sidebar]) => {
+      if (isRailHidden.value) return sidebar === INFORMATION
+      return !(isColumn.value && STUDENTHUB_PANELS_WITHOUT_TAB.includes(sidebar))
+    }),
+  ),
 )
 
 // Closed with × or its icon. Needed on "New ticket", which has no Ticket panel to go back to:
@@ -74,13 +78,15 @@ watch(activeSidebar, () => {
 const openPanel = computed(() => {
   if (isRailHidden.value || isDismissed.value) return null
   const sidebar = activeSidebar.value
-  if (!sidebar || sidebar === INFORMATION || !availableSidebarPlugins.value[sidebar]) return null
+  if (!sidebar || sidebar === INFORMATION || !railPlugins.value[sidebar]) return null
   return sidebar
 })
 
 const openPanelTitle = computed(() =>
-  openPanel.value ? availableSidebarPlugins.value[openPanel.value].title : '',
+  openPanel.value ? railPlugins.value[openPanel.value].title : '',
 )
+
+const isTabs = computed(() => isColumn.value && !isSidebarCollapsed.value)
 
 const hasIcons = computed(() =>
   Object.keys(railPlugins.value).some(
@@ -92,6 +98,7 @@ provide(STUDENTHUB_SIDE_PANEL_KEY, {
   leftPanel: INFORMATION,
   mode: props.mode,
   visiblePanel: computed(() => openPanel.value ?? INFORMATION),
+  tabs: isTabs,
 })
 
 const close = () => {
@@ -113,7 +120,10 @@ const toggle = (sidebar: string) => {
 <template>
   <div
     class="sh-side-rail-wrap print:hidden"
-    :class="{ 'sh-side-rail-wrap--hidden': isRailHidden || !hasIcons }"
+    :class="{
+      'sh-side-rail-wrap--hidden': isRailHidden || !hasIcons,
+      'sh-side-rail-wrap--tabs': isTabs,
+    }"
   >
     <section
       v-if="!isColumn"
@@ -133,7 +143,12 @@ const toggle = (sidebar: string) => {
       <div id="studenthubSidePanel" class="sh-side-panel__body flex h-full min-h-0 flex-col" />
     </section>
 
-    <nav v-show="!isRailHidden && hasIcons" class="sh-side-rail" :aria-label="$t('Ticket panels')">
+    <nav
+      v-show="!isRailHidden && hasIcons"
+      class="sh-side-rail"
+      :class="{ 'sh-side-rail--tabs': isTabs }"
+      :aria-label="$t('Ticket panels')"
+    >
       <!-- The Ticket panel needs its plugin mounted (it moves itself to the sidebar column), but
            in "split" not its button: it is always open there. -->
       <component

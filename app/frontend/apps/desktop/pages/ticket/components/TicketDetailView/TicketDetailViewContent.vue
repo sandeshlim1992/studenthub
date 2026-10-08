@@ -64,20 +64,22 @@ import CommonIndicator from '#desktop/components/CommonIndicator/CommonIndicator
 import { useIndicator } from '#desktop/components/CommonIndicator/useIndicator.ts'
 import CommonLoader from '#desktop/components/CommonLoader/CommonLoader.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { SidebarPosition } from '#desktop/components/layout/types.ts'
+import { SidebarName, SidebarPosition } from '#desktop/components/layout/types.ts'
+import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 import { usePage } from '#desktop/composables/usePage.ts'
 import { useScrollPosition } from '#desktop/composables/useScrollPosition.ts'
-import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
 import { useTaskbarTab } from '#desktop/entities/user/current/composables/useTaskbarTab.ts'
 import { useTaskbarTabStateUpdates } from '#desktop/entities/user/current/composables/useTaskbarTabStateUpdates.ts'
 import { useUserCurrentTaskbarTabsStore } from '#desktop/entities/user/current/stores/taskbarTabs.ts'
 import type { TaskbarTabContext } from '#desktop/entities/user/current/types.ts'
 import FloatingToolbar from '#desktop/pages/ticket/components/TicketDetailView/FloatingToolbar.vue'
+import StudenthubTicketSaveBar from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailBottomBar/StudenthubTicketSaveBar.vue'
 import TicketDetailBottomBar from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailBottomBar/TicketDetailBottomBar.vue'
 import { items as highlightMenuItems } from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/composables/useHighlightMenuState.ts'
 import { useTicketScreenBehavior } from '#desktop/pages/ticket/components/TicketDetailView/TicketScreenBehavior/useTicketScreenBehavior.ts'
 
 import { ARTICLES_INFORMATION_KEY } from '../../composables/useArticleContext.ts'
+import { useStudenthubQueueLayout } from '../../composables/useStudenthubQueueLayout.ts'
 import { useStudenthubTicketQueue } from '../../composables/useStudenthubTicketQueue.ts'
 import { useTicketArticleReply } from '../../composables/useTicketArticleReply.ts'
 import {
@@ -106,11 +108,14 @@ const internalId = toRef(props, 'internalId')
 const isReplyPinned = useLocalStorage('article-reply-pinned', false)
 
 // Student Hub: agents and admins work with the queue beside the ticket and the ticket panels in
-// a column on the right. Students and managers without another staff role keep the Details
-// column on the left (the Managers role carries ticket.agent, so the server tells them apart).
+// a column on the right (see useStudenthubQueueLayout).
 const session = useSessionStore()
-const { isLoaded: isViewerLoaded, isManagerOnly } = useStudenthubApprovalViewer()
-const isQueueLayout = computed(() => session.hasPermission('ticket.agent') && !isManagerOnly.value)
+const { isLoaded: isViewerLoaded, isQueueLayout } = useStudenthubQueueLayout()
+// Agents' save area (Update…) at the foot of the open panel column instead of the bar across the
+// screen; with the column collapsed, Zammad's bar comes back.
+const { isSidebarCollapsed: isPanelColumnCollapsed } = useSidebarDisplay(SidebarName.TicketContent)
+const hasStudenthubSaveBar = computed(() => isQueueLayout.value && !isPanelColumnCollapsed.value)
+
 const studenthubQueue = useStudenthubTicketQueue(
   internalId,
   computed(() => isViewerLoaded.value && isQueueLayout.value),
@@ -321,6 +326,16 @@ useProvideTicketSidebar(sidebarContext)
 const { hasSidebar, activeSidebar, shownSidebars, switchSidebar } = useTicketSidebar()
 
 const hasInternalArticle = computed(() => (values.value as TicketUpdateFormData).article?.internal)
+
+// Student Hub: agents' reply bar at the bottom of the conversation (ArticleReply, while no reply
+// is open): the messages take the free height and the scroll buttons sit above the bar.
+const hasStudenthubReplyBar = computed(
+  () =>
+    isQueueLayout.value &&
+    isTicketAgent.value &&
+    isTicketEditable.value &&
+    !newTicketArticlePresent.value,
+)
 
 const formEditAttributeLocation = computed(() => {
   // Student Hub: the Ticket panel stays mounted while others are open (beside it, or hidden in the
@@ -791,8 +806,9 @@ const handleShowArticleForm = (
         class="@container isolate grid size-full min-w-0 overflow-y-auto overscroll-contain print:h-auto print:overflow-y-visible"
         :class="{
           'grid-rows-[0_max-content_max-content_max-content]':
-            !newTicketArticlePresent || !isReplyPinned,
+            !hasStudenthubReplyBar && (!newTicketArticlePresent || !isReplyPinned),
           'grid-rows-[0_max-content_1fr_max-content]': newTicketArticlePresent && isReplyPinned,
+          'grid-rows-[0_max-content_1fr_max-content_max-content]': hasStudenthubReplyBar,
         }"
       >
         <CommonIndicator v-model="isReachingTop" />
@@ -851,7 +867,8 @@ const handleShowArticleForm = (
 
         <div
           v-if="ticket && (!newTicketArticlePresent || !isReplyPinned)"
-          class="sticky bottom-3 h-0 print:hidden"
+          class="sticky h-0 print:hidden"
+          :class="hasStudenthubReplyBar ? 'bottom-20' : 'bottom-3'"
         >
           <FloatingToolbar
             :ticket="ticket"
@@ -898,10 +915,29 @@ const handleShowArticleForm = (
     </div>
     <!-- Render underlying components only when the ticket is available to avoid providing undefined ticket context -->
     <template v-if="!!ticket" #sideBar>
-      <TicketSidebar :context="sidebarContext" :studenthub-panel-column="isQueueLayout" />
+      <TicketSidebar :context="sidebarContext" :studenthub-panel-column="isQueueLayout">
+        <template #studenthubFooter>
+          <StudenthubTicketSaveBar
+            :can-use-draft="canUseDraft"
+            :dirty="isDirty"
+            :disabled="isDisabled"
+            :form="form"
+            :group-id="groupId"
+            :is-ticket-agent="isTicketAgent"
+            :is-ticket-editable="isTicketEditable"
+            :has-available-draft="hasAvailableDraft"
+            :live-user-list="liveUserList"
+            :shared-draft-id="ticket?.sharedDraftZoomId"
+            :ticket-id="ticketId"
+            @submit="checkSubmitEditTicket"
+            @discard="discardChanges"
+            @execute-macro="executeMacro"
+          />
+        </template>
+      </TicketSidebar>
     </template>
 
-    <template #bottomBar>
+    <template v-if="!hasStudenthubSaveBar" #bottomBar>
       <TicketDetailBottomBar
         :can-use-draft="canUseDraft"
         :dirty="isDirty"

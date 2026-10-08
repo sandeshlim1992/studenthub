@@ -9,8 +9,10 @@ import type { TicketById } from '#shared/entities/ticket/types'
 import type { AppSpecificTicketArticleType } from '#shared/entities/ticket-article/action/plugins/types.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
+import { useStudenthubQueueLayout } from '#desktop/pages/ticket/composables/useStudenthubQueueLayout.ts'
 
 import ArticleReplyPanel from './ArticleReplyPanel.vue'
+import StudenthubTicketReplyBar from './StudenthubTicketReplyBar.vue'
 import { useArticleReply } from './useArticleReply.ts'
 
 interface Props {
@@ -26,6 +28,9 @@ const props = defineProps<Props>()
 
 const currentTicket = toRef(props, 'ticket')
 const { isTicketCustomer } = useTicketView(currentTicket)
+
+// Student Hub: agents with the queue beside the ticket get the reply bar, docked at the bottom.
+const { isQueueLayout } = useStudenthubQueueLayout()
 
 const { noteArticleType, customerReplyArticleType } = useArticleReply(
   currentTicket,
@@ -78,8 +83,15 @@ const showNoteReplyForm = () => {
       @toggle-pin="pinned = !pinned"
     />
   </div>
-  <div v-else-if="newArticlePresent !== undefined">
-    <div class="mx-auto flex w-full max-w-4xl flex-col items-center gap-3 px-12 pt-4 pb-6">
+  <div
+    v-else-if="newArticlePresent !== undefined"
+    :class="{ 'sh-reply-dock': isQueueLayout && !isTicketCustomer && noteArticleType }"
+  >
+    <StudenthubTicketReplyBar
+      v-if="isQueueLayout && !isTicketCustomer && noteArticleType"
+      @note="showNoteReplyForm"
+    />
+    <div v-else class="mx-auto flex w-full max-w-4xl flex-col items-center gap-3 px-12 pt-4 pb-6">
       <CommonButton
         v-if="isTicketCustomer && customerReplyArticleType"
         variant="primary"

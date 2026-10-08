@@ -144,6 +144,44 @@ describe('Ticket detail view: queue beside the ticket (Student Hub)', () => {
     )
   })
 
+  it('has the compact header, the reply bar and the panel tabs', async () => {
+    const view = await visitView('/tickets/1')
+
+    const toolbar = await view.findByRole('toolbar', { name: 'Ticket header actions' })
+    expect(within(toolbar).getByRole('button', { name: 'Assign' })).toBeInTheDocument()
+    expect(within(toolbar).getByRole('button', { name: 'More actions' })).toBeInTheDocument()
+    expect(within(toolbar).queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
+    expect(within(toolbar).queryByRole('button', { name: 'Add note' })).not.toBeInTheDocument()
+
+    const replyBar = await view.findByRole('group', { name: 'Reply' })
+    expect(replyBar).toHaveTextContent(/Write a reply to \S+…/)
+    expect(within(replyBar).getByRole('button', { name: 'Internal note' })).toBeInTheDocument()
+    expect(within(replyBar).getByRole('button', { name: 'Reply' })).toBeInTheDocument()
+
+    const panels = view.getByRole('navigation', { name: 'Ticket panels' })
+    expect(within(panels).getByRole('button', { name: 'Ticket' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    // The Student tab (with the student's open tickets as its count) shows once their data loads.
+    expect(within(panels).getByRole('button', { name: /^Student\b/, hidden: true })).toHaveClass(
+      'sh-panel-tab',
+    )
+    expect(
+      within(panels).queryByRole('button', { name: 'Organization', hidden: true }),
+    ).not.toBeInTheDocument()
+
+    // Update sits at the foot of the panel column, not in a bar across the screen.
+    const saveArea = view.getByRole('region', { name: 'Save changes' })
+    expect(view.getByRole('complementary', { name: 'Content sidebar' })).toContainElement(saveArea)
+    expect(within(saveArea).getByRole('button', { name: 'Update' })).toBeInTheDocument()
+    expect(saveArea).toHaveTextContent('After update')
+
+    await view.events.click(within(replyBar).getByRole('button', { name: 'Internal note' }))
+    expect(await view.findByRole('complementary', { name: 'Reply' })).toBeInTheDocument()
+    expect(view.queryByRole('group', { name: 'Reply' })).not.toBeInTheDocument()
+  })
+
   it('opens the next ticket of the queue after the ticket is closed', async () => {
     const view = await visitView('/tickets/1')
 

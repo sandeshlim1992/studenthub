@@ -17,7 +17,9 @@ import UserPopoverWithTrigger from '#desktop/components/User/UserPopoverWithTrig
 import { useTicketOverviewsStore } from '#desktop/entities/ticket/stores/ticketOverviews.ts'
 import HighlightMenu from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/HighlightMenu.vue'
 import StudenthubTicketHeaderActions from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderActions.vue'
+import StudenthubTicketHeaderCompact from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderCompact.vue'
 import TicketInformationBadgeList from '#desktop/pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/TicketInformationFull/TicketInformationBadgeList.vue'
+import { useStudenthubQueueLayout } from '#desktop/pages/ticket/composables/useStudenthubQueueLayout.ts'
 
 import { useTopBarHeader } from './useTopBarHeader.ts'
 
@@ -31,6 +33,9 @@ const {
   isUpdatingTitle,
   updateTitle,
 } = useTopBarHeader()
+
+// Student Hub: agents with the queue beside the ticket get the compact header.
+const { isQueueLayout } = useStudenthubQueueLayout()
 
 // Student Hub: "Tickets / Service Desk / Ticket#…" sits in the top bar; the header shows the number itself.
 const campus = () =>
@@ -62,7 +67,9 @@ useStudenthubTopBarCrumbsWhileShown(() =>
 </script>
 
 <template>
+  <StudenthubTicketHeaderCompact v-if="isQueueLayout" />
   <header
+    v-else
     class="ticket-detail-grid-full sh-ticket-header grid grid-cols-2 gap-y-2.5 border-b border-neutral-100 bg-neutral-50 p-3 dark:border-gray-900 dark:bg-gray-500 print:border-b-0 print:px-3"
   >
     <div class="flex items-center" :style="{ gridTemplate: 'breadcrumbs' }">

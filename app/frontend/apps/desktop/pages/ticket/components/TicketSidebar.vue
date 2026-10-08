@@ -16,8 +16,9 @@ import StudenthubTicketSideRail from './TicketSidebar/StudenthubTicketSideRail.v
 
 interface Props {
   context: TicketSidebarContext
-  /** Student Hub: agents' ticket screen (queue beside the ticket): the panel icons sit at the
-   * right edge of this column and every panel opens in it, one at a time. */
+  /** Student Hub: agents' ticket screen (queue beside the ticket): every panel opens in this
+   * column, one at a time, chosen with tabs above it (icons beside it while collapsed); the
+   * `studenthubFooter` slot (Update…) sits at its foot while it is open. */
   studenthubPanelColumn?: boolean
 }
 
@@ -54,9 +55,20 @@ const { isTouchDevice } = useTouchDevice()
 </script>
 
 <template>
-  <div class="flex h-full justify-end">
-    <div v-show="!isSidebarCollapsed" id="ticketSidebar" class="flex min-w-0 grow flex-col" />
+  <!-- Student Hub: in the agents' panel column the tabs sit above the panel (icons beside it
+       while the column is collapsed). -->
+  <div
+    class="flex h-full"
+    :class="studenthubPanelColumn && !isSidebarCollapsed ? 'flex-col' : 'justify-end'"
+  >
     <StudenthubTicketSideRail v-if="studenthubPanelColumn" mode="column" :context="context" />
+    <div
+      v-show="!isSidebarCollapsed"
+      id="ticketSidebar"
+      class="flex min-h-0 min-w-0 grow flex-col"
+    />
+    <!-- Student Hub: the agents' save area (Update…) at the foot of the open column -->
+    <slot v-if="studenthubPanelColumn && !isSidebarCollapsed" name="studenthubFooter" />
     <div
       v-if="!hasSideRail"
       class="flex flex-col items-center gap-2.5 border-neutral-100 px-2.5 py-3 transition-[border] dark:border-gray-900"

@@ -80,8 +80,11 @@ Never put passwords, tokens or keys in this file.
   (kept in the browser); "open" counts every state except closed/merged, so "5. Resolved" is open
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Staff ticket screen = option B of the design board (<https://claude.ai/artifact/SKNJWEgQtaeSMKD3GwPTZJ>): the queue of
-  a view on the left (J / K, next ticket after closing), conversation, every panel in one column on the right; students
-  and managers-only keep the sidebar on the left. Ticket tabs still go to Recent (Zammad's tabs left as they are)
+  a view on the left (J / K, next ticket after closing), compact header (actions as icons, ⋯ Merge, Close), reply bar
+  docked under the messages, panels in one column on the right behind four tabs Ticket / Student / Checklist / Approval
+  (no Organization tab; occasional panels add a tab while they apply), Update at the foot of that column (unsaved note +
+  Discard, After update, Update; Zammad's bar only while the column is collapsed); students and managers-only keep the
+  sidebar on the left and Zammad's bar. Ticket tabs still go to Recent (Zammad's tabs left as they are)
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
@@ -134,7 +137,8 @@ Never put passwords, tokens or keys in this file.
 - Running all of `pages/ticket` at once, about 100 tests fail on the committed code too: some by design (above), many
   by timing out at 5 s under load (e.g. the screen behaviour and a11y specs, which pass when run on their own)
 - The staff ticket layout edits more Zammad files (`TicketDetailViewContent.vue`, `TicketSidebar.vue`,
-  `TicketSidebarWrapper.vue`, `LayoutContent.vue`, `useResizeGridColumns.ts`): expect conflicts when merging Zammad
+  `TicketSidebarWrapper.vue`, `TicketSidebarContent.vue`, `ArticleReply.vue`, `TopBarHeaderFull.vue`, `LayoutContent.vue`,
+  `useResizeGridColumns.ts`): expect conflicts when merging Zammad
 - Queue: Mine / Unassigned only filter the tickets loaded so far (30 per page)
 - `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
 - Zammad's lint hook type-checks the whole frontend whenever a `.vue`/`.ts` file is uncommitted; ~100 old type
@@ -156,6 +160,8 @@ Never put passwords, tokens or keys in this file.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
   dev-only test users agent@, manager@ and <student@example.com> and `[TEST]` tickets #886839/#886840
 - Work PC container: headless Google Chrome + Chrome DevTools MCP (user-level; redo after a rebuild)
+- Home PC container: Debian's `chromium` (apt) for browser checks with playwright-core outside the repo (redo after a
+  rebuild); dev reached from Windows through VS Code's port forwarding (the `studenthub-port-relay` container is gone)
 - New UI redesign from `studenthub-newUI`, merged into `develop` on 6 Oct (not yet deployed): colour setting, navigation
   panel, top bar,
   sign-in page, ticket lists (Teams views, Group by, colours), ticket screen, New ticket screen, manager
@@ -204,7 +210,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser
 - [ ] Check the new manager dashboard in a browser as manager@ (with and without waiting requests); decide whether
       to commit `PRODUCT.md`
-- [ ] Check the queue beside the ticket in a browser (1280 px and 1440 px+, J / K, Close moving on, panels on the right)
+- [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
 
 ## Log
 
@@ -259,4 +265,8 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-08: Dashboard switch has Approvals for managers who also have another dashboard (up to three views).
   Not yet checked in a browser
 - 2026-10-08: Staff ticket screen: queue of a view beside the ticket (option B), panels in one column on the right,
-  next ticket after closing. Not yet checked in a browser
+  next ticket after closing
+- 2026-10-09: Option B's conversation and right column too: compact header, docked reply bar, panel tabs Ticket /
+  Student / Checklist / Approval; a long panel no longer stretches the screen under the Update bar; Update moved to the
+  foot of the panel column (save area with unsaved note, After update, Update). Checked in a browser (headless
+  Chromium in this container, 1280 and 1440 px)

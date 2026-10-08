@@ -209,6 +209,94 @@
   border-color: var(--sh-app-hover);
 }
 
+/* Icon-only header actions (agents' compact header): the label is the tooltip and name */
+.sh-header-action--icon {
+  justify-content: center;
+  width: 2rem;
+  padding: 0;
+}
+
+/* Agents' compact ticket header (design option B): number, campus, state and priority with the
+   actions on the right, then the title over the full width */
+.sh-ticket-header--compact {
+  display: grid;
+  grid-template-areas:
+    'meta side'
+    'title title';
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.375rem 1rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--sh-line);
+}
+
+.sh-ticket-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  grid-area: meta;
+  align-items: center;
+  gap: 0.25rem 0.625rem;
+  min-width: 0;
+}
+
+.sh-ticket-header__side {
+  display: flex;
+  grid-area: side;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sh-ticket-header__title {
+  grid-area: title;
+  min-width: 0;
+}
+
+/* Agents' reply bar, docked under the messages (StudenthubTicketReplyBar) */
+.sh-reply-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 0.75rem 1.25rem 1rem;
+  background: linear-gradient(transparent, var(--sh-card) 35%);
+}
+
+.sh-reply-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 50rem;
+  height: 2.875rem;
+  margin-inline: auto;
+  padding: 0 0.4375rem 0 0.875rem;
+  border: 1px solid #c9cdd4;
+  border-radius: 0.625rem;
+  background-color: var(--sh-card);
+  box-shadow: 0 2px 12px rgba(20, 35, 75, 0.07);
+}
+
+.sh-reply-bar__write {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  height: 100%;
+  color: var(--sh-muted);
+  font-size: 0.875rem;
+  text-align: start;
+}
+
+.sh-reply-bar__write:hover {
+  color: var(--sh-ink);
+}
+
+.sh-reply-bar__write:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
 /* What a message is: Email, Reply, Internal note… */
 .sh-article-kind {
   display: inline-flex;
@@ -421,6 +509,218 @@
   background-color: color-mix(in sRGB, var(--sh-app) 10%, transparent);
   color: var(--sh-ink);
 }
+
+/* Ticket screen: a long panel (e.g. Ticket with Details, SLA, tags…) scrolls inside the sidebar
+   instead of stretching the row under the Update bar, which hid the reply bar and the queue's foot */
+#main-content:has(.sh-ticket-view) #content-sidebar {
+  min-height: 0;
+}
+
+/* Agents' save area at the foot of the panel column (StudenthubTicketSaveBar): who else is here,
+   unsaved changes with Discard, "After update" and Update */
+.sh-save-bar {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem 0.875rem;
+  border-top: 1px solid var(--sh-line);
+  background-color: var(--sh-card);
+  box-shadow: 0 -8px 16px -14px rgba(20, 35, 75, 0.35);
+}
+
+.sh-save-bar__people {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.sh-save-bar__unsaved {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.375rem 0.375rem 0.375rem 0.625rem;
+  border-radius: 0.5rem;
+  background-color: #fff7e0;
+  color: #7a4c00;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sh-save-bar__dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: #d9a400;
+}
+
+.sh-save-bar__discard {
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.3125rem;
+  color: #b4232f;
+  font-weight: 700;
+}
+
+.sh-save-bar__discard:hover,
+.sh-save-bar__discard:focus-visible {
+  background-color: rgba(180, 35, 47, 0.08);
+}
+
+.sh-save-bar__discard:focus-visible {
+  outline: 2px solid #b4232f;
+  outline-offset: 1px;
+}
+
+.sh-save-bar__actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* "After update": a caption over Zammad's tab behaviour drop-down, quieter than Update */
+.sh-save-bar__behavior {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  min-width: 0;
+}
+
+.sh-save-bar__label {
+  color: var(--sh-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sh-save-bar__behavior > button {
+  justify-content: space-between;
+  height: 2.25rem;
+  min-width: 0;
+  max-width: 100%;
+  padding-inline: 0.625rem 0.5rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.4375rem;
+  background-color: var(--sh-card);
+  color: var(--sh-ink);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* Update: the main action, in the application colour; a ring while changes wait to be saved */
+.sh-save-bar__update {
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 0.5rem;
+  transition: box-shadow 0.15s ease;
+}
+
+.sh-save-bar__update button {
+  height: 2.5rem;
+  background-color: var(--sh-app);
+  color: var(--sh-on-app);
+  font-weight: 700;
+}
+
+.sh-save-bar__update button:first-child {
+  min-width: 6.5rem;
+  border-radius: 0.5rem 0 0 0.5rem;
+  font-size: 0.875rem;
+}
+
+.sh-save-bar__update button:last-child {
+  border-inline-start: 1px solid color-mix(in sRGB, var(--sh-on-app) 30%, var(--sh-app));
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.sh-save-bar__update button:only-child {
+  border-radius: 0.5rem;
+}
+
+.sh-save-bar__update button:hover {
+  background-color: var(--sh-app-hover);
+}
+
+.sh-save-bar__update--dirty {
+  box-shadow: 0 0 0 3px color-mix(in sRGB, var(--sh-app) 22%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sh-save-bar__update {
+    transition: none;
+  }
+}
+
+/* Agents' panel column: named tabs above the open panel (Ticket, Student, Checklist, Approval) */
+.sh-side-rail-wrap--tabs {
+  height: auto;
+}
+
+.sh-side-rail--tabs {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+  width: 100%;
+  padding: 0.625rem 0.5rem;
+  border-inline-start: 0;
+  border-bottom: 1px solid var(--sh-line);
+}
+
+.sh-panel-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.3125rem 0.5rem;
+  border-radius: 0.375rem;
+  color: var(--sh-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sh-panel-tab:hover {
+  background-color: color-mix(in sRGB, var(--sh-app) 8%, transparent);
+  color: var(--sh-ink);
+}
+
+.sh-panel-tab[aria-pressed='true'] {
+  background-color: var(--sh-card);
+  color: var(--sh-app);
+  box-shadow: 0 0 0 1px var(--sh-line);
+}
+
+.sh-panel-tab:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: 1px;
+}
+
+/* Count (role status, like Zammad's badge) drawn inside the tab's right padding */
+.sh-panel-tab--badged {
+  padding-inline-end: 2rem;
+}
+
+.sh-panel-tab__badge {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: 0.4375rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  min-width: 1.125rem;
+  padding: 0 0.3125rem;
+  border-radius: 999px;
+  background-color: var(--sh-app-soft);
+  color: var(--sh-app);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
 
 /* Agents' ticket screen: the queue beside the ticket (StudenthubTicketQueue.vue) */
 .sh-queue {
@@ -1441,12 +1741,12 @@
 }
 
 @layer utilities {
-  /* Panel icons on the right edge; the open one filled */
-  .sh-side-rail button {
+  /* Panel icons on the right edge; the open one filled (not the agents' named tabs) */
+  .sh-side-rail:not(.sh-side-rail--tabs) button {
     color: var(--sh-app) !important;
   }
 
-  .sh-side-rail button.text-black\! {
+  .sh-side-rail:not(.sh-side-rail--tabs) button.text-black\! {
     background-color: var(--sh-app) !important;
     color: var(--sh-on-app) !important;
   }

@@ -3,8 +3,11 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 
+import CommonUpdateIndicator from '#desktop/components/CommonUpdateIndicator/CommonUpdateIndicator.vue'
+
 import {
   STUDENTHUB_LEFT_PANEL_TARGET,
+  STUDENTHUB_PANEL_TAB_LABELS,
   STUDENTHUB_RIGHT_PANEL_TARGET,
   STUDENTHUB_SIDE_PANEL_KEY,
 } from './studenthubSidePanel.ts'
@@ -31,6 +34,12 @@ const isShownInColumn = computed(() => sidePanel?.visiblePanel.value === props.s
 // highlighted while it is the one on screen.
 const isButtonSelected = computed(() => (isColumn.value ? isShownInColumn.value : props.selected))
 
+// While the column is open its panels are named tabs (Student Hub names where they differ).
+const isTab = computed(() => !!sidePanel?.tabs.value)
+const tabLabel = computed(
+  () => STUDENTHUB_PANEL_TAB_LABELS[props.sidebar] ?? props.sidebarPlugin.title,
+)
+
 defineEmits<{
   click: [string]
 }>()
@@ -38,7 +47,28 @@ defineEmits<{
 
 <template>
   <div>
+    <!-- Like Zammad's button: the panel's name as label, the count and the update dot beside it -->
+    <div v-if="isTab" class="relative">
+      <button
+        type="button"
+        class="sh-panel-tab"
+        :class="{ 'sh-panel-tab--badged': badge }"
+        :aria-label="$t(tabLabel)"
+        :aria-pressed="isButtonSelected"
+        @click="$emit('click', sidebar)"
+      >
+        {{ $t(tabLabel) }}
+      </button>
+      <span v-if="badge" class="sh-panel-tab__badge" role="status" :aria-label="$t(badge.label)">
+        {{ badge.value }}
+      </span>
+      <CommonUpdateIndicator
+        v-if="!isButtonSelected && updateIndicator"
+        class="top-0.5 ltr:right-0.5 rtl:left-0.5"
+      />
+    </div>
     <TicketSidebarButton
+      v-else
       :key="sidebar"
       :name="sidebar"
       :label="sidebarPlugin.title"

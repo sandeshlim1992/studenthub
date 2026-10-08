@@ -12,6 +12,7 @@ import type { TicketSidebarPlugin } from '../plugins/types.ts'
 const plugin = (title: string, icon: string) => ({ title, icon }) as TicketSidebarPlugin
 
 const visiblePanel = ref('information')
+const tabs = ref(false)
 
 // The rail's part: it provides the mode, and mounts Ticket always and the open panel.
 const renderPanels = (mode: StudenthubSidePanelMode) =>
@@ -22,6 +23,7 @@ const renderPanels = (mode: StudenthubSidePanelMode) =>
           leftPanel: 'information',
           mode,
           visiblePanel: computed(() => visiblePanel.value),
+          tabs: computed(() => tabs.value),
         })
 
         return () =>
@@ -56,6 +58,7 @@ const panelArea = (id: string) => document.getElementById(id)!
 describe('TicketSidebarWrapper (Student Hub panel placement)', () => {
   beforeEach(() => {
     visiblePanel.value = 'information'
+    tabs.value = false
   })
 
   it('shows one panel at a time in the column and keeps Ticket mounted', async () => {
@@ -72,6 +75,24 @@ describe('TicketSidebarWrapper (Student Hub panel placement)', () => {
     expect(view.getByText('Ticket panel')).not.toBeVisible()
     expect(view.getByRole('button', { name: 'Ticket' })).not.toHaveClass('text-black!')
     expect(view.getByRole('button', { name: 'Customer' })).toHaveClass('text-black!')
+  })
+
+  it('names the panels as tabs while the column is open', async () => {
+    tabs.value = true
+
+    const view = renderPanels('column')
+
+    expect(await view.findByRole('button', { name: 'Ticket' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(view.getByRole('button', { name: 'Student' })).toHaveAttribute('aria-pressed', 'false')
+    expect(view.queryByRole('button', { name: 'Customer' })).not.toBeInTheDocument()
+
+    visiblePanel.value = 'customer'
+
+    expect(await view.findByText('Customer panel')).toBeVisible()
+    expect(view.getByRole('button', { name: 'Student' })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('opens other panels beside Ticket when split', async () => {

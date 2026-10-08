@@ -449,18 +449,27 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   are empty say **Required**, and changes not saved yet get an amber dot. **Edit** shows Zammad's form, **Done** goes
   back to the list; the form also opens by itself when Update is refused because of a missing field. Below it, the
   **SLA** card: first response (Met / Missed, or the time left), next update, resolution due with a bar of the time
-  used, and the time left (the bar uses clock time; Zammad counts SLA time in business hours). The panel icons are on
-  the right edge, Ticket (Details and SLA) among them; Customer, Organization, Checklist, Approval and the other panels
-  open in the same column, one at a time (Ticket stays loaded underneath, as it holds the ticket form). The column
-  keeps its own width and collapses to the icons. Students and managers without another staff role have no queue and
-  keep the sidebar on the left.
-  The header shows the ticket number, campus badge, title with the state label and priority bars next to it, and the
-  actions **Reply** (replies to the latest customer message), **Add note**, **Assign**, **Change status**, **Merge**
-  and **Close**. Assign and Change status fill the form's fields; like any other change they are saved with
-  **Update**. **Close** sets the closed state and saves at once (like Update, it opens Details when a required field
-  is empty). Messages keep their sides and are labelled Internal note / Reply / Email / Phone…; internal notes are
-  amber. The top bar shows "Tickets / Ticket#…". Students see the same screen with only **Reply** in the header, no
-  actions on messages (no visibility, split, forward or copy) and a reply box without its title row.
+  used, and the time left (the bar uses clock time; Zammad counts SLA time in business hours). Named tabs above the
+  column choose the panel: **Ticket** (Details and SLA), **Student** (Zammad's Customer panel, with their open tickets
+  as a count), **Checklist** and **Approval**; panels that only apply now and then (e.g. Customer feedback on closed
+  tickets) add their own tab, Organization has none (the Student panel shows the organisation). One panel shows at a
+  time (Ticket stays loaded underneath, as it holds the ticket form) and its own title row gives way to the tab, its ⋮
+  menu stays. The column keeps its own width; collapsed, the tabs become icons. Students and managers without another
+  staff role have no queue and keep the sidebar on the left with the icons on the right edge.
+  The staff header is compact (design option B): the ticket number, campus badge, state label and priority bars, with
+  **Assign** and **Change status** (icon buttons), ⋯ (**Merge**) and **Close** on the right, then the title over the
+  full width. Assign and Change status fill the form's fields; like any other change they are saved with **Update**.
+  **Close** sets the closed state and saves at once (like Update, it opens Details when a required field is empty).
+  Under the messages a **reply bar** stays docked: "Write a reply to (first name)…" and **Reply** answer the student's
+  latest message (its own reply action: email, web…), **Internal note** opens a note; it makes way for the reply form.
+  **Update** sits at the foot of the panel column instead of in a bar across the screen, so the queue and the
+  conversation reach the bottom: while changes are unsaved an amber note says so with **Discard** (Zammad's
+  confirmation), **After update** is Zammad's tab behaviour (Stay on tab, Close tab, Close tab on ticket close) and
+  **Update** keeps its menu (drafts, macros) and gets a ring while something waits to be saved; who else is on the
+  ticket and the shared draft show above. With the column collapsed, Zammad's bar comes back.
+  Messages keep their sides and are labelled Internal note / Reply / Email / Phone…; internal notes are amber. The top
+  bar shows "Tickets / Ticket#…". Students see the earlier header (number, campus, title, state) with only **Reply**,
+  no actions on messages (no visibility, split, forward or copy) and a reply box without its title row.
   Look (minimal Swiss style, from the UI/UX Pro Max skill): Zammad's accent colour (links, tags, switches, + buttons,
   focus rings) is the application colour on this screen; the sidebar sections have a white icon in a solid square of
   the application colour, and Details is a card like the SLA card, also while editing (white fields with a fine
@@ -534,11 +543,13 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `lib/studenthub/ticket_views/choice.rb`, `config/initializers/studenthub_ticket_views.rb`, `GET/PUT/DELETE /api/v1/studenthub/ticket_views/:overview_id/choice`, `pages/ticket-overviews/components/StudenthubViewGroupBy.vue`, `composables/studenthubViewChoice.ts` | Each agent's grouping and order of a view |
 | `lib/studenthub/ticket_views/institutions.rb`, `db/migrate/20261006120000_studenthub_institution_views_by_organization.rb` | The Sites views (internally "Institutions"), kept in step with the organisations |
 | `lib/studenthub/theme/ticket_list_setup.rb`, `app/models/setting/validation/studenthub_{ticket_state_colors,escalation_warning_minutes}.rb`, `db/migrate/20261004180000_studenthub_ticket_list_colors.rb` | Settings, first guess per state, server-side checks |
-| `pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderActions.vue`, `StudenthubHeaderMenuButton.vue`; edits in `TopBarHeaderFull.vue`, `TicketInformationBadgeList.vue` | Ticket header: number, state and priority next to the title, actions |
+| `pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderCompact.vue`, `StudenthubTicketHeaderActions.vue`, `StudenthubHeaderMenuButton.vue`; edits in `TopBarHeaderFull.vue`, `TicketInformationBadgeList.vue` | Ticket header: staff's compact header, students' header with Reply |
+| `pages/ticket/components/TicketDetailView/StudenthubTicketReplyBar.vue`, `pages/ticket/composables/useStudenthubTicketReply.ts`; edits in `ArticleReply.vue`, `TicketDetailViewContent.vue` | Staff's reply bar under the messages; "Reply" to the student's latest message |
+| `pages/ticket/components/TicketDetailView/TicketDetailBottomBar/StudenthubTicketSaveBar.vue` (Zammad's live users, shared draft, tab behaviour and Update button rearranged); slot in `TicketSidebar.vue`, edit in `TicketDetailViewContent.vue` | Staff's save area at the foot of the panel column |
 | `pages/ticket/components/TicketSidebar/TicketSidebarInformation/TicketSidebarInformationContent/StudenthubTicketDetailsList.vue`, `StudenthubTicketSlaBox.vue`, `pages/ticket/composables/useStudenthubTicketDetailsMode.ts`, `utils/studenthubTicketDetails.ts`; edit in `TicketSidebarInformationContent.vue` | Details list with Edit / Done, SLA card |
 | `components/layout/LayoutContent.vue` (`sidebarPosition`, `sidebarWidthName` props), `composables/useResizeGridColumns.ts`, `TicketDetailViewContent.vue` | Ticket sidebar: on the right for staff (its own width), on the left for students and managers-only |
-| `pages/ticket/components/TicketSidebar/StudenthubTicketSideRail.vue`, `studenthubSidePanel.ts`; edits in `TicketSidebar.vue`, `TicketSidebarWrapper.vue`, `TicketDetailViewContent.vue` | Panel icons: staff get every panel in the right column, one at a time ("column"); students and New ticket open them beside the left column ("split") |
-| `pages/ticket/components/TicketDetailView/StudenthubTicketQueue.vue`, `pages/ticket/composables/useStudenthubTicketQueue.ts`; edits in `TicketDetailViewContent.vue` (layout, next ticket after closing) | Queue beside the ticket |
+| `pages/ticket/components/TicketSidebar/StudenthubTicketSideRail.vue`, `studenthubSidePanel.ts`; edits in `TicketSidebar.vue`, `TicketSidebarWrapper.vue`, `TicketDetailViewContent.vue` | Panels: staff get named tabs over one column on the right, one panel at a time ("column"; labels and the panels without a tab in `studenthubSidePanel.ts`; edit in `TicketSidebarContent.vue` for the title row); students and New ticket open them from icons beside the left column ("split") |
+| `pages/ticket/components/TicketDetailView/StudenthubTicketQueue.vue`, `pages/ticket/composables/useStudenthubTicketQueue.ts`, `useStudenthubQueueLayout.ts` (who gets it); edits in `TicketDetailViewContent.vue` (layout, next ticket after closing) | Queue beside the ticket |
 | `pages/ticket/components/TicketCreate/StudenthubCreatePanel.vue`, `StudenthubPriorityButtons.vue`, `StudenthubSlaPreview.vue`, `StudenthubCustomerEmail.vue`, `StudenthubTemplatePicker.vue`, `db/migrate/20261006110000_studenthub_close_ghost_create_tabs.rb`; edits in `TicketCreateContent.vue`, `TicketSidebar.vue` | New ticket screen (Taxil's `AgentTicketCreateCard.vue` is no longer used) |
 | `lib/studenthub/sla_preview.rb`, `app/controllers/studenthub_sla_previews_controller.rb` | SLA a new ticket would get |
 | `ArticleBubble/StudenthubArticleKind.vue`; edits in `ArticleBubbleBody.vue`, `useBubbleStyleGuide.ts`, `SystemMessage.vue` | Message labels and colours |

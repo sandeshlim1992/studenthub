@@ -2,5 +2,5 @@
 
 class Controllers::StudenthubDashboardControllerPolicy < Controllers::ApplicationControllerPolicy
   default_permit!('admin')
-  permit! :activity, to: %w[ticket.agent admin]
+  permit! %i[activity unassigned], to: %w[ticket.agent admin]
 end

@@ -10,6 +10,7 @@ import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 
 import { useStudenthubAgentStats } from '../composables/useStudenthubAgentStats.ts'
 import { useStudenthubDashboardActivity } from '../composables/useStudenthubDashboardActivity.ts'
+import { useStudenthubDashboardUnassigned } from '../composables/useStudenthubDashboardUnassigned.ts'
 import {
   STUDENTHUB_DASHBOARD_CHANNELS,
   type StudenthubDashboardTone,
@@ -20,12 +21,13 @@ import {
 } from '../utils/studenthubDashboard.ts'
 
 import StudenthubDashboardActivity from './StudenthubDashboardActivity.vue'
+import StudenthubDashboardUnassigned from './StudenthubDashboardUnassigned.vue'
 
 import '../styles/studenthub-dashboard.css'
 
 // Student Hub: the agents' dashboard ("Briefing"). One sentence on the day, then waiting time,
-// escalations and reopened tickets next to the team, the workload with how tickets came in, and
-// the latest activity. The figures are Zammad's own agent stats (useStudenthubAgentStats).
+// escalations and reopened tickets next to the team, the unassigned tickets of each of their teams,
+// the workload with how tickets came in, and the latest activity. The figures are Zammad's own agent stats (useStudenthubAgentStats).
 
 const session = useSessionStore()
 const firstName = computed(() => session.user?.firstname || '')
@@ -49,7 +51,14 @@ const {
   load: loadActivity,
 } = useStudenthubDashboardActivity()
 
-const refresh = () => Promise.all([loadStats(), loadActivity()])
+const {
+  teams: unassignedTeams,
+  isLoading: isUnassignedLoading,
+  loadFailed: unassignedFailed,
+  load: loadUnassigned,
+} = useStudenthubDashboardUnassigned()
+
+const refresh = () => Promise.all([loadStats(), loadActivity(), loadUnassigned()])
 
 onMounted(refresh)
 
@@ -63,7 +72,11 @@ const summary = computed(() => {
 
   if (!mine) parts.push(i18n.t('You have no open tickets assigned.'))
   else if (mine === 1)
-    parts.push(escalated ? i18n.t('Your one open ticket is escalated.') : i18n.t('Your one open ticket is not escalated.'))
+    parts.push(
+      escalated
+        ? i18n.t('Your one open ticket is escalated.')
+        : i18n.t('Your one open ticket is not escalated.'),
+    )
   else if (!escalated) parts.push(i18n.t('None of your %s open tickets is escalated.', mine))
   else if (escalated === 1) parts.push(i18n.t('1 of your %s open tickets is escalated.', mine))
   else parts.push(i18n.t('%s of your %s open tickets are escalated.', escalated, mine))
@@ -87,7 +100,10 @@ const summary = computed(() => {
           formatMinutes(-difference),
         ),
       )
-    else parts.push(i18n.t('Students waited %s for you today, the same as the team.', formatMinutes(me)))
+    else
+      parts.push(
+        i18n.t('Students waited %s for you today, the same as the team.', formatMinutes(me)),
+      )
   }
 
   return parts.join(' ')
@@ -133,7 +149,7 @@ const scale = (...values: (number | null)[]) =>
       <CommonButton
         variant="secondary"
         prefix-icon="arrow-repeat"
-        :disabled="isStatsLoading || isActivityLoading"
+        :disabled="isStatsLoading || isActivityLoading || isUnassignedLoading"
         @click="refresh"
       >
         {{ $t('Refresh') }}
@@ -148,32 +164,52 @@ const scale = (...values: (number | null)[]) =>
         </header>
         <div class="sh-dash-row">
           <span class="sh-dash-big">{{ formatMinutes(waiting.me) }}</span>
-          <span v-if="waitingChip" class="sh-dash-chip" :data-tone="waitingChip.tone">{{ waitingChip.text }}</span>
+          <span v-if="waitingChip" class="sh-dash-chip" :data-tone="waitingChip.tone">{{
+            waitingChip.text
+          }}</span>
         </div>
-        <span v-if="!waiting.me" class="sh-dash-sub">{{ $t('No student has waited for a reply from you today.') }}</span>
+        <span v-if="!waiting.me" class="sh-dash-sub">{{
+          $t('No student has waited for a reply from you today.')
+        }}</span>
         <div v-if="waiting.me" class="sh-dash-vs">
           <span>{{ $t('You') }}</span>
-          <span class="sh-dash-track"><span :style="{ width: `${share(waiting.me, scale(waiting.me, waiting.team))}%` }" /></span>
+          <span class="sh-dash-track"
+            ><span :style="{ width: `${share(waiting.me, scale(waiting.me, waiting.team))}%` }"
+          /></span>
           <b>{{ formatMinutes(waiting.me) }}</b>
         </div>
         <div v-if="waiting.me && waiting.team !== null" class="sh-dash-vs">
           <span>{{ $t('Team') }}</span>
-          <span class="sh-dash-track"><span data-team :style="{ width: `${share(waiting.team, scale(waiting.me, waiting.team))}%` }" /></span>
+          <span class="sh-dash-track"
+            ><span
+              data-team
+              :style="{ width: `${share(waiting.team, scale(waiting.me, waiting.team))}%` }"
+          /></span>
           <span>{{ formatMinutes(waiting.team) }}</span>
         </div>
       </section>
 
       <section class="sh-dash-card" :aria-label="$t('Escalations')">
         <header class="sh-dash-card__head">
-          <span class="sh-dash-sq"><CommonIcon name="exclamation-triangle" size="xs" decorative /></span>
+          <span class="sh-dash-sq"
+            ><CommonIcon name="exclamation-triangle" size="xs" decorative
+          /></span>
           <h2>{{ $t('Escalations') }}</h2>
         </header>
         <div class="sh-dash-row">
-          <span class="sh-dash-big">{{ escalation.own }}<small>{{ $t('of %s', assigned.own) }}</small></span>
-          <span v-if="mood" class="sh-dash-chip" :data-tone="mood.tone">{{ $t('Mood: %s', $t(mood.label)) }}</span>
+          <span class="sh-dash-big"
+            >{{ escalation.own }}<small>{{ $t('of %s', assigned.own) }}</small></span
+          >
+          <span v-if="mood" class="sh-dash-chip" :data-tone="mood.tone">{{
+            $t('Mood: %s', $t(mood.label))
+          }}</span>
         </div>
-        <span class="sh-dash-track"><span data-tone="warn" :style="{ width: `${share(escalation.own, assigned.own)}%` }" /></span>
-        <span class="sh-dash-sub">{{ $t('%s escalated across your teams', escalation.total) }}</span>
+        <span class="sh-dash-track"
+          ><span data-tone="warn" :style="{ width: `${share(escalation.own, assigned.own)}%` }"
+        /></span>
+        <span class="sh-dash-sub">{{
+          $t('%s escalated across your teams', escalation.total)
+        }}</span>
       </section>
 
       <section class="sh-dash-card" :aria-label="$t('Reopened by students')">
@@ -183,21 +219,42 @@ const scale = (...values: (number | null)[]) =>
         </header>
         <div class="sh-dash-row">
           <span class="sh-dash-big">{{ reopen.percent }}<small>%</small></span>
-          <span v-if="reopenChip" class="sh-dash-chip" :data-tone="reopenChip.tone">{{ reopenChip.text }}</span>
+          <span v-if="reopenChip" class="sh-dash-chip" :data-tone="reopenChip.tone">{{
+            reopenChip.text
+          }}</span>
         </div>
         <div class="sh-dash-vs">
           <span>{{ $t('You') }}</span>
-          <span class="sh-dash-track"><span :style="{ width: `${share(reopen.percent, scale(reopen.percent, reopen.average))}%` }" /></span>
+          <span class="sh-dash-track"
+            ><span
+              :style="{
+                width: `${share(reopen.percent, scale(reopen.percent, reopen.average))}%`,
+              }"
+          /></span>
           <b>{{ reopen.percent }}%</b>
         </div>
         <div v-if="reopen.average !== null" class="sh-dash-vs">
           <span>{{ $t('Team') }}</span>
-          <span class="sh-dash-track"><span data-team :style="{ width: `${share(reopen.average, scale(reopen.percent, reopen.average))}%` }" /></span>
+          <span class="sh-dash-track"
+            ><span
+              data-team
+              :style="{
+                width: `${share(reopen.average, scale(reopen.percent, reopen.average))}%`,
+              }"
+          /></span>
           <span>{{ reopen.average }}%</span>
         </div>
-        <span class="sh-dash-sub">{{ $t('%s of %s closed tickets', reopen.count, reopen.total) }}</span>
+        <span class="sh-dash-sub">{{
+          $t('%s of %s closed tickets', reopen.count, reopen.total)
+        }}</span>
       </section>
     </div>
+
+    <StudenthubDashboardUnassigned
+      :teams="unassignedTeams"
+      :is-loading="isUnassignedLoading"
+      :load-failed="unassignedFailed"
+    />
 
     <div class="sh-dash-two">
       <section class="sh-dash-card" :aria-label="$t('Your workload')">
@@ -211,7 +268,9 @@ const scale = (...values: (number | null)[]) =>
         <div class="sh-dash-pair">
           <div>
             <div class="sh-dash-label">{{ $t('Assigned to you') }}</div>
-            <div class="sh-dash-big">{{ assigned.own }}<small>{{ $t('of %s open', assigned.total) }}</small></div>
+            <div class="sh-dash-big">
+              {{ assigned.own }}<small>{{ $t('of %s open', assigned.total) }}</small>
+            </div>
             <span v-if="assigned.average !== null" class="sh-dash-sub">
               {{ $t('Average per agent: %s', assigned.average) }}
             </span>
@@ -220,17 +279,34 @@ const scale = (...values: (number | null)[]) =>
             <div class="sh-dash-label">{{ $t('In process') }}</div>
             <div class="sh-dash-big">{{ inProcess.percent }}<small>%</small></div>
             <span class="sh-dash-sub">
-              {{ $t('%s of %s', inProcess.count, inProcess.total) }}<template v-if="inProcess.average !== null"> · {{ $t('average %s', `${inProcess.average}%`) }}</template>
+              {{ $t('%s of %s', inProcess.count, inProcess.total)
+              }}<template v-if="inProcess.average !== null">
+                · {{ $t('average %s', `${inProcess.average}%`) }}</template
+              >
             </span>
           </div>
         </div>
         <div class="sh-dash-label">{{ $t('How your tickets came in') }}</div>
         <template v-if="channels.total">
-          <div class="sh-dash-stack" role="img" :aria-label="channels.list.map((channel) => `${$t(STUDENTHUB_DASHBOARD_CHANNELS[channel.key].label)} ${channel.count}`).join(', ')">
+          <div
+            class="sh-dash-stack"
+            role="img"
+            :aria-label="
+              channels.list
+                .map(
+                  (channel) =>
+                    `${$t(STUDENTHUB_DASHBOARD_CHANNELS[channel.key].label)} ${channel.count}`,
+                )
+                .join(', ')
+            "
+          >
             <span
               v-for="channel in channels.list"
               :key="channel.key"
-              :style="{ width: `${(channel.count / channels.total) * 100}%`, backgroundColor: STUDENTHUB_DASHBOARD_CHANNELS[channel.key].color }"
+              :style="{
+                width: `${(channel.count / channels.total) * 100}%`,
+                backgroundColor: STUDENTHUB_DASHBOARD_CHANNELS[channel.key].color,
+              }"
             />
           </div>
           <ul class="sh-dash-legend">

@@ -26,7 +26,7 @@ UI work added on top.
 
 ### Where this code came from
 
-```
+```text
 zammad/zammad (official)                 upstream, develop branch
    │  forked 17 Jul 2026 @ 91916cb
    ▼
@@ -152,7 +152,7 @@ Variants exist in `.devcontainer/` for LDAP, a mail server, Ollama (local AI) an
 Do this once on each PC. Ruby, Node, pnpm, PostgreSQL and Redis all come from the
 devcontainer, so don't install them in Windows or Ubuntu.
 
-```
+```text
 Windows → WSL 2 → Ubuntu (repo lives here) → Docker → devcontainer (Ruby, Node, pnpm, Postgres, Redis)
 ```
 
@@ -369,7 +369,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 - **Dashboard:** in production builds too (`pages/dashboard/routes.ts`; Zammad registers it only in development and
   test mode), first in the navigation. Three dashboards (`views/Dashboard.vue` picks one):
   - **Agents, "Briefing":** one sentence on their day (escalated tickets, how long students waited compared with the
-    team), cards for waiting time, escalations (with Zammad's mood) and reopened tickets next to the team average, their
+    team), cards for waiting time, escalations (with Zammad's mood) and reopened tickets next to the team average,
+    **Unassigned in your teams** (one card per team the agent can read: open tickets without an agent, how many are
+    overdue, the three waiting longest and a link to the Teams view; `/api/v1/studenthub/dashboard/unassigned`), their
     workload (assigned, in process, how their tickets came in) and the latest ticket activity. The figures are Zammad's
     own agent stats (the classic dashboard's, from `/api/v1/signshow`).
   - **Admins, "Team overview" (tiles):** open tickets by team (links to the Teams views; tickets waiting for approval
@@ -391,7 +393,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   blue eyes and a green beak (the college colours). The Student Hub logo elsewhere is unchanged.
 - **Loading screen:** the application colour with three dots in the college colours (LSST, UKBC, FSB) under
   "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
-- **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in on the right.
+- **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in
+  on the right.
   "Continue with Microsoft" now really starts the Microsoft sign-in (it posts to `/auth/microsoft_office365`).
 - **Ticket lists (staff overviews and search results):** white card with quiet rows, a "Views" panel tinted in the
   application colour, and these cells when an overview has the column: state as a coloured label, priority as bars
@@ -412,11 +415,12 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   id>`): every active organisation gets one, sorted by name; switch an organisation off to remove its view. Teams,
   Sites and the two approval views are locked on the Overviews admin page ("Managed automatically"), and changes
   made to them elsewhere are undone by the background sync. "Overviews" is called **Tickets** in the
-  new UI's navigation and tab title, and the top bar shows "Tickets / <view>" next to the search (the admin page for
+  new UI's navigation and tab title, and the top bar shows "Tickets / `<view>`" next to the search (the admin page for
   managing overviews keeps its name).
 - **Group by and sorting, per agent:** every ticket view has a **Group by** menu (no grouping, Agent, Team, State,
   Priority, Customer, Organization, and the select fields of tickets such as Category or Campus, including ones admins
-  add; not the Approval field of Ticket Approvals), and clicking a column title sorts by it. Both are remembered per agent and view in the agent's preferences, so
+  add; not the Approval field of Ticket Approvals), and clicking a column title sorts by it. Both are remembered per
+  agent and view in the agent's preferences, so
   they are the same on every device; **Reset** goes back to the view's own grouping and order. The server applies the
   choice where Zammad reads a view's grouping and order (the ticket query, the GraphQL overview type and its cache
   keys), so lists stay correct and an agent's choice never shows up for colleagues. In the Teams views, tickets without
@@ -516,7 +520,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `pages/ticket/components/TicketCreate/StudenthubCreatePanel.vue`, `StudenthubPriorityButtons.vue`, `StudenthubSlaPreview.vue`, `StudenthubCustomerEmail.vue`, `StudenthubTemplatePicker.vue`, `db/migrate/20261006110000_studenthub_close_ghost_create_tabs.rb`; edits in `TicketCreateContent.vue`, `TicketSidebar.vue` | New ticket screen (Taxil's `AgentTicketCreateCard.vue` is no longer used) |
 | `lib/studenthub/sla_preview.rb`, `app/controllers/studenthub_sla_previews_controller.rb` | SLA a new ticket would get |
 | `ArticleBubble/StudenthubArticleKind.vue`; edits in `ArticleBubbleBody.vue`, `useBubbleStyleGuide.ts`, `SystemMessage.vue` | Message labels and colours |
-| `pages/dashboard/views/Dashboard.vue`, `…/components/StudenthubAgentDashboard.vue`, `StudenthubAdminDashboard.vue`, `StudenthubDashboardActivity.vue`, `…/composables/useStudenthub{AgentStats,DashboardActivity}.ts`, `…/styles/studenthub-dashboard.css`, `app/services/service/studenthub_dashboard/`, `app/controllers/studenthub_dashboard_controller.rb` (`/api/v1/studenthub/dashboard/overview`, `…/activity`) | Dashboards (agents' Briefing, admins' Team overview) |
+| `pages/dashboard/views/Dashboard.vue`, `…/components/StudenthubAgentDashboard.vue`, `StudenthubAdminDashboard.vue`, `StudenthubDashboardActivity.vue`, `StudenthubDashboardUnassigned.vue`, `…/composables/useStudenthub{AgentStats,DashboardActivity,DashboardUnassigned}.ts`, `…/styles/studenthub-dashboard.css`, `app/services/service/studenthub_dashboard/`, `app/controllers/studenthub_dashboard_controller.rb` (`/api/v1/studenthub/dashboard/overview`, `…/activity`, `…/unassigned`) | Dashboards (agents' Briefing, admins' Team overview) |
 | `…/TicketSidebarInformationContent/StudenthubCustomerTicketColumn.vue` (shown by `TicketSidebarInformationContent.vue`), `utils/studenthubCustomerTicket.ts`, `app/services/service/studenthub_customer_ticket/`, `app/controllers/studenthub_customer_tickets_controller.rb` (`/api/v1/studenthub/customer_tickets/:id`, `…/close`, `…/reopen`, `…/rating`) | Students' column on the ticket screen |
 
 Zammad's own unit tests that expect the notification bell, the quick search or the avatar in the sidebar
@@ -668,9 +672,9 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 ## Sign-in and notifications
 
 - **No self-registration.** The sign-in page has no "New user? Register" link, and the migration
-  `db/migrate/20261007090000_studenthub_disable_self_signup.rb` switches Zammad's **New user accounts** setting off, so the
-  sign-up page and API refuse in both UIs. Accounts come from Microsoft 365 sign-in or the admins (who can switch the setting
-  back on under Security).
+  `db/migrate/20261007090000_studenthub_disable_self_signup.rb` switches Zammad's **New user accounts** setting off, so
+  the sign-up page and API refuse in both UIs. Accounts come from Microsoft 365 sign-in or the admins (who can switch
+  the setting back on under Security).
 - **Notifications stay inside the platform and are silent.** New notifications update the bell count and its list, in
   the new and the classic UI, but there is no browser pop-up, no request for browser permission and no sound
   (`OnlineNotification.vue`, `widget/online_notification.coffee`). Emails, triggers and Teams alerts are unchanged.

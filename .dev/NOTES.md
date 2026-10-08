@@ -72,9 +72,9 @@ Never put passwords, tokens or keys in this file.
   Zammad's own REST API (its checks and permissions apply); settings a page doesn't know are kept as they are
 - Customer feedback is for admins only (`admin.feedback_collection`: sidebar panel in both UIs and the API); the
   internal note with the rating is off by default
-- Dashboard: agents get a Briefing (own figures from Zammad's stats), admins a Team overview (open by team, SLA,
-  unassigned, trend, sites, channels, rating, activity) with a "My work" switch; "open" counts every state except
-  closed/merged, so "5. Resolved" is open
+- Dashboard: agents get a Briefing (own figures from Zammad's stats, plus one card per team they can read with its
+  unassigned open tickets), admins a Team overview (open by team, SLA, unassigned, trend, sites, channels, rating,
+  activity) with a "My work" switch; "open" counts every state except closed/merged, so "5. Resolved" is open
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
@@ -233,3 +233,5 @@ Never put passwords, tokens or keys in this file.
   before user #1 existed); Student Hub records now come after `db:seed` there
 - 2026-10-08: Fixed the new UI's stylesheet: the merge `ed514cb3a7` dropped a `}` in `studenthub-halo.css`, so
   Tailwind failed on `main.css` (new UI unstyled in dev, frontend build failed)
+- 2026-10-08: Agent dashboard: "Unassigned in your teams" (a card per team with its unassigned open tickets, overdue
+  count, the three waiting longest, link to the Teams view). Not yet checked in a browser

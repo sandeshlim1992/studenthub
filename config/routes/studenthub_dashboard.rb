@@ -5,4 +5,5 @@ Zammad::Application.routes.draw do
 
   match api_path + '/studenthub/dashboard/overview', to: 'studenthub_dashboard#overview', via: :get
   match api_path + '/studenthub/dashboard/activity', to: 'studenthub_dashboard#activity', via: :get
+  match api_path + '/studenthub/dashboard/unassigned', to: 'studenthub_dashboard#unassigned', via: :get
 end

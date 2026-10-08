@@ -88,4 +88,43 @@ RSpec.describe 'Student Hub dashboards', :aggregate_failures, type: :request do
       expect(response).to have_http_status(:forbidden)
     end
   end
+
+  describe 'GET /api/v1/studenthub/dashboard/unassigned' do
+    let(:hidden) { create(:group, name: 'Estates Test') }
+
+    before do
+      [group, other, hidden].each(&:touch)
+      Studenthub::TicketViews::Teams.sync!
+      create(:ticket, group:, title: 'Oldest one', state_name: 'new', created_at: 3.days.ago)
+      create(:ticket, group:, title: 'Overdue one', state_name: 'open', created_at: 1.day.ago).update_columns(escalation_at: 1.hour.ago)
+      create(:ticket, group:, title: 'Newest one', state_name: 'new', created_at: 1.hour.ago)
+      create(:ticket, group:, title: 'Too new to list', state_name: 'new')
+      create(:ticket, group:, owner: agent, state_name: 'open')
+      create(:ticket, group:, state_name: 'closed')
+      create(:ticket, group: hidden, state_name: 'new')
+    end
+
+    it 'lists the unassigned open tickets of the agent’s own teams, oldest first', authenticated_as: :agent do
+      get '/api/v1/studenthub/dashboard/unassigned', as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response['teams'].pluck('name')).to eq(['Service Desk Test'])
+
+      team = json_response['teams'].first
+      expect(team).to include('count' => 4, 'overdue' => 1, 'view_link' => Studenthub::TicketViews::Teams.link(group))
+      expect(team['oldest'].pluck('title')).to eq(['Oldest one', 'Overdue one', 'Newest one'])
+    end
+
+    it 'keeps teams with nothing unassigned', authenticated_as: :admin do
+      get '/api/v1/studenthub/dashboard/unassigned', as: :json
+
+      expect(json_response['teams']).to include(include('name' => 'VLE Test', 'count' => 0, 'oldest' => []))
+    end
+
+    it 'refuses students', authenticated_as: :student do
+      get '/api/v1/studenthub/dashboard/unassigned', as: :json
+
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end

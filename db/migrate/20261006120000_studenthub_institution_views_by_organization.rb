@@ -5,6 +5,8 @@
 # organisations by themselves (Studenthub::TicketViews::Institutions).
 class StudenthubInstitutionViewsByOrganization < ActiveRecord::Migration[8.0]
   def up
+    return if !Studenthub::Setup.seeded?
+
     Studenthub::TicketViews::Institutions.sync!
   end
 end

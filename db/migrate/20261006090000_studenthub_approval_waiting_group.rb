@@ -8,6 +8,8 @@ class StudenthubApprovalWaitingGroup < ActiveRecord::Migration[8.0]
     return if !table_exists?(:ticket_approvals)
 
     add_round_columns
+    return if !Studenthub::Setup.seeded?
+
     Studenthub::TicketApproval::Setup.create_setting
     Studenthub::TicketApproval::WaitingGroup.ensure! if Studenthub::TicketApproval.enabled?
   end

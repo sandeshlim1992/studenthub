@@ -4,6 +4,8 @@
 # 6 Oct 2026 one per organisation (Studenthub::TicketViews::Institutions), no longer by campus.
 class StudenthubInstitutionOverviews < ActiveRecord::Migration[8.0]
   def up
+    return if !Studenthub::Setup.seeded?
+
     Studenthub::TicketViews::Setup.ensure!
   end
 

@@ -4,6 +4,8 @@
 # agent. Afterwards they follow the groups by themselves (Studenthub::TicketViews::Teams).
 class StudenthubTeamViews < ActiveRecord::Migration[8.0]
   def up
+    return if !Studenthub::Setup.seeded?
+
     Studenthub::TicketViews::Teams.sync!
   end
 

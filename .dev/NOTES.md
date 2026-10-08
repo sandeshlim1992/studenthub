@@ -43,7 +43,8 @@ Never put passwords, tokens or keys in this file.
   all. For that the Teams sync makes the Admin role an agent role with full access to every team group
 - Teams views are locked on `/desktop/manage/overviews` ("Managed automatically": no on/off, reorder or delete),
   because the sync resets them; remove one by switching off its group
-- Sites views (called Institutions in the code): one per active organisation (its customers' open tickets), Admin role only, kept in step
+- Sites views (called Institutions in the code): one per active organisation (its customers' open tickets), Admin role
+  only, kept in step
   with the organisations and locked like Teams (replaced the LSST / UKBC / FSB views by campus)
 - The approval overviews (Awaiting my approval, Sent for approval) are system-managed like the Teams views:
   on/off follows the Ticket Approvals switch, roles are fixed (Managers / every agent role), locked on the
@@ -77,8 +78,10 @@ Never put passwords, tokens or keys in this file.
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
-- Student Hub migrations have no "new setup" guard; their records come from `lib/studenthub/*/setup.rb`,
-  which spec support re-runs after the test DB reset (Zammad's seed list is fixed, so no seed files)
+- Student Hub migrations always create their tables and columns, but records (roles, settings, overviews) only on
+  a seeded database (`Studenthub::Setup.seeded?`). On a new database (devcontainer, CI) migrations run before the
+  seeds, so `lib/tasks/studenthub_setup.rake` runs `Studenthub::Setup.ensure_all!` after `db:seed` (not in test:
+  spec support re-runs the `*/setup.rb` it needs after the test DB reset; Zammad's seed list is fixed, so no seed files)
 
 ## Known issues
 
@@ -138,7 +141,8 @@ Never put passwords, tokens or keys in this file.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
   dev-only test users agent@, manager@ and <student@example.com> and `[TEST]` tickets #886839/#886840
 - Work PC container: headless Google Chrome + Chrome DevTools MCP (user-level; redo after a rebuild)
-- New UI redesign from `studenthub-newUI`, merged into `develop` on 6 Oct (not yet deployed): colour setting, navigation panel, top bar,
+- New UI redesign from `studenthub-newUI`, merged into `develop` on 6 Oct (not yet deployed): colour setting, navigation
+  panel, top bar,
   sign-in page, ticket lists (Teams views, Group by, colours), ticket screen, New ticket screen, manager
   dashboard, loading screen, approvals rework. Dev DB: core workflows 21, 58 and 55 switched off (New ticket
   form failed to load); Managers role given overview access before the waiting-group change.
@@ -190,7 +194,8 @@ Never put passwords, tokens or keys in this file.
 
 - 2026-09-29: Set up WSL/Ubuntu + Docker + devcontainer on work PC; updated README with Windows setup
 - 2026-09-30: App running on work PC; restored test-server DB locally; read-only review of Taxil's changes
-- 2026-10-02: Deploy key for test server; removed `auto_wizard.json` from repo; merged Taxil's reports/ticket-wizard commit (PR #2)
+- 2026-10-02: Deploy key for test server; removed `auto_wizard.json` from repo; merged Taxil's reports/ticket-wizard
+  commit (PR #2)
 - 2026-10-02: Switched the test server to this repo; fixed the production build (logo paths only worked
   in dev); added `script/studenthub/deploy.sh` with tests
 - 2026-10-03: Restored the 3 Oct test-server dump locally (outbound channels and webhooks off); merged
@@ -206,7 +211,7 @@ Never put passwords, tokens or keys in this file.
   pushed `studenthub-newUI`
 - 2026-10-06: Teams only for the agent's own groups, none for managers, all for admins; Overviews admin page:
   on/off switch, table fixes, Teams views locked; merged `studenthub-newUI` into `develop`
-- 2026-10-06: Top bar shows "Tickets / <group> / Ticket#…" on ticket pages (group links to its Teams view);
+- 2026-10-06: Top bar shows "Tickets / `<group>` / Ticket#…" on ticket pages (group links to its Teams view);
   a page leaving no longer clears the next page's breadcrumbs
 - 2026-10-06: Approval overviews managed by the system (follow the Ticket Approvals switch, locked on the
   Overviews page, hand changes undone); dev DB: switched back on
@@ -224,3 +229,5 @@ Never put passwords, tokens or keys in this file.
   Exchange / S/MIME / PGP pages, visible text rebranded to Student Hub
 - 2026-10-08: Manager dashboard redesigned (3C-5): queue + request card with Approve / Deny, All caught up and month
   in review when empty; dashboard API returns the waiting requests and month figures. Not yet checked in a browser
+- 2026-10-08: Fixed new databases (devcontainer setup failed: Ticket Approvals migration created the Managers role
+  before user #1 existed); Student Hub records now come after `db:seed` there

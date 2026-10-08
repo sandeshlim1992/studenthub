@@ -2,12 +2,14 @@
 
 # Student Hub: native feedback collection (replaces the PHP feedback.php add-on).
 #
-# Unlike Zammad's own migrations this one has no "new setup" guard: Zammad adds new tables
-# for fresh installs to its base migration, which Student Hub must not edit. Running it on
-# both fresh and existing systems keeps the feature in new files only.
+# Unlike Zammad's own migrations the table is created on new systems too: Zammad adds new tables
+# for fresh installs to its base migration, which Student Hub must not edit. The records need a
+# seeded database, so on a new one they come after db:seed instead (Studenthub::Setup).
 class StudenthubFeedbackCollection < ActiveRecord::Migration[8.0]
   def up
     create_feedback_requests
+    return if !Studenthub::Setup.seeded?
+
     Studenthub::FeedbackCollection::Setup.ensure!
   end
 

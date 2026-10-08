@@ -2,12 +2,14 @@
 
 # Student Hub: ticket approvals (agents send a ticket to a manager, who approves or denies it).
 #
-# No "new setup" guard, for the same reason as the Feedback Collection migration: Student Hub
-# must not edit Zammad's base migration, so this runs on fresh and existing systems alike.
+# Table and columns on new systems too, for the same reason as the Feedback Collection migration:
+# Student Hub must not edit Zammad's base migration. Records only once seeded (Studenthub::Setup).
 class StudenthubTicketApproval < ActiveRecord::Migration[8.0]
   def up
     create_ticket_approvals
     add_ticket_columns
+    return if !Studenthub::Setup.seeded?
+
     Studenthub::TicketApproval::Setup.ensure!
   end
 

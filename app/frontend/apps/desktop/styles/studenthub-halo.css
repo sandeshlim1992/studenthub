@@ -1292,6 +1292,8 @@
     #1b1c20 calc(50% + 0.5px),
     #1b1c20 100%
   );
+}
+
 /* ---- New ticket for managers who are also customers: the student wizard and form in the
    application colour instead of green. Outside a layer, so these win over the utilities; the
    field rules match the form card's own (scoped, !important) rules with one class more. ---- */

@@ -22,6 +22,7 @@ import {
 } from '../../TicketDetailView/actions/useTicketHistory.ts'
 import TicketSidebarContent from '../TicketSidebarContent.vue'
 
+import StudenthubCustomerTicketColumn from './TicketSidebarInformationContent/StudenthubCustomerTicketColumn.vue'
 import StudenthubTicketDetailsList from './TicketSidebarInformationContent/StudenthubTicketDetailsList.vue'
 import StudenthubTicketSlaBox from './TicketSidebarInformationContent/StudenthubTicketSlaBox.vue'
 import TicketAccountedTime from './TicketSidebarInformationContent/TicketAccountedTime.vue'
@@ -134,7 +135,16 @@ const actions = computed<MenuItem[]>(() => [
     :icon="sidebarPlugin.icon"
     :actions="actions"
   >
+    <!-- Student Hub: students get their own column (summary, progress, files, actions). Their
+         Details stay in the page, hidden: the reply's Update needs Zammad's form in it. -->
+    <StudenthubCustomerTicketColumn
+      v-if="!isTicketAgent && ticket"
+      v-model="persistentStates"
+      :ticket="ticket"
+    />
+
     <CommonSectionCollapse
+      v-show="isTicketAgent"
       id="ticket-attributes"
       v-model="persistentStates.collapseAttributes"
       :title="__('Details')"

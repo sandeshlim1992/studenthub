@@ -77,7 +77,7 @@ const { configureSystemImportSource } = useImportSourceConfiguration(EnumSystemI
     <CommonAlert variant="info">
       {{
         $t(
-          'The entered email and API token will become your Zammad login credentials after the import is completed.',
+          'The entered email and API token will become your Student Hub login credentials after the import is completed.',
         )
       }}
     </CommonAlert>

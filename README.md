@@ -367,8 +367,28 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   notifications and the avatar menu. The navigation panel keeps the logo, Overviews / Dashboard /
   Administration and Reporting (the gear menu; not repeated in the top bar), recent tabs and the collapse button.
 - **Dashboard:** in production builds too (`pages/dashboard/routes.ts`; Zammad registers it only in development and
-  test mode). Agents and admins get the stats and the Activity Stream, managers without another staff role their own
-  dashboard.
+  test mode), first in the navigation. Three dashboards (`views/Dashboard.vue` picks one):
+  - **Agents, "Briefing":** one sentence on their day (escalated tickets, how long students waited compared with the
+    team), cards for waiting time, escalations (with Zammad's mood) and reopened tickets next to the team average, their
+    workload (assigned, in process, how their tickets came in) and the latest ticket activity. The figures are Zammad's
+    own agent stats (the classic dashboard's, from `/api/v1/signshow`).
+  - **Admins, "Team overview" (tiles):** open tickets by team (links to the Teams views; tickets waiting for approval
+    shown as such), SLA deadlines (overdue, due soon, on track, no deadline), tickets without an agent, agents online,
+    new and closed tickets of the last 7 days, open tickets by site (links to the Sites views), how tickets came in
+    (30 days), approvals waiting and the students' rating (30 days; admins with the Feedback Collection permission).
+    "Open" is what the Teams and Sites views list, so each number matches its view. Admins who also work on tickets
+    switch to **My work** (their own Briefing); the choice is kept in the browser.
+  - **Managers without another staff role:** their approvals dashboard (see Ticket Approvals).
+  - The activity is "who did what on which ticket", from Zammad's activity stream (sign-ins and other non-ticket
+    entries are left out).
+- **"Student Hub" instead of "Zammad"** in the texts people see (new and classic UI, emails): it names this system
+  there. Texts about Zammad itself keep the name (its company, AI and map services, versions, packages, translation and
+  documentation sites, the BETA UI feedback), as do code, licence headers and server paths (the AGPL needs the
+  copyright notices). The changed English texts have no translations yet.
+- **Owl instead of Zammad's bird:** the system user's avatar (`CommonUserAvatar/assets/logo.svg`), the browser tab
+  icon (`public/favicon.ico`), the home-screen icon (`public/apple-touch-icon.png`) and the classic setup screens'
+  full logo (`public/assets/images/icons/full-logo.svg` and its copy in `icons.svg`) show a navy line owl with red and
+  blue eyes and a green beak (the college colours). The Student Hub logo elsewhere is unchanged.
 - **Loading screen:** the application colour with three dots in the college colours (LSST, UKBC, FSB) under
   "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
 - **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in on the right.
@@ -434,6 +454,23 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   application colour; tags are chips in a light tint; **Close** is green; customer
   messages are on a light tint of the application colour with their channel (Phone, Email…) as a solid label, staff
   replies white, internal notes amber; message text keeps a readable line length (75 characters).
+- **Ticket screen (students):** instead of the staff Details, the left column has four sections.
+  - **Your request:** reference number (with a copy button), status, Category › Sub-category, Campus, Team, when it
+    was opened and the last reply from staff.
+  - **Progress:** Received → With the team → Being worked on → Resolved, with a note in plain words.
+    "Waiting for you" comes with a **Reply** button.
+  - **Files:** every file shared in the conversation (not images pasted into a message, not internal notes).
+  - **Need anything else?:**
+    - **I no longer need help** closes the ticket after a confirmation. Only the state changes, without a
+      message, because a message from the student would set it back to In Progress (trigger "Customer replied").
+    - On a resolved ticket: **Yes, it is fixed: close it** and **Still not fixed? Reopen**.
+    - **Reopen** needs a message, which goes into the conversation; the ticket goes back to the follow-up state
+      (3. In Progress). Whether a closed ticket can be reopened is the team's "follow-up possible" setting;
+      otherwise the student is offered **Raise a New Ticket**.
+    - Once Feedback Collection has sent its email, the student can rate here as well (stars and a comment). It
+      answers the same request, so the emailed link no longer works afterwards, and the rating shows here.
+  - The stage is read from the state type and the state names (as the ticket list colours are): "Resolved",
+    "Awaiting…", "In Progress", pending states (On hold) and tickets waiting for approval ("Being reviewed").
 - **New ticket (staff):** a page bar with the title (the summary once typed), **Cancel** (discards, with a confirm if
   anything was typed), **Save draft** (keeps the unfinished ticket under Recent) and **Create ticket**. Main column:
   **Start from a template** (Zammad's Apply template: a list that opens downwards, with a search on top and about 20
@@ -479,6 +516,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `pages/ticket/components/TicketCreate/StudenthubCreatePanel.vue`, `StudenthubPriorityButtons.vue`, `StudenthubSlaPreview.vue`, `StudenthubCustomerEmail.vue`, `StudenthubTemplatePicker.vue`, `db/migrate/20261006110000_studenthub_close_ghost_create_tabs.rb`; edits in `TicketCreateContent.vue`, `TicketSidebar.vue` | New ticket screen (Taxil's `AgentTicketCreateCard.vue` is no longer used) |
 | `lib/studenthub/sla_preview.rb`, `app/controllers/studenthub_sla_previews_controller.rb` | SLA a new ticket would get |
 | `ArticleBubble/StudenthubArticleKind.vue`; edits in `ArticleBubbleBody.vue`, `useBubbleStyleGuide.ts`, `SystemMessage.vue` | Message labels and colours |
+| `pages/dashboard/views/Dashboard.vue`, `…/components/StudenthubAgentDashboard.vue`, `StudenthubAdminDashboard.vue`, `StudenthubDashboardActivity.vue`, `…/composables/useStudenthub{AgentStats,DashboardActivity}.ts`, `…/styles/studenthub-dashboard.css`, `app/services/service/studenthub_dashboard/`, `app/controllers/studenthub_dashboard_controller.rb` (`/api/v1/studenthub/dashboard/overview`, `…/activity`) | Dashboards (agents' Briefing, admins' Team overview) |
+| `…/TicketSidebarInformationContent/StudenthubCustomerTicketColumn.vue` (shown by `TicketSidebarInformationContent.vue`), `utils/studenthubCustomerTicket.ts`, `app/services/service/studenthub_customer_ticket/`, `app/controllers/studenthub_customer_tickets_controller.rb` (`/api/v1/studenthub/customer_tickets/:id`, `…/close`, `…/reopen`, `…/rating`) | Students' column on the ticket screen |
 
 Zammad's own unit tests that expect the notification bell, the quick search or the avatar in the sidebar
 (`LeftSidebarHeader.spec.ts` ×2, `LayoutPage.spec.ts` "expands search…", and `LeftSidebarFooterMenu.spec.ts` ×2,
@@ -496,8 +535,11 @@ permission `admin.feedback_collection`).
 **How it works:** when a ticket changes to a _closed_ state (by an agent or a scheduler), a background step checks
 the rules on the admin page (groups, owner set, tags to skip, resend window) and emails the customer five star links
 through the Zammad email channel chosen there. A link opens `/feedback/<token>` with that star pre-selected; nothing
-is saved until the customer presses Submit (mail scanners open every link). The rating is stored, added to the ticket
-as an internal note, and shown to agents in a "Customer feedback" panel in the classic ticket sidebar.
+is saved until the customer presses Submit (mail scanners open every link). Students can also rate from their ticket
+screen (it answers the same request). The rating is stored and shown in a "Customer feedback" panel in the ticket
+sidebar (new and classic UI). **Ratings are for admins only** (permission `admin.feedback_collection`): agents don't get
+the panel and the API refuses them. The admin page can also add each rating to the ticket as an internal note; that is
+off by default, because every agent who can open the ticket reads the note.
 Only a SHA-256 hash of each token is stored.
 
 | File(s) | Purpose |
@@ -688,8 +730,17 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
   are Zammad's own); add, rename (renaming to an existing tag merges them) and delete tags, and whether agents may
   create new tags.
 
+- **S/MIME** and **PGP** (`/desktop/manage/system/integrations/smime`, `…/pgp`, also from **Configure** on the
+  Integrations page): on/off, signing of system notifications, certificates and private keys (S/MIME) or keys (PGP)
+  added by pasting or from a file, downloaded and deleted, and per team whether new emails are signed and encrypted by
+  default.
+- **Exchange** (`/desktop/manage/system/integrations/exchange`): contact import from Exchange address books. Sign in
+  with a Microsoft 365 app (app details, then **Connect account**; Microsoft sends you back to this page) or a user
+  and password for Exchange on site, choose folders, map fields to user fields, a trial run, save, **Import now**.
+  The stored password is never sent to the browser.
+
 Still only in the classic admin: BETA UI and KB Answer Generation; the live chat console and the phone (CTI) log
-(both unused); setup screens for Exchange, S/MIME, PGP and Clearbit.
+(both unused); setup for Clearbit (keep it off: it sends email addresses to a third party).
 
 | File(s) | Purpose |
 |---|---|
@@ -703,6 +754,7 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 | `app/services/service/studenthub_ldap/options.rb`, `app/controllers/studenthub_ldap_controller.rb`, `pages/manage/components/Ldap/`, `views/Ldap.vue`, `LdapSource.vue` | LDAP (`GET/PUT /api/v1/studenthub/ldap`) |
 | `pages/ticket/components/TicketSidebar/plugins/studenthub-feedback.ts`, `…/TicketSidebarStudenthubFeedback/` | Customer feedback panel |
 | `pages/manage/views/PublicLinks.vue`; `CommonPublicLinks` in `Login.vue`, `PasswordReset.vue` | Public Links |
+| `app/services/service/studenthub_secure_email/`, `app/services/service/studenthub_exchange/`, `app/controllers/studenthub_integrations_controller.rb`, `lib/studenthub/exchange_return.rb`, `lib/studenthub/exchange_stored_password.rb`, `views/SecureEmail.vue`, `Exchange.vue`, `components/Exchange/` | S/MIME, PGP and Exchange (`GET/PUT /api/v1/studenthub/integrations/smime\|pgp\|exchange`) |
 | `app/services/service/studenthub_ticket_fields/`, `app/controllers/studenthub_ticket_fields_controller.rb`, `views/TicketStates.vue`, `TicketPriorities.vue`, `Tags.vue` | States and priorities with their tickets, the "new tags" setting |
 
 ---

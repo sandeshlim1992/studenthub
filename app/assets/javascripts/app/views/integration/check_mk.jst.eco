@@ -2,7 +2,7 @@
 
 <h2><%- @T('Usage') %></h2>
 
-<p><%- @T('To enable %s for sending HTTP requests to %s, you need to create a designated "notification rule" in %s.', 'Checkmk', 'Zammad', 'Checkmk') %></p>
+<p><%- @T('To enable %s for sending HTTP requests to %s, you need to create a designated "notification rule" in %s.', 'Checkmk', 'Student Hub', 'Checkmk') %></p>
 
 <div class="settings-entry">
   <table class="settings-list" style="width: 100%;">
@@ -29,7 +29,7 @@
 
 <h2><%- @T('Examples') %></h2>
 
-<p><%- @T('You can use the following script to post the data to %s.', 'Zammad') %></p>
+<p><%- @T('You can use the following script to post the data to %s.', 'Student Hub') %></p>
 
 <ul class="nav nav-tabs" role="tablist">
   <li class="active"><a role="tab" data-toggle="tab" aria-expanded="true" class="js-tabItem" data-tablist="service"><%- @T('Service Notification') %></a></li>

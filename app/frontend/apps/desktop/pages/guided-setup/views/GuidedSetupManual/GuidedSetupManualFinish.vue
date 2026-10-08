@@ -22,5 +22,5 @@ useTimeoutFn(() => {
 </script>
 
 <template>
-  <GuidedSetupStatusMessage :message="__('Starting Zammad…')" />
+  <GuidedSetupStatusMessage :message="__('Starting Student Hub…')" />
 </template>

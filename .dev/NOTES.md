@@ -66,6 +66,13 @@ Never put passwords, tokens or keys in this file.
   a site view under Sites for those managers, My sites stats on the manager dashboard; teams unchanged
 - Classic features move to the new UI as pages that read through small Student Hub endpoints and save through
   Zammad's own REST API (its checks and permissions apply); settings a page doesn't know are kept as they are
+- Customer feedback is for admins only (`admin.feedback_collection`: sidebar panel in both UIs and the API); the
+  internal note with the rating is off by default
+- Dashboard: agents get a Briefing (own figures from Zammad's stats), admins a Team overview (open by team, SLA,
+  unassigned, trend, sites, channels, rating, activity) with a "My work" switch; "open" counts every state except
+  closed/merged, so "5. Resolved" is open
+- Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
+- Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Student Hub migrations have no "new setup" guard; their records come from `lib/studenthub/*/setup.rb`,
   which spec support re-runs after the test DB reset (Zammad's seed list is fixed, so no seed files)
@@ -114,7 +121,10 @@ Never put passwords, tokens or keys in this file.
 - This container picks up Node 22 from `.mise.toml` (project needs 24): pnpm warns "Unsupported engine"
 - Customers (students, and managers who are also customers) are offered every active group on New ticket while
   `customer_ticket_create_group_ids` is empty, including the Managers group where approvals wait (nobody sees
-  tickets created there) → set that setting to the real teams
+  tickets created there) → set that setting to the real teams (suggested: Unassigned Tickets only). Core workflow 21
+  ("First ticket goes to Unassigned Tickets") did that before; the staff form loads fine with it on (checked 7 Oct),
+  so the production step to switch it off needs rethinking
+- Student ticket wizard fails silently when a required field (Group, Sub-Category) is empty
 - Zammad's `spec/graphql/gql/mutations/ticket/create_spec.rb`: 4 examples fail since Ticket Approvals added the
   `approval_*` ticket fields (they show in `objectAttributeValues`)
 
@@ -138,7 +148,8 @@ Never put passwords, tokens or keys in this file.
   builds, scrolling on small screens fixed, and the classic features moved to the new UI (Knowledge Base + search,
   Scheduler, Roles, LDAP, feedback panel, Public Links, Ticket States / Priorities, Tags; checked in a browser on the
   dev data except a real LDAP connection). Dev DB (home PC): manager@ has FSB; test tickets #886850 (Service Desk)
-  and #886851 (Unassigned Tickets). Dev reachable on Windows via the `studenthub-port-relay` container
+  and #886851 (Unassigned Tickets); #886852 (closed, rated 4, reopened) and #886853 (wizard) from testing the
+  student column; add_internal_note switched off. Dev reachable on Windows via the `studenthub-port-relay` container
 - Test server switched to this repo on 2 Oct (`develop` at `f8f9b99dc9`). The logo build fix is
   applied there by hand (uncommitted); nginx `/cable` + `/ws` now forward the Host header; old
   branding edits are in `git stash` and `~ticketadmi/server-branding/` (old `custom.css` in `disabled-live/`)
@@ -159,8 +170,9 @@ Never put passwords, tokens or keys in this file.
 - [ ] Ticket Approvals go-live (README → Ticket Approvals): turn it on (takes over the Managers group), retire
       the old approval setup (auto-"Pending" workflow, workflow 57, old field, overview, trigger 65), check the
       team-change triggers 31/32/35
-- [ ] Production: switch off the core workflows that break the new New ticket form ("First ticket goes to
-      Unassigned Tickets" and the two old approval workflows)
+- [ ] Production: switch off the two old approval core workflows; decide on "First ticket goes to Unassigned
+      Tickets" vs the `customer_ticket_create_group_ids` setting
+- [ ] Decide: should "5. Resolved" count as open on the dashboards
 - [ ] Decide: update Zammad's failing specs or list them; keep or change the Auto Select Priority triggers;
       delete `AgentTicketCreateCard.vue`
 - [ ] Test server: check the moved pages with real data, and the LDAP wizard against the real directory (trial run
@@ -202,3 +214,6 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-07: Manager New ticket and sites, Members page, top bar crumbs, no self-registration, silent
   notifications, Dashboard in production, small-screen scrolling; moved Knowledge Base (+ search), Scheduler,
   Roles, LDAP, feedback panel, Public Links, Ticket States / Priorities and Tags to the new UI
+- 2026-10-08: Navigation icons (Tickets, Dashboard, Reporting), Dashboard first; student ticket column (close,
+  reopen, rate, files); feedback admin-only; new agent Briefing and admin Team overview dashboards; owl logo,
+  Exchange / S/MIME / PGP pages, visible text rebranded to Student Hub

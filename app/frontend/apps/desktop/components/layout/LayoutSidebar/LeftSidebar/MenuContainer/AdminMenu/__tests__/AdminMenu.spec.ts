@@ -15,14 +15,18 @@ describe('AdminMenu', () => {
   })
 
   describe('create ticket action button', () => {
-    it('renders setting button', () => {
+    // Student Hub: Reporting is a second item, so the button opens a menu with both.
+    it('renders setting button', async () => {
       mockPermissions(['admin.monitoring'])
 
       const wrapper = renderComponent(AdminMenu, {
         router: true,
       })
 
-      expect(wrapper.getByLabelText('Administration')).toBeInTheDocument()
+      await wrapper.events.click(wrapper.getByLabelText('Action menu button'))
+
+      expect(await wrapper.findByText('Administration')).toBeInTheDocument()
+      expect(wrapper.getByText('Reporting')).toBeInTheDocument()
     })
 
     it('does not renders setting button if user has not permission', () => {

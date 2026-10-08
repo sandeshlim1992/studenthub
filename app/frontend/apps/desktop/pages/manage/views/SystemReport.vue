@@ -219,7 +219,7 @@ onMounted(() => {
           <p class="text-blue-800/90 dark:text-blue-300/80">
             {{
               __(
-                'Zammad never transmits this diagnostic report automatically. Personal account passwords, API tokens, and secrets are sanitized and omitted. You can safely share this file when requesting assistance from Zammad support.',
+                'Student Hub never transmits this diagnostic report automatically. Personal account passwords, API tokens, and secrets are sanitized and omitted. You can safely share this file when requesting assistance from Student Hub support.',
               )
             }}
           </p>

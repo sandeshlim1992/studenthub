@@ -1014,7 +1014,7 @@
 }
 
 /* Sidebar sections: before each title a solid square in the application colour with a white icon */
-#content-sidebar header:has(~ :is(#ticket-attributes, #ticket-sla, #ticket-tags, #ticket-links, #ticket-subscribers, #ticket-time-accounting, #ticket-ai-knowledge-base-answers)) h3::before {
+#content-sidebar header:has(~ :is(#ticket-attributes, #ticket-sla, #ticket-tags, #ticket-links, #ticket-subscribers, #ticket-time-accounting, #ticket-ai-knowledge-base-answers, #ticket-customer-summary, #ticket-customer-progress, #ticket-customer-files, #ticket-customer-actions)) h3::before {
   content: '';
   flex-shrink: 0;
   width: 1.25rem;
@@ -1050,6 +1050,23 @@
 
 #content-sidebar header:has(~ #ticket-ai-knowledge-base-answers) {
   --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 2.82754C1.88498 2.45777 3.1539 2.05941 4.38768 1.93497C5.71799 1.80079 6.8464 1.99806 7.5 2.68668V12.4325C6.56511 11.9025 5.38065 11.8297 4.28732 11.94C3.10693 12.0591 1.91771 12.4011 1 12.751V2.82754ZM8.5 2.68668C9.1536 1.99806 10.282 1.80079 11.6123 1.93497C12.8461 2.05941 14.115 2.45777 15 2.82754V12.751C14.0823 12.4011 12.8931 12.0591 11.7127 11.94C10.6194 11.8297 9.43489 11.9025 8.5 12.4325V2.68668ZM8 1.78303C7.01509 0.936435 5.58683 0.808944 4.28732 0.940018C2.77322 1.09274 1.24459 1.61232 0.293099 2.04481C0.114601 2.12595 0 2.30392 0 2.49999V13.5C0 13.67 0.0863761 13.8284 0.229307 13.9204C0.372238 14.0124 0.55214 14.0255 0.706901 13.9552C1.58875 13.5543 3.01012 13.0739 4.38768 12.935C5.79565 12.793 6.97747 13.0222 7.60957 13.8123C7.70445 13.9309 7.84811 14 8 14C8.15189 14 8.29555 13.9309 8.39043 13.8123C9.02253 13.0222 10.2043 12.793 11.6123 12.935C12.9899 13.0739 14.4113 13.5543 15.2931 13.9552C15.4479 14.0255 15.6278 14.0124 15.7707 13.9204C15.9136 13.8284 16 13.67 16 13.5V2.49999C16 2.30392 15.8854 2.12595 15.7069 2.04481C14.7554 1.61232 13.2268 1.09274 11.7127 0.940018C10.4132 0.808944 8.98491 0.936435 8 1.78303Z' /%3E%3C/svg%3E");
+}
+
+/* Student's column: Your request, Progress, Files, Need anything else? */
+#content-sidebar header:has(~ #ticket-customer-summary) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='17' viewBox='0 0 16 17' xmlns='http://www.w3.org/2000/svg'%3E %3Cpath d='M14.5 3.80005C14.7761 3.80005 15 4.02391 15 4.30005V13.3C15 13.5762 14.7761 13.8 14.5 13.8H1.5C1.22386 13.8 1 13.5762 1 13.3V4.30005C1 4.02391 1.22386 3.80005 1.5 3.80005H14.5ZM1.5 2.80005C0.671573 2.80005 0 3.47162 0 4.30005V13.3C0 14.1285 0.671573 14.8 1.5 14.8H14.5C15.3284 14.8 16 14.1285 16 13.3V4.30005C16 3.47162 15.3284 2.80005 14.5 2.80005H1.5Z'/%3E %3Cpath d='M5 8.80005C5 8.52391 5.22386 8.30005 5.5 8.30005H12.5C12.7761 8.30005 13 8.52391 13 8.80005C13 9.07619 12.7761 9.30005 12.5 9.30005H5.5C5.22386 9.30005 5 9.07619 5 8.80005Z'/%3E %3Cpath d='M5 6.30005C5 6.02391 5.22386 5.80005 5.5 5.80005H12.5C12.7761 5.80005 13 6.02391 13 6.30005C13 6.57619 12.7761 6.80005 12.5 6.80005H5.5C5.22386 6.80005 5 6.57619 5 6.30005Z'/%3E %3Cpath d='M5 11.3C5 11.0239 5.22386 10.8 5.5 10.8H12.5C12.7761 10.8 13 11.0239 13 11.3C13 11.5762 12.7761 11.8 12.5 11.8H5.5C5.22386 11.8 5 11.5762 5 11.3Z'/%3E %3Cpath d='M4 6.30005C4 6.57619 3.77614 6.80005 3.5 6.80005C3.22386 6.80005 3 6.57619 3 6.30005C3 6.02391 3.22386 5.80005 3.5 5.80005C3.77614 5.80005 4 6.02391 4 6.30005Z'/%3E %3Cpath d='M4 8.80005C4 9.07619 3.77614 9.30005 3.5 9.30005C3.22386 9.30005 3 9.07619 3 8.80005C3 8.52391 3.22386 8.30005 3.5 8.30005C3.77614 8.30005 4 8.52391 4 8.80005Z'/%3E %3Cpath d='M4 11.3C4 11.5762 3.77614 11.8 3.5 11.8C3.22386 11.8 3 11.5762 3 11.3C3 11.0239 3.22386 10.8 3.5 10.8C3.77614 10.8 4 11.0239 4 11.3Z'/%3E %3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-customer-progress) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E %3Cpath d='M2.5 8C2.5 4.96243 4.96243 2.5 8 2.5C9.00262 2.5 9.94117 2.76782 10.7496 3.2355C10.9887 3.37377 11.2945 3.29209 11.4328 3.05306C11.5711 2.81403 11.4894 2.50816 11.2504 2.36989C10.2938 1.81654 9.1831 1.5 8 1.5C4.41015 1.5 1.5 4.41015 1.5 8C1.5 11.5899 4.41015 14.5 8 14.5C11.5899 14.5 14.5 11.5899 14.5 8C14.5 7.72386 14.2761 7.5 14 7.5C13.7239 7.5 13.5 7.72386 13.5 8C13.5 11.0376 11.0376 13.5 8 13.5C4.96243 13.5 2.5 11.0376 2.5 8Z' /%3E %3Cpath d='M15.3536 3.35355C15.5488 3.15829 15.5488 2.84171 15.3536 2.64645C15.1583 2.45118 14.8417 2.45118 14.6464 2.64645L8 9.29289L5.35355 6.64645C5.15829 6.45118 4.84171 6.45118 4.64645 6.64645C4.45118 6.84171 4.45118 7.15829 4.64645 7.35355L7.64645 10.3536C7.84171 10.5488 8.15829 10.5488 8.35355 10.3536L15.3536 3.35355Z' /%3E %3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-customer-files) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E %3Cpath d='M4.5 3C4.5 1.61929 5.61929 0.5 7 0.5C8.38071 0.5 9.5 1.61929 9.5 3V12C9.5 12.8284 8.82843 13.5 8 13.5C7.17157 13.5 6.5 12.8284 6.5 12V5C6.5 4.72386 6.72386 4.5 7 4.5C7.27614 4.5 7.5 4.72386 7.5 5V12C7.5 12.2761 7.72386 12.5 8 12.5C8.27614 12.5 8.5 12.2761 8.5 12V3C8.5 2.17157 7.82843 1.5 7 1.5C6.17157 1.5 5.5 2.17157 5.5 3V12C5.5 13.3807 6.61929 14.5 8 14.5C9.38071 14.5 10.5 13.3807 10.5 12V5C10.5 4.72386 10.7239 4.5 11 4.5C11.2761 4.5 11.5 4.72386 11.5 5V12C11.5 13.933 9.933 15.5 8 15.5C6.067 15.5 4.5 13.933 4.5 12V3Z' /%3E %3C/svg%3E");
+}
+
+#content-sidebar header:has(~ #ticket-customer-actions) {
+  --sh-section-icon: url("data:image/svg+xml,%3Csvg fill='white' width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E %3Cpath d='M17.5 1.25C18.1904 1.25 18.75 1.80964 18.75 2.5V12.5C18.75 13.1904 18.1904 13.75 17.5 13.75H5.51777C4.85472 13.75 4.21884 14.0134 3.75 14.4822L1.25 16.9822V2.5C1.25 1.80964 1.80964 1.25 2.5 1.25H17.5ZM2.5 0C1.11929 0 0 1.11929 0 2.5V18.4911C0 19.0479 0.673213 19.3268 1.06694 18.9331L4.63388 15.3661C4.8683 15.1317 5.18625 15 5.51777 15H17.5C18.8807 15 20 13.8807 20 12.5V2.5C20 1.11929 18.8807 0 17.5 0H2.5Z'/%3E %3Cpath d='M3.75 4.375C3.75 4.02982 4.02982 3.75 4.375 3.75H15.625C15.9702 3.75 16.25 4.02982 16.25 4.375C16.25 4.72018 15.9702 5 15.625 5H4.375C4.02982 5 3.75 4.72018 3.75 4.375ZM3.75 7.5C3.75 7.15482 4.02982 6.875 4.375 6.875H15.625C15.9702 6.875 16.25 7.15482 16.25 7.5C16.25 7.84518 15.9702 8.125 15.625 8.125H4.375C4.02982 8.125 3.75 7.84518 3.75 7.5ZM3.75 10.625C3.75 10.2798 4.02982 10 4.375 10H10.625C10.9702 10 11.25 10.2798 11.25 10.625C11.25 10.9702 10.9702 11.25 10.625 11.25H4.375C4.02982 11.25 3.75 10.9702 3.75 10.625Z'/%3E %3C/svg%3E");
 }
 
 /* Details as a card, like the SLA card below it */
@@ -1340,4 +1357,245 @@
 .sh-manager-create .formkit-inner:hover .fill-stone-200,
 .sh-manager-create .formkit-inner:focus-within .fill-stone-200 {
   fill: var(--sh-app) !important;
+}
+
+/* Student's column on the ticket screen */
+.sh-customer-ticket__end {
+  flex-shrink: 0;
+  height: 4.5rem;
+}
+
+.sh-customer-ticket__reference {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-customer-ticket__copy {
+  display: inline-flex;
+  padding: 0.25rem;
+  border-radius: 0.375rem;
+  color: var(--sh-app);
+}
+
+.sh-customer-ticket__copy:hover,
+.sh-customer-ticket__copy:focus-visible {
+  background-color: color-mix(in sRGB, var(--sh-app) 10%, transparent);
+}
+
+.sh-customer-ticket__status {
+  display: inline-block;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sh-customer-progress,
+.sh-customer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.625rem;
+  background-color: var(--sh-card);
+}
+
+.sh-customer-progress__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-customer-progress__steps li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-block: 0.3125rem;
+  font-size: 0.875rem;
+  color: var(--sh-muted);
+}
+
+/* The line between two markers */
+.sh-customer-progress__steps li + li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0.5625rem;
+  bottom: calc(50% + 0.625rem);
+  height: calc(100% - 1.25rem);
+  width: 2px;
+  background-color: var(--sh-line);
+}
+
+.sh-customer-progress__steps li[data-state='done'] + li::before,
+.sh-customer-progress__steps li[data-state='done'] + li[data-state='current']::before {
+  background-color: var(--sh-app);
+}
+
+.sh-customer-progress__marker {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--sh-line);
+  border-radius: 9999px;
+  background-color: var(--sh-card);
+  color: white;
+}
+
+.sh-customer-progress__steps li[data-state='done'] {
+  color: var(--sh-ink);
+}
+
+.sh-customer-progress__steps li[data-state='done'] .sh-customer-progress__marker {
+  border-color: var(--sh-app);
+  background-color: var(--sh-app);
+}
+
+.sh-customer-progress__steps li[data-state='current'] {
+  font-weight: 700;
+  color: var(--sh-ink);
+}
+
+.sh-customer-progress__steps li[data-state='current'] .sh-customer-progress__marker {
+  border-color: var(--sh-app);
+  box-shadow: inset 0 0 0 3px var(--sh-card), inset 0 0 0 8px var(--sh-app);
+}
+
+.sh-customer-progress__note {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.sh-customer-files {
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.625rem;
+  background-color: var(--sh-card);
+  list-style: none;
+}
+
+.sh-customer-files li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--sh-app);
+}
+
+.sh-customer-files li + li {
+  border-top: 1px solid var(--sh-line);
+}
+
+.sh-customer-files__name {
+  display: block;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sh-app);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-customer-files__name:hover,
+.sh-customer-files__name:focus-visible {
+  text-decoration: underline;
+}
+
+.sh-customer-files__meta {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--sh-muted);
+}
+
+.sh-customer-actions__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--sh-ink);
+}
+
+.sh-customer-actions__form fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.sh-customer-actions__form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.sh-customer-actions__form legend,
+.sh-customer-actions__form > label > span {
+  font-weight: 600;
+}
+
+.sh-customer-actions__form textarea {
+  width: 100%;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.5rem;
+  background-color: white;
+  color: var(--sh-ink);
+  resize: vertical;
+}
+
+.sh-customer-actions__form textarea:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: 1px;
+}
+
+.sh-customer-actions__star-input {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.sh-customer-actions__star-input label {
+  cursor: pointer;
+  font-size: 1.625rem;
+  line-height: 1;
+  color: #8a93a3;
+}
+
+.sh-customer-actions__star-input label[data-active] {
+  color: #a96c00;
+}
+
+.sh-customer-actions__star-input label:has(input:focus-visible) {
+  border-radius: 0.25rem;
+  outline: 2px solid var(--sh-app);
+}
+
+.sh-customer-actions__rated {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--sh-ink);
+}
+
+.sh-customer-actions__stars {
+  font-size: 1.25rem;
+  letter-spacing: 0.125rem;
+  color: #a96c00;
 }

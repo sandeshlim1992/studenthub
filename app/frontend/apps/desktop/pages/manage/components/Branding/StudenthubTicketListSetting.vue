@@ -241,7 +241,7 @@ onMounted(load)
         </select>
       </label>
       <p class="text-sm text-slate-600 dark:text-slate-400">
-        {{ $t('The label turns amber this long before the deadline and red once it has passed. Zammad itself warns agents 15 minutes before.') }}
+        {{ $t('The label turns amber this long before the deadline and red once it has passed. Student Hub itself warns agents 15 minutes before.') }}
       </p>
       <div class="flex flex-wrap items-center gap-2 pt-1" aria-hidden="true">
         <span

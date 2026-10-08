@@ -93,7 +93,7 @@ module Store::Provider::S3
 
     def log_and_raise(error)
       Rails.logger.error { "#{name}: #{error.message}" }
-      raise Store::Provider::S3::Error, __('Simple Storage Service malfunction. Please contact your Zammad administrator.')
+      raise Store::Provider::S3::Error, __('Simple Storage Service malfunction. Please contact your Student Hub administrator.')
     end
 
     def request(method, **)

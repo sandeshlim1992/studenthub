@@ -45,6 +45,10 @@ describe('Customer feedback in the ticket sidebar', () => {
     vi.unstubAllGlobals()
   })
 
+  it('is for admins only', () => {
+    expect(feedbackSidebarPlugin.permissions).toEqual(['admin.feedback_collection'])
+  })
+
   it('is offered on closed tickets only', () => {
     expect(feedbackSidebarPlugin.available?.(context('closed') as never)).toBe(true)
     expect(feedbackSidebarPlugin.available?.(context('open') as never)).toBe(false)

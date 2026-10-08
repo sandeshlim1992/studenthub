@@ -167,7 +167,7 @@ class PackageSettingsModal extends App.ControllerModal
     token_value = 'present' if @token_present
 
     configureAttributes = [
-      { name: 'token', display: __('API Token'), tag: 'input', type: 'password', autocomplete: 'one-time-code', single: true, null: true, value: token_value, help: __('Please enter the API token you received from Zammad.') },
+      { name: 'token', display: __('API Token'), tag: 'input', type: 'password', autocomplete: 'one-time-code', single: true, null: true, value: token_value, help: __('Please enter the API token you received from Student Hub.') },
     ]
     @controller = new App.ControllerForm(
       model:

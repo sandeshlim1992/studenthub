@@ -92,7 +92,7 @@ const sendTest = async () => {
             {{ channel.label }}{{ channel.active ? '' : ` (${$t('inactive')})` }}
           </option>
         </select>
-        <span :class="hintClass">{{ $t('Feedback emails use this Zammad email channel and its sign-in. The account must be allowed to send as the address below.') }}</span>
+        <span :class="hintClass">{{ $t('Feedback emails use this Student Hub email channel and its sign-in. The account must be allowed to send as the address below.') }}</span>
         <span v-if="selectedChannel && !selectedChannel.active" class="text-xs font-semibold text-amber-800 dark:text-amber-300">
           {{ $t('This channel is inactive, so no feedback emails can be sent through it.') }}
         </span>
@@ -189,6 +189,7 @@ const sendTest = async () => {
         <input id="feedback-internal-note" v-model="form.add_internal_note" type="checkbox" class="h-4 w-4 accent-blue-800" />
         {{ $t('Add the rating and comment to the ticket as an internal note') }}
       </label>
+      <span :class="hintClass">{{ $t('Every agent who can open the ticket reads the note. Leave it off to keep ratings for admins only.') }}</span>
       <label for="feedback-notify-email" :class="labelClass">
         {{ $t('Also email each answer to') }}
         <input id="feedback-notify-email" v-model="form.notify_email" type="email" :placeholder="$t('Leave empty to send nothing')" :class="inputClass" />

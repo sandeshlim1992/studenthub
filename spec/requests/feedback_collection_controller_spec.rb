@@ -157,17 +157,18 @@ RSpec.describe FeedbackCollectionController, aggregate_failures: true, type: :re
   describe 'GET /api/v1/feedback_collection/tickets/:ticket_id' do
     let(:group)  { create(:group) }
     let(:agent)  { create(:agent, groups: [group]) }
+    let(:admin)  { create(:admin, groups: [group]) }
     let(:ticket) { create(:ticket, group:) }
 
     before { create(:feedback_request, :submitted, ticket:, rating: 4, comments: 'Thanks') }
 
-    it 'shows the rating to agents who can see the ticket', authenticated_as: :agent do
+    it 'shows the rating to admins', authenticated_as: :admin do
       get "/api/v1/feedback_collection/tickets/#{ticket.id}"
 
       expect(json_response['items']).to contain_exactly(include('rating' => 4, 'comments' => 'Thanks'))
     end
 
-    it 'hides it from agents without access to the ticket', authenticated_as: -> { create(:agent) } do
+    it 'hides it from agents, even with access to the ticket', authenticated_as: :agent do
       get "/api/v1/feedback_collection/tickets/#{ticket.id}"
 
       expect(response).to have_http_status(:forbidden)

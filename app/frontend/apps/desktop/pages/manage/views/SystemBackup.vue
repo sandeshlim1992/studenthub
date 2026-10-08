@@ -193,7 +193,7 @@ const isDatabaseStorage = computed(() => {
           <p class="mb-4 text-xs text-slate-500 dark:text-slate-400">
             {{
               __(
-                'Zammad includes automated scripts out of the box that bundle the database, configuration files, and attachments into a unified timestamped archive.',
+                'Student Hub includes automated scripts out of the box that bundle the database, configuration files, and attachments into a unified timestamped archive.',
               )
             }}
           </p>
@@ -343,7 +343,7 @@ const isDatabaseStorage = computed(() => {
           <p class="mb-4 text-xs text-slate-500 dark:text-slate-400">
             {{
               __(
-                'To restore Zammad on an existing or newly provisioned host, follow the verified four-step restoration protocol.',
+                'To restore Student Hub on an existing or newly provisioned host, follow the verified four-step restoration protocol.',
               )
             }}
           </p>

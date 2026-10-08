@@ -259,7 +259,7 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
       <div v-if="$c.maintenance_mode" class="mb-3 rounded-xl bg-red-500 px-4 py-2.5 text-xs text-white">
         {{
           $t(
-            'Zammad is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
+            'Student Hub is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
           )
         }}
       </div>

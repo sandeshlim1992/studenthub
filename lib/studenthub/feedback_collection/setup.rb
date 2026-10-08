@@ -59,7 +59,7 @@ module Studenthub::FeedbackCollection::Setup
         require_owner:     true,
         skip_tags:         ['spam'],
         resend_after_days: 0,
-        add_internal_note: true,
+        add_internal_note: false,
       },
       preferences: { permission: ['admin.feedback_collection'] },
       frontend:    false

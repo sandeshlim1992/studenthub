@@ -566,7 +566,7 @@ onMounted(() => {
         <div class="flex-1 overflow-y-auto p-6 space-y-6">
           <!-- Description Box -->
           <div class="p-4 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            {{ __('Webhooks make it easy to send information about events within Zammad to third-party systems via HTTP(S).') }}
+            {{ __('Webhooks make it easy to send information about events within Student Hub to third-party systems via HTTP(S).') }}
           </div>
 
           <!-- Name -->

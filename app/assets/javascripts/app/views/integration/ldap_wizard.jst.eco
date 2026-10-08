@@ -177,7 +177,7 @@
             <thead>
               <tr>
                 <th><%- @T('%s Attribute', 'LDAP') %>
-                <th><%- @T('%s Attribute', 'Zammad') %>
+                <th><%- @T('%s Attribute', 'Student Hub') %>
                 <th><%- @T('Action') %>
             </thead>
             <tbody>
@@ -202,7 +202,7 @@
             <thead>
               <tr>
                 <th><%- @T('%s Group', 'LDAP') %>
-                <th><%- @T('%s Role', 'Zammad') %>
+                <th><%- @T('%s Role', 'Student Hub') %>
                 <th class="u-noWrap">
                   <%- @T('Include nested') %>
                   <div class="help-message js-helpMessage" title="<%- @T('Include all users in nested groups of this group') %>">

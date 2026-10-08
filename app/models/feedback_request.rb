@@ -18,7 +18,7 @@ class FeedbackRequest < ApplicationModel
     require_owner:     true,
     skip_tags:         ['spam'],
     resend_after_days: 0,
-    add_internal_note: true,
+    add_internal_note: false,
   }.freeze
 
   belongs_to :ticket,   optional: true

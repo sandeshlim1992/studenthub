@@ -1178,10 +1178,10 @@ onMounted(() => {
             </div>
             
             <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
-              {{ __('Connect Microsoft 365 with Zammad') }}
+              {{ __('Connect Microsoft 365 with Student Hub') }}
             </h2>
             <p class="text-xs text-slate-600 dark:text-slate-400 max-w-lg mx-auto mb-6 leading-relaxed">
-              {{ __('You can connect Microsoft 365 Email Accounts with Zammad. But first, you will have to connect your Zammad instance with Microsoft Entra ID.') }}
+              {{ __('You can connect Microsoft 365 Email Accounts with Student Hub. But first, you will have to connect your Student Hub instance with Microsoft Entra ID.') }}
             </p>
 
             <button

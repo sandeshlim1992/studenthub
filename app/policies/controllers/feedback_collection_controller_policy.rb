@@ -2,5 +2,4 @@
 
 class Controllers::FeedbackCollectionControllerPolicy < Controllers::ApplicationControllerPolicy
   default_permit!('admin.feedback_collection')
-  permit! :ticket, to: 'ticket.agent'
 end

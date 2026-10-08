@@ -165,6 +165,7 @@ const integrationsList: IntegrationItem[] = [
       'Synchronize contacts and address book entries from Microsoft Exchange / Office 365.',
     ),
     switchSetting: 'exchange_integration',
+    configRoute: '/manage/system/integrations/exchange',
     configSetting: 'exchange_config',
   },
   {
@@ -223,6 +224,7 @@ const integrationsList: IntegrationItem[] = [
       'Pretty Good Privacy public/private key management for end-to-end email encryption and signing.',
     ),
     switchSetting: 'pgp_integration',
+    configRoute: '/manage/system/integrations/pgp',
     configSetting: 'pgp_config',
   },
   {
@@ -235,6 +237,7 @@ const integrationsList: IntegrationItem[] = [
       'X.509 certificate handling for enterprise S/MIME email signing and decryption.',
     ),
     switchSetting: 'smime_integration',
+    configRoute: '/manage/system/integrations/smime',
     configSetting: 'smime_config',
   },
   {

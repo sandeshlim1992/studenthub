@@ -52,7 +52,7 @@ describe('testing login maintenance mode', () => {
     const view = await visitView('/login')
 
     const maintenanceModeMessage = view.queryByText(
-      'Zammad is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
+      'Student Hub is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
     )
 
     expect(maintenanceModeMessage).not.toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('testing login maintenance mode', () => {
     const view = await visitView('/login')
 
     const maintenanceModeMessage = view.queryByText(
-      'Zammad is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
+      'Student Hub is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
     )
 
     expect(maintenanceModeMessage).toBeInTheDocument()
@@ -165,7 +165,7 @@ describe('testing login maintenance mode', () => {
 
     await waitFor(() => {
       const maintenanceModeMessage = view.queryByText(
-        'Zammad is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
+        'Student Hub is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
       )
 
       expect(maintenanceModeMessage).toBeInTheDocument()

@@ -132,7 +132,7 @@ const currentDevices = computed<TableItem[]>(() =>
 )
 
 const helpText = computed(() =>
-  i18n.t('All computers and browsers from which you logged in to Zammad appear here.'),
+  i18n.t('All computers and browsers from which you logged in to Student Hub appear here.'),
 )
 
 const { tabs, activeTab } = usePersonalSettingTabs()

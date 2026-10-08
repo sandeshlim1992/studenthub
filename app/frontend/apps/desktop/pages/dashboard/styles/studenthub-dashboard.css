@@ -1,0 +1,568 @@
+/* Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ */
+
+/* Student Hub dashboards: the agents' "Briefing" and the admins' "Team overview" (Bento).
+   Accents come from the application colour (--sh-app); good / warning / critical keep their own
+   colours, each pair at 4.5:1 or more. */
+.sh-dash {
+  --dash-accent: var(--sh-app);
+  --dash-card: var(--sh-card, #fff);
+  --dash-ink: var(--sh-ink, #1d2330);
+  --dash-muted: var(--sh-muted, #5f6878);
+  --dash-line: var(--sh-line, #dfe3e8);
+  --dash-track: #e6e9ef;
+  --dash-team: #8b95a8;
+  --dash-soft: var(--sh-app-soft);
+  --dash-good: #16794a;
+  --dash-good-bg: #dff3e7;
+  --dash-warn: #8f5b00;
+  --dash-warn-bg: #fff1cc;
+  --dash-bad: #b4232f;
+  --dash-bad-bg: #fde7e9;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 90rem;
+  margin-inline: auto;
+  color: var(--dash-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme='dark'] .sh-dash {
+  --dash-accent: color-mix(in sRGB, var(--sh-app) 35%, white);
+  --dash-card: rgb(30, 41, 59);
+  --dash-ink: #f1f5f9;
+  --dash-muted: #a8b3c7;
+  --dash-line: rgb(51, 65, 85);
+  --dash-track: rgb(51, 65, 85);
+  --dash-team: #94a3b8;
+  --dash-soft: rgb(51, 65, 85);
+  --dash-good: #86efac;
+  --dash-good-bg: rgba(22, 101, 52, 0.35);
+  --dash-warn: #fcd34d;
+  --dash-warn-bg: rgba(146, 64, 14, 0.35);
+  --dash-bad: #fca5a5;
+  --dash-bad-bg: rgba(153, 27, 27, 0.35);
+}
+
+/* Page header: greeting or title, the summary, Refresh */
+.sh-dash-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.sh-dash-hero h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.sh-dash-summary {
+  max-width: 72ch;
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.sh-dash-summary b {
+  color: var(--dash-accent);
+}
+
+/* Admins: Team overview / My work */
+.sh-dash-switch {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 0.125rem;
+  padding: 0.1875rem;
+  border: 1px solid var(--dash-line);
+  border-radius: 0.5rem;
+  background-color: var(--dash-card);
+}
+
+.sh-dash-switch button {
+  padding: 0.3125rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--dash-muted);
+}
+
+.sh-dash-switch button[aria-pressed='true'] {
+  background-color: var(--sh-app);
+  color: var(--sh-on-app, #fff);
+}
+
+.sh-dash-switch button:focus-visible {
+  outline: 2px solid var(--dash-accent);
+  outline-offset: 1px;
+}
+
+/* Cards */
+.sh-dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-width: 0;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--dash-line);
+  border-radius: 0.75rem;
+  background-color: var(--dash-card);
+}
+
+.sh-dash-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sh-dash-card__head h2 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.sh-dash-card__link {
+  margin-inline-start: auto;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--dash-accent);
+}
+
+.sh-dash-card__link:hover,
+.sh-dash-card__link:focus-visible {
+  text-decoration: underline;
+}
+
+.sh-dash-sq {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.3125rem;
+  background-color: var(--sh-app);
+  color: var(--sh-on-app, #fff);
+}
+
+.sh-dash-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dash-muted);
+}
+
+.sh-dash-big {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+.sh-dash-big small {
+  margin-inline-start: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--dash-muted);
+}
+
+.sh-dash-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.sh-dash-sub {
+  font-size: 0.75rem;
+  color: var(--dash-muted);
+}
+
+.sh-dash-empty {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--dash-muted);
+}
+
+.sh-dash-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background-color: var(--dash-soft);
+  color: var(--dash-accent);
+}
+
+.sh-dash-chip[data-tone='good'] {
+  background-color: var(--dash-good-bg);
+  color: var(--dash-good);
+}
+
+.sh-dash-chip[data-tone='warn'] {
+  background-color: var(--dash-warn-bg);
+  color: var(--dash-warn);
+}
+
+.sh-dash-chip[data-tone='bad'] {
+  background-color: var(--dash-bad-bg);
+  color: var(--dash-bad);
+}
+
+/* Bars */
+.sh-dash-track {
+  position: relative;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--dash-track);
+}
+
+.sh-dash-track > span {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  border-radius: inherit;
+  background-color: var(--dash-accent);
+}
+
+.sh-dash-track > span[data-team] {
+  background-color: var(--dash-team);
+}
+
+.sh-dash-track > span[data-tone='warn'] {
+  background-color: #c98500;
+}
+
+.sh-dash-vs {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 4.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.sh-dash-vs > :last-child {
+  text-align: end;
+}
+
+.sh-dash-stack {
+  display: flex;
+  gap: 2px;
+  height: 0.75rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: var(--dash-track);
+}
+
+.sh-dash-stack > span {
+  height: 100%;
+}
+
+.sh-dash-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+  margin: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  list-style: none;
+}
+
+.sh-dash-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.sh-dash-legend i {
+  display: inline-block;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border-radius: 0.1875rem;
+}
+
+/* Activity */
+.sh-dash-feed {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-dash-feed li {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.625rem;
+  padding-block: 0.5rem;
+}
+
+.sh-dash-feed li + li {
+  border-top: 1px solid var(--dash-line);
+}
+
+.sh-dash-avatar {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sh-dash-feed p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.sh-dash-feed a {
+  font-weight: 700;
+  color: var(--dash-accent);
+}
+
+.sh-dash-feed time {
+  font-size: 0.6875rem;
+  color: var(--dash-muted);
+  white-space: nowrap;
+}
+
+/* Briefing (agents) */
+.sh-dash-three {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.sh-dash-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.sh-dash-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+/* Team overview (admins): tiles of different sizes, activity in a rail */
+.sh-bento-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  align-items: start;
+  gap: 1rem;
+}
+
+.sh-bento {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(8rem, auto);
+  gap: 0.75rem;
+}
+
+.sh-bento > .sh-span-2 {
+  grid-column: span 2;
+}
+
+.sh-bento > .sh-span-4 {
+  grid-column: span 4;
+}
+
+.sh-bento > .sh-rows-2 {
+  grid-row: span 2;
+}
+
+.sh-bento-hero {
+  gap: 1.25rem;
+  border-color: var(--sh-app);
+  background-color: var(--sh-app);
+  color: var(--sh-on-app, #fff);
+}
+
+.sh-bento-hero .sh-dash-label,
+.sh-bento-hero .sh-dash-sub {
+  color: var(--sh-on-app-muted, rgba(255, 255, 255, 0.75));
+}
+
+.sh-bento-hero .sh-dash-big {
+  font-size: 2.75rem;
+}
+
+.sh-bento-teams {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-bento-teams li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.sh-bento-teams li a,
+.sh-bento-teams li span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-bento-teams li a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.4);
+  text-underline-offset: 0.2em;
+}
+
+.sh-bento-teams .sh-dash-track {
+  grid-column: 1 / -1;
+  height: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.sh-bento-teams .sh-dash-track > span {
+  background-color: var(--sh-on-app, #fff);
+}
+
+.sh-bento-ring {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.sh-bento-ring svg {
+  flex-shrink: 0;
+}
+
+.sh-bento-ring__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.sh-bento-ring__text .sh-dash-card__link {
+  margin-inline-start: 0;
+}
+
+.sh-bento-ring circle[data-track] {
+  stroke: var(--dash-track);
+}
+
+.sh-bento-ring circle[data-value] {
+  stroke: var(--dash-accent);
+}
+
+.sh-bento-sites {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-bento-sites li {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr) 2.5rem;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.sh-bento-sites li > :first-child {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-bento-sites li > :last-child {
+  font-weight: 700;
+  text-align: end;
+}
+
+.sh-bento-sites a {
+  color: var(--dash-accent);
+}
+
+.sh-bento-chart text {
+  fill: var(--dash-muted);
+  font-size: 10px;
+}
+
+.sh-bento-chart text[data-value] {
+  fill: var(--dash-ink);
+  font-weight: 700;
+}
+
+.sh-bento-chart rect[data-created] {
+  fill: var(--dash-accent);
+}
+
+.sh-bento-chart rect[data-closed] {
+  fill: var(--dash-team);
+}
+
+.sh-bento-chart line {
+  stroke: var(--dash-line);
+}
+
+.sh-bento-stars {
+  font-size: 1.25rem;
+  letter-spacing: 0.125rem;
+  color: #a96c00;
+}
+
+[data-theme='dark'] .sh-bento-stars {
+  color: #fcd34d;
+}
+
+@media (max-width: 80rem) {
+  .sh-bento-wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 70rem) {
+  .sh-dash-three,
+  .sh-dash-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 56rem) {
+  .sh-bento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sh-bento > .sh-span-4 {
+    grid-column: span 2;
+  }
+
+  .sh-dash-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -10,7 +10,7 @@ export default {
   label: __('Reporting'),
   permission: ['report', 'admin.*'],
   variant: 'neutral',
-  icon: 'speedometer2',
+  icon: 'studenthub-reporting',
   onClick: () => {
     getCurrentRouter()?.push('/report')
   },

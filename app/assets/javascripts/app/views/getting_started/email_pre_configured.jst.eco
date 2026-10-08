@@ -4,7 +4,7 @@
     <div class="wizard-slide">
       <h2><%- @T('Connect Channels') %></h2>
       <div class="wizard-body vertical center">
-        <p class="text-center"><%- @T('Your Zammad has the following email address:') %></p>
+        <p class="text-center"><%- @T('Your Student Hub has the following email address:') %></p>
         <% if @addresses: %>
           <% for address in @addresses: %>
           <p><%= address.name %> &lt;<%= address.email %>&gt;</p>

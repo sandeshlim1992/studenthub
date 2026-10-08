@@ -88,7 +88,7 @@
       <thead>
         <tr>
           <th width="40%"><%- @T('Exchange') %>
-          <th width="60%"><%- @T('Zammad') %>
+          <th width="60%"><%- @T('Student Hub') %>
         <% for key, value of @config.attributes: %>
           <tr>
             <td class="settings-list-row-control"><%= key %>

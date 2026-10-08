@@ -1108,7 +1108,7 @@ onMounted(() => {
             </div>
             
             <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
-              {{ __('Connect Microsoft 365 Graph with Zammad') }}
+              {{ __('Connect Microsoft 365 Graph with Student Hub') }}
             </h2>
             <p class="text-xs text-slate-600 dark:text-slate-400 max-w-lg mx-auto mb-6 leading-relaxed">
               {{ __('Connect your Microsoft 365 mailboxes directly through the Microsoft Graph API. Before connecting mailboxes, register an app in Microsoft Entra ID.') }}

@@ -12,7 +12,7 @@ const route: RouteRecordRaw[] = [
     meta: {
       title: __('Tickets'),
       requiresAuth: true,
-      icon: 'all-tickets',
+      icon: 'studenthub-tickets',
       requiredPermission: ['ticket.agent', 'ticket.customer'],
       order: 0,
       level: 1,

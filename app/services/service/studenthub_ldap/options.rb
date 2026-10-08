@@ -10,13 +10,12 @@ class Service::StudenthubLdap::Options < Service::Base
     {
       enabled:         Setting.get('ldap_integration') == true,
       roles:           Role.where(active: true).reorder(:name).map { |role| { id: role.id, name: role.name } },
-      user_attributes: user_attributes,
+      user_attributes: self.class.user_attributes,
     }
   end
 
-  private
-
-  def user_attributes
+  # Text fields of users, also used by the Exchange page.
+  def self.user_attributes
     ObjectManager::Attribute.list_full
       .map(&:with_indifferent_access)
       .select { |attribute| attribute[:object].to_s == 'User' && attribute[:active] && TEXT_TYPES.include?(attribute[:data_type]) }

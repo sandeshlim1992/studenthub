@@ -31,7 +31,7 @@
     <% end %>
     <% if !_.isEmpty(@job.result) && @job.result.sum: %>
       <ul>
-        <li><%- @T('%s user to %s user', 'Exchange', 'Zammad') %> (<%= @job.result.sum %>/<%= @job.result.total %>):
+        <li><%- @T('%s user to %s user', 'Exchange', 'Student Hub') %> (<%= @job.result.sum %>/<%= @job.result.total %>):
           <ul>
             <li><%- @T('Users:') %> <%= @job.result.created %> <%- @T('created') %>, <%= @job.result.updated %> <%- @T('updated') %>, <%= @job.result.unchanged %> <%- @T('untouched') %>, <%= @job.result.skipped %> <%- @T('skipped') %>, <%= @job.result.failed %> <%- @T('failed') %>
           </ul>

@@ -28,9 +28,9 @@ route.push({
   meta: {
     title: __('Dashboard'),
     requiresAuth: true,
-    icon: 'speedometer2',
+    icon: 'studenthub-dashboard',
     requiredPermission: ['ticket.agent', 'admin'],
-    order: 1,
+    order: -1, // Student Hub: first in the navigation, above Tickets
     level: 1,
     permanentItem: true,
   },

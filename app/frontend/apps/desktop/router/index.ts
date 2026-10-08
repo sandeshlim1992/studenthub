@@ -5,6 +5,7 @@ import mainInitializeRouter from '#shared/router/index.ts'
 import type { InitializeAppRouter, RoutesModule } from '#shared/types/router.ts'
 
 import activeTaskbarTab from './guards/before/activeTaskbarTab.ts'
+import studenthubHome from './guards/before/studenthubHome.ts'
 import systemSetupInfo from './guards/before/systemSetupInfo.ts'
 
 import type { App } from 'vue'
@@ -60,7 +61,13 @@ export const routes: Array<RouteRecordRaw> = [
 ]
 
 const initializeRouter: InitializeAppRouter = (app: App) => {
-  return mainInitializeRouter(app, routes, [systemSetupInfo, activeTaskbarTab], [], 'desktop')
+  return mainInitializeRouter(
+    app,
+    routes,
+    [systemSetupInfo, studenthubHome, activeTaskbarTab],
+    [],
+    'desktop',
+  )
 }
 
 export default initializeRouter

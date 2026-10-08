@@ -224,3 +224,5 @@ Never put passwords, tokens or keys in this file.
   Exchange / S/MIME / PGP pages, visible text rebranded to Student Hub
 - 2026-10-08: Manager dashboard redesigned (3C-5): queue + request card with Approve / Deny, All caught up and month
   in review when empty; dashboard API returns the waiting requests and month figures. Not yet checked in a browser
+- 2026-10-08: Fixed the new UI's stylesheet: the merge `ed514cb3a7` dropped a `}` in `studenthub-halo.css`, so
+  Tailwind failed on `main.css` (new UI unstyled in dev, frontend build failed)

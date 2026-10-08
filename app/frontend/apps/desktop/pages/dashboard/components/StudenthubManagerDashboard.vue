@@ -1,41 +1,30 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
-import { useSessionStore } from '#shared/stores/session.ts'
+import { NotificationTypes } from '#shared/components/CommonNotifications/types.ts'
+import { useNotifications } from '#shared/components/CommonNotifications/useNotifications.ts'
+import { i18n } from '#shared/i18n.ts'
 
 import LayoutMain from '#desktop/components/layout/LayoutMain.vue'
 
+import { decideApproval, type ManagerDashboard } from '../utils/studenthubManagerDashboard.ts'
+
+import StudenthubManagerMonth from './StudenthubManagerDashboard/StudenthubManagerMonth.vue'
+import StudenthubManagerQueue from './StudenthubManagerDashboard/StudenthubManagerQueue.vue'
+import StudenthubManagerRequest from './StudenthubManagerDashboard/StudenthubManagerRequest.vue'
+
 // Student Hub: the dashboard of managers who have no other staff role (Ticket Approvals).
-// Their own approvals only: what waits for them, what they decided, and what they approved
-// that is still open (GET /api/v1/ticket_approval/dashboard).
-
-interface TicketRef {
-  ticket_id: number
-  number: string
-  title: string
-}
-
-interface ManagerDashboard {
-  waiting: { count: number; oldest_requested_at: string | null; overdue: boolean }
-  decisions: { approved: number; denied: number; approval_rate: number | null }
-  still_open: { count: number; tickets: (TicketRef & { decided_at: string; owner: string | null })[] }
-  recent: (TicketRef & {
-    state: 'approved' | 'denied'
-    comment: string | null
-    decided_at: string
-    requested_by: string | null
-  })[]
-  settings: { decisions_period_days: number; waiting_warning_hours: number; still_open_after_days: number }
-}
-
-const session = useSessionStore()
-const firstName = computed(() => session.user?.firstname || session.user?.login || '')
+// One request at a time: "Next in line" lists what waits (longest first), the card shows the
+// open one with Approve / Deny, and the next one opens after a decision. Nothing waiting:
+// "All caught up" and "Your month in review". Below: approved tickets still open, and recent
+// decisions (GET /api/v1/ticket_approval/dashboard).
 
 const data = ref<ManagerDashboard | null>(null)
 const isLoading = ref(false)
 const errorMessage = ref('')
+const updatedAt = ref<Date | null>(null)
 
 const load = () => {
   isLoading.value = true
@@ -50,6 +39,7 @@ const load = () => {
     .then(async (response) => {
       if (!response.ok) throw new Error(`${response.status}`)
       data.value = await response.json()
+      updatedAt.value = new Date()
       errorMessage.value = ''
     })
     .catch(() => {
@@ -62,261 +52,231 @@ const load = () => {
 
 onMounted(load)
 
-const decidedTotal = computed(() =>
-  data.value ? data.value.decisions.approved + data.value.decisions.denied : 0,
+const requests = computed(() => data.value?.waiting.requests ?? [])
+const selectedId = ref<number | null>(null)
+
+const selectedIndex = computed(() => {
+  const index = requests.value.findIndex((request) => request.ticket_id === selectedId.value)
+  return index === -1 ? 0 : index
+})
+const selected = computed(() => requests.value[selectedIndex.value] ?? null)
+const nextRequest = computed(() => requests.value[selectedIndex.value + 1] ?? null)
+
+const selectAt = (index: number) => {
+  selectedId.value = requests.value[index]?.ticket_id ?? null
+}
+
+const isDeciding = ref(false)
+const decisionError = ref('')
+
+watch(selected, () => {
+  decisionError.value = ''
+})
+const { notify } = useNotifications()
+
+const decide = async (decision: 'approve' | 'deny', comment: string) => {
+  const request = selected.value
+  if (!request) return
+
+  isDeciding.value = true
+  try {
+    await decideApproval(request.ticket_id, decision, comment)
+    decisionError.value = ''
+  } catch (error) {
+    decisionError.value = error instanceof Error ? error.message : String(error)
+    return
+  } finally {
+    isDeciding.value = false
+  }
+
+  notify({
+    id: 'studenthub-manager-decision',
+    message:
+      decision === 'approve'
+        ? __('Approved #%s. It is back with its team.')
+        : __('Denied #%s. It is back with its team.'),
+    messagePlaceholder: [request.number],
+    type: NotificationTypes.Success,
+  })
+
+  // The next request (after the decided one) opens; the reload drops the decided one.
+  selectedId.value = nextRequest.value?.ticket_id ?? null
+  await load()
+}
+
+const updatedTime = computed(() =>
+  updatedAt.value?.toLocaleTimeString(i18n.locale(), { hour: '2-digit', minute: '2-digit' }),
 )
 
-const approvedShare = computed(() =>
-  decidedTotal.value ? (data.value!.decisions.approved / decidedTotal.value) * 100 : 0,
-)
-
-const ticketLink = (ticket: TicketRef) => `/tickets/${ticket.ticket_id}`
+const lastDecision = computed(() => data.value?.recent[0] ?? null)
+const ticketLink = (ticketId: number) => `/tickets/${ticketId}`
 </script>
 
 <template>
-  <LayoutMain
-    background-variant="tertiary"
-    class="min-h-screen bg-slate-50 p-6 md:p-8 dark:bg-slate-900/60"
-  >
-    <div class="mx-auto max-w-[1440px] space-y-8 text-slate-800 dark:text-slate-100">
-      <header
-        class="flex flex-col justify-between gap-5 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm md:flex-row md:items-center md:p-8 dark:border-slate-700/80 dark:bg-slate-800"
-      >
-        <div>
-          <h1 class="text-2xl font-black tracking-tight text-slate-900 md:text-3xl dark:text-white">
-            {{ $t('Welcome back, %s', firstName) }}
+  <LayoutMain background-variant="tertiary" class="min-h-screen bg-[var(--sh-page)]">
+    <div
+      class="mx-auto flex max-w-[1240px] flex-col gap-[22px] px-8 pt-7 pb-12 text-[var(--sh-ink)]"
+    >
+      <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+        <div class="min-w-0">
+          <h1 class="text-[27px] leading-tight font-bold tracking-tight">
+            {{ data && !requests.length ? $t('Nothing to decide') : $t('Next to decide') }}
           </h1>
-          <p class="mt-1.5 text-sm font-medium text-slate-500 dark:text-slate-400">
-            {{ $t('Your approvals at a glance.') }}
+          <p v-if="data" class="mt-1.5 text-[var(--sh-ink-2)]">
+            <template v-if="requests.length">
+              {{
+                $t(
+                  '%s of %s, longest wait first. When you decide, the next request opens.',
+                  selectedIndex + 1,
+                  requests.length,
+                )
+              }}
+            </template>
+            <template v-else>{{
+              $t('You’re all caught up. Here is how your last 30 days went.')
+            }}</template>
           </p>
         </div>
-        <button
-          type="button"
-          class="flex items-center gap-2 self-start rounded-xl border border-slate-200/80 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200/80 md:self-auto dark:border-slate-600 dark:bg-slate-700/60 dark:text-slate-200 dark:hover:bg-slate-700"
-          :disabled="isLoading"
-          @click="load"
-        >
-          <CommonIcon name="arrow-repeat" size="tiny" decorative :class="{ 'animate-spin': isLoading }" />
-          {{ isLoading ? $t('Refreshing…') : $t('Refresh') }}
-        </button>
-      </header>
+        <div class="flex items-center gap-3 text-sm text-[var(--sh-ink-2)]">
+          <span v-if="updatedAt" class="inline-flex items-center gap-2">
+            <span
+              class="size-2 rounded-full bg-[#1d8a4a] shadow-[0_0_0_3px_rgb(29_138_74/0.2)]"
+              aria-hidden="true"
+            ></span>
+            {{ $t('Updated %s', updatedTime) }}
+          </span>
+          <button
+            type="button"
+            class="inline-flex h-9 items-center gap-2 rounded-md border border-[#c9cdd4] bg-white px-3 font-semibold text-[var(--sh-ink)] hover:bg-[#f4f5f7]"
+            :disabled="isLoading"
+            @click="load"
+          >
+            <CommonIcon
+              name="arrow-repeat"
+              size="tiny"
+              decorative
+              :class="{ 'animate-spin': isLoading }"
+            />
+            {{ isLoading ? $t('Refreshing…') : $t('Refresh') }}
+          </button>
+        </div>
+      </div>
 
       <CommonAlert v-if="errorMessage" variant="danger">{{ $t(errorMessage) }}</CommonAlert>
 
-      <div v-if="data" class="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-7">
-        <!-- Waiting for you -->
-        <section class="sh-mgr-card" :aria-label="$t('Waiting for you')">
-          <div>
-            <h2 class="sh-mgr-card__title">{{ $t('Waiting for you') }}</h2>
-            <p class="sh-mgr-card__hint">{{ $t('Requests that need your decision') }}</p>
-          </div>
-          <div class="flex flex-wrap items-baseline gap-3">
-            <span class="sh-mgr-card__number" data-test-id="manager-waiting-count">{{ data.waiting.count }}</span>
-            <span
-              v-if="data.waiting.overdue"
-              class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+      <template v-if="data">
+        <div class="flex flex-wrap items-start gap-[22px]">
+          <StudenthubManagerQueue
+            class="max-w-[400px] flex-[1_1_360px]"
+            :requests="requests"
+            :selected-id="selected?.ticket_id ?? null"
+            :warning-hours="data.settings.waiting_warning_hours"
+            :last-decision="lastDecision"
+            @select="selectedId = $event"
+          />
+
+          <StudenthubManagerRequest
+            v-if="selected"
+            class="flex-[999_1_520px]"
+            :request="selected"
+            :position="selectedIndex + 1"
+            :total="requests.length"
+            :next="nextRequest"
+            :warning-hours="data.settings.waiting_warning_hours"
+            :busy="isDeciding"
+            :error="decisionError"
+            @decide="decide"
+            @previous="selectAt(selectedIndex - 1)"
+            @next="selectAt(selectedIndex + 1)"
+          />
+          <StudenthubManagerMonth v-else class="flex-[999_1_520px]" :data="data" />
+        </div>
+
+        <div class="flex flex-wrap items-stretch gap-[22px]">
+          <section
+            :aria-label="$t('Back with teams, still open')"
+            class="min-w-0 flex-[1_1_420px] rounded-[10px] border border-[var(--sh-line)] bg-white"
+          >
+            <header
+              class="flex items-baseline justify-between border-b border-[#e8eaee] px-[18px] pt-3.5 pb-2.5"
             >
-              {{ $t('Waiting over %s hours', data.settings.waiting_warning_hours) }}
-            </span>
-          </div>
-          <p v-if="data.waiting.oldest_requested_at" class="text-sm text-slate-600 dark:text-slate-300">
-            {{ $t('Oldest request:') }}
-            <CommonDateTime :date-time="data.waiting.oldest_requested_at" type="relative" />
-          </p>
-          <p v-else class="text-sm text-slate-600 dark:text-slate-300">{{ $t('Nothing waits for you.') }}</p>
-          <footer class="sh-mgr-card__footer">
-            <CommonLink link="/tickets/view/awaiting_my_approval" internal class="font-semibold">
-              {{ $t('Open Awaiting my approval') }} →
-            </CommonLink>
-          </footer>
-        </section>
-
-        <!-- Your decisions -->
-        <section class="sh-mgr-card" :aria-label="$t('Your decisions')">
-          <div>
-            <h2 class="sh-mgr-card__title">{{ $t('Your decisions') }}</h2>
-            <p class="sh-mgr-card__hint">{{ $t('Last %s days', data.settings.decisions_period_days) }}</p>
-          </div>
-          <template v-if="decidedTotal">
-            <div class="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-              <span class="sh-mgr-card__number">{{ data.decisions.approval_rate }}%</span>
-              <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ $t('approved') }}</span>
-            </div>
-            <div
-              class="flex h-2.5 overflow-hidden rounded-full bg-red-200 dark:bg-red-900/50"
-              role="img"
-              :aria-label="$t('%s approved, %s denied', data.decisions.approved, data.decisions.denied)"
-            >
-              <span class="h-full bg-emerald-600" :style="{ width: `${approvedShare}%` }" />
-            </div>
-            <dl class="flex gap-6 text-sm">
-              <div class="flex gap-1.5">
-                <dt class="text-slate-500 dark:text-slate-400">{{ $t('Approved') }}</dt>
-                <dd class="font-bold text-emerald-700 tabular-nums dark:text-emerald-400">{{ data.decisions.approved }}</dd>
-              </div>
-              <div class="flex gap-1.5">
-                <dt class="text-slate-500 dark:text-slate-400">{{ $t('Denied') }}</dt>
-                <dd class="font-bold text-red-700 tabular-nums dark:text-red-400">{{ data.decisions.denied }}</dd>
-              </div>
-            </dl>
-          </template>
-          <p v-else class="text-sm text-slate-600 dark:text-slate-300">
-            {{ $t('No decisions in the last %s days.', data.settings.decisions_period_days) }}
-          </p>
-        </section>
-
-        <!-- Approved but still open -->
-        <section class="sh-mgr-card" :aria-label="$t('Approved but still open')">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <h2 class="sh-mgr-card__title">{{ $t('Approved but still open') }}</h2>
-              <p class="sh-mgr-card__hint">
-                {{ $t('You approved these over %s days ago and they are not resolved yet', data.settings.still_open_after_days) }}
-              </p>
-            </div>
-            <span class="sh-mgr-card__number sh-mgr-card__number--small">{{ data.still_open.count }}</span>
-          </div>
-          <ul v-if="data.still_open.tickets.length" class="sh-mgr-list">
-            <li v-for="ticket in data.still_open.tickets" :key="ticket.ticket_id">
-              <CommonLink :link="ticketLink(ticket)" internal class="sh-mgr-list__title">
-                <span class="font-mono text-xs text-slate-500 dark:text-slate-400">#{{ ticket.number }}</span>
-                {{ ticket.title }}
-              </CommonLink>
-              <span class="sh-mgr-list__meta">
-                {{ ticket.owner ?? $t('No owner') }} · {{ $t('approved') }}
-                <CommonDateTime :date-time="ticket.decided_at" type="relative" />
-              </span>
-            </li>
-          </ul>
-          <p v-else class="text-sm text-slate-600 dark:text-slate-300">{{ $t('Nothing is waiting on follow-up.') }}</p>
-        </section>
-
-        <!-- Your recent decisions -->
-        <section class="sh-mgr-card" :aria-label="$t('Your recent decisions')">
-          <div>
-            <h2 class="sh-mgr-card__title">{{ $t('Your recent decisions') }}</h2>
-            <p class="sh-mgr-card__hint">{{ $t('The last five') }}</p>
-          </div>
-          <ul v-if="data.recent.length" class="sh-mgr-list">
-            <li v-for="decision in data.recent" :key="`${decision.ticket_id}-${decision.decided_at}`">
-              <span class="flex min-w-0 items-center gap-2">
-                <CommonBadge :variant="decision.state === 'approved' ? 'success' : 'danger'" size="xs">
-                  {{ decision.state === 'approved' ? $t('Approved') : $t('Denied') }}
-                </CommonBadge>
-                <CommonLink :link="ticketLink(decision)" internal class="sh-mgr-list__title">
-                  <span class="font-mono text-xs text-slate-500 dark:text-slate-400">#{{ decision.number }}</span>
-                  {{ decision.title }}
+              <h2 class="text-base font-bold">{{ $t('Back with teams, still open') }}</h2>
+              <span class="font-bold">{{ data.still_open.count }}</span>
+            </header>
+            <ul v-if="data.still_open.tickets.length" class="py-1">
+              <li
+                v-for="ticket in data.still_open.tickets"
+                :key="ticket.ticket_id"
+                class="flex flex-col gap-0.5 px-[18px] py-2.5"
+              >
+                <CommonLink
+                  :link="ticketLink(ticket.ticket_id)"
+                  internal
+                  class="font-semibold text-[var(--sh-ink)]!"
+                >
+                  <span class="sh-condensed font-bold tracking-wide">#{{ ticket.number }}</span>
+                  {{ ticket.title }}
                 </CommonLink>
-              </span>
-              <span v-if="decision.comment" class="sh-mgr-list__comment">“{{ decision.comment }}”</span>
-              <span class="sh-mgr-list__meta">
-                <template v-if="decision.requested_by">{{ $t('asked by %s', decision.requested_by) }} · </template>
-                <CommonDateTime :date-time="decision.decided_at" type="relative" />
-              </span>
-            </li>
-          </ul>
-          <p v-else class="text-sm text-slate-600 dark:text-slate-300">{{ $t('You have not decided any requests yet.') }}</p>
-        </section>
-      </div>
+                <span class="text-sm text-[var(--sh-ink-2)]">
+                  {{ ticket.owner ?? $t('No owner') }} · {{ $t(ticket.state) }} ·
+                  <strong class="text-[#7a4300]">
+                    {{ $t('approved') }}
+                    <CommonDateTime :date-time="ticket.decided_at" type="relative" />
+                  </strong>
+                </span>
+              </li>
+            </ul>
+            <p v-else class="px-[18px] py-3 text-sm text-[var(--sh-ink-2)]">
+              {{ $t('Nothing you approved is waiting on follow-up.') }}
+            </p>
+          </section>
+
+          <section
+            :aria-label="$t('Recent decisions')"
+            class="min-w-0 flex-[1_1_420px] rounded-[10px] border border-[var(--sh-line)] bg-white"
+          >
+            <header class="border-b border-[#e8eaee] px-[18px] pt-3.5 pb-2.5">
+              <h2 class="text-base font-bold">{{ $t('Recent decisions') }}</h2>
+            </header>
+            <ul v-if="data.recent.length" class="py-1">
+              <li
+                v-for="decision in data.recent"
+                :key="`${decision.ticket_id}-${decision.decided_at}`"
+                class="flex flex-col gap-0.5 px-[18px] py-2"
+              >
+                <span class="flex items-center gap-2.5">
+                  <span
+                    class="sh-condensed w-[76px] shrink-0 font-bold tracking-wide"
+                    :class="decision.state === 'approved' ? 'text-[#1d6b3a]' : 'text-[#b42318]'"
+                  >
+                    {{ decision.state === 'approved' ? $t('APPROVED') : $t('DENIED') }}
+                  </span>
+                  <CommonLink
+                    :link="ticketLink(decision.ticket_id)"
+                    internal
+                    class="min-w-0 flex-1 truncate font-semibold text-[var(--sh-ink)]!"
+                  >
+                    {{ decision.title }}
+                  </CommonLink>
+                  <CommonDateTime
+                    class="shrink-0 text-sm text-[var(--sh-ink-2)]"
+                    :date-time="decision.decided_at"
+                    type="relative"
+                  />
+                </span>
+                <span
+                  v-if="decision.comment"
+                  class="ps-[86px] text-sm break-words text-[var(--sh-ink-2)]"
+                  >“{{ decision.comment }}”</span
+                >
+              </li>
+            </ul>
+            <p v-else class="px-[18px] py-3 text-sm text-[var(--sh-ink-2)]">
+              {{ $t('You have not decided any requests yet.') }}
+            </p>
+          </section>
+        </div>
+      </template>
     </div>
   </LayoutMain>
 </template>
-
-<style scoped>
-.sh-mgr-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.75rem;
-  border: 1px solid rgb(226 232 240 / 0.9);
-  border-radius: 1.5rem;
-  background-color: #ffffff;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-}
-
-[data-theme='dark'] .sh-mgr-card {
-  border-color: rgb(51 65 85 / 0.8);
-  background-color: rgb(30 41 59);
-}
-
-.sh-mgr-card__title {
-  font-size: 0.875rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgb(71 85 105);
-}
-
-.sh-mgr-card__hint {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: rgb(100 116 139);
-}
-
-.sh-mgr-card__number {
-  font-size: 3rem;
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: rgb(15 23 42);
-}
-
-.sh-mgr-card__number--small {
-  font-size: 2rem;
-}
-
-[data-theme='dark'] .sh-mgr-card__title {
-  color: rgb(203 213 225);
-}
-
-[data-theme='dark'] .sh-mgr-card__number {
-  color: #ffffff;
-}
-
-.sh-mgr-card__footer {
-  margin-top: auto;
-  padding-top: 1rem;
-  border-top: 1px solid rgb(241 245 249);
-  font-size: 0.875rem;
-}
-
-.sh-mgr-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.sh-mgr-list > li {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-  padding-block: 0.625rem;
-  border-top: 1px solid rgb(241 245 249);
-}
-
-.sh-mgr-list > li:first-child {
-  border-top: 0;
-}
-
-.sh-mgr-list__title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.sh-mgr-list__comment {
-  overflow-wrap: anywhere;
-  font-size: 0.8125rem;
-  color: rgb(71 85 105);
-}
-
-.sh-mgr-list__meta {
-  font-size: 0.75rem;
-  color: rgb(100 116 139);
-}
-</style>

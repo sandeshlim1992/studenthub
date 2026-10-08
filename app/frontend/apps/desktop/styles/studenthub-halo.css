@@ -1242,3 +1242,37 @@
     border-radius: 1rem !important;
   }
 }
+
+/* ---- Manager dashboard: flap digits for waiting times (Barlow Condensed, OFL, self-hosted) ---- */
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-condensed-600-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../assets/fonts/barlow-condensed-700-latin.woff2') format('woff2');
+}
+
+.sh-condensed {
+  font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif !important; /* beats the global Inter rule */
+}
+
+/* One flap: darker hinge line across the middle, like a station board. */
+.sh-flap {
+  background: linear-gradient(
+    to bottom,
+    #232529 0,
+    #232529 calc(50% - 0.5px),
+    #060607 calc(50% - 0.5px),
+    #060607 calc(50% + 0.5px),
+    #1b1c20 calc(50% + 0.5px),
+    #1b1c20 100%
+  );
+}

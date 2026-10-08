@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, inject, ref } from 'vue'
 
 import { useTicketArticleReplyAction } from '#shared/entities/ticket/composables/useTicketArticleReplyAction.ts'
 import type { TicketArticle } from '#shared/entities/ticket/types.ts'
@@ -13,6 +13,7 @@ import log from '#shared/utils/log.ts'
 import CommonActionMenu from '#desktop/components/CommonActionMenu/CommonActionMenu.vue'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import type { MenuItem } from '#desktop/components/CommonPopoverMenu/types.ts'
+import { STUDENTHUB_REPLY_BAR_KEY } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 
 const props = defineProps<{
@@ -75,6 +76,7 @@ const getActionColorClass = (action: MenuItem & { key: string }) => {
 
 const session = useSessionStore()
 const isAgent = computed(() => session.hasPermission('ticket.agent'))
+const hasReplyBar = inject(STUDENTHUB_REPLY_BAR_KEY, null)
 
 const actions = computed(() => {
   // Recalculation trigger ID cannot be less than 0, so it's just a hint for Vue to recalculate this computed property.
@@ -105,6 +107,9 @@ const actions = computed(() => {
   articleActions.forEach((action) => {
     // Student Hub: students only reply (no visibility, split, forward or copy actions).
     if (!isAgent.value && !/reply/i.test(action.name)) return
+    // Student Hub: staff reply from the reply bar under the messages, which does what this
+    // Reply (or Follow up) did; Reply all stays.
+    if (hasReplyBar?.value && action.name.endsWith('-reply')) return
 
     const mappedAction = {
       key: action.name,
@@ -163,7 +168,7 @@ const actions = computed(() => {
       :class="position === 'right' ? 'order-first' : 'order-last'"
     >
       <CommonButton
-        class="px-2 py-0.5! text-xs! font-medium rounded-full! focus-visible:outline-offset-0! focus-visible:outline-blue-800!"
+        class="rounded-full! px-2 py-0.5! text-xs! font-medium focus-visible:outline-offset-0! focus-visible:outline-blue-800!"
         :class="buttonVariantClassExtension"
         :prefix-icon="action.icon"
         size="large"

@@ -1,6 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { computed } from 'vue'
+import { computed, provide } from 'vue'
 
 import { renderComponent } from '#tests/support/components/index.ts'
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
@@ -12,18 +12,21 @@ import { convertToGraphQLId } from '#shared/graphql/utils.ts'
 
 import { provideTicketInformationMocks } from '#desktop/entities/ticket/__tests__/mocks/provideTicketInformationMocks.ts'
 import ArticleBubbleActionList from '#desktop/pages/ticket/components/TicketDetailView/ArticleBubble/ArticleBubbleActionList.vue'
+import { STUDENTHUB_REPLY_BAR_KEY } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
 
 const renderArticleBubbleActionList = (options?: {
   position?: 'left' | 'right'
   articleOverrides?: Parameters<typeof createDummyArticle>[0]
   provideOverrides?: Parameters<typeof provideTicketInformationMocks>[1]
   withGroupEmail?: boolean
+  withReplyBar?: boolean
 }) => {
   const {
     position = 'left',
     articleOverrides,
     provideOverrides,
     withGroupEmail = true,
+    withReplyBar = false,
   } = options || {}
 
   return renderComponent(
@@ -60,6 +63,11 @@ const renderArticleBubbleActionList = (options?: {
         })
 
         provideTicketInformationMocks(ticket, provideOverrides)
+        if (withReplyBar)
+          provide(
+            STUDENTHUB_REPLY_BAR_KEY,
+            computed(() => true),
+          )
 
         return { position, article }
       },
@@ -111,6 +119,28 @@ describe('ArticleBubbleActionList', () => {
 
     expect(wrapper.getByRole('button', { name: 'Reply' })).toBeInTheDocument()
     expect(wrapper.queryByRole('button', { name: 'Follow up' })).not.toBeInTheDocument()
+  })
+
+  // Student Hub: staff reply from the reply bar under the messages.
+  it('leaves out Reply and Follow up, not Reply all, when the screen has the reply bar', () => {
+    const wrapper = renderArticleBubbleActionList({
+      withReplyBar: true,
+      articleOverrides: {
+        senderName: EnumTicketArticleSenderName.Customer,
+        to: {
+          raw: '',
+          parsed: [
+            { emailAddress: 'a@example.com', isSystemAddress: false },
+            { emailAddress: 'b@example.com', isSystemAddress: false },
+          ],
+        },
+      },
+    })
+
+    expect(wrapper.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
+    expect(wrapper.queryByRole('button', { name: 'Follow up' })).not.toBeInTheDocument()
+    expect(wrapper.getByRole('button', { name: 'Reply all' })).toBeInTheDocument()
+    expect(wrapper.getByLabelText('Set to internal')).toBeInTheDocument()
   })
 
   it('shows "Follow up to all" for agent articles with multiple recipients', () => {

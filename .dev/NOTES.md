@@ -81,10 +81,11 @@ Never put passwords, tokens or keys in this file.
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Staff ticket screen = option B of the design board (<https://claude.ai/artifact/SKNJWEgQtaeSMKD3GwPTZJ>): the queue of
   a view on the left (J / K, next ticket after closing), compact header (actions as icons, ⋯ Merge, Close), reply bar
-  docked under the messages, panels in one column on the right behind four tabs Ticket / Student / Checklist / Approval
-  (no Organization tab; occasional panels add a tab while they apply), Update at the foot of that column (unsaved note +
-  Discard, After update, Update; Zammad's bar only while the column is collapsed); students and managers-only keep the
-  sidebar on the left and Zammad's bar. Ticket tabs still go to Recent (Zammad's tabs left as they are)
+  docked under the messages (messages have no Reply of their own; Reply all stays), panels in one column on the right
+  behind four tabs Ticket / Student / Checklist / Approval (no Organization tab; occasional panels add a tab while they
+  apply), Update at the foot of that column (unsaved note + Discard, After update, Update; Zammad's bar only while the
+  column is collapsed); students and managers-only keep the sidebar on the left and Zammad's bar. Ticket tabs still go
+  to Recent (Zammad's tabs left as they are)
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
@@ -211,6 +212,8 @@ Never put passwords, tokens or keys in this file.
 - [ ] Check the new manager dashboard in a browser as manager@ (with and without waiting requests); decide whether
       to commit `PRODUCT.md`
 - [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
+- [ ] Reply box: pick one of the four designs that turn the reply bar into a real text box
+      (<https://claude.ai/artifact/9Maq1Eh5zvawnUkE2sNEnQ>; A recommended), then build it and move Reply all into it
 
 ## Log
 
@@ -270,3 +273,5 @@ Never put passwords, tokens or keys in this file.
   Student / Checklist / Approval; a long panel no longer stretches the screen under the Update bar; Update moved to the
   foot of the panel column (save area with unsaved note, After update, Update). Checked in a browser (headless
   Chromium in this container, 1280 and 1440 px)
+- 2026-10-09: Messages lose their Reply / Follow up for staff (the reply bar answers the student); four reply box
+  designs on a board, not chosen yet

@@ -81,6 +81,7 @@ import { useTicketScreenBehavior } from '#desktop/pages/ticket/components/Ticket
 import { ARTICLES_INFORMATION_KEY } from '../../composables/useArticleContext.ts'
 import { useStudenthubQueueLayout } from '../../composables/useStudenthubQueueLayout.ts'
 import { useStudenthubTicketQueue } from '../../composables/useStudenthubTicketQueue.ts'
+import { STUDENTHUB_REPLY_BAR_KEY } from '../../composables/useStudenthubTicketReply.ts'
 import { useTicketArticleReply } from '../../composables/useTicketArticleReply.ts'
 import {
   initializeTicketInformation,
@@ -335,6 +336,12 @@ const hasStudenthubReplyBar = computed(
     isTicketAgent.value &&
     isTicketEditable.value &&
     !newTicketArticlePresent.value,
+)
+
+// Student Hub: with the reply bar, the messages have no Reply of their own.
+provide(
+  STUDENTHUB_REPLY_BAR_KEY,
+  computed(() => isQueueLayout.value && isTicketAgent.value),
 )
 
 const formEditAttributeLocation = computed(() => {

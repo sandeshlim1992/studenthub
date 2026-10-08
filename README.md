@@ -462,6 +462,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   **Close** sets the closed state and saves at once (like Update, it opens Details when a required field is empty).
   Under the messages a **reply bar** stays docked: "Write a reply to (first name)…" and **Reply** answer the student's
   latest message (its own reply action: email, web…), **Internal note** opens a note; it makes way for the reply form.
+  So the messages have no **Reply** (or **Follow up**) of their own for staff; **Reply all** stays on emails with other
+  recipients.
   **Update** sits at the foot of the panel column instead of in a bar across the screen, so the queue and the
   conversation reach the bottom: while changes are unsaved an amber note says so with **Discard** (Zammad's
   confirmation), **After update** is Zammad's tab behaviour (Stay on tab, Close tab, Close tab on ticket close) and

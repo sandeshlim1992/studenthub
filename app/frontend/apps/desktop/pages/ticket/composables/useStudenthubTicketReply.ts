@@ -1,6 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { computed, inject } from 'vue'
+import { computed, inject, type InjectionKey, type Ref } from 'vue'
 
 import { useTicketArticleReplyAction } from '#shared/entities/ticket/composables/useTicketArticleReplyAction.ts'
 import type { TicketArticle } from '#shared/entities/ticket/types.ts'
@@ -10,6 +10,12 @@ import { edgesToArray } from '#shared/utils/helpers.ts'
 
 import { ARTICLES_INFORMATION_KEY } from '#desktop/pages/ticket/composables/useArticleContext.ts'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
+
+// Student Hub: true on a ticket screen where staff reply from the reply bar, so the messages leave
+// out their own Reply (ArticleBubbleActionList). Provided by TicketDetailViewContent.
+export const STUDENTHUB_REPLY_BAR_KEY = Symbol('studenthub-reply-bar') as InjectionKey<
+  Readonly<Ref<boolean>>
+>
 
 // Student Hub: "Reply" on the ticket screen (header for students, reply bar for agents) answers
 // the student's latest message the way that message's own reply action would (email, web…).

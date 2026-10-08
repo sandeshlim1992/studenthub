@@ -384,7 +384,7 @@ onMounted(() => {
             <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {{
                 __(
-                  'Connect Zammad with foundational AI model providers to power Ticket Summary, Writing Assistant, and AI Agents.',
+                  'Connect Student Hub with foundational AI model providers to power Ticket Summary, Writing Assistant, and AI Agents.',
                 )
               }}
             </p>

@@ -168,7 +168,7 @@ const currentAccessTokenPresent = computed(() => currentAccessTokens.value.lengt
 
 const helpText = computed(() => [
   i18n.t(
-    'You can generate a personal access token for each application you use that needs access to the Zammad API.',
+    'You can generate a personal access token for each application you use that needs access to the Student Hub API.',
   ),
   i18n.t("Pick a name for the application, and we'll give you a unique token."),
 ])

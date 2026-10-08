@@ -1,4 +1,4 @@
-# Student Hub: shows the customer's feedback rating on closed tickets (Feedback Collection).
+# Student Hub: shows the customer's feedback rating on closed tickets (Feedback Collection), to admins.
 class SidebarStudenthubFeedback extends App.Controller
   constructor: ->
     super
@@ -9,7 +9,7 @@ class SidebarStudenthubFeedback extends App.Controller
     )
 
   sidebarItem: =>
-    return if !@permissionCheck('ticket.agent')
+    return if !@permissionCheck('admin.feedback_collection')
     return if !@ticketClosed()
     @item = {
       name: 'studenthub-feedback'

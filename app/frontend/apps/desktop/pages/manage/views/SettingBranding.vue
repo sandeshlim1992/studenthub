@@ -464,11 +464,11 @@ onMounted(() => {
                       class="max-h-12 max-w-full object-contain"
                     />
                     <div v-else class="text-lg font-bold text-slate-700 dark:text-slate-200">
-                      {{ productName || __('Zammad Helpdesk') }}
+                      {{ productName || __('Student Hub') }}
                     </div>
                   </div>
                   <h4 class="text-base font-semibold text-slate-800 dark:text-slate-100">
-                    {{ productName || __('Zammad Helpdesk') }}
+                    {{ productName || __('Student Hub') }}
                   </h4>
                   <p v-if="organization" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                     {{ organization }}

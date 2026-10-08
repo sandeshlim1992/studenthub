@@ -97,6 +97,8 @@ describe('StudenthubManagerDashboard', () => {
     fetchMock = vi.fn((url: string) => {
       if (url.includes('/approval/'))
         return Promise.resolve(json({ enabled: true, state: 'approved', history: [] }))
+      // The manager's sites (none).
+      if (url.includes('/manager_sites/')) return Promise.resolve(json({ sites: [] }))
       const body = dashboards[Math.min(call, dashboards.length - 1)]
       call += 1
       return Promise.resolve(json(body))

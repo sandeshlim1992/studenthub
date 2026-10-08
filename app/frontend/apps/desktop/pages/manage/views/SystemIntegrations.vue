@@ -27,6 +27,8 @@ interface IntegrationItem {
   switchSetting: string
   configSetting?: string
   tokenSetting?: string
+  // Student Hub: set up on its own page instead of the dialog
+  configRoute?: string
 }
 
 interface ConfigModalState {
@@ -151,6 +153,7 @@ const integrationsList: IntegrationItem[] = [
       'Automated periodic synchronization of users, departments, and role assignments from Active Directory / OpenLDAP.',
     ),
     switchSetting: 'ldap_integration',
+    configRoute: '/manage/system/integrations/ldap',
   },
   {
     key: 'exchange',
@@ -162,6 +165,7 @@ const integrationsList: IntegrationItem[] = [
       'Synchronize contacts and address book entries from Microsoft Exchange / Office 365.',
     ),
     switchSetting: 'exchange_integration',
+    configRoute: '/manage/system/integrations/exchange',
     configSetting: 'exchange_config',
   },
   {
@@ -220,6 +224,7 @@ const integrationsList: IntegrationItem[] = [
       'Pretty Good Privacy public/private key management for end-to-end email encryption and signing.',
     ),
     switchSetting: 'pgp_integration',
+    configRoute: '/manage/system/integrations/pgp',
     configSetting: 'pgp_config',
   },
   {
@@ -232,6 +237,7 @@ const integrationsList: IntegrationItem[] = [
       'X.509 certificate handling for enterprise S/MIME email signing and decryption.',
     ),
     switchSetting: 'smime_integration',
+    configRoute: '/manage/system/integrations/smime',
     configSetting: 'smime_config',
   },
   {
@@ -808,7 +814,7 @@ onMounted(() => {
             <button
               type="button"
               class="cursor-pointer rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-              @click="openConfigModal(item)"
+              @click="item.configRoute ? $router.push(item.configRoute) : openConfigModal(item)"
             >
               {{ __('Configure') }}
             </button>

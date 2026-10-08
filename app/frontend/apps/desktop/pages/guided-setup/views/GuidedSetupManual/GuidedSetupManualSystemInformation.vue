@@ -55,7 +55,7 @@ const systemInformationSchema = [
         type: 'text',
         required: true,
         validation: 'url',
-        help: __('The URL of this installation of Zammad.'),
+        help: __('The URL of this installation of Student Hub.'),
       },
     ],
   },

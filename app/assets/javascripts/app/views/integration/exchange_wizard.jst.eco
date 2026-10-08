@@ -142,7 +142,7 @@
             <thead>
               <tr>
                 <th><%- @T('%s Attribute', 'Exchange') %>
-                <th><%- @T('%s Attribute', 'Zammad') %>
+                <th><%- @T('%s Attribute', 'Student Hub') %>
                 <th><%- @T('Action') %>
             </thead>
             <tbody>

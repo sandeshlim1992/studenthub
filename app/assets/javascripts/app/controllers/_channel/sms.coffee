@@ -395,7 +395,7 @@ class TestModal extends App.ControllerModal
       model:
         configure_attributes: [
           { name: 'recipient', display: __('Recipient'), tag: 'input', null: false }
-          { name: 'message', display: __('Message'), tag: 'input', null: false, default: __('Test message from Zammad') }
+          { name: 'message', display: __('Message'), tag: 'input', null: false, default: __('Test message from Student Hub') }
         ]
         className: ''
     )

@@ -28,7 +28,7 @@
       <thead>
         <tr>
           <th width="45%"><%- @T('Clearbit') %>
-          <th width="45%"><%- @T('Zammad') %>
+          <th width="45%"><%- @T('Student Hub') %>
           <th width="10%"><%- @T('Action') %>
       </thead>
       <tbody>
@@ -53,7 +53,7 @@
       <thead>
         <tr>
           <th width="45%"><%- @T('Clearbit') %>
-          <th width="45%"><%- @T('Zammad') %>
+          <th width="45%"><%- @T('Student Hub') %>
           <th width="10%"><%- @T('Action') %>
       </thead>
       <tbody>

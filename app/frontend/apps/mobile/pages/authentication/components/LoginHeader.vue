@@ -19,7 +19,7 @@ defineProps<{
     <div class="mb-4 flex items-center rounded-xl bg-red px-4 py-2 text-white">
       {{
         $t(
-          'Zammad is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
+          'Student Hub is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
         )
       }}
     </div>

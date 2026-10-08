@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref, toRef, watch } from 'vue'
 
 import { useReducedMotion } from '#shared/composables/useReducedMotion.ts'
 import emitter from '#shared/utils/emitter.ts'
@@ -16,6 +16,7 @@ import type { NavigationTab } from '#desktop/components/CommonTabs/types.ts'
 import LayoutBottomBar from '#desktop/components/layout/LayoutBottomBar.vue'
 import LayoutMain from '#desktop/components/layout/LayoutMain.vue'
 import LayoutSidebar from '#desktop/components/layout/LayoutSidebar.vue'
+import { useStudenthubLayoutCrumbs } from '#desktop/components/layout/StudenthubTopBar/useStudenthubLayoutCrumbs.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 import { useAppBreakpoints } from '#desktop/composables/responsiveness/useAppBreakpoints.ts'
 import { useResizeGridColumns } from '#desktop/composables/useResizeGridColumns.ts'
@@ -65,6 +66,9 @@ const props = withDefaults(defineProps<Props>(), {
   contentAlignment: 'start',
   activeTab: '',
 })
+
+// Student Hub: Administration and Reporting show the breadcrumb trail in the top bar.
+const { isInTopBar: isBreadcrumbInTopBar } = useStudenthubLayoutCrumbs(toRef(props, 'breadcrumbItems'))
 
 const maxWidth = computed(() => (props.width === 'narrow' ? '600px' : undefined))
 
@@ -153,12 +157,15 @@ const { hasReducedMotion } = useReducedMotion()
           />
 
           <div
-            v-if="breadcrumbItems"
+            v-if="
+              breadcrumbItems &&
+              (!isBreadcrumbInTopBar || $slots.headerRight || helpText || $slots.helpPage)
+            "
             data-test-id="wrapper-breadcrumb"
             class="flex min-h-13 items-center justify-between"
             :class="{ 'px-4 pt-4': contentPadding, 'pt-0!': tabs?.length }"
           >
-            <CommonBreadcrumb :items="breadcrumbItems" />
+            <CommonBreadcrumb v-if="!isBreadcrumbInTopBar" :items="breadcrumbItems" />
             <div
               v-if="$slots.headerRight || helpText || $slots.helpPage"
               class="flex gap-4 ltr:text-left rtl:text-right"

@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
 
 import { NotificationTypes } from '#shared/components/CommonNotifications/types.ts'
 import { useNotifications } from '#shared/components/CommonNotifications/useNotifications.ts'
@@ -14,12 +14,14 @@ import { decideApproval, type ManagerDashboard } from '../utils/studenthubManage
 import StudenthubManagerMonth from './StudenthubManagerDashboard/StudenthubManagerMonth.vue'
 import StudenthubManagerQueue from './StudenthubManagerDashboard/StudenthubManagerQueue.vue'
 import StudenthubManagerRequest from './StudenthubManagerDashboard/StudenthubManagerRequest.vue'
+import StudenthubManagerSiteStats from './StudenthubManagerSiteStats.vue'
 
 // Student Hub: the dashboard of managers who have no other staff role (Ticket Approvals).
 // One request at a time: "Next in line" lists what waits (longest first), the card shows the
 // open one with Approve / Deny, and the next one opens after a decision. Nothing waiting:
 // "All caught up" and "Your month in review". Below: approved tickets still open, and recent
-// decisions (GET /api/v1/ticket_approval/dashboard).
+// decisions (GET /api/v1/ticket_approval/dashboard), then the numbers of the sites assigned to
+// them (StudenthubManagerSiteStats).
 
 const data = ref<ManagerDashboard | null>(null)
 const isLoading = ref(false)
@@ -51,6 +53,10 @@ const load = () => {
 }
 
 onMounted(load)
+
+const siteStats = useTemplateRef<InstanceType<typeof StudenthubManagerSiteStats>>('site-stats')
+
+const refreshAll = () => Promise.all([load(), siteStats.value?.load()])
 
 const requests = computed(() => data.value?.waiting.requests ?? [])
 const selectedId = ref<number | null>(null)
@@ -149,7 +155,7 @@ const ticketLink = (ticketId: number) => `/tickets/${ticketId}`
             type="button"
             class="inline-flex h-9 items-center gap-2 rounded-md border border-[#c9cdd4] bg-white px-3 font-semibold text-[var(--sh-ink)] hover:bg-[#f4f5f7]"
             :disabled="isLoading"
-            @click="load"
+            @click="refreshAll"
           >
             <CommonIcon
               name="arrow-repeat"
@@ -277,6 +283,8 @@ const ticketLink = (ticketId: number) => `/tickets/${ticketId}`
           </section>
         </div>
       </template>
+
+      <StudenthubManagerSiteStats ref="site-stats" />
     </div>
   </LayoutMain>
 </template>

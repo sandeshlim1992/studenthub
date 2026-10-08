@@ -10,7 +10,7 @@ const routes: RouteRecordRaw[] = [
     alias: ['/#report'],
     meta: {
       title: __('Reporting'),
-      icon: 'speedometer2',
+      icon: 'studenthub-reporting',
       requiresAuth: true,
       requiredPermission: ['report', 'admin'],
       order: 10,

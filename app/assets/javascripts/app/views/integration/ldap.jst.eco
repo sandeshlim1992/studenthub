@@ -67,7 +67,7 @@
       <thead>
         <tr>
           <th width="40%"><%- @T('%s Attribute', 'LDAP') %>
-          <th width="60%"><%- @T('%s Attribute', 'Zammad') %>
+          <th width="60%"><%- @T('%s Attribute', 'Student Hub') %>
         <% for key, value of @config.user_attributes: %>
           <tr>
             <td class="settings-list-row-control"><%= key %>
@@ -88,7 +88,7 @@
       <thead>
         <tr>
           <th width="40%" ><%- @T('%s Group', 'LDAP') %>
-          <th><%- @T('%s Role', 'Zammad') %>
+          <th><%- @T('%s Role', 'Student Hub') %>
           <th width="50" class="u-noWrap"><%- @T('Include nested') %>
       <tbody>
         <% for source, dests of @group_role_map: %>

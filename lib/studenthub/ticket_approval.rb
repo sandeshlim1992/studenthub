@@ -40,6 +40,12 @@ module Studenthub::TicketApproval
     end
   end
 
+  # A manager without another staff role who also has the Customer role: they raise tickets
+  # for themselves, like a student (see ManagerCreate). Other such managers can't raise tickets.
+  def self.customer_manager?(user)
+    manager_only?(user) && user.permissions?('ticket.customer')
+  end
+
   # The approval columns may only change inside this block (see TicketGuard).
   def self.writing
     previous = Thread.current[:studenthub_ticket_approval_writing]

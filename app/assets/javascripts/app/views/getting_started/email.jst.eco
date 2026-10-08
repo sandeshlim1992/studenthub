@@ -89,7 +89,7 @@
         </div>
         <p class="js-messageFound"></p>
         <p><%- @T('You can import some of your emails as an "archive", which means that no notifications are sent and the tickets will be in a target state that you define.') %></p>
-        <p><%- @T('You can find archived emails in Zammad anytime using the search function, like for any other ticket.') %></p>
+        <p><%- @T('You can find archived emails in Student Hub anytime using the search function, like for any other ticket.') %></p>
         <div class="js-archiveSettings"></div>
         <div class="inbound-acknowledge-settings"></div>
       </div>

@@ -24,7 +24,7 @@ export const useEmailInboundMessagesForm = (
           isLayout: true,
           component: 'CommonLabel',
           children:
-            '$t("%s email(s) were found in your mailbox. They will all be moved from your mailbox into Zammad.", $metaInformationInbound.contentMessages)',
+            '$t("%s email(s) were found in your mailbox. They will all be moved from your mailbox into Student Hub.", $metaInformationInbound.contentMessages)',
         },
         {
           isLayout: true,
@@ -36,7 +36,7 @@ export const useEmailInboundMessagesForm = (
           isLayout: true,
           component: 'CommonLabel',
           children:
-            '$t("You can find archived emails in Zammad anytime using the search function, like for any other ticket.")',
+            '$t("You can find archived emails in Student Hub anytime using the search function, like for any other ticket.")',
         },
         {
           name: 'archive',

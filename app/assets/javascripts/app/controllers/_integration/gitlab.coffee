@@ -3,7 +3,7 @@ class GitLab extends App.ControllerIntegrationBase
   featureName: __('GitLab')
   featureConfig: 'gitlab_config'
   description: [
-    [__('This service allows you to connect %s with %s.'), 'GitLab', 'Zammad']
+    [__('This service allows you to connect %s with %s.'), 'GitLab', 'Student Hub']
   ]
   events:
     'change .js-switch input': 'switch'

@@ -11,7 +11,7 @@
 <div class="page-content">
   <% if _.isEmpty(@channels): %>
     <div class="page-description">
-      <p><%- @T('You can connect WhatsApp Business Accounts with Zammad.') %></p>
+      <p><%- @T('You can connect WhatsApp Business Accounts with Student Hub.') %></p>
     </div>
   <% else: %>
     <% for channel in @channels: %>

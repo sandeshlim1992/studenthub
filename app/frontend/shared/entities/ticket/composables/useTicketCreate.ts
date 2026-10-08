@@ -32,8 +32,11 @@ const {
 export const useTicketCreate = (
   form: Ref<FormRef | undefined>,
   redirectAfterCreate: (internalId?: number, ticket?: TicketAttributesFragment | null) => void,
+  // Student Hub: managers who are also customers raise tickets for themselves, like a customer.
+  options: { asCustomer?: () => boolean } = {},
 ) => {
   const { isTicketCustomer } = useTicketCreateView()
+  const sendsAsCustomer = () => isTicketCustomer.value || Boolean(options.asCustomer?.())
 
   const { notify } = useNotifications()
 
@@ -124,10 +127,10 @@ export const useTicketCreate = (
       article: {
         cc: formData.cc,
         body: transformEditorHtml(formData.body),
-        sender: isTicketCustomer.value
+        sender: sendsAsCustomer()
           ? 'Customer'
           : ticketCreateArticleType[formData.articleSenderType].sender,
-        type: isTicketCustomer.value
+        type: sendsAsCustomer()
           ? 'web'
           : ticketCreateArticleType[formData.articleSenderType].type,
         contentType: 'text/html',

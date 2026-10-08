@@ -63,7 +63,7 @@ class FirstStepsController < ApplicationController
               class:    'js-inviteAgent',
             },
             {
-              name:     __('Invite customers to create issues in Zammad'),
+              name:     __('Invite customers to create issues in Student Hub'),
               checked:  invite_customers,
               location: '#',
               class:    'js-inviteCustomer',
@@ -145,7 +145,7 @@ class FirstStepsController < ApplicationController
             class:    'js-testTicket',
           },
           {
-            name:     __('Invite customers to create issues in Zammad'),
+            name:     __('Invite customers to create issues in Student Hub'),
             checked:  invite_customers,
             location: '#',
             class:    'js-inviteCustomer',

@@ -218,24 +218,11 @@ class App.OnlineNotificationContentWidget extends App.CollectionController
   onRenderEnd: =>
     @container.counterGen()
 
-    # generate desktop notifications
+    # Student Hub: notifications stay inside the platform and are silent (no browser pop-up, no
+    # sound); the bell count and the list update as usual.
     items = App.OnlineNotification.search(sortBy: 'created_at', order: 'DESC')
     for item in items
-      if !@alreadyShown[item.id]
-        @alreadyShown[item.id] = true
-        if !item.seen
-          if @container.fetchedData
-            item = @prepareForObjectListItem(item)
-            if item.objectNative && item.objectNative.activityMessage
-              title = item.objectNative.activityMessage(item)
-            else
-              title = "Need objectNative in item #{item.object}.find(#{item.o_id})"
-            title = App.Utils.html2text(title.replace(/<.+?>/g, '"'))
-            @notifyDesktop(
-              url: item.link
-              title: title
-            )
-            App.OnlineNotification.play()
+      @alreadyShown[item.id] = true
 
   onClick: (id, e) =>
     notification = App.OnlineNotification.find(id)

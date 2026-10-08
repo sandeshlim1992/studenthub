@@ -11,7 +11,7 @@ import { useSidebarDisplayStore } from '#desktop/components/layout/stores/sideba
 import { SidebarName } from '#desktop/components/layout/types.ts'
 
 describe('ActionMenu', () => {
-  it('renders container with two action menus', () => {
+  it('renders container with two action menus', async () => {
     mockPermissions(['ticket.agent', 'ticket.customer', 'admin'])
     mockApplicationConfig({ customer_ticket_create: true })
     useSidebarDisplayStore().setCollapsed(SidebarName.Primary, false)
@@ -22,7 +22,9 @@ describe('ActionMenu', () => {
 
     expect(wrapper.getAllByRole('listitem')).toHaveLength(2)
 
-    expect(wrapper.getByLabelText('Administration')).toBeInTheDocument()
+    // Student Hub: the admin menu holds Reporting and Administration.
+    await wrapper.events.click(wrapper.getByLabelText('Action menu button'))
+    expect(await wrapper.findByText('Administration')).toBeInTheDocument()
 
     expect(wrapper.getByLabelText('New ticket')).toBeInTheDocument()
   })

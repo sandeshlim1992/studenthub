@@ -448,10 +448,10 @@ onMounted(() => {
           </div>
           
           <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
-            {{ __('Connect Facebook with Zammad') }}
+            {{ __('Connect Facebook with Student Hub') }}
           </h2>
           <p class="text-xs text-slate-600 dark:text-slate-400 max-w-lg mx-auto mb-6 leading-relaxed">
-            {{ __('Connect your Facebook Pages to turn customer posts and direct messages into tickets. First, connect your Zammad instance with a Meta for Developers App.') }}
+            {{ __('Connect your Facebook Pages to turn customer posts and direct messages into tickets. First, connect your Student Hub instance with a Meta for Developers App.') }}
           </p>
 
           <button

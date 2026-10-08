@@ -2,7 +2,7 @@
 
   <h2><%- @T('Endpoint Settings') %></h2>
 
-  <p><%- @T('You need to configure the Zammad endpoints in the %s web interface:', 'Sipgate') %><p>
+  <p><%- @T('You need to configure the Student Hub endpoints in the %s web interface:', 'Sipgate') %><p>
 
   <div class="settings-entry">
     <table class="settings-list" style="width: 100%;">
@@ -114,14 +114,14 @@
 
   <h2><%- @T('Phone Extension to Agent Mapping') %></h2>
 
-  <p><%- @T("By mapping your agents' sipgate users to their Zammad user accounts, Zammad can support your agents by opening either a new ticket dialogue or the user profile upon picking up a new call.") %>
+  <p><%- @T("By mapping your agents' sipgate users to their Student Hub user accounts, Student Hub can support your agents by opening either a new ticket dialogue or the user profile upon picking up a new call.") %>
 
   <div class="settings-entry">
     <table class="settings-list js-userRemoteMap" style="width: 100%;">
       <thead>
         <tr>
           <th width="45%"><%- @T('Sipgate') %>/<%- @T('User') %>
-          <th width="45%"><%- @T('Zammad') %>/<%- @T('User') %>
+          <th width="45%"><%- @T('Student Hub') %>/<%- @T('User') %>
           <th width="10%"><%- @T('Action') %>
       </thead>
       <tbody>

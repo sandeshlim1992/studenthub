@@ -114,7 +114,7 @@ const useAppMaintenanceCheck = (maintenanceOptions: UseAppMaintenanceCheckOption
 
       switch (type) {
         case EnumAppMaintenanceType.ConfigChanged:
-          message = __('The configuration of Zammad has changed. Please reload at your earliest.')
+          message = __('The configuration of Student Hub has changed. Please reload at your earliest.')
           break
         case EnumAppMaintenanceType.RestartAuto:
         case EnumAppMaintenanceType.RestartManual:

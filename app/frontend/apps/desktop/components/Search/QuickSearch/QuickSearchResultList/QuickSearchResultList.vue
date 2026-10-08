@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import { refDebounced } from '@vueuse/core'
 import { whenever } from '@vueuse/shared'
-import { computed, toRef } from 'vue'
+import { computed, ref, toRef } from 'vue'
 
 import QueryHandler from '#shared/server/apollo/handler/QueryHandler.ts'
 
@@ -13,6 +13,7 @@ import QuickSearchResultListSkeleton from '#desktop/components/Search/QuickSearc
 import type { QuickSearchResultData } from '#desktop/components/Search/types.ts'
 
 import { useSearchPlugins } from '../../plugins/index.ts'
+import StudenthubQuickSearchKnowledgeBase from '../StudenthubQuickSearchKnowledgeBase.vue'
 import { useQuickSearchInput } from '../useQuickSearchInput.ts'
 
 const RESULT_LIMIT = 10
@@ -87,6 +88,9 @@ const isLoadingSearchResults = quickSearchQuery.loadingWithoutCachedResult()
 
 const hasResults = computed(() => Boolean(mappedQuickSearchResults.value?.length))
 
+// Student Hub: Knowledge Base answers are listed after Zammad's results.
+const knowledgeBaseResultCount = ref(0)
+
 const { resetQuickSearchInputField } = useQuickSearchInput()
 </script>
 
@@ -149,6 +153,12 @@ const { resetQuickSearchInputField } = useQuickSearchInput()
         </div>
       </CommonSectionCollapse>
     </div>
-    <CommonLabel v-else>{{ $t('No results for this query.') }}</CommonLabel>
+    <StudenthubQuickSearchKnowledgeBase
+      :search="debouncedSearch"
+      :class="{ 'mt-1': hasResults }"
+      @update:count="knowledgeBaseResultCount = $event"
+      @click="resetQuickSearchInputField"
+    />
+    <CommonLabel v-if="!hasResults && !knowledgeBaseResultCount">{{ $t('No results for this query.') }}</CommonLabel>
   </QuickSearchResultListSkeleton>
 </template>

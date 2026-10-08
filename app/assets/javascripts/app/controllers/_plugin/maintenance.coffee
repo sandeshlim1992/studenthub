@@ -57,8 +57,8 @@ class Maintenance extends App.Controller
     App.SessionStorage.clear()
 
     @messageRestartAuto = new App.SessionMessage(
-      head:         __('Zammad is restarting…')
-      message:      __('Some system settings have changed, Zammad is restarting. Please wait until Zammad is back again.')
+      head:         __('Student Hub is restarting…')
+      message:      __('Some system settings have changed, Student Hub is restarting. Please wait until Student Hub is back again.')
       keyboard:     false
       backdrop:     false
       buttonClose:  false
@@ -76,8 +76,8 @@ class Maintenance extends App.Controller
     App.SessionStorage.clear()
 
     @messageRestartManual = new App.SessionMessage(
-      head:         __('Zammad requires a restart!')
-      message:      __('Some system settings have changed, please restart all Zammad processes!')
+      head:         __('Student Hub requires a restart!')
+      message:      __('Some system settings have changed, please restart all Student Hub processes!')
       keyboard:     false
       backdrop:     false
       buttonClose:  false
@@ -101,7 +101,7 @@ class Maintenance extends App.Controller
 
     @messageConfigChanged = new App.SessionMessage(
       head:          __('Config has changed')
-      message:       __('The configuration of Zammad has changed, please reload your browser.')
+      message:       __('The configuration of Student Hub has changed, please reload your browser.')
       keyboard:      false
       backdrop:      true
       buttonClose:   false
@@ -138,7 +138,7 @@ class Maintenance extends App.Controller
     message = =>
       @messageAppVersion = new App.SessionMessage(
         head:         __('New Version')
-        message:      __('A new version of Zammad is available, please reload your browser.')
+        message:      __('A new version of Student Hub is available, please reload your browser.')
         keyboard:     false
         backdrop:     true
         buttonClose:  false

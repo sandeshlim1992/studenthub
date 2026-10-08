@@ -3,7 +3,7 @@ class Idoit extends App.ControllerIntegrationBase
   featureName: 'i-doit'
   featureConfig: 'idoit_config'
   description: [
-    [__('This service allows you to connect %s with %s.'), 'i-doit', 'Zammad']
+    [__('This service allows you to connect %s with %s.'), 'i-doit', 'Student Hub']
   ]
   events:
     'change .js-switch input': 'switch'

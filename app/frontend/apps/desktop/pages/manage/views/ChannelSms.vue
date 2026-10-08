@@ -72,7 +72,7 @@ const accountOptions = ref<Record<string, string>>({
 // Test Modal
 const isTestModalOpen = ref(false)
 const testRecipient = ref('')
-const testMessage = ref(__('Test SMS from Zammad'))
+const testMessage = ref(__('Test SMS from Student Hub'))
 const testResult = ref<{ success?: unknown; error_human?: string; error?: string } | null>(null)
 
 // Notification Service Modal
@@ -320,7 +320,7 @@ const saveAccountChannel = async () => {
 const openTestModal = (channel: SmsChannel) => {
   testResult.value = null
   testRecipient.value = ''
-  testMessage.value = __('Test SMS message from Zammad Helpdesk.')
+  testMessage.value = __('Test SMS message from Student Hub.')
   accountOptions.value = {
     ...(channel.options as Record<string, string>),
     adapter: channel.options?.adapter || 'twilio',
@@ -603,7 +603,7 @@ onMounted(() => {
                   {{ getWebhookUrl(channel.options.webhook_token) }}
                 </div>
                 <p class="text-[11px] text-slate-400 mt-1">
-                  {{ __('Configure this URL in your SMS provider console (e.g. Twilio Phone Number webhook) to forward incoming customer SMS messages into Zammad.') }}
+                  {{ __('Configure this URL in your SMS provider console (e.g. Twilio Phone Number webhook) to forward incoming customer SMS messages into Student Hub.') }}
                 </p>
               </div>
             </div>
@@ -724,7 +724,7 @@ onMounted(() => {
               </div>
               <div>
                 <label for="mb-originator" class="block text-xs font-semibold mb-1">{{ __('Originator / Sender ID') }}</label>
-                <input id="mb-originator" v-model="accountOptions.originator" type="text" placeholder="Zammad" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono" />
+                <input id="mb-originator" v-model="accountOptions.originator" type="text" placeholder="Student Hub" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono" />
               </div>
             </div>
 
@@ -885,7 +885,7 @@ onMounted(() => {
               </div>
               <div>
                 <label for="nmb-originator" class="block text-xs font-semibold mb-1">{{ __('Originator') }}</label>
-                <input id="nmb-originator" v-model="notificationOptions.originator" type="text" placeholder="Zammad" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono" />
+                <input id="nmb-originator" v-model="notificationOptions.originator" type="text" placeholder="Student Hub" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono" />
               </div>
             </div>
           </div>

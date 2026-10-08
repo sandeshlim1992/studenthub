@@ -12,7 +12,7 @@ class ProfileNewBetaUI extends App.ControllerSubContent
 
     content.find('.js-switchControl').replaceWith App.UiElement.switch.render(
       name: 'desktop_beta_switch_profile'
-      display: __('Display Zammad in the New BETA User Interface')
+      display: __('Display Student Hub in the New BETA User Interface')
     )
 
     content.find('.js-checkboxControl').replaceWith App.UiElement.checkbox.render(

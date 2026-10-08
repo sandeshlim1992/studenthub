@@ -10,21 +10,31 @@ import { useSessionStore } from '#shared/stores/session.ts'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import AvatarMenu from '#desktop/components/layout/LayoutSidebar/LeftSidebar/AvatarMenu/AvatarMenu.vue'
 import OnlineNotification from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarHeader/OnlineNotification.vue'
-import AdminMenu from '#desktop/components/layout/LayoutSidebar/LeftSidebar/MenuContainer/AdminMenu/AdminMenu.vue'
 import QuickSearch from '#desktop/components/Search/QuickSearch/QuickSearch.vue'
 import QuickSearchInput from '#desktop/components/Search/QuickSearch/QuickSearchInput/QuickSearchInput.vue'
+import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
+import { useStudenthubMembersAccess } from '#desktop/composables/useStudenthubMembers.ts'
 
+import StudenthubMembersButton from './StudenthubMembersButton.vue'
 import { useStudenthubTopBarCrumbs } from './useStudenthubTopBarCrumbs.ts'
 
 // Student Hub: Halo-style top bar for staff. Search (with Zammad's quick search results in a
-// drop-down), New ticket, admin menu, notifications and the avatar menu live here instead of
-// in the navigation panel.
+// drop-down), members online, New ticket, notifications and the avatar menu live here instead
+// of in the navigation panel. Administration and Reporting are only in the navigation panel.
 
 const router = useRouter()
 const route = useRoute()
 const { hasPermission } = useSessionStore()
 
 const isAgent = computed(() => hasPermission('ticket.agent'))
+
+// Managers without another staff role raise tickets only if they are also customers.
+const { isLoaded: isViewerLoaded, cannotCreateTickets } = useStudenthubApprovalViewer()
+const canCreateTicket = computed(
+  () => isAgent.value && isViewerLoaded.value && !cannotCreateTickets.value,
+)
+
+const canSeeMembers = useStudenthubMembersAccess()
 
 const crumbs = useStudenthubTopBarCrumbs()
 
@@ -86,10 +96,10 @@ watch(
     </div>
 
     <div class="ms-auto flex shrink-0 items-center gap-2">
-      <AdminMenu class="studenthub-topbar-icon" />
+      <StudenthubMembersButton v-if="canSeeMembers" />
 
       <CommonButton
-        v-if="isAgent"
+        v-if="canCreateTicket"
         variant="none"
         size="medium"
         prefix-icon="plus"
@@ -138,10 +148,5 @@ watch(
 
 .studenthub-topbar-search :deep(input::placeholder) {
   color: var(--sh-muted);
-}
-
-.studenthub-topbar-icon :deep(button),
-.studenthub-topbar-icon :deep(a) {
-  color: var(--sh-ink-2);
 }
 </style>

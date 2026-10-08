@@ -50,7 +50,7 @@ defineOptions({
   </div>
 
   <!-- AGENT PERSONAL SETTING (UNTOUCHED) -->
-  <div v-else class="grid h-full grid-cols-1 lg:grid-cols-[260px_1fr]">
+  <div v-else class="grid h-full grid-cols-1 grid-rows-1 lg:grid-cols-[260px_1fr]">
     <LayoutSidebar
       id="personal-settings-sidebar"
       class="hidden lg:flex"

@@ -41,6 +41,8 @@ RSpec.describe Service::FeedbackCollection::SubmitFeedback, aggregate_failures: 
   end
 
   describe 'internal note' do
+    let(:config) { { add_internal_note: true } }
+
     it 'adds an escaped internal note without reopening the ticket' do
       expect { submit(comments: 'Fixed <script>x</script>') }.to change { ticket.articles.count }.by(1)
 
@@ -51,8 +53,8 @@ RSpec.describe Service::FeedbackCollection::SubmitFeedback, aggregate_failures: 
       expect(ticket.reload.state.name).to eq('closed')
     end
 
-    context 'when turned off' do
-      let(:config) { { add_internal_note: false } }
+    context 'when turned off (the default: agents could read the note)' do
+      let(:config) { {} }
 
       it 'adds no note' do
         expect { submit }.not_to change { ticket.articles.count }

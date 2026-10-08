@@ -1156,10 +1156,10 @@ onMounted(() => {
             </div>
             
             <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">
-              {{ __('Connect Google Email with Zammad') }}
+              {{ __('Connect Google Email with Student Hub') }}
             </h2>
             <p class="text-xs text-slate-600 dark:text-slate-400 max-w-lg mx-auto mb-6 leading-relaxed">
-              {{ __('You can connect Google Email Accounts (Gmail / Google Workspace) with Zammad. But first, you will have to connect your Zammad with Google.') }}
+              {{ __('You can connect Google Email Accounts (Gmail / Google Workspace) with Student Hub. But first, you will have to connect your Student Hub with Google.') }}
             </p>
 
             <button

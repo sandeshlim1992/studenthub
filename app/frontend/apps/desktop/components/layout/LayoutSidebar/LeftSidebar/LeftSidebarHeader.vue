@@ -6,10 +6,11 @@ import { useRouter } from 'vue-router'
 import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 import { SidebarName } from '#desktop/components/layout/types.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
+import { useStudenthubRoleLabel } from '#desktop/composables/useStudenthubRoleLabel.ts'
 
-
-// Student Hub: brand area of the navigation panel. Search, notifications and the avatar
-// menu live in the top bar (StudenthubTopBar); collapsing uses Zammad's button in the footer.
+// Student Hub: brand area of the navigation panel, with the user's role under the name. Search,
+// notifications and the avatar menu live in the top bar (StudenthubTopBar); collapsing uses
+// Zammad's button in the footer.
 
 interface Props {
   collapsed?: boolean
@@ -19,6 +20,7 @@ defineProps<Props>()
 
 const router = useRouter()
 const { toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
+const roleLabel = useStudenthubRoleLabel()
 </script>
 
 <template>
@@ -35,8 +37,12 @@ const { toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
       </span>
       <span class="flex min-w-0 flex-col">
         <span class="truncate text-base leading-tight font-bold tracking-tight text-white">Student Hub</span>
-        <span class="mt-0.5 text-[10px] leading-none font-semibold tracking-widest text-white/70 uppercase">
-          {{ $t('Admin & Agent') }}
+        <span
+          v-if="roleLabel"
+          class="mt-0.5 text-[10px] leading-none font-semibold tracking-widest text-white/70 uppercase"
+          data-test-id="studenthub-role"
+        >
+          {{ $t(roleLabel) }}
         </span>
       </span>
     </button>

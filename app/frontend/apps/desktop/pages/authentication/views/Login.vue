@@ -259,7 +259,7 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
       <div v-if="$c.maintenance_mode" class="mb-3 rounded-xl bg-red-500 px-4 py-2.5 text-xs text-white">
         {{
           $t(
-            'Zammad is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
+            'Student Hub is currently in maintenance mode. Only administrators can log in. Please wait until the maintenance window is over.',
           )
         }}
       </div>
@@ -355,13 +355,7 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
               @submit="login($event as FormSubmitData<LoginCredentials>)"
             >
               <template #after-fields>
-                <!-- REGISTER LINE STYLING -->
-                <div v-if="$c.user_create_account" class="my-3 text-center text-sm text-[var(--sh-ink-2)]">
-                  <span>{{ $t('New user?') }}</span>
-                  <CommonLink link="/signup" class="studenthub-link rtl:mr-1 ltr:ml-1" size="medium">{{
-                    $t('Register')
-                  }}</CommonLink>
-                </div>
+                <!-- Student Hub: no self-registration (accounts come from Microsoft 365 or the admins) -->
                 <button
                   type="submit"
                   :disabled="isDisabled || isLoggingIn"
@@ -427,6 +421,8 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
         <p class="text-center text-sm text-[var(--sh-ink-2)]">
           {{ $t('Trouble signing in? Contact the IT Service Desk.') }}
         </p>
+        <!-- Student Hub: links admins add under Administration → Public Links -->
+        <CommonPublicLinks class="studenthub-public-links" :screen="EnumPublicLinksScreen.Login" />
       </div>
     </main>
   </div>

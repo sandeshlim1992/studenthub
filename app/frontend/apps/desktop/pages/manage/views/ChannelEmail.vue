@@ -1816,7 +1816,7 @@ onMounted(() => {
           <!-- Wizard Step 1: Credentials & Auto-Probe -->
           <div v-if="accountWizardStep === 1" class="space-y-4">
             <p class="text-xs text-slate-500">
-              {{ __('Enter your organization name and email credentials. Zammad will attempt to detect the correct mail server settings automatically.') }}
+              {{ __('Enter your organization name and email credentials. Student Hub will attempt to detect the correct mail server settings automatically.') }}
             </p>
 
             <div class="grid grid-cols-1 gap-3">

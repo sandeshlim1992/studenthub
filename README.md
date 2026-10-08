@@ -606,9 +606,15 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
   under the last message, with **Approve** / **Deny** (a comment is required to deny); the Approval tab offers the same.
   Admins can decide too, in the tab. Managers who have no other staff role (no Agent or Admin role) get no sidebar
   icons on the ticket screen at all, only the card (`GET /api/v1/ticket_approval/viewer` tells the UI), and their
-  own **dashboard** instead of the agent one: requests waiting for them (amber after a day), their decisions in the
-  last 30 days with the approval rate, tickets they approved over 3 days ago that are still open, and their last five
-  decisions (`GET /api/v1/ticket_approval/dashboard`, `ticket.approver` permission).
+  own **dashboard** instead of the agent one, built for deciding one request at a time: **Next in line** lists the
+  requests waiting for them, longest wait first (the waiting time in station-board digits, amber after a day), and the
+  card next to it shows the open one (reason, who asked, team, campus, category, the customer's latest message) with
+  **Approve** / **Deny** and a comment (required to deny); after a decision the next request opens. With nothing
+  waiting, the list says **All caught up** (with the last decision) and the card becomes **Your month in review**
+  (decided, approval rate, median and longest wait compared with the 30 days before, decisions per week and per
+  team). Below: tickets they approved over 3 days ago that are still open, their last five decisions
+  (`GET /api/v1/ticket_approval/dashboard`, `ticket.approver` permission) and **My sites** (see Manager sites). The
+  digits use Barlow Condensed (SIL Open Font License), self-hosted in `app/frontend/apps/desktop/assets/fonts/`.
 - **Manager sites:** admins assign sites (organisations) to managers in the **Manager sites** card of the Ticket
   Approvals admin page. A manager can then read (not change) the tickets of their sites, gets a view of each site's
   open tickets under **Sites** in their views panel (only for the managers of that site; the admins' Sites views are
@@ -636,7 +642,7 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 | `app/frontend/apps/desktop/pages/ticket/components/TicketCreate/useStudenthubCreateApproval.ts` | "Send for approval" on the New ticket screen |
 | `app/frontend/apps/desktop/pages/ticket/components/TicketSidebar/plugins/studenthub-approval.ts`, `…/TicketSidebarStudenthubApproval/` | Approval tab in the new UI's ticket sidebar (picked up automatically from the plugins folder) |
 | `…/TicketSidebarStudenthubApproval/StudenthubApprovalDecisionCard.vue` (shown by `ArticleList.vue`), `app/frontend/apps/desktop/composables/useStudenthubApprovalViewer.ts` | Decision card under the messages; managers-only check for the sidebar icons |
-| `app/services/service/ticket_approval/dashboard.rb`, `app/frontend/apps/desktop/pages/dashboard/components/StudenthubManagerDashboard.vue` (shown by `Dashboard.vue`) | Manager dashboard |
+| `app/services/service/ticket_approval/dashboard.rb`, `app/frontend/apps/desktop/pages/dashboard/components/StudenthubManagerDashboard.vue` (shown by `Dashboard.vue`) and `…/StudenthubManagerDashboard/`, `pages/dashboard/utils/studenthubManagerDashboard.ts` | Manager dashboard |
 | `app/assets/javascripts/app/controllers/ticket_zoom/sidebar_studenthub_approval.coffee` | Approval tab in the classic ticket sidebar |
 | `app/views/mailer/ticket_approval_*` | Notification emails |
 | `app/frontend/apps/desktop/pages/manage/views/TicketApproval.vue` | Admin page |

@@ -60,10 +60,11 @@ const userCurrentTaskbarItemListPrioMutation = new MutationHandler(
 )
 
 const updateTaskbarTabListOrder = (newTaskbarTabListOrder: string[]) => {
+  // Student Hub: the list shows the highest prio first, so the top tab gets the highest.
   const taskbarTabListPrio = newTaskbarTabListOrder
     ?.map((tabEntityKey, index) => ({
       id: taskbarTabListByTabEntityKey.value[tabEntityKey].taskbarTabId!,
-      prio: index + 1,
+      prio: newTaskbarTabListOrder.length - index,
     }))
     .filter((taskbarTabListPrioItem) => taskbarTabListPrioItem.id)
 
@@ -262,7 +263,9 @@ const { isTouchDevice } = useTouchDevice()
           scrollable
         >
           <template #title>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400/80 px-3.5 mb-1.5 block select-none">
+            <span
+              class="mb-1.5 block px-3.5 text-[11px] font-bold tracking-wider text-slate-400/80 uppercase select-none"
+            >
               {{ __('Recent') }}
             </span>
           </template>
@@ -316,7 +319,7 @@ const { isTouchDevice } = useTouchDevice()
                 :taskbar-tab-link="getTaskbarTabLink(tabEntityKey)"
                 :collapsed="collapsed"
                 :is-active="index === selectedItemIndex"
-                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) outline-none focus:outline-none focus-visible:outline-none [--tab-remove-bar-button-width:2rem] group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width) text-sm font-semibold text-slate-200 hover:text-white hover:bg-white/8 rounded-xl transition-all duration-150 py-2 px-3"
+                class="group/link peer-focus-visible:trl:pl-(--tab-remove-bar-button-width) rounded-xl px-3 py-2 text-sm font-semibold text-slate-200 transition-all duration-150 outline-none [--tab-remove-bar-button-width:2rem] hover:bg-white/8 hover:text-white focus:outline-none focus-visible:outline-none group-hover/tab:ltr:pr-(--tab-remove-bar-button-width) peer-focus-visible:ltr:pr-(--tab-remove-bar-button-width) group-hover/tab:rtl:pl-(--tab-remove-bar-button-width)"
                 :class="{
                   'rounded-none group-first/tab:rounded-t-[10px] group-last/tab:rounded-b-[10px]':
                     collapsed,
@@ -326,7 +329,8 @@ const { isTouchDevice } = useTouchDevice()
                   'ltr:pr-(--tab-remove-bar-button-width) rtl:pl-(--tab-remove-bar-button-width)':
                     isTouchDevice,
                   'bg-white/8 text-white!': index == focusedItemIndex,
-                  'bg-white/12! text-white! font-bold shadow-2xs ring-1 ring-white/15': index == selectedItemIndex,
+                  'bg-white/12! font-bold text-white! shadow-2xs ring-1 ring-white/15':
+                    index == selectedItemIndex,
                 }"
               />
             </li>

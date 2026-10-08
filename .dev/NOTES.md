@@ -50,7 +50,8 @@ Never put passwords, tokens or keys in this file.
   on/off follows the Ticket Approvals switch, roles are fixed (Managers / every agent role), locked on the
   Overviews page, hand changes undone by the background sync. The old "Managers Approval" overview stays off
 - Recent keeps tickets, customer/organisation/search tabs and saved New ticket drafts; untouched New ticket tabs
-  close when left, typed ones ask "Save draft / Discard"
+  close when left, typed ones ask "Save draft / Discard"; newest tab on top (a new tab opens at the top, drag still
+  reorders)
 - Students on the ticket screen: only Reply (no staff header actions, no message actions, no reply title row)
 - New UI look follows the UI/UX Pro Max "minimal Swiss" guidance, all accents from the application colour
   (UI/UX Pro Max is a user-level Claude Code plugin; reinstall after a container rebuild)
@@ -235,3 +236,5 @@ Never put passwords, tokens or keys in this file.
   Tailwind failed on `main.css` (new UI unstyled in dev, frontend build failed)
 - 2026-10-08: Agent dashboard: "Unassigned in your teams" (a card per team with its unassigned open tickets, overdue
   count, the three waiting longest, link to the Teams view). Not yet checked in a browser
+- 2026-10-08: Recent lists the newest tab on top (Zammad's order flipped); the unassigned team cards share the full
+  width when there are only one or two

@@ -104,7 +104,8 @@ export const useUserCurrentTaskbarTabsStore = defineStore('userCurrentTaskbarTab
           (taskbarTab) => !existingTabEntityKeys.has(taskbarTab.tabEntityKey),
         ),
       )
-      .sort((a, b) => a.order - b.order)
+      // Student Hub: newest tab first in Recent (highest prio on top).
+      .sort((a, b) => b.order - a.order)
 
     if (currentTaskbarTabList && isEqual(currentTaskbarTabList, newTaskbarTabList))
       return currentTaskbarTabList
@@ -314,7 +315,7 @@ export const useUserCurrentTaskbarTabsStore = defineStore('userCurrentTaskbarTab
       getTaskbarTabTypePlugin(taskbarTabEntity)
 
     const order = hasTaskbarTabs.value
-      ? taskbarTabList.value[taskbarTabList.value.length - 1].order + 1
+      ? Math.max(...taskbarTabList.value.map((taskbarTab) => taskbarTab.order)) + 1
       : 1
 
     // Add temporary in creation taskbar tab item when we have already an existing entity from the cache.

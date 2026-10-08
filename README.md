@@ -428,7 +428,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 - **Recent (staff):** keeps tickets, customer / organisation / search tabs and New ticket drafts saved with **Save
   draft**. Leaving a New ticket screen with nothing typed closes its tab; with something typed the agent is asked to
   **Save draft** or **Discard** (closing the question stays on the page). Untouched New ticket tabs left from before
-  were closed once by a migration.
+  were closed once by a migration. The newest tab is at the top, the oldest at the bottom (a new tab opens at the top;
+  dragging still reorders them; `taskbarTabs.ts` sorts by priority, highest first, and `UserTaskbarTabs.vue` numbers a
+  dragged list from the top down).
 - **Ticket list colours:** admins choose them under **Administration → Settings → Branding → Ticket list colours**:
   a colour per ticket state from a fixed palette (every colour passes WCAG AA), and how long before the deadline
   "due soon" starts (default 1 hour). Settings `studenthub_ticket_state_colors` (state ID → colour) and

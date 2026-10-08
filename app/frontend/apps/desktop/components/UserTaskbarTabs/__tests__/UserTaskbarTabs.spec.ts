@@ -368,7 +368,7 @@ describe('UserTaskbarTabs.vue', () => {
             title: 'First ticket',
             createArticleTypeKey: 'phone-in',
           },
-          prio: 1,
+          prio: 2,
           formId: 'foo',
           changed: false,
           dirty: false,
@@ -393,7 +393,7 @@ describe('UserTaskbarTabs.vue', () => {
               name: 'pending reminder',
             },
           },
-          prio: 2,
+          prio: 1,
           formId: 'bar',
           changed: false,
           dirty: false,
@@ -421,12 +421,12 @@ describe('UserTaskbarTabs.vue', () => {
           {
             __typename: 'UserTaskbarItem',
             id: convertToGraphQLId('Taskbar', 2),
-            prio: 1,
+            prio: 2,
           },
           {
             __typename: 'UserTaskbarItem',
             id: convertToGraphQLId('Taskbar', 1),
-            prio: 2,
+            prio: 1,
           },
         ],
       },
@@ -468,7 +468,7 @@ describe('UserTaskbarTabs.vue', () => {
               name: 'open',
             },
           },
-          prio: 1,
+          prio: 2,
           formId: 'foo',
           changed: false,
           dirty: false,
@@ -493,7 +493,7 @@ describe('UserTaskbarTabs.vue', () => {
               name: 'pending reminder',
             },
           },
-          prio: 2,
+          prio: 1,
           formId: 'bar',
           changed: false,
           dirty: false,
@@ -543,8 +543,8 @@ describe('UserTaskbarTabs.vue', () => {
 
     expect(calls.at(-1)?.variables).toEqual({
       list: [
-        { id: convertToGraphQLId('Taskbar', 2), prio: 1 },
-        { id: convertToGraphQLId('Taskbar', 1), prio: 2 },
+        { id: convertToGraphQLId('Taskbar', 2), prio: 2 },
+        { id: convertToGraphQLId('Taskbar', 1), prio: 1 },
       ],
     })
 

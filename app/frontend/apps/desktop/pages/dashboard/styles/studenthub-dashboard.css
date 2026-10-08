@@ -74,15 +74,16 @@
   color: var(--dash-accent);
 }
 
-/* Admins: Team overview / My work */
+/* Users with more than one dashboard: Team overview / My work / Approvals. Also shown on the
+   manager dashboard, outside .sh-dash, hence the fallbacks. */
 .sh-dash-switch {
   display: inline-flex;
   align-self: flex-start;
   gap: 0.125rem;
   padding: 0.1875rem;
-  border: 1px solid var(--dash-line);
+  border: 1px solid var(--dash-line, var(--sh-line, #dfe3e8));
   border-radius: 0.5rem;
-  background-color: var(--dash-card);
+  background-color: var(--dash-card, var(--sh-card, #fff));
 }
 
 .sh-dash-switch button {
@@ -90,7 +91,7 @@
   border-radius: 0.375rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--dash-muted);
+  color: var(--dash-muted, var(--sh-muted, #5f6878));
 }
 
 .sh-dash-switch button[aria-pressed='true'] {
@@ -99,7 +100,7 @@
 }
 
 .sh-dash-switch button:focus-visible {
-  outline: 2px solid var(--dash-accent);
+  outline: 2px solid var(--dash-accent, var(--sh-app));
   outline-offset: 1px;
 }
 

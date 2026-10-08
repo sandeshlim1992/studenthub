@@ -76,7 +76,8 @@ Never put passwords, tokens or keys in this file.
   internal note with the rating is off by default
 - Dashboard: agents get a Briefing (own figures from Zammad's stats, plus one card per team they can read with its
   unassigned open tickets), admins a Team overview (open by team, SLA, unassigned, trend, sites, channels, rating,
-  activity) with a "My work" switch; "open" counts every state except closed/merged, so "5. Resolved" is open
+  activity), managers their approvals; users with more than one switch between Team overview / My work / Approvals
+  (kept in the browser); "open" counts every state except closed/merged, so "5. Resolved" is open
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
@@ -246,3 +247,5 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-08: Staff land on the Dashboard after signing in (and on `/`); students keep their ticket list
 - 2026-10-08: "Sent for approval" no longer goes to the Admin role (agents keep it)
 - 2026-10-08: Fixed "View team" on the Dashboard (Zammad bug when returning to Tickets with another view)
+- 2026-10-08: Dashboard switch has Approvals for managers who also have another dashboard (up to three views).
+  Not yet checked in a browser

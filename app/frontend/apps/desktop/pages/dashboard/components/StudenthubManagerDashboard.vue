@@ -16,7 +16,8 @@ import StudenthubManagerQueue from './StudenthubManagerDashboard/StudenthubManag
 import StudenthubManagerRequest from './StudenthubManagerDashboard/StudenthubManagerRequest.vue'
 import StudenthubManagerSiteStats from './StudenthubManagerSiteStats.vue'
 
-// Student Hub: the dashboard of managers who have no other staff role (Ticket Approvals).
+// Student Hub: the managers' dashboard (Ticket Approvals): the only one of managers who have no
+// other staff role, "Approvals" on the Dashboard switch for the others.
 // One request at a time: "Next in line" lists what waits (longest first), the card shows the
 // open one with Approve / Deny, and the next one opens after a decision. Nothing waiting:
 // "All caught up" and "Your month in review". Below: approved tickets still open, and recent
@@ -123,6 +124,9 @@ const ticketLink = (ticketId: number) => `/tickets/${ticketId}`
     <div
       class="mx-auto flex max-w-[1240px] flex-col gap-[22px] px-8 pt-7 pb-12 text-[var(--sh-ink)]"
     >
+      <!-- The dashboard switch, for managers who also have another dashboard (Dashboard.vue). -->
+      <slot name="top" />
+
       <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div class="min-w-0">
           <h1 class="text-[27px] leading-tight font-bold tracking-tight">

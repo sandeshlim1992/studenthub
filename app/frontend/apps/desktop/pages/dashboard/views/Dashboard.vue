@@ -10,60 +10,79 @@ import { useStudenthubTopBarCrumbsWhileShown } from '#desktop/components/layout/
 import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubApprovalViewer.ts'
 import StudenthubAdminDashboard from '#desktop/pages/dashboard/components/StudenthubAdminDashboard.vue'
 import StudenthubAgentDashboard from '#desktop/pages/dashboard/components/StudenthubAgentDashboard.vue'
+import StudenthubDashboardSwitch from '#desktop/pages/dashboard/components/StudenthubDashboardSwitch.vue'
 import StudenthubManagerDashboard from '#desktop/pages/dashboard/components/StudenthubManagerDashboard.vue'
+import type { StudenthubDashboardView } from '#desktop/pages/dashboard/utils/studenthubDashboard.ts'
 
 import '#desktop/pages/dashboard/styles/studenthub-dashboard.css'
 
-// Student Hub: which dashboard. Managers without another staff role get their approvals; admins
-// the team overview (and their own figures under "My work", when they also work on tickets);
-// agents their briefing.
+// Student Hub: which dashboard. Admins get the team overview, agents their briefing ("My work")
+// and managers their approvals; users with more than one switch between them. Managers without
+// another staff role only get their approvals (their role carries ticket.agent, so the server
+// tells them apart).
 const { hasPermission } = useSessionStore()
-const { isLoaded: isViewerLoaded, isManagerOnly } = useStudenthubApprovalViewer()
+const { isLoaded: isViewerLoaded, isApprover, isManagerOnly } = useStudenthubApprovalViewer()
 
 useStudenthubTopBarCrumbsWhileShown([{ label: __('Dashboard') }])
 
-const isAdmin = computed(() => hasPermission('admin'))
-const canSwitch = computed(() => isAdmin.value && hasPermission('ticket.agent'))
+const views = computed(() => {
+  const list: StudenthubDashboardView[] = []
 
-// The admin's choice is kept in this browser.
+  if (hasPermission('admin')) list.push({ value: 'team', label: __('Team overview') })
+  if (hasPermission('ticket.agent') && !isManagerOnly.value)
+    list.push({ value: 'mine', label: __('My work') })
+  if (isApprover.value) list.push({ value: 'approvals', label: __('Approvals') })
+
+  return list
+})
+
+// The choice is kept in this browser.
 const VIEW_KEY = 'studenthub-dashboard-view'
 
 const readView = () => {
   try {
-    return localStorage.getItem(VIEW_KEY) === 'mine' ? 'mine' : 'team'
+    return localStorage.getItem(VIEW_KEY) ?? ''
   } catch {
-    return 'team'
+    return ''
   }
 }
 
-const view = ref<'team' | 'mine'>(readView())
+const chosen = ref(readView())
 
-watch(view, (value) => {
+watch(chosen, (value) => {
   try {
     localStorage.setItem(VIEW_KEY, value)
   } catch {
-    // Not kept; the team overview opens next time.
+    // Not kept; the first dashboard opens next time.
   }
 })
 
-const showTeamOverview = computed(() => isAdmin.value && (!canSwitch.value || view.value === 'team'))
+// A choice the user no longer has (e.g. a role was removed) falls back to the first one.
+const view = computed({
+  get: () =>
+    views.value.find((item) => item.value === chosen.value)?.value ?? views.value[0]?.value,
+  set: (value) => {
+    chosen.value = value ?? ''
+  },
+})
+
+const canSwitch = computed(() => views.value.length > 1)
 </script>
 
 <template>
-  <StudenthubManagerDashboard v-if="isManagerOnly" />
-  <LayoutMain v-else-if="isViewerLoaded" background-variant="tertiary" class="p-6 md:p-8">
-    <div class="sh-dash" style="gap: 0.75rem">
-      <div v-if="canSwitch" class="sh-dash-switch" role="group" :aria-label="$t('Dashboard view')">
-        <button type="button" :aria-pressed="view === 'team'" @click="view = 'team'">
-          {{ $t('Team overview') }}
-        </button>
-        <button type="button" :aria-pressed="view === 'mine'" @click="view = 'mine'">
-          {{ $t('My work') }}
-        </button>
-      </div>
+  <template v-if="isViewerLoaded">
+    <StudenthubManagerDashboard v-if="view === 'approvals'">
+      <template v-if="canSwitch" #top>
+        <StudenthubDashboardSwitch v-model="view" :views="views" />
+      </template>
+    </StudenthubManagerDashboard>
+    <LayoutMain v-else background-variant="tertiary" class="p-6 md:p-8">
+      <div class="sh-dash" style="gap: 0.75rem">
+        <StudenthubDashboardSwitch v-if="canSwitch" v-model="view" :views="views" />
 
-      <StudenthubAdminDashboard v-if="showTeamOverview" />
-      <StudenthubAgentDashboard v-else />
-    </div>
-  </LayoutMain>
+        <StudenthubAdminDashboard v-if="view === 'team'" />
+        <StudenthubAgentDashboard v-else />
+      </div>
+    </LayoutMain>
+  </template>
 </template>

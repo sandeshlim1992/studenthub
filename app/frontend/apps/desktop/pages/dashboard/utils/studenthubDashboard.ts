@@ -8,6 +8,15 @@ export type StudenthubDashboardTone = 'good' | 'warn' | 'bad' | 'neutral'
 
 export type StudenthubChannelKey = 'email' | 'phone' | 'web' | 'other'
 
+// The dashboards a user can switch between: the admins' team overview, the agents' own figures
+// and the managers' approvals.
+export type StudenthubDashboardViewKey = 'team' | 'mine' | 'approvals'
+
+export interface StudenthubDashboardView {
+  value: StudenthubDashboardViewKey
+  label: string
+}
+
 export const STUDENTHUB_DASHBOARD_CHANNELS: Record<
   StudenthubChannelKey,
   { label: string; color: string }

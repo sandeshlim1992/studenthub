@@ -370,7 +370,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
 - **Dashboard:** in production builds too (`pages/dashboard/routes.ts`; Zammad registers it only in development and
-  test mode), first in the navigation. Three dashboards (`views/Dashboard.vue` picks one):
+  test mode), first in the navigation. Three dashboards; users with more than one (an admin who is also an agent and a manager
+  has all three) switch between **Team overview**, **My work** and **Approvals** above it, and the choice is kept in
+  the browser (`views/Dashboard.vue`, `components/StudenthubDashboardSwitch.vue`):
   - **Agents, "Briefing":** one sentence on their day (escalated tickets, how long students waited compared with the
     team), cards for waiting time, escalations (with Zammad's mood) and reopened tickets next to the team average,
     **Unassigned in your teams** (one card per team the agent can read: open tickets without an agent, how many are
@@ -381,9 +383,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     shown as such), SLA deadlines (overdue, due soon, on track, no deadline), tickets without an agent, agents online,
     new and closed tickets of the last 7 days, open tickets by site (links to the Sites views), how tickets came in
     (30 days), approvals waiting and the students' rating (30 days; admins with the Feedback Collection permission).
-    "Open" is what the Teams and Sites views list, so each number matches its view. Admins who also work on tickets
-    switch to **My work** (their own Briefing); the choice is kept in the browser.
-  - **Managers without another staff role:** their approvals dashboard (see Ticket Approvals).
+    "Open" is what the Teams and Sites views list, so each number matches its view.
+  - **Managers, "Approvals":** their approvals dashboard (see Ticket Approvals). Managers without another staff role
+    get only this one (no switch).
   - The activity is "who did what on which ticket", from Zammad's activity stream (sign-ins and other non-ticket
     entries are left out).
 - **"Student Hub" instead of "Zammad"** in the texts people see (new and classic UI, emails): it names this system
@@ -616,7 +618,8 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
   under the last message, with **Approve** / **Deny** (a comment is required to deny); the Approval tab offers the same.
   Admins can decide too, in the tab. Managers who have no other staff role (no Agent or Admin role) get no sidebar
   icons on the ticket screen at all, only the card (`GET /api/v1/ticket_approval/viewer` tells the UI), and their
-  own **dashboard** instead of the agent one, built for deciding one request at a time: **Next in line** lists the
+  own **dashboard** instead of the agent one (managers who are also agents or admins find it under **Approvals** on
+  the Dashboard switch), built for deciding one request at a time: **Next in line** lists the
   requests waiting for them, longest wait first (the waiting time in station-board digits, amber after a day), and the
   card next to it shows the open one (reason, who asked, team, campus, category, the customer's latest message) with
   **Approve** / **Deny** and a comment (required to deny); after a decision the next request opens. With nothing

@@ -90,8 +90,12 @@ Never put passwords, tokens or keys in this file.
   to Recent (Zammad's tabs left as they are)
 - Navigation = design C of <https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>: rail in the application colour
   (always shown, short labels) + light panel (role, section name, ticket views on Tickets and ticket screens, Recent);
-  hiding the panel reuses Zammad's collapsed primary sidebar state; the Tickets page lost its own views column; no
-  resizing. Other pages' own menus (KB categories, Admin, Dashboard switch) could move into the panel later
+  on the Dashboard the panel has the dashboard switch, Needs attention (fixed list of overview links the user has) and
+  who is online instead of Recent (Recent from the rail there); the page's own switch shows only while the panel is
+  hidden; on Members the panel filters the page (Show / Roles / Teams with online counts, no Recent either) and the
+  page groups by role by default (Sort by Name / Last active kept in the browser); hiding the panel reuses Zammad's
+  collapsed primary sidebar state; the Tickets page lost its own views column; no resizing. KB categories and the
+  Admin menu could move into the panel later
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
@@ -228,8 +232,9 @@ Never put passwords, tokens or keys in this file.
       to commit `PRODUCT.md`
 - [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
 - [ ] Check the navigation (design C) in a browser: rail labels fit, panel on Tickets / ticket screens / Dashboard,
-      Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, and a 1280 px ticket
-      screen with queue + panel
+      Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, a 1280 px ticket
+      screen with queue + panel, the Dashboard panel (views, Needs attention, who is online) and the Members panel
+      (filters, role groups, Sort by, Clear filters)
 - [ ] Check the reply box (option A) in a browser: typing a first character, switching Reply / Internal note with
       text, Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window
 
@@ -300,3 +305,7 @@ Never put passwords, tokens or keys in this file.
   field. Switched 55 and 58 off in this dev DB; README go-live step 2 now says to switch them off before hiding the field
 - 2026-10-09: Navigation design C: rail + panel (ticket views and Recent in the panel, role on top, BETA UI switch at the
   foot); the Tickets page's views column removed. Not yet checked in a browser
+- 2026-10-09: Maroon (#7e0707) replaces the Cobalt preset of the application colour; Dashboard breadcrumb names the
+  chosen dashboard; Dashboard panel: dashboard switch, Needs attention and who is online (instead of Recent)
+- 2026-10-09: Members panel: Show / Roles / Teams filters with online counts instead of Recent; the page groups by role,
+  Sort by Name / Last active, names the filters in use with Clear filters. Not yet checked in a browser

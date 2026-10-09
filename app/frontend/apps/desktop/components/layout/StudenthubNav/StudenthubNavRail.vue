@@ -12,11 +12,12 @@ import UserTaskbarTabs from '#desktop/components/UserTaskbarTabs/UserTaskbarTabs
 import { railLink, railTitle, useStudenthubNav } from './studenthubNav.ts'
 
 // Student Hub: the rail of navigation design C, always shown, in the application colour. While the
-// panel is hidden, Recent is Zammad's list of tabs behind a button (UserTaskbarTabs, collapsed).
+// panel is hidden, and on pages whose panel has no Recent (Dashboard, Members), Recent is Zammad's
+// list of tabs behind a button (UserTaskbarTabs, collapsed).
 
 const router = useRouter()
 
-const { railRoutes, isRailRouteActive } = useStudenthubNav()
+const { railRoutes, isRailRouteActive, hasPanelRecent } = useStudenthubNav()
 
 const { isSidebarCollapsed: isPanelHidden, toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
 </script>
@@ -56,7 +57,7 @@ const { isSidebarCollapsed: isPanelHidden, toggleSidebar } = useSidebarDisplay(S
     </nav>
 
     <div class="sh-nav-rail__foot">
-      <UserTaskbarTabs v-if="isPanelHidden" collapsed />
+      <UserTaskbarTabs v-if="isPanelHidden || !hasPanelRecent" collapsed />
       <CommonButton
         v-if="isPanelHidden"
         v-tooltip="$t('Show panel')"

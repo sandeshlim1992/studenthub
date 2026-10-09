@@ -9,7 +9,7 @@ export const STUDENTHUB_MIN_APP_COLOR_CONTRAST = 4.5
 export const STUDENTHUB_APP_COLOR_PRESETS = [
   { name: __('Navy'), value: '#14234b', note: __('From the Student Hub logo') },
   { name: __('Teal'), value: '#296374', note: __('Used by the old feedback pages') },
-  { name: __('Cobalt'), value: '#2145c9', note: __('Close to the logo blue') },
+  { name: __('Maroon'), value: '#7e0707', note: __('Deep red') },
   { name: __('Plum'), value: '#4b2a7a', note: __('Deep purple') },
   { name: __('Charcoal'), value: '#2b313b', note: __('Neutral dark grey') },
 ]

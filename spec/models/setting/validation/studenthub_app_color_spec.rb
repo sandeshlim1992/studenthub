@@ -10,7 +10,7 @@ RSpec.describe Setting::Validation::StudenthubAppColor, aggregate_failures: true
   end
 
   it 'accepts dark colours that keep white text readable' do
-    %w[#14234b #296374 #2145c9 #4B2A7A #2b313b].each do |colour|
+    %w[#14234b #296374 #7e0707 #4B2A7A #2b313b].each do |colour|
       expect { Setting.set(setting_name, colour) }.not_to raise_error
       expect(Setting.get(setting_name)).to eq(colour)
     end

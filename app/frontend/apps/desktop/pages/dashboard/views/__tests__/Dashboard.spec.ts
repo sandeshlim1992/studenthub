@@ -6,6 +6,10 @@ import { mockRouterHooks } from '#tests/support/mock-vue-router.ts'
 
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
 
+import { useSidebarDisplayStore } from '#desktop/components/layout/stores/sidebarDisplay.ts'
+import { useStudenthubTopBarCrumbs } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
+import { SidebarName } from '#desktop/components/layout/types.ts'
+
 import Dashboard from '../Dashboard.vue'
 
 vi.mock('#desktop/pages/dashboard/components/StudenthubAdminDashboard.vue', async () => {
@@ -48,7 +52,12 @@ const signIn = (permissions: string[], managerOnly = false) => {
   )
 }
 
-const renderDashboard = () => renderComponent(Dashboard, { router: true, store: true })
+// The switch is on the page while the navigation panel is hidden; otherwise the panel has it.
+const renderDashboard = ({ navPanelHidden = true } = {}) => {
+  const view = renderComponent(Dashboard, { router: true, store: true })
+  useSidebarDisplayStore().setCollapsed(SidebarName.Primary, navPanelHidden)
+  return view
+}
 
 describe('Dashboard', () => {
   beforeEach(() => {
@@ -83,6 +92,35 @@ describe('Dashboard', () => {
     await view.events.click(view.getByRole('button', { name: 'My work' }))
 
     expect(await view.findByText('Briefing dashboard')).toBeInTheDocument()
+  })
+
+  it('leaves the switch to the navigation panel while the panel is shown', async () => {
+    signIn(['admin', 'ticket.agent', 'ticket.approver'])
+
+    const view = renderDashboard({ navPanelHidden: false })
+
+    expect(await view.findByText('Team overview dashboard')).toBeInTheDocument()
+    expect(view.queryByRole('group', { name: 'Dashboard view' })).not.toBeInTheDocument()
+  })
+
+  it('names the chosen dashboard in the top bar', async () => {
+    signIn(['admin', 'ticket.agent', 'ticket.approver'])
+
+    const view = renderDashboard()
+    const crumbs = useStudenthubTopBarCrumbs()
+
+    await view.findByRole('group', { name: 'Dashboard view' })
+    expect(crumbs.value).toEqual([
+      { label: 'Dashboard', route: '/dashboard' },
+      { label: 'Team overview' },
+    ])
+
+    await view.events.click(view.getByRole('button', { name: 'My work' }))
+
+    expect(crumbs.value).toEqual([
+      { label: 'Dashboard', route: '/dashboard' },
+      { label: 'My work' },
+    ])
   })
 
   it('gives agents who are managers their briefing and their approvals', async () => {

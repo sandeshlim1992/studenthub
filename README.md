@@ -371,7 +371,13 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   Reports, Admin; the full name is the tooltip). Beside it a light **panel** for the open rail item: the user's role
   (Admin, Agent, Manager, "& Manager") and the item's name on top, then on Tickets and the ticket screens the ticket
   views with their counts (see Views panel below; the view of the Tickets page and the queue is marked), and Recent
-  (Zammad's tabs) at the foot; other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed
+  (Zammad's tabs) at the foot. On the Dashboard: the dashboards to switch between (with the counts of My assigned and
+  Awaiting my approval), **Needs attention** (up to four of the user's ticket views that ask for action, with counts:
+  Awaiting my approval, My assigned, Unassigned, Escalated, Pending reached, Sent for approval) and, instead of Recent,
+  who of the agents and admins is **online** (not for managers without another staff role). On Members: filters for the
+  page, **Show** (Everyone, Online now, Out of office, with counts), **Roles** and **Teams** (each with how many of them
+  are online, e.g. "3 / 18"; a click shows only that role or team, another click clears it). On those two pages
+  Recent is the rail's button. Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed
   sidebar; hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the
   list of Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column
   of its own any more (on small screens its tabs above the list stay).
@@ -380,8 +386,10 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
 - **Dashboard:** in production builds too (`pages/dashboard/routes.ts`; Zammad registers it only in development and
   test mode), first in the navigation. Three dashboards; users with more than one (an admin who is also an agent and a manager
-  has all three) switch between **Team overview**, **My work** and **Approvals** above it, and the choice is kept in
-  the browser (`views/Dashboard.vue`, `components/StudenthubDashboardSwitch.vue`):
+  has all three) switch between **Team overview**, **My work** and **Approvals** in the navigation panel (above the
+  dashboard while the panel is hidden), and the choice is kept in the browser; the top bar shows
+  "Dashboard / `<view>`" (`views/Dashboard.vue`, `composables/useStudenthubDashboardViews.ts`,
+  `components/StudenthubDashboardSwitch.vue`):
   - **Agents, "Briefing":** one sentence on their day (escalated tickets, how long students waited compared with the
     team), cards for waiting time, escalations (with Zammad's mood) and reopened tickets next to the team average,
     **Unassigned in your teams** (one card per team the agent can read: open tickets without an agent, how many are
@@ -549,7 +557,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 |---|---|
 | `app/frontend/apps/desktop/styles/studenthub-halo.css` (imported by `custom-theme.css`) | Colour tokens and the navigation panel |
 | `app/frontend/apps/desktop/components/layout/StudenthubTopBar/` | Top bar (used by `LayoutPage.vue`) |
-| `app/frontend/apps/desktop/components/layout/StudenthubNav/` (`StudenthubNavRail.vue`, `StudenthubNavPanel.vue`, `StudenthubNavTicketViews.vue`, `studenthubNav.ts`); edits in `LayoutPage.vue`, `pages/ticket-overviews/views/TicketOverviews.vue` | Navigation rail and panel (design C), ticket views in the panel |
+| `app/frontend/apps/desktop/components/layout/StudenthubNav/` (`StudenthubNavRail.vue`, `StudenthubNavPanel.vue`, `StudenthubNavTicketViews.vue`, `StudenthubNavDashboard.vue`, `StudenthubNavOnlineMembers.vue`, `StudenthubNavMembers.vue`, `studenthubNav.ts`); edits in `LayoutPage.vue`, `pages/ticket-overviews/views/TicketOverviews.vue` | Navigation rail and panel (design C): ticket views, the Dashboard's views, Needs attention and who is online, the Members filters |
 | `app/frontend/apps/desktop/utils/studenthubAppColor.ts`, `composables/useStudenthubAppColor.ts` | Applies the admin colour (called in `AppDesktop.vue`) |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubAppColorSetting.vue` | Colour picker on the Branding page |
 | `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |
@@ -744,9 +752,12 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 ## Members
 
 Agents and admins see who of them is online and when each last signed in: a people button with the number online in
-the top bar (its drop-down lists them) and the **Members** page in the navigation panel (`/desktop/members`: online
-now, then everyone else by last login; search and team filter). Managers with no other staff role, and customers,
-don't see it and aren't listed.
+the top bar (its drop-down lists them) and the **Members** page in the navigation (`/desktop/members`: online now,
+then everyone else with their last login). The page is grouped by role (Admin & Manager, Admin, Agent & Manager,
+Agent; names in alphabetical order); **Sort by** switches to Name or Last active (kept in the browser), and the search
+finds names. The navigation panel filters it (Show, Roles, Teams; see Navigation above); the page names the filters
+in use, with **Clear filters**, and "Online now" leaves out the offline list. Managers with no other staff role, and
+customers, don't see it and aren't listed.
 
 **Online** means signed in and active in the last 5 minutes: every request of a signed-in browser touches its session.
 The list refreshes every minute while the top bar is shown, which also keeps the viewer's own session active, so staff
@@ -758,7 +769,7 @@ Zammad's own `last_login`. Email addresses aren't shown.
 | `app/services/service/studenthub_members/list.rb`, `app/controllers/studenthub_members_controller.rb`, `app/policies/controllers/studenthub_members_controller_policy.rb`, `config/routes/studenthub_members.rb` | API (`GET /api/v1/studenthub/members`, agents and admins only) |
 | `app/frontend/apps/desktop/composables/useStudenthubMembers.ts` | One list for the button and the page, refreshed every minute |
 | `app/frontend/apps/desktop/components/layout/StudenthubTopBar/StudenthubMembersButton.vue` | Top bar button and drop-down |
-| `app/frontend/apps/desktop/pages/members/` | Members page (hidden from managers-only in `PageNavigation.vue`) |
+| `app/frontend/apps/desktop/pages/members/` (`composables/useStudenthubMembersFilter.ts`: filters, order, role groups) | Members page (hidden from managers-only in `PageNavigation.vue`) |
 
 ---
 

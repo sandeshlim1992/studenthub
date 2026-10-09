@@ -11,18 +11,26 @@ import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import { SidebarName } from '#desktop/components/layout/types.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 import UserTaskbarTabs from '#desktop/components/UserTaskbarTabs/UserTaskbarTabs.vue'
+import { useStudenthubMembersAccess } from '#desktop/composables/useStudenthubMembers.ts'
 import { useStudenthubRoleLabel } from '#desktop/composables/useStudenthubRoleLabel.ts'
 import { useUserCurrentTaskbarTabsStore } from '#desktop/entities/user/current/stores/taskbarTabs.ts'
 
 import { useStudenthubNav } from './studenthubNav.ts'
+import StudenthubNavDashboard from './StudenthubNavDashboard.vue'
+import StudenthubNavMembers from './StudenthubNavMembers.vue'
+import StudenthubNavOnlineMembers from './StudenthubNavOnlineMembers.vue'
 import StudenthubNavTicketViews from './StudenthubNavTicketViews.vue'
 
 // Student Hub: the panel of navigation design C, beside the rail: the user's role, the title of the
-// open rail item, the ticket views on Tickets and the ticket screens, then Recent (Zammad's tabs).
+// open rail item, then on Tickets and the ticket screens the ticket views and Recent (Zammad's
+// tabs), on the Dashboard the dashboards, "Needs attention" and who is online, on the Members page
+// its filters, elsewhere Recent.
 // Hiding it is remembered like Zammad's collapsed sidebar (SidebarName.Primary). The BETA UI switch
 // moved here from Zammad's sidebar footer.
 
-const { isTicketSection, sectionTitle } = useStudenthubNav()
+const { isTicketSection, isDashboardSection, isMembersSection, hasPanelRecent, sectionTitle } =
+  useStudenthubNav()
+const canSeeMembers = useStudenthubMembersAccess()
 const { toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
 const roleLabel = useStudenthubRoleLabel()
 
@@ -66,8 +74,17 @@ const { openFeedbackDialog } = useFeedbackDialog()
     </header>
 
     <StudenthubNavTicketViews v-if="isTicketSection" class="sh-nav-panel__views" />
+    <StudenthubNavDashboard v-else-if="isDashboardSection" class="sh-nav-panel__views" />
+    <StudenthubNavMembers v-else-if="isMembersSection" class="sh-nav-panel__views" />
 
-    <div class="sh-nav-panel__recent" :class="{ 'sh-nav-panel__recent--end': isTicketSection }">
+    <div v-if="isDashboardSection" class="sh-nav-panel__foot">
+      <StudenthubNavOnlineMembers v-if="canSeeMembers" />
+    </div>
+    <div
+      v-else-if="hasPanelRecent"
+      class="sh-nav-panel__recent"
+      :class="{ 'sh-nav-panel__recent--end': isTicketSection }"
+    >
       <UserTaskbarTabs />
       <template v-if="!isTaskbarLoading && !hasTaskbarTabs">
         <p class="sh-nav-panel__label">{{ $t('Recent') }}</p>

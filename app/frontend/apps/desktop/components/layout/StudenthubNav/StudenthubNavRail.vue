@@ -9,7 +9,7 @@ import { SidebarName } from '#desktop/components/layout/types.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 import UserTaskbarTabs from '#desktop/components/UserTaskbarTabs/UserTaskbarTabs.vue'
 
-import { railLink, railTitle, useStudenthubNav } from './studenthubNav.ts'
+import { railIcon, railLink, railTitle, useStudenthubNav } from './studenthubNav.ts'
 
 // Student Hub: the rail of navigation design C, always shown, in the application colour. While the
 // panel is hidden, on pages whose panel has no Recent (Dashboard, Members, Knowledge Base) and on
@@ -50,7 +50,7 @@ const { isSidebarCollapsed: isPanelHidden, toggleSidebar } = useSidebarDisplay(S
             :link="railLink(railRoute)"
             internal
           >
-            <CommonIcon :name="railRoute.meta.icon" size="small" decorative />
+            <CommonIcon :name="railIcon(railRoute)" size="small" decorative />
             <span class="sh-nav-rail__label">{{ $t(railTitle(railRoute)) }}</span>
           </CommonLink>
         </li>

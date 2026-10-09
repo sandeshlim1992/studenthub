@@ -22,6 +22,7 @@ import { mockDefaultOverviewQueries } from '#desktop/pages/ticket-overviews/__te
 import {
   hasStudenthubNavPanel,
   isTicketSectionRoute,
+  railIcon,
   railLink,
   type StudenthubRailRoute,
 } from '../studenthubNav.ts'
@@ -243,6 +244,16 @@ describe('navigation design C', () => {
         } as StudenthubRailRoute),
       ).toBe('/knowledge-base')
       expect(railLink({ path: '/members' } as StudenthubRailRoute)).toBe('/members')
+    })
+
+    it('gives every rail item an outline icon of the same size', () => {
+      const item = (name: string, icon: string) =>
+        ({ name, meta: { icon } }) as unknown as StudenthubRailRoute
+
+      expect(railIcon(item('StudenthubKnowledgeBase', 'book'))).toBe('studenthub-knowledge-base')
+      expect(railIcon(item('StudenthubMembers', 'people-fill'))).toBe('studenthub-members')
+      expect(railIcon(item('ManageSettings', 'gear'))).toBe('studenthub-admin')
+      expect(railIcon(item('Dashboard', 'studenthub-dashboard'))).toBe('studenthub-dashboard')
     })
 
     it('counts ticket screens and New ticket as Tickets', () => {

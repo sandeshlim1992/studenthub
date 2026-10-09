@@ -228,6 +228,8 @@ Never put passwords, tokens or keys in this file.
 - [ ] Production: switch off the two old approval core workflows (before hiding their field, or New ticket breaks);
       decide on "First ticket goes to Unassigned Tickets" vs the `customer_ticket_create_group_ids` setting
 - [ ] Decide: should "5. Resolved" count as open on the dashboards
+- [ ] Decide: the Teams views' first group "Unassigned tickets" clashes with the team "Unassigned Tickets"; rename
+      the label (suggested: Needs an agent, Not yet assigned) or the team
 - [ ] Decide: update Zammad's failing specs or list them; keep or change the Auto Select Priority triggers;
       delete `AgentTicketCreateCard.vue`
 - [ ] Test server: check the moved pages with real data, and the LDAP wizard against the real directory (trial run

@@ -26,6 +26,16 @@ const SHORT_TITLES: Record<string, string> = {
 export const railTitle = (route: StudenthubRailRoute) =>
   SHORT_TITLES[route.name] ?? route.meta.title
 
+// Outline icons drawn like the Dashboard, Tickets and Reports ones (24 px grid, 1.8 stroke), so all
+// rail icons look the same size; Zammad's filled 16 px icons stay everywhere else.
+const RAIL_ICONS: Record<string, string> = {
+  StudenthubKnowledgeBase: 'studenthub-knowledge-base',
+  StudenthubMembers: 'studenthub-members',
+  ManageSettings: 'studenthub-admin',
+}
+
+export const railIcon = (route: StudenthubRailRoute) => RAIL_ICONS[route.name] ?? route.meta.icon
+
 // '/tickets/view/:overviewLink?' → '/tickets/view'
 export const railLink = (route: StudenthubRailRoute) => route.path.replace(/\/:.*$/, '') || '/'
 

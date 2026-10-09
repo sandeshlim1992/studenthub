@@ -81,3 +81,5 @@ the current state is in `.dev/NOTES.md`.
   Not yet checked in a browser
 - 2026-10-09: No navigation panel on Administration and Reporting (it only held Recent); Recent from the rail there.
   Not yet checked in a browser
+- 2026-10-09: Rail icons all the same size: outline icons for KB, Members and Admin in the style of Dashboard,
+  Tickets and Reports (Zammad's filled book, people and gear stay elsewhere)

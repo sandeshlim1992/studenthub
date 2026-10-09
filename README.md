@@ -367,23 +367,24 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   notifications and the avatar menu.
 - **Navigation (staff):** design C of the navigation drawer board (<https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>):
   a **rail** in the application colour, always shown, with the logo (start page) and the pages the user may open, each
-  an icon with a short label (Dashboard, Tickets, KB, Members, Reports, Admin; the full name is the tooltip). Beside it
-  a light **panel** for the open rail item: the user's role (Admin, Agent, Manager, "& Manager") and the item's name on
-  top, then on Tickets and the ticket screens the ticket views with their counts (see Views panel below; the view of the
-  Tickets page and the queue is marked), and Recent (Zammad's tabs) at the foot, collapsed after each sign-in (opening
-  it lasts until signing out). On the Dashboard: the dashboards to switch between (with the counts of My assigned and
-  Awaiting my approval), **Needs attention** (up to four of the user's ticket views that ask for action, with counts:
-  Awaiting my approval, My assigned, Unassigned, Escalated, Pending reached, Sent for approval) and, instead of Recent,
-  who of the agents and admins is **online** (not for managers without another staff role). On Members: filters for the
-  page, **Show** (Everyone, Online now, Out of office, with counts), **Roles** and **Teams** (each with how many of them
-  are online, e.g. "3 / 18"; a click shows only that role or team, another click clears it). On the Knowledge Base: a
-  filter by title and the category tree (the category shown is marked; New category and the language, for editors, sit
-  above the page instead, and the page's own categories column returns while the panel is hidden). On those three pages
-  Recent is the rail's button. Administration and Reporting have no panel (Recent is the rail's button there too, and
-  Show panel isn't offered). Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed sidebar;
-  hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the list of
-  Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column of its own
-  any more (on small screens its tabs above the list stay).
+  an icon with a short label (Dashboard, Tickets, KB, Members, Reports, Admin; the full name is the tooltip; all six are
+  outline icons of one style and size, `studenthub-*.svg` in `initializer/assets/`, the KB, Members and Admin ones only
+  used in the rail). Beside it a light **panel** for the open rail item: the user's role (Admin, Agent, Manager, "&
+  Manager") and the item's name on top, then on Tickets and the ticket screens the ticket views with their counts (see
+  Views panel below; the view of the Tickets page and the queue is marked), and Recent (Zammad's tabs) at the foot,
+  collapsed after each sign-in (opening it lasts until signing out). On the Dashboard: the dashboards to switch between
+  (with the counts of My assigned and Awaiting my approval), **Needs attention** (up to four of the user's ticket views
+  that ask for action, with counts: Awaiting my approval, My assigned, Unassigned, Escalated, Pending reached, Sent for
+  approval) and, instead of Recent, who of the agents and admins is **online** (not for managers without another staff
+  role). On Members: filters for the page, **Show** (Everyone, Online now, Out of office, with counts), **Roles** and
+  **Teams** (each with how many of them are online, e.g. "3 / 18"; a click shows only that role or team, another click
+  clears it). On the Knowledge Base: a filter by title and the category tree (the category shown is marked; New category
+  and the language, for editors, sit above the page instead, and the page's own categories column returns while the
+  panel is hidden). On those three pages Recent is the rail's button. Administration and Reporting have no panel (Recent
+  is the rail's button there too, and Show panel isn't offered). Other pages show only Recent. **Hide panel**
+  (remembered, like Zammad's collapsed sidebar; hidden at first on screens narrower than 768 px) leaves the rail with
+  **Show panel** and a button for the list of Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The
+  Tickets page has no views column of its own any more (on small screens its tabs above the list stay).
 - **Start page:** staff (Agent, Admin and Managers roles) land on the Dashboard after signing in (password or Microsoft)
   and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.

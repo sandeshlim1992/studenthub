@@ -447,6 +447,8 @@ const handleWizardSubmit = async (data: WizardData) => {
       campus: campusAttributeValue,
       sub_category: subCategoryAttributeValue,
       subcategory: subCategoryAttributeValue,
+      // Student Hub: the answers to the sub-category's request form.
+      ...data.requestFields,
     } as unknown as FormSubmitData<TicketFormData>
 
     if (customerId) {

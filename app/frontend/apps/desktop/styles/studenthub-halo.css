@@ -2389,9 +2389,11 @@
 }
 
 /* ---- Student reply box: no title row ("Reply") above the text; it stays for screen readers,
-   as it names the reply region. The text box gets the full outline instead. ---- */
+   as it names the reply region. The text box gets the full outline instead (in the reply box
+   under the messages, the box is the outline). ---- */
 @layer utilities {
-  .sh-reply-panel--student [id='ticketArticleReplyForm'] .rounded-t-2xl {
+  .sh-reply-panel--student [id='ticketArticleReplyForm'] .rounded-t-2xl,
+  .sh-reply-box--student [id='ticketArticleReplyForm'] .rounded-t-2xl {
     position: absolute !important;
     width: 1px !important;
     height: 1px !important;

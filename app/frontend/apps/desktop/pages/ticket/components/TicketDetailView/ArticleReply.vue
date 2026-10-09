@@ -31,6 +31,7 @@ const { isTicketCustomer } = useTicketView(currentTicket)
 
 // Student Hub: agents with the queue beside the ticket get the reply box (design option A), docked
 // at the bottom: at rest StudenthubTicketReplyBar, while writing Zammad's form in the same box.
+// Students get the same box for their replies (no internal note, no Reply all).
 const { isQueueLayout } = useStudenthubQueueLayout()
 
 const { noteArticleType, customerReplyArticleType } = useArticleReply(
@@ -38,9 +39,13 @@ const { noteArticleType, customerReplyArticleType } = useArticleReply(
   toRef(props, 'ticketArticleTypes'),
 )
 
-const hasReplyBox = computed(
+const hasAgentReplyBox = computed(
   () => isQueueLayout.value && !isTicketCustomer.value && !!noteArticleType.value,
 )
+const hasStudentReplyBox = computed(
+  () => isTicketCustomer.value && !!customerReplyArticleType.value,
+)
+const hasReplyBox = computed(() => hasAgentReplyBox.value || hasStudentReplyBox.value)
 
 const emit = defineEmits<{
   'show-article-form': [
@@ -89,13 +94,14 @@ const showNoteReplyForm = () => {
       :has-internal-article="hasInternalArticle"
       :is-ticket-customer="isTicketCustomer"
       :studenthub-box="hasReplyBox"
+      :studenthub-student="hasStudentReplyBox"
       @discard-form="$emit('discard-form')"
       @toggle-pin="pinned = !pinned"
       @submit="$emit('submit')"
     />
   </div>
   <div v-else-if="newArticlePresent !== undefined" :class="{ 'sh-reply-dock': hasReplyBox }">
-    <StudenthubTicketReplyBar v-if="hasReplyBox" />
+    <StudenthubTicketReplyBar v-if="hasReplyBox" :student="hasStudentReplyBox" />
     <div v-else class="mx-auto flex w-full max-w-4xl flex-col items-center gap-3 px-12 pt-4 pb-6">
       <CommonButton
         v-if="isTicketCustomer && customerReplyArticleType"

@@ -1,7 +1,7 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 import { within } from '@testing-library/vue'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import { renderComponent } from '#tests/support/components/index.ts'
 import { waitForNextTick } from '#tests/support/utils.ts'
@@ -9,6 +9,8 @@ import { waitForNextTick } from '#tests/support/utils.ts'
 import * as useTicketView from '#shared/entities/ticket/composables/useTicketView.ts'
 import { createDummyTicket } from '#shared/entities/ticket-article/__tests__/mocks/ticket.ts'
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
+
+import { TICKET_KEY } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 
 import ArticleReply from '../ArticleReply.vue'
 
@@ -100,30 +102,53 @@ describe('ArticleReply', () => {
     expect(wrapper.queryByRole('button', { name: 'Add reply' })).not.toBeInTheDocument()
   })
 
-  it('shows add reply button for customers without hint text', () => {
+  // Student Hub: students write in the reply box under the messages, like staff (no internal note).
+  it('shows the reply box for customers, without the internal note switch', () => {
     vi.spyOn(useTicketView, 'useTicketView').mockReturnValue({
       isTicketAgent: computed(() => false),
       isTicketCustomer: computed(() => true),
       isTicketEditable: computed(() => true),
     })
 
-    const wrapper = renderArticleReply({
-      ticketArticleTypes: [
-        ...defaultTicketArticleTypes,
-        {
-          value: 'web',
-          label: 'Web',
-          buttonLabel: 'Add reply',
-          icon: 'web',
-          fields: { attachments: {}, body: { required: true } },
-          view: { agent: ['change'] },
-          internal: false,
-        },
+    const ticket = createDummyTicket({ defaultPolicy: { update: true, agentReadAccess: false } })
+
+    const wrapper = renderComponent(ArticleReply, {
+      props: {
+        ticket,
+        parentReachedBottomScroll: false,
+        newArticlePresent: false,
+        ticketArticleTypes: [
+          ...defaultTicketArticleTypes,
+          {
+            value: 'web',
+            label: 'Web',
+            buttonLabel: 'Add reply',
+            icon: 'web',
+            fields: { attachments: {}, body: { required: true } },
+            view: { agent: ['change'] },
+            internal: false,
+          },
+        ],
+      },
+      provide: [
+        [
+          TICKET_KEY,
+          {
+            ticket: computed(() => ticket),
+            form: ref(),
+            showTicketArticleReplyForm: vi.fn(),
+            isTicketEditable: computed(() => true),
+          },
+        ],
       ],
     })
 
-    expect(wrapper.getByRole('button', { name: 'Add reply' })).toBeInTheDocument()
+    const box = wrapper.getByRole('group', { name: 'Reply' })
+    expect(within(box).getByRole('textbox', { name: 'Write your reply…' })).toBeInTheDocument()
+    expect(within(box).getByRole('button', { name: 'Send' })).toBeDisabled()
+    expect(within(box).queryByRole('radio', { name: 'Internal note' })).not.toBeInTheDocument()
 
+    expect(wrapper.queryByRole('button', { name: 'Add reply' })).not.toBeInTheDocument()
     expect(wrapper.queryByRole('button', { name: 'Add internal note' })).not.toBeInTheDocument()
     expect(wrapper.queryByText('or use the reply actions on articles.')).not.toBeInTheDocument()
 

@@ -15,6 +15,11 @@ import StudenthubReplyBoxFooter from './StudenthubReplyBoxFooter.vue'
 // real text box with Reply / Internal note under it, so the mode shows before anyone writes. The
 // first click or keystroke opens Zammad's reply form in its place (ArticleReplyPanel, styled as
 // the same box) in that mode, keeping what was typed. Reply answers the student's latest message.
+// Students get the box too, for their replies only (no Reply / Internal note switch).
+const props = defineProps<{
+  student?: boolean
+}>()
+
 const { ticket } = useTicketInformation()
 const { open } = useStudenthubTicketReply()
 
@@ -25,6 +30,7 @@ const name = computed(
 )
 
 const placeholder = computed(() => {
+  if (props.student) return __('Write your reply…')
   if (mode.value === 'note') return __('Write an internal note…')
   return name.value ? __('Write a reply to %s…') : __('Write a reply…')
 })
@@ -75,6 +81,11 @@ const onPaste = (event: ClipboardEvent) => {
       @keydown="onKeydown"
       @paste="onPaste"
     />
-    <StudenthubReplyBoxFooter :mode="mode" @mode="mode = $event" @attach="start()" />
+    <StudenthubReplyBoxFooter
+      :mode="mode"
+      :student="student"
+      @mode="mode = $event"
+      @attach="start()"
+    />
   </div>
 </template>

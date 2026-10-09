@@ -16,6 +16,7 @@ module Studenthub::Setup
     Studenthub::FeedbackCollection::Setup.ensure!
     Studenthub::TicketApproval::Setup.ensure!
     Studenthub::TicketApproval::Setup.sync_overviews
+    Studenthub::RequestForms::Setup.ensure!
     Studenthub::Theme::Setup.ensure!
     Studenthub::Theme::TicketListSetup.ensure!
     Studenthub::TicketViews::Teams.sync!

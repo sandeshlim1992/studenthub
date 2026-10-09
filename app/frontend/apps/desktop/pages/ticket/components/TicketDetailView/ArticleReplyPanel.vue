@@ -24,6 +24,8 @@ interface Props {
   isTicketCustomer?: boolean
   // Student Hub: agents with the queue layout write in the reply box (design option A)
   studenthubBox?: boolean
+  // … and students, without the switch to internal notes
+  studenthubStudent?: boolean
 }
 
 const props = defineProps<Props>()
@@ -154,15 +156,19 @@ onMounted(() => {
     <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
     <div
       class="sh-reply-box sh-reply-box--open"
-      :class="{ 'sh-reply-box--note': hasInternalArticle }"
+      :class="{
+        'sh-reply-box--note': hasInternalArticle,
+        'sh-reply-box--student': studenthubStudent,
+      }"
       data-test-id="article-reply-stripes-panel"
       @keydown="onBoxKeydown"
     >
       <div id="ticketArticleReplyForm" class="sh-reply-box__form" />
       <StudenthubReplyBoxFooter
         :mode="boxMode"
-        :ticket-changes="ticketChanges"
+        :ticket-changes="studenthubStudent ? 0 : ticketChanges"
         :reply-all="replyAllState"
+        :student="studenthubStudent"
         writing
         @mode="switchMode"
         @reply-all="toggleReplyAll"

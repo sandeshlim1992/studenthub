@@ -83,3 +83,7 @@ the current state is in `.dev/NOTES.md`.
   Not yet checked in a browser
 - 2026-10-09: Rail icons all the same size: outline icons for KB, Members and Admin in the style of Dashboard,
   Tickets and Reports (Zammad's filled book, people and gear stay elsewhere)
+- 2026-10-09: Request forms: admins attach extra ticket fields to a Category › Sub-category (draft / publish,
+  preview, who it is for); the student wizard shows them, every other ticket form gets them by core workflow
+- 2026-10-09: Students reply in the docked reply box under the messages with the compact header; Subscribers
+  listed with avatar and full name

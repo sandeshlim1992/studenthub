@@ -16,6 +16,8 @@ interface Props {
   disabled?: boolean
   // undefined: not offered (no other recipients, or a note)
   replyAll?: boolean
+  // Students only reply: no Reply / Internal note switch
+  student?: boolean
 }
 
 const props = defineProps<Props>()
@@ -33,7 +35,12 @@ const sendLabel = computed(() => (props.mode === 'note' ? __('Add note') : __('S
 
 <template>
   <div class="sh-reply-box__foot">
-    <div class="sh-reply-mode" role="radiogroup" :aria-label="$t('Reply or internal note')">
+    <div
+      v-if="!student"
+      class="sh-reply-mode"
+      role="radiogroup"
+      :aria-label="$t('Reply or internal note')"
+    >
       <button
         type="button"
         role="radio"

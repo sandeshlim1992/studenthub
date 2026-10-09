@@ -118,6 +118,16 @@ describe('TicketSubscribers', () => {
     expect(wrapper.queryByLabelText('Avatar (Jim Doe)')).not.toBeInTheDocument()
   })
 
+  it('shows the full name of each subscriber', () => {
+    const wrapper = renderTicketSubscribers()
+
+    const items = wrapper.getAllByRole('listitem')
+
+    expect(items).toHaveLength(2)
+    expect(items[0]).toHaveTextContent('John Doe')
+    expect(items[1]).toHaveTextContent('Jane Doe')
+  })
+
   it('shows popover with user details on hover', async () => {
     mockUserCurrent({
       permissions: {

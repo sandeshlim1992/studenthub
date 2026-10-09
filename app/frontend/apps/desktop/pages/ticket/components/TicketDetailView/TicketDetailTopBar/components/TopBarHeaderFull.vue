@@ -34,7 +34,8 @@ const {
   updateTitle,
 } = useTopBarHeader()
 
-// Student Hub: agents with the queue beside the ticket get the compact header.
+// Student Hub: agents with the queue beside the ticket get the compact header, and so do students
+// (without priority and actions; they reply in the box under the messages).
 const { isQueueLayout } = useStudenthubQueueLayout()
 
 // Student Hub: "Tickets / Service Desk / Ticket#…" sits in the top bar; the header shows the number itself.
@@ -67,7 +68,7 @@ useStudenthubTopBarCrumbsWhileShown(() =>
 </script>
 
 <template>
-  <StudenthubTicketHeaderCompact v-if="isQueueLayout" />
+  <StudenthubTicketHeaderCompact v-if="isQueueLayout || !isTicketAgent" />
   <header
     v-else
     class="ticket-detail-grid-full sh-ticket-header grid grid-cols-2 gap-y-2.5 border-b border-neutral-100 bg-neutral-50 p-3 dark:border-gray-900 dark:bg-gray-500 print:border-b-0 print:px-3"

@@ -331,8 +331,14 @@ const hasInternalArticle = computed(() => (values.value as TicketUpdateFormData)
 // Student Hub: agents' reply box at the bottom of the conversation (ArticleReply, design option A,
 // at rest and while writing): the messages take the free height and the scroll buttons sit above
 // the box at rest (while writing, above the box in ArticleReply).
+// Students get the same box for their replies; Send saves, so they have no Update bar.
+const hasStudenthubStudentReplyBox = computed(
+  () => isTicketCustomer.value && isTicketEditable.value,
+)
 const hasStudenthubReplyBox = computed(
-  () => isQueueLayout.value && isTicketAgent.value && isTicketEditable.value,
+  () =>
+    (isQueueLayout.value && isTicketAgent.value && isTicketEditable.value) ||
+    hasStudenthubStudentReplyBox.value,
 )
 const hasStudenthubReplyBar = computed(
   () => hasStudenthubReplyBox.value && !newTicketArticlePresent.value,
@@ -951,7 +957,7 @@ const handleShowArticleForm = (
       </TicketSidebar>
     </template>
 
-    <template v-if="!hasStudenthubSaveBar" #bottomBar>
+    <template v-if="!hasStudenthubSaveBar && !hasStudenthubStudentReplyBox" #bottomBar>
       <TicketDetailBottomBar
         :can-use-draft="canUseDraft"
         :dirty="isDirty"

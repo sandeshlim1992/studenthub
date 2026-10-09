@@ -54,7 +54,10 @@ Never put passwords, tokens or keys in this file.
 - Recent keeps tickets, customer/organisation/search tabs and saved New ticket drafts; untouched New ticket tabs
   close when left, typed ones ask "Save draft / Discard"; newest tab on top (a new tab opens at the top, drag still
   reorders)
-- Students on the ticket screen: only Reply (no staff header actions, no message actions, no reply title row)
+- Students on the ticket screen: compact header without actions, the docked reply box (reply only, Send saves),
+  no message actions
+- Request forms: one per Category › Sub-category, draft then publish; fields are ordinary ticket fields applied by
+  a locked core workflow on every ticket form and checked on the server (README → Request forms)
 - New UI look follows the UI/UX Pro Max "minimal Swiss" guidance, all accents from the application colour
   (UI/UX Pro Max is a user-level Claude Code plugin; reinstall after a container rebuild)
 - New UI design: Halo-style (mockup <https://claude.ai/artifact/6H4uc22Wb4zTiUfy3PhXfj>), application colour chosen

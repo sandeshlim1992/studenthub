@@ -496,8 +496,10 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   **Update** keeps its menu (drafts, macros) and gets a ring while something waits to be saved; who else is on the
   ticket and the shared draft show above. With the column collapsed, Zammad's bar comes back.
   Messages keep their sides and are labelled Internal note / Reply / Email / Phone…; internal notes are amber. The top
-  bar shows "Tickets / Ticket#…". Students see the earlier header (number, campus, title, state) with only **Reply**,
-  no actions on messages (no visibility, split, forward or copy) and a reply box without its title row.
+  bar shows "Tickets / Ticket#…". Students get the compact header without priority and actions, and the same docked
+  reply box ("Write your reply…", no Reply / Internal note switch, no Reply all); its **Send** saves the reply, so
+  they have no Update bar. Messages have no actions for them (no visibility, split, forward or copy).
+  **Subscribers** in the Ticket panel are listed one per line with avatar and full name (instead of a row of avatars).
   Look (minimal Swiss style, from the UI/UX Pro Max skill): Zammad's accent colour (links, tags, switches, + buttons,
   focus rings) is the application colour on this screen; the sidebar sections have a white icon in a solid square of
   the application colour, and Details is a card like the SLA card, also while editing (white fields with a fine
@@ -573,7 +575,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `lib/studenthub/ticket_views/institutions.rb`, `db/migrate/20261006120000_studenthub_institution_views_by_organization.rb` | The Sites views (internally "Institutions"), kept in step with the organisations |
 | `lib/studenthub/theme/ticket_list_setup.rb`, `app/models/setting/validation/studenthub_{ticket_state_colors,escalation_warning_minutes}.rb`, `db/migrate/20261004180000_studenthub_ticket_list_colors.rb` | Settings, first guess per state, server-side checks |
 | `pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderCompact.vue`, `StudenthubTicketHeaderActions.vue`, `StudenthubHeaderMenuButton.vue`; edits in `TopBarHeaderFull.vue`, `TicketInformationBadgeList.vue` | Ticket header: staff's compact header, students' header with Reply |
-| `pages/ticket/components/TicketDetailView/StudenthubTicketReplyBar.vue` (at rest), `StudenthubReplyBoxFooter.vue`, `pages/ticket/composables/useStudenthubTicketReply.ts`; edits in `ArticleReply.vue`, `ArticleReplyPanel.vue` (while writing), `TicketDetailViewContent.vue` | Staff's reply box under the messages (option A); "Reply" to the student's latest message, Reply all |
+| `pages/ticket/components/TicketDetailView/StudenthubTicketReplyBar.vue` (at rest), `StudenthubReplyBoxFooter.vue`, `pages/ticket/composables/useStudenthubTicketReply.ts`; edits in `ArticleReply.vue`, `ArticleReplyPanel.vue` (while writing), `TicketDetailViewContent.vue` | Reply box under the messages (option A): staff's "Reply" to the student's latest message, Reply all; students' replies |
+| `…/TicketSidebarInformationContent/TicketSubscribers.vue` (edit) | Subscribers with avatar and full name |
 | `pages/ticket/components/TicketDetailView/TicketDetailBottomBar/StudenthubTicketSaveBar.vue` (Zammad's live users, shared draft, tab behaviour and Update button rearranged); slot in `TicketSidebar.vue`, edit in `TicketDetailViewContent.vue` | Staff's save area at the foot of the panel column |
 | `pages/ticket/components/TicketSidebar/TicketSidebarInformation/TicketSidebarInformationContent/StudenthubTicketDetailsList.vue`, `StudenthubTicketSlaBox.vue`, `pages/ticket/composables/useStudenthubTicketDetailsMode.ts`, `utils/studenthubTicketDetails.ts`; edit in `TicketSidebarInformationContent.vue` | Details list with Edit / Done, SLA card |
 | `components/layout/LayoutContent.vue` (`sidebarPosition`, `sidebarWidthName` props), `composables/useResizeGridColumns.ts`, `TicketDetailViewContent.vue` | Ticket sidebar: on the right for staff (its own width), on the left for students and managers-only |
@@ -736,6 +739,44 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 3. Check the triggers that react to a team change (e.g. the Teams alerts 31, 32 and 35): a ticket changes team twice
    during an approval (into Managers and back).
 4. Give the **Customer** role to the managers who should raise tickets themselves.
+
+---
+
+## Request forms
+
+For a **Category › Sub-category**, the extra ticket fields asked for when a ticket is raised under it, e.g. a start
+date for "Service Request › Onboarding (New Starter)". Admins make them under **Administration → Manage → Request
+forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
+
+- **Editor and preview:** the page shows the form next to a preview of the student wizard's Details step as the
+  person raising the ticket gets it (the same component, with Zammad's real fields; Desktop / Phone width). **Submit
+  Ticket** in the preview only checks the required fields; nothing is sent.
+- **Draft, then publish:** a form is a draft until **Publish**; later edits stay in the draft (**Unpublished
+  changes**) until **Publish changes** or **Discard changes**. **Unpublish** stops using it and keeps it as a draft.
+- **When it applies:** one form per Category › Sub-category (the pair, because a sub-category such as "Others" exists
+  under several categories), only when a ticket is created. The Sub-category list per category comes from Student
+  Hub's core workflows that narrow Sub-category by Category. A published form whose sub-category or fields were
+  renamed or removed is marked **Not applied** and stops matching.
+- **Who can use it:** everyone, or only customers in some organisations or roles (the ticket's customer: the person
+  raising it, or whom staff raise it for). Other customers don't get that sub-category at all; staff still can.
+- **Fields** are ordinary ticket fields (made under **Objects**), so they can be searched and used in triggers,
+  overviews and reports. A field set not to show on New ticket appears only where a form asks for it; on a ticket it
+  shows only if its form asks for it or it holds a value. Fields shown on New ticket anyway are marked "also on…"; the
+  form can make them required. Publishing gives a field a hidden New ticket entry for customers and staff, and a
+  ticket entry for staff, where it had none (otherwise it couldn't appear in their forms).
+- **Where:** the student wizard shows the form's heading, help text and fields above the subject and checks the
+  required ones before sending. Every other ticket form (the student "Raise a New Ticket" form, staff's New ticket,
+  the classic UI) gets the fields through the core workflow "Student Hub - request forms" (locked, not listed with
+  the admins' own workflows), and the server checks the required fields and the sub-category when the ticket is
+  created. The heading and help text are only in the wizard.
+
+| File(s) | Purpose |
+|---|---|
+| `db/migrate/20261009100000_studenthub_request_forms.rb`, `lib/studenthub/request_forms*`, `app/models/studenthub_request_form.rb` | Table, permission, core workflow; draft / publish, checks; the choices on the admin page |
+| `app/models/core_workflow/custom/studenthub_request_form.rb` | Applies the published forms on every ticket form and on the server |
+| `app/controllers/studenthub_request_forms_controller.rb` | API (`/api/v1/studenthub/request_forms`, `…/:id/{publish,unpublish,discard}`, `…/applicable` for the wizard) |
+| `app/frontend/apps/desktop/pages/manage/views/RequestForms.vue`, `…/manage/components/RequestForms/` | Admin page: list, editor, preview |
+| `app/frontend/apps/desktop/components/StudenthubRequestForm/` (shown by `CustomerTicketCreateWizard.vue`; answers sent by `TicketCreateContent.vue`) | The form's part of the wizard's Details step, also used by the preview |
 
 ---
 

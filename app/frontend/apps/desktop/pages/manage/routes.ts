@@ -183,6 +183,18 @@ const route: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/manage/request-forms',
+    name: 'ManageRequestForms',
+    component: () => import('./views/RequestForms.vue'),
+    meta: {
+      title: __('Request forms'),
+      requiresAuth: true,
+      requiredPermission: ['admin.request_forms'],
+      level: 3,
+      pageKey: 'manage-request-forms',
+    },
+  },
+  {
     path: '/manage/roles',
     name: 'ManageRoles',
     component: () => import('./views/Roles.vue'),

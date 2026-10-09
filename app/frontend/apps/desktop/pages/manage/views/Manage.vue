@@ -121,6 +121,12 @@ const categories = ref<Category[]>([
         description: __('Let agents send tickets to a manager to approve or deny.'),
       },
       {
+        name: __('Request forms'),
+        icon: 'clipboard2',
+        target: '/manage/request-forms',
+        description: __('Ask for extra details when a ticket is raised under a chosen sub-category.'),
+      },
+      {
         name: __('Ticket States'),
         icon: 'check2-square',
         target: '/manage/ticket-states',

@@ -7,6 +7,10 @@ import { getNodeByName } from '#shared/components/Form/utils.ts'
 import { useObjectAttributesStore } from '#shared/entities/object-attributes/stores/objectAttributes.ts'
 import { EnumObjectManagerObjects } from '#shared/graphql/types.ts'
 
+import StudenthubRequestFormSection from '#desktop/components/StudenthubRequestForm/StudenthubRequestFormSection.vue'
+import type { StudenthubRequestFormDefinition } from '#desktop/components/StudenthubRequestForm/types.ts'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+
 export type CategoryKey =
   | 'service_request'
   | 'software'
@@ -25,6 +29,8 @@ export interface WizardData {
   title: string
   body: string
   attachments: File[]
+  // Student Hub: the answers to the sub-category's request form, if it has one.
+  requestFields?: Record<string, unknown>
 }
 
 interface Props {
@@ -114,6 +120,32 @@ watch(
     }
   },
   { deep: true },
+)
+
+// Student Hub: the request form for the chosen Category › Sub-category that is meant for this
+// person (Administration → Request forms); its fields go above the subject in the Details step.
+const requestForm = ref<StudenthubRequestFormDefinition | null>(null)
+const requestFormSection = ref<InstanceType<typeof StudenthubRequestFormSection>>()
+
+watch(
+  () => [wizardData.value.category, wizardData.value.subCategory] as const,
+  async ([category, subCategory]) => {
+    requestForm.value = null
+    if (!category || !subCategory) return
+
+    const query = new URLSearchParams({ category, sub_category: subCategory })
+    try {
+      const found = await studenthubApi<StudenthubRequestFormDefinition | null>(
+        `/api/v1/studenthub/request_forms/applicable?${query}`,
+      )
+      if (wizardData.value.category === category && wizardData.value.subCategory === subCategory) {
+        requestForm.value = found
+      }
+    } catch {
+      requestForm.value = null
+    }
+  },
+  { immediate: true },
 )
 
 // Validation state for step 4
@@ -800,13 +832,17 @@ const formatFileSize = (bytes: number) => {
 }
 
 // Submission
-const handleSubmit = () => {
+const handleSubmit = async () => {
   titleTouched.value = true
   bodyTouched.value = true
 
+  // null: a required answer of the request form is missing (the form shows which).
+  const requestFields = requestForm.value ? await requestFormSection.value?.submit() : undefined
+  if (requestFields === null) return
+
   if (!isDetailsValid.value || props.isSubmitting) return
 
-  emit('submit', { ...wizardData.value })
+  emit('submit', { ...wizardData.value, requestFields: requestFields ?? {} })
 }
 
 // Cancel prompt
@@ -1624,6 +1660,13 @@ const steps = [
                 </button>
               </div>
             </div>
+
+            <!-- Student Hub: the sub-category's request form -->
+            <StudenthubRequestFormSection
+              v-if="requestForm"
+              ref="requestFormSection"
+              :form="requestForm"
+            />
 
             <!-- Free Text Inputs -->
             <!-- eslint-disable vuejs-accessibility/label-has-for -->

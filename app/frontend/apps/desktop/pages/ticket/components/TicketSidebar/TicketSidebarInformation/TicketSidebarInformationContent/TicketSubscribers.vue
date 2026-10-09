@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { nextTick, toRef, watch } from 'vue'
 
+import CommonUserAvatar from '#shared/components/CommonUserAvatar/CommonUserAvatar.vue'
 import { useTicketSubscribe } from '#shared/entities/ticket/composables/useTicketSubscribe.ts'
 import type { TicketById } from '#shared/entities/ticket/types.ts'
 
@@ -61,18 +62,38 @@ const handleToggleInput = async () => {
           @input-raw="handleToggleInput"
         />
       </div>
-      <div v-if="totalSubscribers > 0" class="flex flex-wrap gap-2 pt-2.5">
-        <UserPopoverWithTrigger
-          v-for="subscriber in subscribers"
-          :key="subscriber.user.id"
-          :entity="subscriber.user"
-          :access="subscriber.access"
-          :user="subscriber.user"
-          :popover-config="{
-            placement: 'arrowStart',
-          }"
-        />
-      </div>
+      <!-- Student Hub: each subscriber on a line of their own, with their full name -->
+      <ul v-if="totalSubscribers > 0" class="flex flex-col gap-2 pt-2.5">
+        <li v-for="subscriber in subscribers" :key="subscriber.user.id">
+          <UserPopoverWithTrigger
+            :user="subscriber.user"
+            :popover-config="{
+              placement: 'arrowStart',
+            }"
+            no-focus-styling
+          >
+            <template #default="slotProps">
+              <span class="flex items-center gap-2">
+                <CommonUserAvatar
+                  class="shrink-0 rounded-full outline-1 outline-transparent group-hover:outline-blue-600 group-focus-visible:outline-blue-800 group-hover:dark:outline-blue-900"
+                  :class="{
+                    'outline-2! outline-blue-800!':
+                      slotProps?.isOpen && slotProps.hasOpenViaLongClick,
+                  }"
+                  :entity="subscriber.user"
+                  :access="subscriber.access"
+                  size="small"
+                />
+                <CommonLabel
+                  class="line-clamp-2! break-word text-blue-800! group-hover:text-blue-850! group-focus-visible:text-blue-800! group-hover:dark:text-blue-600!"
+                >
+                  {{ subscriber.user.fullname }}
+                </CommonLabel>
+              </span>
+            </template>
+          </UserPopoverWithTrigger>
+        </li>
+      </ul>
     </div>
   </div>
 </template>

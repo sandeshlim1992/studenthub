@@ -34,6 +34,12 @@ import UserTaskbarTabs, { type Props } from '../UserTaskbarTabs.vue'
 
 import '#tests/graphql/builders/mocks.ts'
 
+// Student Hub: Recent starts collapsed after signing in; these tests look at the open list.
+vi.mock('#desktop/components/layout/StudenthubNav/useStudenthubRecentCollapsed.ts', async () => {
+  const { ref } = await import('vue')
+  return { useStudenthubRecentCollapsed: () => ref(false) }
+})
+
 const waitForVariantConfirmationMock = vi
   .fn()
   .mockImplementation((variant) => variant === 'unsaved')

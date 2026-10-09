@@ -16,6 +16,7 @@ import CommonLoader from '#desktop/components/CommonLoader/CommonLoader.vue'
 import CommonPopover from '#desktop/components/CommonPopover/CommonPopover.vue'
 import { usePopover } from '#desktop/components/CommonPopover/usePopover.ts'
 import CommonSectionCollapse from '#desktop/components/CommonSectionCollapse/CommonSectionCollapse.vue'
+import { useStudenthubRecentCollapsed } from '#desktop/components/layout/StudenthubNav/useStudenthubRecentCollapsed.ts'
 import { useAnnouncer } from '#desktop/composables/accessibility/useAnnouncer.ts'
 import { useAccessibleDragAndDrop } from '#desktop/composables/dragAndDrop/useAccessibleDragAndDrop.ts'
 import { useKeyboardKeysForDragAndDrop } from '#desktop/composables/dragAndDrop/useKeyboardKeysForDragAndDrop.ts'
@@ -32,6 +33,9 @@ export interface Props {
 }
 
 const props = defineProps<Props>()
+
+// Student Hub: Recent starts collapsed after signing in.
+const isRecentCollapsed = useStudenthubRecentCollapsed()
 
 const taskbarTabStore = useUserCurrentTaskbarTabsStore()
 
@@ -258,6 +262,7 @@ const { isTouchDevice } = useTouchDevice()
       <template v-else>
         <CommonSectionCollapse
           id="user-taskbar-tabs"
+          v-model="isRecentCollapsed"
           class="gap-0! px-2 py-0.5"
           no-negative-margin
           scrollable

@@ -74,3 +74,5 @@ the current state is in `.dev/NOTES.md`.
   Sort by Name / Last active, names the filters in use with Clear filters. Not yet checked in a browser
 - 2026-10-09: README and NOTES no longer loaded into every AI request (CLAUDE.md points to them); the log moved
   from NOTES to `.dev/LOG.md`; Zammad's Claude hooks switched off in this container
+- 2026-10-09: Recent in the navigation panel starts collapsed after each sign-in; opened or closed, it stays so until
+  signing out (session storage of the tab). Not yet checked in a browser

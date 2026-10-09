@@ -90,7 +90,8 @@ Never put passwords, tokens or keys in this file.
   column is collapsed); students and managers-only keep the sidebar on the left and Zammad's bar. Ticket tabs still go
   to Recent (Zammad's tabs left as they are)
 - Navigation = design C of <https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>: rail in the application colour
-  (always shown, short labels) + light panel (role, section name, ticket views on Tickets and ticket screens, Recent);
+  (always shown, short labels) + light panel (role, section name, ticket views on Tickets and ticket screens, Recent,
+  collapsed after each sign-in and kept as the user leaves it until signing out);
   on the Dashboard the panel has the dashboard switch, Needs attention (fixed list of overview links the user has) and
   who is online instead of Recent (Recent from the rail there); the page's own switch shows only while the panel is
   hidden; on Members the panel filters the page (Show / Roles / Teams with online counts, no Recent either) and the
@@ -236,6 +237,6 @@ Never put passwords, tokens or keys in this file.
 - [ ] Check the navigation (design C) in a browser: rail labels fit, panel on Tickets / ticket screens / Dashboard,
       Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, a 1280 px ticket
       screen with queue + panel, the Dashboard panel (views, Needs attention, who is online) and the Members panel
-      (filters, role groups, Sort by, Clear filters)
+      (filters, role groups, Sort by, Clear filters), Recent collapsed after signing in
 - [ ] Check the reply box (option A) in a browser: typing a first character, switching Reply / Internal note with
       text, Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window

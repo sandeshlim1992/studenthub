@@ -365,22 +365,22 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   buttons, via the CSS variable `--sh-app`.
 - **Top bar (staff):** search with Zammad's quick results in a drop-down, **New ticket**,
   notifications and the avatar menu.
-- **Navigation (staff):** design C of the navigation drawer board
-  (<https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>): a **rail** in the application colour, always shown, with the
-  logo (start page) and the pages the user may open, each an icon with a short label (Dashboard, Tickets, KB, Members,
-  Reports, Admin; the full name is the tooltip). Beside it a light **panel** for the open rail item: the user's role
-  (Admin, Agent, Manager, "& Manager") and the item's name on top, then on Tickets and the ticket screens the ticket
-  views with their counts (see Views panel below; the view of the Tickets page and the queue is marked), and Recent
-  (Zammad's tabs) at the foot. On the Dashboard: the dashboards to switch between (with the counts of My assigned and
+- **Navigation (staff):** design C of the navigation drawer board (<https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>):
+  a **rail** in the application colour, always shown, with the logo (start page) and the pages the user may open, each
+  an icon with a short label (Dashboard, Tickets, KB, Members, Reports, Admin; the full name is the tooltip). Beside it
+  a light **panel** for the open rail item: the user's role (Admin, Agent, Manager, "& Manager") and the item's name on
+  top, then on Tickets and the ticket screens the ticket views with their counts (see Views panel below; the view of the
+  Tickets page and the queue is marked), and Recent (Zammad's tabs) at the foot, collapsed after each sign-in (opening
+  it lasts until signing out). On the Dashboard: the dashboards to switch between (with the counts of My assigned and
   Awaiting my approval), **Needs attention** (up to four of the user's ticket views that ask for action, with counts:
   Awaiting my approval, My assigned, Unassigned, Escalated, Pending reached, Sent for approval) and, instead of Recent,
   who of the agents and admins is **online** (not for managers without another staff role). On Members: filters for the
   page, **Show** (Everyone, Online now, Out of office, with counts), **Roles** and **Teams** (each with how many of them
-  are online, e.g. "3 / 18"; a click shows only that role or team, another click clears it). On those two pages
-  Recent is the rail's button. Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed
-  sidebar; hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the
-  list of Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column
-  of its own any more (on small screens its tabs above the list stay).
+  are online, e.g. "3 / 18"; a click shows only that role or team, another click clears it). On those two pages Recent
+  is the rail's button. Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed sidebar;
+  hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the list of
+  Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column of its own
+  any more (on small screens its tabs above the list stay).
 - **Start page:** staff (Agent, Admin and Managers roles) land on the Dashboard after signing in (password or Microsoft)
   and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
@@ -557,7 +557,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 |---|---|
 | `app/frontend/apps/desktop/styles/studenthub-halo.css` (imported by `custom-theme.css`) | Colour tokens and the navigation panel |
 | `app/frontend/apps/desktop/components/layout/StudenthubTopBar/` | Top bar (used by `LayoutPage.vue`) |
-| `app/frontend/apps/desktop/components/layout/StudenthubNav/` (`StudenthubNavRail.vue`, `StudenthubNavPanel.vue`, `StudenthubNavTicketViews.vue`, `StudenthubNavDashboard.vue`, `StudenthubNavOnlineMembers.vue`, `StudenthubNavMembers.vue`, `studenthubNav.ts`); edits in `LayoutPage.vue`, `pages/ticket-overviews/views/TicketOverviews.vue` | Navigation rail and panel (design C): ticket views, the Dashboard's views, Needs attention and who is online, the Members filters |
+| `app/frontend/apps/desktop/components/layout/StudenthubNav/` (`StudenthubNavRail.vue`, `StudenthubNavPanel.vue`, `StudenthubNavTicketViews.vue`, `StudenthubNavDashboard.vue`, `StudenthubNavOnlineMembers.vue`, `StudenthubNavMembers.vue`, `studenthubNav.ts`, `useStudenthubRecentCollapsed.ts`); edits in `LayoutPage.vue`, `pages/ticket-overviews/views/TicketOverviews.vue`, `UserTaskbarTabs.vue` | Navigation rail and panel (design C): ticket views, the Dashboard's views, Needs attention and who is online, the Members filters |
 | `app/frontend/apps/desktop/utils/studenthubAppColor.ts`, `composables/useStudenthubAppColor.ts` | Applies the admin colour (called in `AppDesktop.vue`) |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubAppColorSetting.vue` | Colour picker on the Branding page |
 | `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |

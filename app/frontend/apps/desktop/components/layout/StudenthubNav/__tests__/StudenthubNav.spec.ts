@@ -12,6 +12,10 @@ import { convertToGraphQLId } from '#shared/graphql/utils.ts'
 import { useSidebarDisplayStore } from '#desktop/components/layout/stores/sidebarDisplay.ts'
 import { SidebarName } from '#desktop/components/layout/types.ts'
 import { useTicketOverviewsStore } from '#desktop/entities/ticket/stores/ticketOverviews.ts'
+import {
+  resetStudenthubKnowledgeBase,
+  useStudenthubKnowledgeBase,
+} from '#desktop/pages/knowledge-base/composables/useStudenthubKnowledgeBase.ts'
 import { useStudenthubMembersFilter } from '#desktop/pages/members/composables/useStudenthubMembersFilter.ts'
 import { mockDefaultOverviewQueries } from '#desktop/pages/ticket-overviews/__tests__/mocks/ticket-overviews-mocks.ts'
 
@@ -53,7 +57,17 @@ const routerRoutes: RouteRecordRaw[] = [
   { path: '/tickets/view/:overviewLink?', name: 'TicketOverview', component: page },
   { path: '/tickets/:internalId(\\d+)', name: 'TicketDetailView', component: page },
   { path: '/members', name: 'StudenthubMembers', component: page },
-  { path: '/knowledge-base', name: 'StudenthubKnowledgeBase', component: page },
+  {
+    path: '/knowledge-base/:kind(category|answer)?/:id(\\d+)?/:mode(edit|new)?',
+    name: 'StudenthubKnowledgeBase',
+    component: page,
+  },
+  {
+    path: '/personal-setting',
+    name: 'PersonalSetting',
+    component: page,
+    meta: { title: 'Profile', requiresAuth: true, requiredPermission: null },
+  },
   { path: '/:pathMatch(.*)*', name: 'Error', component: page },
 ]
 
@@ -93,8 +107,73 @@ const members = [
   },
 ]
 
-const respond = (url: string) =>
-  Response.json(url.includes('/studenthub/members') ? { members } : sections, { status: 200 })
+const knowledgeBase = {
+  knowledge_base: {
+    id: 3,
+    active: true,
+    titles: { '4': 'IT Help' },
+    locales: [{ id: 4, locale: 'en-us', name: 'English (United States)', primary: true }],
+    can_create_category: true,
+  },
+  categories: [
+    {
+      id: 6,
+      parent_id: null,
+      position: 0,
+      icon: 'f0eb',
+      titles: { '4': 'How-To Guides' },
+      translation_ids: { '4': 60 },
+      editable: true,
+    },
+    {
+      id: 7,
+      parent_id: 6,
+      position: 0,
+      icon: 'f1eb',
+      titles: { '4': 'Wi-Fi' },
+      translation_ids: { '4': 70 },
+      editable: true,
+    },
+    {
+      id: 8,
+      parent_id: null,
+      position: 1,
+      icon: 'f128',
+      titles: { '4': 'FAQs' },
+      translation_ids: { '4': 80 },
+      editable: true,
+    },
+  ],
+  answers: [
+    {
+      id: 12,
+      category_id: 7,
+      position: 0,
+      promoted: false,
+      state: 'internal',
+      titles: { '4': 'Eduroam setup' },
+      updated_at: '2026-10-05T10:00:00Z',
+      editable: true,
+    },
+    {
+      id: 13,
+      category_id: 8,
+      position: 0,
+      promoted: false,
+      state: 'draft',
+      titles: { '4': 'Printing on campus' },
+      updated_at: '2026-09-01T10:00:00Z',
+      editable: true,
+    },
+  ],
+}
+
+const respond = (url: string) => {
+  if (url.includes('/studenthub/members')) return Response.json({ members }, { status: 200 })
+  if (url.includes('/studenthub/knowledge_base'))
+    return Response.json(knowledgeBase, { status: 200 })
+  return Response.json(sections, { status: 200 })
+}
 
 const overview = (id: number, name: string, link: string, ticketCount: number) => ({
   id: convertToGraphQLId('Overview', id),
@@ -235,7 +314,7 @@ describe('navigation design C', () => {
       expect(isPanelHidden()).toBe(false)
     })
 
-    it('offers Recent on the Dashboard and Members pages, whose panels have none', async () => {
+    it('offers Recent on the Dashboard, Members and Knowledge Base pages, whose panels have none', async () => {
       const view = await renderRail('/dashboard')
 
       expect(view.queryByRole('button', { name: 'Show panel' })).not.toBeInTheDocument()
@@ -246,6 +325,10 @@ describe('navigation design C', () => {
       expect(view.getByTestId('recent-tabs')).toHaveAttribute('data-collapsed', 'true')
 
       await visit('/knowledge-base')
+
+      expect(view.getByTestId('recent-tabs')).toHaveAttribute('data-collapsed', 'true')
+
+      await visit('/tickets/view')
 
       expect(view.queryByTestId('recent-tabs')).not.toBeInTheDocument()
     })
@@ -396,10 +479,37 @@ describe('navigation design C', () => {
       filter.clear()
     })
 
-    it('shows only Recent on other pages', async () => {
-      const view = await renderPanel('/knowledge-base')
+    it('shows the Knowledge Base categories, with a filter by title', async () => {
+      await useStudenthubKnowledgeBase().load()
+
+      const view = await renderPanel('/knowledge-base/answer/12')
 
       expect(view.getByRole('heading', { level: 2, name: 'Knowledge Base' })).toBeInTheDocument()
+
+      const categories = view.getByRole('navigation', { name: 'Categories' })
+      expect(within(categories).getByRole('link', { name: /^Wi-Fi/ })).toHaveAttribute(
+        'aria-current',
+        'page',
+      )
+      expect(within(categories).getByRole('link', { name: /^FAQs/ })).not.toHaveAttribute(
+        'aria-current',
+      )
+
+      await view.events.type(view.getByPlaceholderText('Filter by title…'), 'print')
+
+      const matches = view.getByRole('navigation', { name: 'Matching titles' })
+      expect(within(matches).getByRole('link', { name: /Printing on campus/ })).toBeInTheDocument()
+      expect(view.queryByRole('navigation', { name: 'Categories' })).not.toBeInTheDocument()
+      expect(view.queryByTestId('recent-tabs')).not.toBeInTheDocument()
+      expect(view.queryByRole('button', { name: 'New category' })).not.toBeInTheDocument()
+
+      resetStudenthubKnowledgeBase()
+    })
+
+    it('shows only Recent on other pages', async () => {
+      const view = await renderPanel('/personal-setting')
+
+      expect(view.getByRole('heading', { level: 2, name: 'Profile' })).toBeInTheDocument()
       expect(view.queryByRole('navigation', { name: 'Team views' })).not.toBeInTheDocument()
       expect(view.queryByRole('group', { name: 'Show members' })).not.toBeInTheDocument()
       expect(view.getByTestId('recent-tabs')).toBeInTheDocument()

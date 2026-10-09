@@ -11,8 +11,8 @@ import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubA
 // Student Hub: navigation design C (rail + panel). The rail lists the pages of the navigation with a
 // short label (the full name is the tooltip); the panel beside it belongs to the rail item that is
 // open: the ticket views and Recent on Tickets and the ticket screens, the dashboards and who is
-// online on the Dashboard, the filters of the Members page there, Recent elsewhere. Where the panel
-// has no Recent, the rail offers it.
+// online on the Dashboard, the filters of the Members page there, the categories on the Knowledge
+// Base, Recent elsewhere. Where the panel has no Recent, the rail offers it.
 
 export type StudenthubRailRoute = (typeof sortedFirstLevelRoutes)[number]
 
@@ -59,7 +59,10 @@ export const useStudenthubNav = () => {
   const isTicketSection = computed(() => isTicketSectionRoute(route))
   const isDashboardSection = computed(() => route.name === 'Dashboard')
   const isMembersSection = computed(() => route.name === 'StudenthubMembers')
-  const hasPanelRecent = computed(() => !isDashboardSection.value && !isMembersSection.value)
+  const isKnowledgeBaseSection = computed(() => route.name === 'StudenthubKnowledgeBase')
+  const hasPanelRecent = computed(
+    () => !isDashboardSection.value && !isMembersSection.value && !isKnowledgeBaseSection.value,
+  )
 
   const sectionTitle = computed(
     () =>
@@ -74,6 +77,7 @@ export const useStudenthubNav = () => {
     isTicketSection,
     isDashboardSection,
     isMembersSection,
+    isKnowledgeBaseSection,
     hasPanelRecent,
     sectionTitle,
   }

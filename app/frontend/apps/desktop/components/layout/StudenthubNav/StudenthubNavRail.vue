@@ -12,8 +12,8 @@ import UserTaskbarTabs from '#desktop/components/UserTaskbarTabs/UserTaskbarTabs
 import { railLink, railTitle, useStudenthubNav } from './studenthubNav.ts'
 
 // Student Hub: the rail of navigation design C, always shown, in the application colour. While the
-// panel is hidden, and on pages whose panel has no Recent (Dashboard, Members), Recent is Zammad's
-// list of tabs behind a button (UserTaskbarTabs, collapsed).
+// panel is hidden, and on pages whose panel has no Recent (Dashboard, Members, Knowledge Base),
+// Recent is Zammad's list of tabs behind a button (UserTaskbarTabs, collapsed).
 
 const router = useRouter()
 

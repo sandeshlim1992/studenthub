@@ -2,44 +2,50 @@
 
 <script setup lang="ts">
 import { computed, onActivated, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
 
+import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import { useFlyout } from '#desktop/components/CommonFlyout/useFlyout.ts'
 import { useStudenthubTopBarCrumbsWhileShown } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
+import { SidebarName } from '#desktop/components/layout/types.ts'
+import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 
 import KnowledgeBaseAnswerEditor from '../components/KnowledgeBaseAnswerEditor.vue'
 import KnowledgeBaseAnswerView from '../components/KnowledgeBaseAnswerView.vue'
 import KnowledgeBaseCategoryView from '../components/KnowledgeBaseCategoryView.vue'
 import KnowledgeBaseHome from '../components/KnowledgeBaseHome.vue'
+import KnowledgeBaseLanguage from '../components/KnowledgeBaseLanguage.vue'
 import KnowledgeBaseSearch from '../components/KnowledgeBaseSearch.vue'
 import KnowledgeBaseSidebar from '../components/KnowledgeBaseSidebar.vue'
 import { useStudenthubKnowledgeBase } from '../composables/useStudenthubKnowledgeBase.ts'
+import { useStudenthubKnowledgeBaseLocation } from '../composables/useStudenthubKnowledgeBaseLocation.ts'
 import { KNOWLEDGE_BASE_CATEGORY_FLYOUT, knowledgeBasePaths } from '../utils/knowledgeBasePaths.ts'
 
 import type { KnowledgeBaseCategory } from '../types.ts'
 
-// Student Hub: the Knowledge Base for staff, moved from the classic UI. Categories on the left,
-// the start page, a category, an answer or the answer editor on the right (see routes.ts).
+// Student Hub: the Knowledge Base for staff, moved from the classic UI. The categories are in the
+// navigation panel (in a column of the page while the panel is hidden); the page shows the start
+// page, a category, an answer or the answer editor (see routes.ts).
 
-const route = useRoute()
-const { tree, isLoading, loadError, knowledgeBase, knowledgeBaseTitle, load, categoryById, answerById, titleOf } =
+const { tree, isLoading, loadError, knowledgeBase, knowledgeBaseTitle, load, titleOf } =
   useStudenthubKnowledgeBase()
+const { kind, id, mode, searchQuery, category, answerRow, activeCategoryId } =
+  useStudenthubKnowledgeBaseLocation()
+
+const { isSidebarCollapsed: isNavPanelHidden } = useSidebarDisplay(SidebarName.Primary)
+const hasOwnColumn = computed(() => Boolean(knowledgeBase.value) && isNavPanelHidden.value)
+
+// What the page's column offers besides the categories, above the page while the panel shows them.
+const hasToolbar = computed(() => {
+  const base = knowledgeBase.value
+  if (!base || isNavPanelHidden.value) return false
+  return base.can_create_category || base.locales.length > 1
+})
 
 onMounted(load)
 // The page is kept alive; show changes made elsewhere when it comes back.
 onActivated(() => {
   if (tree.value) void load()
 })
-
-const kind = computed(() => (route.params.kind as string | undefined) || null)
-const id = computed(() => (route.params.id ? Number(route.params.id) : null))
-const mode = computed(() => (route.params.mode as string | undefined) || null)
-const searchQuery = computed(() => (typeof route.query.search === 'string' ? route.query.search.trim() : ''))
-
-const category = computed(() => (kind.value === 'category' ? categoryById(id.value) : undefined))
-const answerRow = computed(() => (kind.value === 'answer' ? answerById(id.value) : undefined))
-
-const activeCategoryId = computed(() => category.value?.id ?? answerRow.value?.category_id ?? null)
 
 useStudenthubTopBarCrumbsWhileShown(
   computed(() => {
@@ -64,17 +70,37 @@ const editCategory = (item: KnowledgeBaseCategory) => categoryFlyout.open({ cate
 </script>
 
 <template>
-  <div class="grid h-full grid-cols-1 grid-rows-1 lg:grid-cols-[280px_1fr]">
+  <div
+    class="grid h-full grid-cols-1 grid-rows-1"
+    :class="{ 'lg:grid-cols-[280px_1fr]': hasOwnColumn }"
+  >
     <aside
-      v-if="knowledgeBase"
+      v-if="hasOwnColumn"
       class="hidden min-h-0 overflow-y-auto border-e border-[var(--sh-line)] bg-[var(--sh-panel)] px-3 py-4 lg:block"
       :aria-label="$t('Knowledge Base categories')"
     >
       <KnowledgeBaseSidebar :active-category-id="activeCategoryId" @new-category="newCategory()" />
     </aside>
 
-    <div class="min-h-0 overflow-y-auto bg-[var(--sh-page)]" :class="{ 'lg:col-span-2': !knowledgeBase }">
+    <div class="min-h-0 overflow-y-auto bg-[var(--sh-page)]">
       <div class="mx-auto flex w-full max-w-5xl flex-col gap-5 px-6 py-6">
+        <div
+          v-if="hasToolbar"
+          class="flex flex-wrap items-end justify-end gap-3"
+          data-test-id="studenthub-kb-toolbar"
+        >
+          <KnowledgeBaseLanguage select-id="studenthub-kb-page-language" class="w-56" />
+          <CommonButton
+            v-if="knowledgeBase?.can_create_category"
+            variant="secondary"
+            size="small"
+            prefix-icon="plus"
+            @click="newCategory()"
+          >
+            {{ $t('New category') }}
+          </CommonButton>
+        </div>
+
         <CommonAlert v-if="loadError" variant="danger">
           {{ $t('The Knowledge Base could not be loaded: %s', loadError) }}
         </CommonAlert>

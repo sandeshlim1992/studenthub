@@ -17,6 +17,7 @@ import { useUserCurrentTaskbarTabsStore } from '#desktop/entities/user/current/s
 
 import { useStudenthubNav } from './studenthubNav.ts'
 import StudenthubNavDashboard from './StudenthubNavDashboard.vue'
+import StudenthubNavKnowledgeBase from './StudenthubNavKnowledgeBase.vue'
 import StudenthubNavMembers from './StudenthubNavMembers.vue'
 import StudenthubNavOnlineMembers from './StudenthubNavOnlineMembers.vue'
 import StudenthubNavTicketViews from './StudenthubNavTicketViews.vue'
@@ -24,12 +25,18 @@ import StudenthubNavTicketViews from './StudenthubNavTicketViews.vue'
 // Student Hub: the panel of navigation design C, beside the rail: the user's role, the title of the
 // open rail item, then on Tickets and the ticket screens the ticket views and Recent (Zammad's
 // tabs), on the Dashboard the dashboards, "Needs attention" and who is online, on the Members page
-// its filters, elsewhere Recent.
+// its filters, on the Knowledge Base its categories, elsewhere Recent.
 // Hiding it is remembered like Zammad's collapsed sidebar (SidebarName.Primary). The BETA UI switch
 // moved here from Zammad's sidebar footer.
 
-const { isTicketSection, isDashboardSection, isMembersSection, hasPanelRecent, sectionTitle } =
-  useStudenthubNav()
+const {
+  isTicketSection,
+  isDashboardSection,
+  isMembersSection,
+  isKnowledgeBaseSection,
+  hasPanelRecent,
+  sectionTitle,
+} = useStudenthubNav()
 const canSeeMembers = useStudenthubMembersAccess()
 const { toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
 const roleLabel = useStudenthubRoleLabel()
@@ -76,6 +83,7 @@ const { openFeedbackDialog } = useFeedbackDialog()
     <StudenthubNavTicketViews v-if="isTicketSection" class="sh-nav-panel__views" />
     <StudenthubNavDashboard v-else-if="isDashboardSection" class="sh-nav-panel__views" />
     <StudenthubNavMembers v-else-if="isMembersSection" class="sh-nav-panel__views" />
+    <StudenthubNavKnowledgeBase v-else-if="isKnowledgeBaseSection" class="sh-nav-panel__views" />
 
     <div v-if="isDashboardSection" class="sh-nav-panel__foot">
       <StudenthubNavOnlineMembers v-if="canSeeMembers" />

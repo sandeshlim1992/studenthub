@@ -96,8 +96,9 @@ Never put passwords, tokens or keys in this file.
   who is online instead of Recent (Recent from the rail there); the page's own switch shows only while the panel is
   hidden; on Members the panel filters the page (Show / Roles / Teams with online counts, no Recent either) and the
   page groups by role by default (Sort by Name / Last active kept in the browser); hiding the panel reuses Zammad's
-  collapsed primary sidebar state; the Tickets page lost its own views column; no resizing. KB categories and the
-  Admin menu could move into the panel later
+  collapsed primary sidebar state; the Tickets page lost its own views column; no resizing. On the Knowledge Base
+  the panel has the title filter and category tree (no Recent; New category and language above the page, the page's
+  own column only while the panel is hidden). The Admin menu could move into the panel later
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
@@ -171,6 +172,8 @@ Never put passwords, tokens or keys in this file.
   ("First ticket goes to Unassigned Tickets") did that before; the staff form loads fine with it on (checked 7 Oct),
   so the production step to switch it off needs rethinking
 - Student ticket wizard fails silently when a required field (Group, Sub-Category) is empty
+- `knowledgeBaseBody.spec.ts` "gives images that were there their cid back…" fails in Vitest (jsdom has no
+  `Blob.stream`), also on the code before the Knowledge Base panel
 - Zammad's `spec/graphql/gql/mutations/ticket/create_spec.rb`: 4 examples fail since Ticket Approvals added the
   `approval_*` ticket fields (they show in `objectAttributeValues`)
 
@@ -237,6 +240,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] Check the navigation (design C) in a browser: rail labels fit, panel on Tickets / ticket screens / Dashboard,
       Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, a 1280 px ticket
       screen with queue + panel, the Dashboard panel (views, Needs attention, who is online) and the Members panel
-      (filters, role groups, Sort by, Clear filters), Recent collapsed after signing in
+      (filters, role groups, Sort by, Clear filters), the Knowledge Base panel (filter, tree, New category above the
+      page), Recent collapsed after signing in
 - [ ] Check the reply box (option A) in a browser: typing a first character, switching Reply / Internal note with
       text, Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window

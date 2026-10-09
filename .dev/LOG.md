@@ -76,3 +76,6 @@ the current state is in `.dev/NOTES.md`.
   from NOTES to `.dev/LOG.md`; Zammad's Claude hooks switched off in this container
 - 2026-10-09: Recent in the navigation panel starts collapsed after each sign-in; opened or closed, it stays so until
   signing out (session storage of the tab). Not yet checked in a browser
+- 2026-10-09: Knowledge Base panel: title filter and category tree instead of Recent (Recent from the rail); New
+  category and language above the page while the panel shows; the page's own column only while the panel is hidden.
+  Not yet checked in a browser

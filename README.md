@@ -376,11 +376,13 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   Awaiting my approval, My assigned, Unassigned, Escalated, Pending reached, Sent for approval) and, instead of Recent,
   who of the agents and admins is **online** (not for managers without another staff role). On Members: filters for the
   page, **Show** (Everyone, Online now, Out of office, with counts), **Roles** and **Teams** (each with how many of them
-  are online, e.g. "3 / 18"; a click shows only that role or team, another click clears it). On those two pages Recent
-  is the rail's button. Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed sidebar;
-  hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the list of
-  Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column of its own
-  any more (on small screens its tabs above the list stay).
+  are online, e.g. "3 / 18"; a click shows only that role or team, another click clears it). On the Knowledge Base: a
+  filter by title and the category tree (the category shown is marked; New category and the language, for editors, sit
+  above the page instead, and the page's own categories column returns while the panel is hidden). On those three pages
+  Recent is the rail's button. Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed
+  sidebar; hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the
+  list of Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column of
+  its own any more (on small screens its tabs above the list stay).
 - **Start page:** staff (Agent, Admin and Managers roles) land on the Dashboard after signing in (password or Microsoft)
   and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
@@ -557,7 +559,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 |---|---|
 | `app/frontend/apps/desktop/styles/studenthub-halo.css` (imported by `custom-theme.css`) | Colour tokens and the navigation panel |
 | `app/frontend/apps/desktop/components/layout/StudenthubTopBar/` | Top bar (used by `LayoutPage.vue`) |
-| `app/frontend/apps/desktop/components/layout/StudenthubNav/` (`StudenthubNavRail.vue`, `StudenthubNavPanel.vue`, `StudenthubNavTicketViews.vue`, `StudenthubNavDashboard.vue`, `StudenthubNavOnlineMembers.vue`, `StudenthubNavMembers.vue`, `studenthubNav.ts`, `useStudenthubRecentCollapsed.ts`); edits in `LayoutPage.vue`, `pages/ticket-overviews/views/TicketOverviews.vue`, `UserTaskbarTabs.vue` | Navigation rail and panel (design C): ticket views, the Dashboard's views, Needs attention and who is online, the Members filters |
+| `app/frontend/apps/desktop/components/layout/StudenthubNav/` (`StudenthubNavRail.vue`, `StudenthubNavPanel.vue`, `StudenthubNavTicketViews.vue`, `StudenthubNavDashboard.vue`, `StudenthubNavOnlineMembers.vue`, `StudenthubNavMembers.vue`, `StudenthubNavKnowledgeBase.vue`, `studenthubNav.ts`, `useStudenthubRecentCollapsed.ts`); edits in `LayoutPage.vue`, `pages/ticket-overviews/views/TicketOverviews.vue`, `UserTaskbarTabs.vue` | Navigation rail and panel (design C): ticket views, the Dashboard's views, Needs attention and who is online, the Members filters, the Knowledge Base categories |
 | `app/frontend/apps/desktop/utils/studenthubAppColor.ts`, `composables/useStudenthubAppColor.ts` | Applies the admin colour (called in `AppDesktop.vue`) |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubAppColorSetting.vue` | Colour picker on the Branding page |
 | `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |
@@ -779,12 +781,12 @@ These classic features now also work in the new UI. Each page reads through a sm
 Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and permissions still apply.
 
 - **Knowledge Base** (`/desktop/knowledge-base`, in the navigation panel for staff with Knowledge Base access):
-  categories on the left with a title filter, the start page (categories, answers changed last, full-text search),
-  categories, answers with their text, files and tags, and for editors: new and edited answers (rich text, in the
-  language chosen in the side panel), publishing (draft → internal → public → archived and back), files, and new,
+  categories with a title filter in the navigation panel, the start page (categories, answers changed last, full-text
+  search), categories, answers with their text, files and tags, and for editors: new and edited answers (rich text, in
+  the language chosen above the page), publishing (draft → internal → public → archived and back), files, and new,
   renamed, moved and deleted categories (only empty ones). Who sees and edits what follows Zammad's Knowledge Base
-  permissions, including per-category ones. Images in answers are kept when an answer is edited (the page gives
-  them back their `cid`, and pasted images are sent embedded so Zammad stores them as attachments).
+  permissions, including per-category ones. Images in answers are kept when an answer is edited (the page gives them
+  back their `cid`, and pasted images are sent embedded so Zammad stores them as attachments).
 - **Knowledge Base answers in search:** the top bar's search drop-down lists matching answers under "Found
   knowledge base answers" (title and text; Zammad's own Knowledge Base search, which also works without
   Elasticsearch), and "More in the Knowledge Base" opens all results on the Knowledge Base page.

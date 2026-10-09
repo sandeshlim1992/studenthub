@@ -7,6 +7,9 @@ import { renderComponent } from '#tests/support/components/index.ts'
 import { useNotifications } from '#shared/components/CommonNotifications/index.ts'
 import { setCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
+import { useSidebarDisplayStore } from '#desktop/components/layout/stores/sidebarDisplay.ts'
+import { SidebarName } from '#desktop/components/layout/types.ts'
+
 import { resetStudenthubKnowledgeBase } from '../composables/useStudenthubKnowledgeBase.ts'
 import StudenthubKnowledgeBase from '../views/StudenthubKnowledgeBase.vue'
 
@@ -87,13 +90,15 @@ const mockServer = (routes: Record<string, () => Reply>) => {
 
 const homeRoute = { path: '/', name: 'Home', component: { template: '<div />' } }
 
-const renderPage = async (path: string) => {
+// The categories are in the navigation panel; while it's hidden the page shows them in a column.
+const renderPage = async (path: string, { isNavPanelHidden = true } = {}) => {
   const view = renderComponent(StudenthubKnowledgeBase, {
     router: true,
     routerRoutes: [homeRoute, kbRoute],
     store: true,
     form: true,
   })
+  useSidebarDisplayStore().setCollapsed(SidebarName.Primary, isNavPanelHidden)
   await view.router.push(path)
   return view
 }
@@ -122,6 +127,35 @@ describe('Student Hub Knowledge Base page', () => {
 
     const recent = view.getAllByRole('link', { name: /Eduroam setup|Reset your password|Printing on campus/ })
     expect(recent[0]).toHaveTextContent('Eduroam setup')
+  })
+
+  it('leaves the categories to the navigation panel while it is shown', async () => {
+    const twoLanguages = tree()
+    twoLanguages.knowledge_base?.locales.push({ id: 5, locale: 'de-de', name: 'Deutsch', primary: false })
+    mockServer({ 'GET /api/v1/studenthub/knowledge_base': () => ({ body: twoLanguages }) })
+
+    const view = await renderPage('/knowledge-base', { isNavPanelHidden: false })
+
+    expect(await view.findByRole('heading', { level: 1, name: 'IT Help' })).toBeInTheDocument()
+    expect(view.queryByRole('complementary', { name: 'Knowledge Base categories' })).not.toBeInTheDocument()
+
+    const toolbar = view.getByTestId('studenthub-kb-toolbar')
+    expect(within(toolbar).getByRole('button', { name: 'New category' })).toBeInTheDocument()
+    expect(within(toolbar).getByLabelText('Language')).toBeInTheDocument()
+
+    useSidebarDisplayStore().setCollapsed(SidebarName.Primary, true)
+
+    expect(await view.findByRole('complementary', { name: 'Knowledge Base categories' })).toBeInTheDocument()
+    expect(view.queryByTestId('studenthub-kb-toolbar')).not.toBeInTheDocument()
+  })
+
+  it('shows readers no toolbar beside the navigation panel', async () => {
+    mockServer({ 'GET /api/v1/studenthub/knowledge_base': () => ({ body: tree(false) }) })
+
+    const view = await renderPage('/knowledge-base', { isNavPanelHidden: false })
+
+    expect(await view.findByRole('heading', { level: 1, name: 'IT Help' })).toBeInTheDocument()
+    expect(view.queryByTestId('studenthub-kb-toolbar')).not.toBeInTheDocument()
   })
 
   it('shows a category with its sub-categories and answers, and the actions for editors', async () => {

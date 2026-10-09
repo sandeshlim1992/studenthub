@@ -107,9 +107,9 @@ const actions = computed(() => {
   articleActions.forEach((action) => {
     // Student Hub: students only reply (no visibility, split, forward or copy actions).
     if (!isAgent.value && !/reply/i.test(action.name)) return
-    // Student Hub: staff reply from the reply bar under the messages, which does what this
-    // Reply (or Follow up) did; Reply all stays.
-    if (hasReplyBar?.value && action.name.endsWith('-reply')) return
+    // Student Hub: staff reply from the reply box under the messages, which does what this
+    // Reply (or Follow up) and Reply all did.
+    if (hasReplyBar?.value && /-reply(-all)?$/.test(action.name)) return
 
     const mappedAction = {
       key: action.name,

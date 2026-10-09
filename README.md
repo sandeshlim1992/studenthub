@@ -460,10 +460,15 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   **Assign** and **Change status** (icon buttons), ⋯ (**Merge**) and **Close** on the right, then the title over the
   full width. Assign and Change status fill the form's fields; like any other change they are saved with **Update**.
   **Close** sets the closed state and saves at once (like Update, it opens Details when a required field is empty).
-  Under the messages a **reply bar** stays docked: "Write a reply to (first name)…" and **Reply** answer the student's
-  latest message (its own reply action: email, web…), **Internal note** opens a note; it makes way for the reply form.
-  So the messages have no **Reply** (or **Follow up**) of their own for staff; **Reply all** stays on emails with other
-  recipients.
+  Under the messages a **reply box** stays docked (design option A of the reply box board): at rest a text box,
+  "Write a reply to (first name)…", with **Reply** / **Internal note** as a switch under it, so the mode shows before
+  anyone writes. The first click or keystroke opens Zammad's editor in the same box, keeping what was typed, so text
+  modules, knowledge base answers, mentions, the signature, attachments and shared drafts all work. Reply answers the
+  student's latest message by its channel (email, web…); **Reply all** appears in the box when that email had other
+  recipients. Notes turn the box amber and the button says **Add note**; switching keeps the text. **Send** is Update
+  (it says "+ N ticket changes" when fields in the Ticket panel are saved with it), **Ctrl + Enter** sends, **Esc**
+  leaves the box and keeps the text, the bin discards it. The box grows with the text up to half the window. So the
+  messages have no Reply, Follow up or Reply all of their own for staff, and there is no pinned reply panel.
   **Update** sits at the foot of the panel column instead of in a bar across the screen, so the queue and the
   conversation reach the bottom: while changes are unsaved an amber note says so with **Discard** (Zammad's
   confirmation), **After update** is Zammad's tab behaviour (Stay on tab, Close tab, Close tab on ticket close) and
@@ -546,7 +551,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `lib/studenthub/ticket_views/institutions.rb`, `db/migrate/20261006120000_studenthub_institution_views_by_organization.rb` | The Sites views (internally "Institutions"), kept in step with the organisations |
 | `lib/studenthub/theme/ticket_list_setup.rb`, `app/models/setting/validation/studenthub_{ticket_state_colors,escalation_warning_minutes}.rb`, `db/migrate/20261004180000_studenthub_ticket_list_colors.rb` | Settings, first guess per state, server-side checks |
 | `pages/ticket/components/TicketDetailView/TicketDetailTopBar/components/StudenthubTicketHeaderCompact.vue`, `StudenthubTicketHeaderActions.vue`, `StudenthubHeaderMenuButton.vue`; edits in `TopBarHeaderFull.vue`, `TicketInformationBadgeList.vue` | Ticket header: staff's compact header, students' header with Reply |
-| `pages/ticket/components/TicketDetailView/StudenthubTicketReplyBar.vue`, `pages/ticket/composables/useStudenthubTicketReply.ts`; edits in `ArticleReply.vue`, `TicketDetailViewContent.vue` | Staff's reply bar under the messages; "Reply" to the student's latest message |
+| `pages/ticket/components/TicketDetailView/StudenthubTicketReplyBar.vue` (at rest), `StudenthubReplyBoxFooter.vue`, `pages/ticket/composables/useStudenthubTicketReply.ts`; edits in `ArticleReply.vue`, `ArticleReplyPanel.vue` (while writing), `TicketDetailViewContent.vue` | Staff's reply box under the messages (option A); "Reply" to the student's latest message, Reply all |
 | `pages/ticket/components/TicketDetailView/TicketDetailBottomBar/StudenthubTicketSaveBar.vue` (Zammad's live users, shared draft, tab behaviour and Update button rearranged); slot in `TicketSidebar.vue`, edit in `TicketDetailViewContent.vue` | Staff's save area at the foot of the panel column |
 | `pages/ticket/components/TicketSidebar/TicketSidebarInformation/TicketSidebarInformationContent/StudenthubTicketDetailsList.vue`, `StudenthubTicketSlaBox.vue`, `pages/ticket/composables/useStudenthubTicketDetailsMode.ts`, `utils/studenthubTicketDetails.ts`; edit in `TicketSidebarInformationContent.vue` | Details list with Edit / Done, SLA card |
 | `components/layout/LayoutContent.vue` (`sidebarPosition`, `sidebarWidthName` props), `composables/useResizeGridColumns.ts`, `TicketDetailViewContent.vue` | Ticket sidebar: on the right for staff (its own width), on the left for students and managers-only |

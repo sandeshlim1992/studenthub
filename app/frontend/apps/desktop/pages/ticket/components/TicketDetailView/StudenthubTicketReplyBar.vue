@@ -1,47 +1,80 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
-import { useStudenthubTicketReply } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
+import {
+  type StudenthubReplyMode,
+  useStudenthubTicketReply,
+} from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 
-// Student Hub: the agents' reply bar under the messages (design option B), in place of Zammad's
-// "Add note, or use the reply actions on articles". Reply (and the bar itself) answers the
-// student's latest message; Internal note opens Zammad's note form (emitted, so ArticleReply
-// opens it as before). The bar makes way for the reply form once that is open.
-defineEmits<{
-  note: []
-}>()
+import StudenthubReplyBoxFooter from './StudenthubReplyBoxFooter.vue'
 
+// Student Hub: the agents' reply box at rest, docked under the messages (design option A). It is a
+// real text box with Reply / Internal note under it, so the mode shows before anyone writes. The
+// first click or keystroke opens Zammad's reply form in its place (ArticleReplyPanel, styled as
+// the same box) in that mode, keeping what was typed. Reply answers the student's latest message.
 const { ticket } = useTicketInformation()
-const { reply } = useStudenthubTicketReply()
+const { open } = useStudenthubTicketReply()
+
+const mode = ref<StudenthubReplyMode>('reply')
 
 const name = computed(
   () => ticket.value?.customer.firstname?.trim() || ticket.value?.customer.fullname || '',
 )
+
+const placeholder = computed(() => {
+  if (mode.value === 'note') return __('Write an internal note…')
+  return name.value ? __('Write a reply to %s…') : __('Write a reply…')
+})
+
+let opening = false
+
+const start = (typed = '') => {
+  if (opening) return
+  opening = true
+  open(mode.value, typed).finally(() => {
+    opening = false
+  })
+}
+
+// A character opens the form and goes into it; Enter just opens it. Tab and shortcuts pass by.
+const onKeydown = (event: KeyboardEvent) => {
+  if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return
+
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    start()
+  } else if (event.key.length === 1) {
+    event.preventDefault()
+    start(event.key)
+  }
+}
+
+const onPaste = (event: ClipboardEvent) => {
+  event.preventDefault()
+  start(event.clipboardData?.getData('text/plain') ?? '')
+}
 </script>
 
 <template>
-  <div class="sh-reply-bar" role="group" :aria-label="$t('Reply')">
-    <button type="button" class="sh-reply-bar__write" @click="reply">
-      <CommonIcon name="reply" size="tiny" decorative />
-      <span class="truncate">
-        {{ name ? $t('Write a reply to %s…', name) : $t('Write a reply…') }}
-      </span>
-    </button>
-    <button
-      type="button"
-      class="sh-header-action"
-      data-test-id="ticket-detail-show-article-form-button"
-      @click="$emit('note')"
-    >
-      <CommonIcon name="pencil-square" size="xs" decorative />
-      {{ $t('Internal note') }}
-    </button>
-    <button type="button" class="sh-header-action sh-header-action--primary" @click="reply">
-      <CommonIcon name="reply" size="xs" decorative />
-      {{ $t('Reply') }}
-    </button>
+  <div
+    class="sh-reply-box"
+    :class="{ 'sh-reply-box--note': mode === 'note' }"
+    role="group"
+    :aria-label="$t('Reply')"
+  >
+    <textarea
+      class="sh-reply-box__rest"
+      rows="2"
+      :placeholder="$t(placeholder, name)"
+      :aria-label="$t(placeholder, name)"
+      data-test-id="studenthub-reply-box-input"
+      @click="start()"
+      @keydown="onKeydown"
+      @paste="onPaste"
+    />
+    <StudenthubReplyBoxFooter :mode="mode" @mode="mode = $event" @attach="start()" />
   </div>
 </template>

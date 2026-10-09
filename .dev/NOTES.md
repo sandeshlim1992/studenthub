@@ -80,8 +80,10 @@ Never put passwords, tokens or keys in this file.
   (kept in the browser); "open" counts every state except closed/merged, so "5. Resolved" is open
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Staff ticket screen = option B of the design board (<https://claude.ai/artifact/SKNJWEgQtaeSMKD3GwPTZJ>): the queue of
-  a view on the left (J / K, next ticket after closing), compact header (actions as icons, ⋯ Merge, Close), reply bar
-  docked under the messages (messages have no Reply of their own; Reply all stays), panels in one column on the right
+  a view on the left (J / K, next ticket after closing), compact header (actions as icons, ⋯ Merge, Close), reply box
+  docked under the messages (option A of <https://claude.ai/artifact/9Maq1Eh5zvawnUkE2sNEnQ>: text box with Reply /
+  Internal note under it, Zammad's editor in the same box once you write, Send = Update, Reply all in the box; messages
+  have no Reply / Reply all of their own, no pinned reply panel), panels in one column on the right
   behind four tabs Ticket / Student / Checklist / Approval (no Organization tab; occasional panels add a tab while they
   apply), Update at the foot of that column (unsaved note + Discard, After update, Update; Zammad's bar only while the
   column is collapsed); students and managers-only keep the sidebar on the left and Zammad's bar. Ticket tabs still go
@@ -141,6 +143,8 @@ Never put passwords, tokens or keys in this file.
   `TicketSidebarWrapper.vue`, `TicketSidebarContent.vue`, `ArticleReply.vue`, `TopBarHeaderFull.vue`, `LayoutContent.vue`,
   `useResizeGridColumns.ts`): expect conflicts when merging Zammad
 - Queue: Mine / Unassigned only filter the tickets loaded so far (30 per page)
+- Zammad's pinned-reply-panel specs (`ArticleReply.spec.ts` ×4, "can display and pin reply form") fail by design:
+  staff write in the docked reply box, which has no pin
 - `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
 - Zammad's lint hook type-checks the whole frontend whenever a `.vue`/`.ts` file is uncommitted; ~100 old type
   errors make it fail on every reply until the work is committed
@@ -212,8 +216,8 @@ Never put passwords, tokens or keys in this file.
 - [ ] Check the new manager dashboard in a browser as manager@ (with and without waiting requests); decide whether
       to commit `PRODUCT.md`
 - [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
-- [ ] Reply box: pick one of the four designs that turn the reply bar into a real text box
-      (<https://claude.ai/artifact/9Maq1Eh5zvawnUkE2sNEnQ>; A recommended), then build it and move Reply all into it
+- [ ] Check the reply box (option A) in a browser: typing a first character, switching Reply / Internal note with
+      text, Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window
 
 ## Log
 
@@ -275,3 +279,6 @@ Never put passwords, tokens or keys in this file.
   Chromium in this container, 1280 and 1440 px)
 - 2026-10-09: Messages lose their Reply / Follow up for staff (the reply bar answers the student); four reply box
   designs on a board, not chosen yet
+- 2026-10-09: Reply box option A built: text box with Reply / Internal note at rest, Zammad's editor in the same box
+  while writing (amber for notes, Send = Update, Ctrl + Enter, Reply all moved in from the messages). Not yet
+  checked in a browser (no headless browser in this container)

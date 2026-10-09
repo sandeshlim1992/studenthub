@@ -251,50 +251,250 @@
   min-width: 0;
 }
 
-/* Agents' reply bar, docked under the messages (StudenthubTicketReplyBar) */
+/* Agents' reply box, docked under the messages (design option A): at rest StudenthubTicketReplyBar,
+   while writing Zammad's form inside the same box (ArticleReplyPanel). Notes are amber, like the
+   internal notes in the conversation. */
 .sh-reply-dock {
   position: sticky;
   bottom: 0;
   z-index: 10;
   padding: 0.75rem 1.25rem 1rem;
-  background: linear-gradient(transparent, var(--sh-card) 35%);
+  background: linear-gradient(transparent, var(--sh-card) 0.75rem);
 }
 
-.sh-reply-bar {
+.sh-reply-box {
+  --sh-note-bg: #fff7e0;
+  --sh-note-line: #efd28a;
+  --sh-note-edge: #c58a12;
+  --sh-note-ink: #7a4c00;
+
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
   width: 100%;
   max-width: 50rem;
-  height: 2.875rem;
   margin-inline: auto;
-  padding: 0 0.4375rem 0 0.875rem;
   border: 1px solid #c9cdd4;
-  border-radius: 0.625rem;
+  border-radius: 0.75rem;
   background-color: var(--sh-card);
-  box-shadow: 0 2px 12px rgba(20, 35, 75, 0.07);
+  box-shadow: 0 2px 10px rgba(20, 35, 75, 0.06);
 }
 
-.sh-reply-bar__write {
+.sh-reply-box:focus-within {
+  border-color: var(--sh-app);
+  box-shadow: 0 0 0 3px color-mix(in sRGB, var(--sh-app) 14%, transparent);
+}
+
+.sh-reply-box--note,
+.sh-reply-box--note:focus-within {
+  border-color: var(--sh-note-edge);
+  background-color: var(--sh-note-bg);
+  box-shadow: 0 0 0 3px rgba(197, 138, 18, 0.22);
+}
+
+.sh-reply-box__rest {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.75rem 0.8125rem 0.25rem;
+  border: 0;
+  background: transparent;
+  color: var(--sh-ink);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  resize: none;
+  cursor: text;
+}
+
+.sh-reply-box__rest::placeholder {
+  color: #737b8a;
+}
+
+.sh-reply-box__rest:focus {
+  outline: none;
+}
+
+.sh-reply-box__foot {
   display: flex;
-  flex: 1;
   align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  height: 100%;
-  color: var(--sh-muted);
-  font-size: 0.875rem;
-  text-align: start;
+  gap: 0.375rem;
+  padding: 0 0.5rem 0.5rem;
 }
 
-.sh-reply-bar__write:hover {
+.sh-reply-box--open .sh-reply-box__foot {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--sh-line);
+}
+
+.sh-reply-box--note.sh-reply-box--open .sh-reply-box__foot {
+  border-top-color: var(--sh-note-line);
+}
+
+.sh-reply-mode {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 0.5rem;
+  background-color: #e9ecf2;
+}
+
+.sh-reply-mode__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  height: 1.625rem;
+  padding: 0 0.625rem;
+  border-radius: 0.375rem;
+  color: var(--sh-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sh-reply-mode__option:hover {
   color: var(--sh-ink);
 }
 
-.sh-reply-bar__write:focus-visible {
+.sh-reply-mode__option[aria-checked='true'] {
+  background-color: var(--sh-card);
+  color: var(--sh-app);
+  box-shadow: 0 1px 2px rgba(20, 35, 75, 0.14);
+}
+
+.sh-reply-mode__option--note[aria-checked='true'] {
+  background-color: #f3d98f;
+  color: var(--sh-note-ink);
+  box-shadow: none;
+}
+
+.sh-reply-mode__option:focus-visible,
+.sh-reply-box__icon:focus-visible,
+.sh-reply-box__send:focus-visible {
   outline: 2px solid var(--sh-app);
   outline-offset: 2px;
+}
+
+.sh-reply-box__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  height: 1.625rem;
+  padding: 0 0.5625rem;
+  border: 1px solid var(--sh-line);
+  border-radius: 0.8125rem;
+  background-color: var(--sh-card);
+  color: var(--sh-ink-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sh-reply-box__toggle[aria-pressed='true'] {
+  border-color: var(--sh-app-border);
+  background-color: var(--sh-app-soft);
+  color: var(--sh-app);
+}
+
+.sh-reply-box__toggle:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: 2px;
+}
+
+.sh-reply-box__changes {
+  color: var(--sh-muted);
+  font-size: 0.71875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sh-reply-box__icon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 0.375rem;
+  color: #6b7384;
+}
+
+.sh-reply-box__icon:hover {
+  background-color: var(--sh-app-soft);
+  color: var(--sh-app);
+}
+
+.sh-reply-box__icon--danger:hover {
+  background-color: #fdecee;
+  color: #b4232f;
+}
+
+.sh-reply-box__send {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 1.875rem;
+  padding: 0 0.8125rem;
+  border-radius: 0.4375rem;
+  background-color: var(--sh-app);
+  color: var(--sh-on-app);
+  font-size: 0.78125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sh-reply-box__send:hover:not(:disabled) {
+  background-color: var(--sh-app-hover);
+}
+
+.sh-reply-box__send--note {
+  background-color: var(--sh-note-ink);
+  color: #fff;
+}
+
+.sh-reply-box__send--note:hover:not(:disabled) {
+  background-color: color-mix(in sRGB, var(--sh-note-ink) 84%, black);
+}
+
+.sh-reply-box__send:disabled {
+  background-color: #b8bfcc;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.sh-reply-box__send kbd {
+  font: inherit;
+  font-size: 0.65625rem;
+  font-weight: 500;
+  opacity: 0.72;
+}
+
+/* Zammad's reply form inside the box: no borders, stripes or grey of its own; the box is the
+   outline. It grows with the text up to half the window, then scrolls. The visibility switch
+   is left out: Reply / Internal note under the text sets it. */
+.sh-reply-box__form {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.sh-reply-box__form :is([class*='rounded-t-2xl'], [class*='rounded-b-2xl'], [class*='rounded-b-xl']) {
+  margin: 0;
+  padding-inline-end: 0.75rem;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+}
+
+.sh-reply-box__form [class*='rounded-t-2xl'] {
+  border-bottom: 1px solid var(--sh-line);
+}
+
+.sh-reply-box--note .sh-reply-box__form [class*='rounded-t-2xl'] {
+  border-bottom-color: var(--sh-note-line);
+}
+
+.sh-reply-box__form .bg-stripes::before {
+  display: none;
+}
+
+.sh-reply-box__form [data-type='toggle'] {
+  display: none;
 }
 
 /* What a message is: Email, Reply, Internal note… */

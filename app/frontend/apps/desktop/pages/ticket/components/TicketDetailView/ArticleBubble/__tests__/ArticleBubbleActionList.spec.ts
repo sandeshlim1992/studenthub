@@ -121,8 +121,8 @@ describe('ArticleBubbleActionList', () => {
     expect(wrapper.queryByRole('button', { name: 'Follow up' })).not.toBeInTheDocument()
   })
 
-  // Student Hub: staff reply from the reply bar under the messages.
-  it('leaves out Reply and Follow up, not Reply all, when the screen has the reply bar', () => {
+  // Student Hub: staff reply from the reply box under the messages, which has Reply all too.
+  it('leaves out Reply, Follow up and Reply all when the screen has the reply box', () => {
     const wrapper = renderArticleBubbleActionList({
       withReplyBar: true,
       articleOverrides: {
@@ -139,7 +139,7 @@ describe('ArticleBubbleActionList', () => {
 
     expect(wrapper.queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
     expect(wrapper.queryByRole('button', { name: 'Follow up' })).not.toBeInTheDocument()
-    expect(wrapper.getByRole('button', { name: 'Reply all' })).toBeInTheDocument()
+    expect(wrapper.queryByRole('button', { name: 'Reply all' })).not.toBeInTheDocument()
     expect(wrapper.getByLabelText('Set to internal')).toBeInTheDocument()
   })
 

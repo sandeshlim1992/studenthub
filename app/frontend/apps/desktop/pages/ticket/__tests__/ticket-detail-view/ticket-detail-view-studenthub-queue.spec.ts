@@ -144,7 +144,7 @@ describe('Ticket detail view: queue beside the ticket (Student Hub)', () => {
     )
   })
 
-  it('has the compact header, the reply bar and the panel tabs', async () => {
+  it('has the compact header, the reply box and the panel tabs', async () => {
     const view = await visitView('/tickets/1')
 
     const toolbar = await view.findByRole('toolbar', { name: 'Ticket header actions' })
@@ -153,10 +153,14 @@ describe('Ticket detail view: queue beside the ticket (Student Hub)', () => {
     expect(within(toolbar).queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
     expect(within(toolbar).queryByRole('button', { name: 'Add note' })).not.toBeInTheDocument()
 
-    const replyBar = await view.findByRole('group', { name: 'Reply' })
-    expect(replyBar).toHaveTextContent(/Write a reply to \S+…/)
-    expect(within(replyBar).getByRole('button', { name: 'Internal note' })).toBeInTheDocument()
-    expect(within(replyBar).getByRole('button', { name: 'Reply' })).toBeInTheDocument()
+    // Design option A: a text box at rest, Reply / Internal note under it, Send off until writing.
+    const replyBox = await view.findByRole('group', { name: 'Reply' })
+    expect(
+      within(replyBox).getByRole('textbox', { name: /Write a reply to \S+…/ }),
+    ).toBeInTheDocument()
+    expect(within(replyBox).getByRole('radio', { name: 'Reply' })).toBeChecked()
+    expect(within(replyBox).getByRole('radio', { name: 'Internal note' })).not.toBeChecked()
+    expect(within(replyBox).getByRole('button', { name: 'Send' })).toBeDisabled()
 
     const panels = view.getByRole('navigation', { name: 'Ticket panels' })
     expect(within(panels).getByRole('button', { name: 'Ticket' })).toHaveAttribute(
@@ -177,9 +181,21 @@ describe('Ticket detail view: queue beside the ticket (Student Hub)', () => {
     expect(within(saveArea).getByRole('button', { name: 'Update' })).toBeInTheDocument()
     expect(saveArea).toHaveTextContent('After update')
 
-    await view.events.click(within(replyBar).getByRole('button', { name: 'Internal note' }))
-    expect(await view.findByRole('complementary', { name: 'Reply' })).toBeInTheDocument()
+    await view.events.click(within(replyBox).getByRole('radio', { name: 'Internal note' }))
+    expect(within(replyBox).getByRole('radio', { name: 'Internal note' })).toBeChecked()
+    expect(within(replyBox).getByRole('button', { name: 'Add note' })).toBeDisabled()
+
+    // The first click opens Zammad's form in the same box, in the chosen mode.
+    await view.events.click(
+      within(replyBox).getByRole('textbox', { name: 'Write an internal note…' }),
+    )
+    const writing = await view.findByRole('complementary', { name: 'Reply' })
     expect(view.queryByRole('group', { name: 'Reply' })).not.toBeInTheDocument()
+    expect(within(writing).getByRole('radio', { name: 'Internal note' })).toBeChecked()
+    expect(within(writing).getByRole('button', { name: 'Add note' })).toBeEnabled()
+    expect(
+      within(writing).getByRole('button', { name: 'Discard unsaved reply' }),
+    ).toBeInTheDocument()
   })
 
   it('opens the next ticket of the queue after the ticket is closed', async () => {

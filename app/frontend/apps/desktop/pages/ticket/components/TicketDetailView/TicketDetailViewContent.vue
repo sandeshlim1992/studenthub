@@ -328,14 +328,14 @@ const { hasSidebar, activeSidebar, shownSidebars, switchSidebar } = useTicketSid
 
 const hasInternalArticle = computed(() => (values.value as TicketUpdateFormData).article?.internal)
 
-// Student Hub: agents' reply bar at the bottom of the conversation (ArticleReply, while no reply
-// is open): the messages take the free height and the scroll buttons sit above the bar.
+// Student Hub: agents' reply box at the bottom of the conversation (ArticleReply, design option A,
+// at rest and while writing): the messages take the free height and the scroll buttons sit above
+// the box at rest (while writing, above the box in ArticleReply).
+const hasStudenthubReplyBox = computed(
+  () => isQueueLayout.value && isTicketAgent.value && isTicketEditable.value,
+)
 const hasStudenthubReplyBar = computed(
-  () =>
-    isQueueLayout.value &&
-    isTicketAgent.value &&
-    isTicketEditable.value &&
-    !newTicketArticlePresent.value,
+  () => hasStudenthubReplyBox.value && !newTicketArticlePresent.value,
 )
 
 // Student Hub: with the reply bar, the messages have no Reply of their own.
@@ -813,9 +813,10 @@ const handleShowArticleForm = (
         class="@container isolate grid size-full min-w-0 overflow-y-auto overscroll-contain print:h-auto print:overflow-y-visible"
         :class="{
           'grid-rows-[0_max-content_max-content_max-content]':
-            !hasStudenthubReplyBar && (!newTicketArticlePresent || !isReplyPinned),
-          'grid-rows-[0_max-content_1fr_max-content]': newTicketArticlePresent && isReplyPinned,
-          'grid-rows-[0_max-content_1fr_max-content_max-content]': hasStudenthubReplyBar,
+            !hasStudenthubReplyBox && (!newTicketArticlePresent || !isReplyPinned),
+          'grid-rows-[0_max-content_1fr_max-content]':
+            !hasStudenthubReplyBox && newTicketArticlePresent && isReplyPinned,
+          'grid-rows-[0_max-content_1fr_max-content_max-content]': hasStudenthubReplyBox,
         }"
       >
         <CommonIndicator v-model="isReachingTop" />
@@ -852,6 +853,7 @@ const handleShowArticleForm = (
           :parent-reached-bottom-scroll="isReachingBottom"
           @show-article-form="handleShowArticleForm"
           @discard-form="discardReplyForm"
+          @submit="checkSubmitEditTicket"
         >
           <template #leading>
             <FloatingToolbar
@@ -873,7 +875,12 @@ const handleShowArticleForm = (
         <CommonIndicator v-if="newTicketArticlePresent" v-model="isReachingBottom" />
 
         <div
-          v-if="ticket && (!newTicketArticlePresent || !isReplyPinned)"
+          v-if="
+            ticket &&
+            (hasStudenthubReplyBox
+              ? !newTicketArticlePresent
+              : !newTicketArticlePresent || !isReplyPinned)
+          "
           class="sticky h-0 print:hidden"
           :class="hasStudenthubReplyBar ? 'bottom-20' : 'bottom-3'"
         >

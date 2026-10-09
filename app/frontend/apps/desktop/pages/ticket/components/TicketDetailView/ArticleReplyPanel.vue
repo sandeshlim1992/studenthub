@@ -2,13 +2,19 @@
 
 <script setup lang="ts">
 import { useActiveElement, useLocalStorage, useWindowSize } from '@vueuse/core'
-import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
 
 import { useSessionStore } from '#shared/stores/session.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import ResizeLine from '#desktop/components/ResizeLine/ResizeLine.vue'
 import { useResizeLine } from '#desktop/components/ResizeLine/useResizeLine.ts'
+import { useStudenthubTicketReply } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
+import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
+
+import StudenthubReplyBoxFooter from './StudenthubReplyBoxFooter.vue'
+
+import type { FormKitNode } from '@formkit/core'
 
 interface Props {
   isPinned?: boolean
@@ -16,13 +22,16 @@ interface Props {
   // Customers get a visible "Reply" heading inside the form (which carries the region's
   //  `aria-labelledby` id), so this panel omits its own sr-only heading for them.
   isTicketCustomer?: boolean
+  // Student Hub: agents with the queue layout write in the reply box (design option A)
+  studenthubBox?: boolean
 }
 
 const props = defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   'discard-form': []
   'toggle-pin': []
+  submit: []
 }>()
 
 const DEFAULT_ARTICLE_PANEL_HEIGHT = 290
@@ -69,8 +78,64 @@ const resetHeight = () => {
 
 const articlePanel = useTemplateRef<HTMLElement>('article-panel')
 
+// ---- Student Hub reply box (design option A) ----
+const { form } = useTicketInformation()
+const { reply, replyAll, canReplyAll, addNote } = useStudenthubTicketReply()
+
+const boxMode = computed(() => (props.hasInternalArticle ? 'note' : 'reply'))
+
+// Reply all is offered while replying to an email that went to other people too.
+const isReplyAll = ref(false)
+watch(boxMode, (mode) => {
+  if (mode === 'note') isReplyAll.value = false
+})
+
+const replyAllState = computed(() =>
+  boxMode.value === 'reply' && canReplyAll.value ? isReplyAll.value : undefined,
+)
+
+const toggleReplyAll = (all: boolean) => {
+  isReplyAll.value = all
+  if (all) replyAll()
+  else reply()
+}
+
+// Switching keeps the text (both keep the body Zammad already has).
+const switchMode = (mode: 'reply' | 'note') => {
+  if (mode === boxMode.value) return
+  if (mode === 'note') addNote()
+  else reply()
+}
+
+// Send is Update: the ticket fields changed in the Ticket panel are saved with the message.
+const ticketChanges = computed(() => {
+  void form?.value?.values
+  const group = form?.value?.findNodeByName('ticket')
+  return (group?.children ?? []).filter(
+    (child) => 'context' in child && (child as FormKitNode).context?.state.dirty,
+  ).length
+})
+
+const attach = () => {
+  const node = form?.value?.getNodeByName('attachments')
+  const input = articlePanel.value?.querySelector<HTMLInputElement>(
+    `#${CSS.escape(String(node?.context?.id ?? ''))}, input[type="file"]`,
+  )
+  input?.click()
+}
+
+// Ctrl + Enter sends, Esc leaves the box and keeps the text.
+const onBoxKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+    event.preventDefault()
+    emit('submit')
+  } else if (event.key === 'Escape' && !event.defaultPrevented) {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+  }
+}
+
 onMounted(() => {
-  if (props.isPinned) return
+  if (props.isPinned || props.studenthubBox) return
 
   nextTick(() => {
     // NB: Give editor a chance to initialize its height.
@@ -82,7 +147,33 @@ onMounted(() => {
 </script>
 
 <template>
+  <div v-if="studenthubBox" ref="article-panel" class="relative">
+    <h2 id="article-reply-form-title" class="sr-only">
+      {{ $t('Reply') }}
+    </h2>
+    <!-- eslint-disable-next-line vuejs-accessibility/no-static-element-interactions -->
+    <div
+      class="sh-reply-box sh-reply-box--open"
+      :class="{ 'sh-reply-box--note': hasInternalArticle }"
+      data-test-id="article-reply-stripes-panel"
+      @keydown="onBoxKeydown"
+    >
+      <div id="ticketArticleReplyForm" class="sh-reply-box__form" />
+      <StudenthubReplyBoxFooter
+        :mode="boxMode"
+        :ticket-changes="ticketChanges"
+        :reply-all="replyAllState"
+        writing
+        @mode="switchMode"
+        @reply-all="toggleReplyAll"
+        @attach="attach"
+        @send="$emit('submit')"
+        @discard="$emit('discard-form')"
+      />
+    </div>
+  </div>
   <div
+    v-else
     ref="article-panel"
     class="mx-auto flex w-full flex-col"
     :class="{
@@ -138,7 +229,7 @@ onMounted(() => {
             >
               <CommonButton
                 v-tooltip="$t('Discard unsaved reply')"
-                class="cursor-pointer text-red-500 hover:text-red-600 hover:bg-red-50 hover:outline-transparent! focus:outline-transparent! dark:hover:bg-red-950/40"
+                class="cursor-pointer text-red-500 hover:bg-red-50 hover:text-red-600 hover:outline-transparent! focus:outline-transparent! dark:hover:bg-red-950/40"
                 variant="none"
                 :size="isTicketCustomer ? 'small' : 'large'"
                 icon="trash"
@@ -150,8 +241,8 @@ onMounted(() => {
                 class="cursor-pointer hover:outline-transparent! focus:outline-transparent!"
                 :class="
                   isPinned
-                    ? 'text-blue-600 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-950/50'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-700'
+                    ? 'bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-400'
+                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white'
                 "
                 variant="none"
                 :size="isTicketCustomer ? 'small' : 'large'"

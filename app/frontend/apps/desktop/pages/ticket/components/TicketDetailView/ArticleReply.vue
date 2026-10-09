@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { computed, toRef } from 'vue'
 
 import CommonLabel from '#shared/components/CommonLabel/CommonLabel.vue'
 import { useTicketView } from '#shared/entities/ticket/composables/useTicketView.ts'
@@ -29,12 +29,17 @@ const props = defineProps<Props>()
 const currentTicket = toRef(props, 'ticket')
 const { isTicketCustomer } = useTicketView(currentTicket)
 
-// Student Hub: agents with the queue beside the ticket get the reply bar, docked at the bottom.
+// Student Hub: agents with the queue beside the ticket get the reply box (design option A), docked
+// at the bottom: at rest StudenthubTicketReplyBar, while writing Zammad's form in the same box.
 const { isQueueLayout } = useStudenthubQueueLayout()
 
 const { noteArticleType, customerReplyArticleType } = useArticleReply(
   currentTicket,
   toRef(props, 'ticketArticleTypes'),
+)
+
+const hasReplyBox = computed(
+  () => isQueueLayout.value && !isTicketCustomer.value && !!noteArticleType.value,
 )
 
 const emit = defineEmits<{
@@ -43,6 +48,7 @@ const emit = defineEmits<{
     performReply: AppSpecificTicketArticleType['performReply'],
   ]
   'discard-form': []
+  submit: []
 }>()
 
 const pinned = defineModel<boolean>('pinned')
@@ -71,26 +77,25 @@ const showNoteReplyForm = () => {
     aria-labelledby="article-reply-form-title"
     :aria-expanded="!pinned"
     v-bind="$attrs"
-    :class="{ 'sticky bottom-0 z-20 self-end': pinned }"
+    :class="{
+      'sticky bottom-0 z-20 self-end': pinned && !hasReplyBox,
+      'sh-reply-dock': hasReplyBox,
+    }"
   >
     <slot name="leading" />
 
     <ArticleReplyPanel
-      :is-pinned="pinned"
+      :is-pinned="pinned && !hasReplyBox"
       :has-internal-article="hasInternalArticle"
       :is-ticket-customer="isTicketCustomer"
+      :studenthub-box="hasReplyBox"
       @discard-form="$emit('discard-form')"
       @toggle-pin="pinned = !pinned"
+      @submit="$emit('submit')"
     />
   </div>
-  <div
-    v-else-if="newArticlePresent !== undefined"
-    :class="{ 'sh-reply-dock': isQueueLayout && !isTicketCustomer && noteArticleType }"
-  >
-    <StudenthubTicketReplyBar
-      v-if="isQueueLayout && !isTicketCustomer && noteArticleType"
-      @note="showNoteReplyForm"
-    />
+  <div v-else-if="newArticlePresent !== undefined" :class="{ 'sh-reply-dock': hasReplyBox }">
+    <StudenthubTicketReplyBar v-if="hasReplyBox" />
     <div v-else class="mx-auto flex w-full max-w-4xl flex-col items-center gap-3 px-12 pt-4 pb-6">
       <CommonButton
         v-if="isTicketCustomer && customerReplyArticleType"

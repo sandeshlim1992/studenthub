@@ -1,7 +1,8 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { computed, inject, type InjectionKey, type Ref } from 'vue'
+import { computed, inject, nextTick, type InjectionKey, type Ref } from 'vue'
 
+import type { FieldEditorContext } from '#shared/components/Form/fields/FieldEditor/types.ts'
 import { useTicketArticleReplyAction } from '#shared/entities/ticket/composables/useTicketArticleReplyAction.ts'
 import type { TicketArticle } from '#shared/entities/ticket/types.ts'
 import { createArticleActions } from '#shared/entities/ticket-article/action/plugins/index.ts'
@@ -16,6 +17,10 @@ import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicke
 export const STUDENTHUB_REPLY_BAR_KEY = Symbol('studenthub-reply-bar') as InjectionKey<
   Readonly<Ref<boolean>>
 >
+
+// Student Hub: what the agents' reply box writes (design option A): a reply to the student or an
+// internal note.
+export type StudenthubReplyMode = 'reply' | 'note'
 
 // Student Hub: "Reply" on the ticket screen (header for students, reply bar for agents) answers
 // the student's latest message the way that message's own reply action would (email, web…).
@@ -45,32 +50,69 @@ export const useStudenthubTicketReply = () => {
     )
   })
 
-  const replyAction = computed(() => {
-    if (!ticket.value || !replyTarget.value) return null
-    return (
-      createArticleActions(ticket.value, replyTarget.value, 'desktop', {
-        onDispose: () => {},
-        recalculate: () => {},
-      }).find((action) => action.name.endsWith('-reply') && action.perform) ?? null
-    )
+  const targetActions = computed(() => {
+    if (!ticket.value || !replyTarget.value) return []
+    return createArticleActions(ticket.value, replyTarget.value, 'desktop', {
+      onDispose: () => {},
+      recalculate: () => {},
+    }).filter((action) => action.perform)
   })
+
+  const replyAction = computed(
+    () => targetActions.value.find((action) => action.name.endsWith('-reply')) ?? null,
+  )
+
+  // Offered only when the student's email went to other people too.
+  const replyAllAction = computed(
+    () => targetActions.value.find((action) => action.name.endsWith('-reply-all')) ?? null,
+  )
+
+  const performOnTarget = (action: (typeof targetActions.value)[number]) => {
+    action.perform!(ticket.value!, replyTarget.value!, {
+      formId: form?.value?.formId ?? '',
+      openReplyForm,
+      getNewArticleBody,
+    })
+  }
 
   const reply = () => {
     if (!ticket.value) return
 
     if (replyAction.value && replyTarget.value) {
-      replyAction.value.perform!(ticket.value, replyTarget.value, {
-        formId: form?.value?.formId ?? '',
-        openReplyForm,
-        getNewArticleBody,
-      })
+      performOnTarget(replyAction.value)
       return
     }
 
     openReplyForm({ articleType: isAgent.value ? 'email' : 'web', internal: false })
   }
 
+  // Reply all on the reply box (it left the message cards): the same reply with every recipient.
+  const canReplyAll = computed(() => !!replyAllAction.value)
+
+  const replyAll = () => {
+    if (!ticket.value || !replyAllAction.value || !replyTarget.value) return
+    performOnTarget(replyAllAction.value)
+  }
+
   const addNote = () => openReplyForm({ articleType: 'note', internal: true })
 
-  return { reply, addNote, isAgent }
+  // The reply box (option A): open Zammad's form in the chosen mode and put in what was typed
+  // into the resting box, at the cursor (above the signature). Switching modes later goes through
+  // reply / addNote too, which keep the text already written.
+  const open = async (mode: StudenthubReplyMode, typed = '') => {
+    if (mode === 'note') await addNote()
+    else reply()
+
+    if (!typed) return
+
+    await nextTick()
+    await form?.value?.formNode.settled
+
+    const editor = form?.value?.getNodeByName('body')?.context as FieldEditorContext | undefined
+    editor?.focus()
+    // The editor takes it as typing (its own input handling), so undo and formatting work as usual.
+    document.execCommand?.('insertText', false, typed)
+  }
+
+  return { reply, replyAll, canReplyAll, addNote, open, isAgent }
 }

@@ -175,7 +175,9 @@ Never put passwords, tokens or keys in this file.
   Overviews admin page reworked (on/off switch, reorder keeps order numbers, locked Teams views) — not yet
   checked in a browser
 - Dev DB (this container, 6 Oct): branch migrations run; Admin role is now an agent role (Teams sync);
-  dev-only test users agent@ (Agent : Service Desk), manager@ (Managers), <student@example.com>, password `test`
+  dev-only test users agent@ (Agent : Service Desk), manager@ (Managers), <student@example.com>, password `test`.
+  9 Oct: core workflows 55 and 58 (old approval) switched off, 21 stays on; the old "Manager Approval Status" field
+  doesn't exist in this DB, so 58 made every New ticket form fail to load (500 on `formUpdater`)
 - Home PC (7 Oct), merged into `develop`, not yet deployed: New ticket for managers, top bar crumbs, role under the
   logo, Members page, no self-registration, silent in-app notifications, manager sites, Dashboard in production
   builds, scrolling on small screens fixed, and the classic features moved to the new UI (Knowledge Base + search,
@@ -203,8 +205,8 @@ Never put passwords, tokens or keys in this file.
 - [ ] Ticket Approvals go-live (README → Ticket Approvals): turn it on (takes over the Managers group), retire
       the old approval setup (auto-"Pending" workflow, workflow 57, old field, overview, trigger 65), check the
       team-change triggers 31/32/35
-- [ ] Production: switch off the two old approval core workflows; decide on "First ticket goes to Unassigned
-      Tickets" vs the `customer_ticket_create_group_ids` setting
+- [ ] Production: switch off the two old approval core workflows (before hiding their field, or New ticket breaks);
+      decide on "First ticket goes to Unassigned Tickets" vs the `customer_ticket_create_group_ids` setting
 - [ ] Decide: should "5. Resolved" count as open on the dashboards
 - [ ] Decide: update Zammad's failing specs or list them; keep or change the Auto Select Priority triggers;
       delete `AgentTicketCreateCard.vue`
@@ -282,3 +284,5 @@ Never put passwords, tokens or keys in this file.
 - 2026-10-09: Reply box option A built: text box with Reply / Internal note at rest, Zammad's editor in the same box
   while writing (amber for notes, Send = Update, Ctrl + Enter, Reply all moved in from the messages). Not yet
   checked in a browser (no headless browser in this container)
+- 2026-10-09: New ticket failed to load (500): old core workflow 58 pre-selects the removed "Manager Approval Status"
+  field. Switched 55 and 58 off in this dev DB; README go-live step 2 now says to switch them off before hiding the field

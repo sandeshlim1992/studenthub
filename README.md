@@ -705,6 +705,9 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
    "Manager: Approval state make it readonly" and 57 "Assign right Member - Manager", hide the "Manager Approval
    Status" field (its data is kept), and deactivate the "Managers Approval" overview and trigger 65 (Managers-group
    Teams alert). To keep a Teams alert, point a trigger at "Approval is Waiting for approval" instead.
+   **Deactivate the two "Manager:" workflows before hiding the field.** "Status pending for new ticket" pre-selects a
+   value in it on every New ticket form (staff and students); once the field is hidden or deleted, that makes the form
+   fail to load for everyone (`undefined method 'exclude?' for nil` in the server log).
 3. Check the triggers that react to a team change (e.g. the Teams alerts 31, 32 and 35): a ticket changes team twice
    during an approval (into Managers and back).
 4. Give the **Customer** role to the managers who should raise tickets themselves.

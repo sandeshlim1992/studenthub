@@ -364,8 +364,17 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   too light for white text (below 4.5:1). It colours the navigation panel, the sign-in brand panel and the main
   buttons, via the CSS variable `--sh-app`.
 - **Top bar (staff):** search with Zammad's quick results in a drop-down, **New ticket**,
-  notifications and the avatar menu. The navigation panel keeps the logo, Overviews / Dashboard /
-  Administration and Reporting (the gear menu; not repeated in the top bar), recent tabs and the collapse button.
+  notifications and the avatar menu.
+- **Navigation (staff):** design C of the navigation drawer board
+  (<https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>): a **rail** in the application colour, always shown, with the
+  logo (start page) and the pages the user may open, each an icon with a short label (Dashboard, Tickets, KB, Members,
+  Reports, Admin; the full name is the tooltip). Beside it a light **panel** for the open rail item: the user's role
+  (Admin, Agent, Manager, "& Manager") and the item's name on top, then on Tickets and the ticket screens the ticket
+  views with their counts (see Views panel below; the view of the Tickets page and the queue is marked), and Recent
+  (Zammad's tabs) at the foot; other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed
+  sidebar; hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the
+  list of Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column
+  of its own any more (on small screens its tabs above the list stay).
 - **Start page:** staff (Agent, Admin and Managers roles) land on the Dashboard after signing in (password or Microsoft)
   and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
@@ -408,9 +417,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   messages) the header row is in the application colour with bold white column titles, the group labels (e.g. an
   agent's name in a list grouped by owner) and the page title are bold, and the dividers between column titles only
   appear on hover (they are the column resize handles).
-- **Views panel in groups:** **Approval needed** (the Ticket Approvals overviews, first), **My views** (all overviews
-  not listed elsewhere), **Teams** and **Sites** (one view per organisation, e.g. LSST, UKBC and FSB: open tickets
-  of that organisation's customers, Admin role only).
+- **Views panel in groups** (in the navigation panel): **Approval needed** (the Ticket Approvals overviews, first),
+  **My views** (all overviews not listed elsewhere), **Teams** and **Sites** (one view per organisation, e.g. LSST,
+  UKBC and FSB: open tickets of that organisation's customers, Admin role only).
   **Teams** has one view per group with its open tickets, grouped by agent, and each agent sees the views of the
   groups they can read. Student Hub makes these views itself (links `studenthub_team_<group id>`) and keeps them in
   step with the groups: a new group gets one, a renamed one is renamed, an inactive one loses it (in the background, a
@@ -540,6 +549,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 |---|---|
 | `app/frontend/apps/desktop/styles/studenthub-halo.css` (imported by `custom-theme.css`) | Colour tokens and the navigation panel |
 | `app/frontend/apps/desktop/components/layout/StudenthubTopBar/` | Top bar (used by `LayoutPage.vue`) |
+| `app/frontend/apps/desktop/components/layout/StudenthubNav/` (`StudenthubNavRail.vue`, `StudenthubNavPanel.vue`, `StudenthubNavTicketViews.vue`, `studenthubNav.ts`); edits in `LayoutPage.vue`, `pages/ticket-overviews/views/TicketOverviews.vue` | Navigation rail and panel (design C), ticket views in the panel |
 | `app/frontend/apps/desktop/utils/studenthubAppColor.ts`, `composables/useStudenthubAppColor.ts` | Applies the admin colour (called in `AppDesktop.vue`) |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubAppColorSetting.vue` | Colour picker on the Branding page |
 | `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |
@@ -566,7 +576,10 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 Zammad's own unit tests that expect the notification bell, the quick search or the avatar in the sidebar
 (`LeftSidebarHeader.spec.ts` ×2, `LayoutPage.spec.ts` "expands search…", and `LeftSidebarFooterMenu.spec.ts` ×2,
 which already failed after Taxil's changes) fail by design since these moved to the top bar;
-`StudenthubTopBar.spec.ts` covers them there.
+`StudenthubTopBar.spec.ts` covers them there. Since the navigation became a rail and panel (design C), Zammad's
+specs for the resizable drawer (`left-sidebar.spec.ts` "width handling" ×6) and for the views column of the Tickets
+page (`ticket-overviews.spec.ts` ×3, `ticket-overviews-empty-states.spec.ts` ×2: the column is gone, and the panel adds
+a second heading) fail by design too; `StudenthubNav.spec.ts` covers the rail and the panel.
 
 ---
 

@@ -56,6 +56,327 @@
   color: var(--sh-on-app-muted) !important;
 }
 
+/* Navigation design C: the rail (#primary-sidebar) and the light panel beside it */
+.sh-nav-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  height: 100%;
+  max-height: 100vh;
+  padding: 0.875rem 0 0.75rem;
+  overflow: hidden auto;
+  color: var(--sh-on-app);
+}
+
+.sh-nav-rail__logo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.3125rem;
+  border-radius: 0.625rem;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.sh-nav-rail__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sh-nav-rail__logo:focus-visible,
+.sh-nav-rail__item:focus-visible {
+  outline: 2px solid var(--sh-on-app);
+  outline-offset: 2px;
+}
+
+.sh-nav-rail__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#primary-sidebar .sh-nav-rail__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1875rem;
+  width: 3.5rem;
+  padding: 0.4375rem 0.125rem;
+  border-radius: 0.625rem;
+  color: var(--sh-on-app-muted);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+#primary-sidebar .sh-nav-rail__item:hover,
+#primary-sidebar .sh-nav-rail__item--active {
+  color: var(--sh-on-app);
+}
+
+#primary-sidebar .sh-nav-rail__item--active {
+  background-color: var(--sh-on-app-active);
+  font-weight: 700;
+}
+
+.sh-nav-rail__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-nav-rail__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+#primary-sidebar .sh-nav-rail__foot button {
+  color: var(--sh-on-app-muted) !important;
+}
+
+#primary-sidebar .sh-nav-rail__foot button:hover,
+#primary-sidebar .sh-nav-rail__foot button[aria-expanded='true'] {
+  color: var(--sh-on-app) !important;
+  background-color: var(--sh-on-app-hover) !important;
+}
+
+.sh-nav-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+  max-height: 100vh;
+  padding: 1rem 0.625rem 0.75rem;
+  overflow: hidden;
+  border-inline-end: 1px solid var(--sh-line);
+  background-color: var(--sh-panel);
+  color: var(--sh-ink);
+}
+
+.sh-nav-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-inline-start: 0.375rem;
+}
+
+.sh-nav-panel__role {
+  margin: 0 0 0.125rem;
+  color: var(--sh-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sh-nav-panel__title {
+  margin: 0;
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-nav-panel__hide {
+  flex-shrink: 0;
+  color: var(--sh-ink-2) !important;
+}
+
+.sh-nav-panel__label {
+  margin: 0 0 0.25rem;
+  padding: 0 0.5rem;
+  color: var(--sh-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sh-nav-panel__empty {
+  margin: 0;
+  padding: 0 0.5rem;
+  color: var(--sh-muted);
+  font-size: 0.8125rem;
+}
+
+.sh-nav-panel__views {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sh-nav-panel__recent {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sh-nav-panel__recent--end {
+  flex: 0 1 auto;
+  max-height: 40%;
+  margin-top: auto;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--sh-line);
+}
+
+.sh-nav-panel__beta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 0;
+  border-top: 1px solid var(--sh-line);
+  font-size: 0.8125rem;
+}
+
+.sh-nav-views {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sh-nav-views__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sh-nav-views__head .sh-nav-panel__label {
+  margin-bottom: 0;
+}
+
+.sh-nav-views__group > nav {
+  margin-top: 0.25rem;
+}
+
+.sh-nav-views__reorder {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 0.375rem;
+  color: var(--sh-muted);
+}
+
+.sh-nav-views__reorder:hover {
+  background-color: var(--sh-row-hover);
+  color: var(--sh-app);
+}
+
+.sh-nav-views__list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sh-nav-views__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.125rem;
+  padding: 0 0.5rem;
+  border-radius: 0.4375rem;
+  color: var(--sh-ink);
+  font-size: 0.8125rem;
+  text-decoration: none !important;
+}
+
+.sh-nav-views__item:hover {
+  background-color: var(--sh-row-hover);
+  color: var(--sh-ink);
+}
+
+.sh-nav-views__item--active,
+.sh-nav-views__item--active:hover {
+  background-color: var(--sh-app-soft);
+  color: var(--sh-app);
+  font-weight: 700;
+}
+
+.sh-nav-views__item:focus-visible {
+  outline: 2px solid var(--sh-app);
+  outline-offset: -2px;
+}
+
+.sh-nav-views__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sh-nav-views__count {
+  margin-inline-start: auto;
+  color: var(--sh-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sh-nav-views__item--active .sh-nav-views__count {
+  color: inherit;
+}
+
+.sh-nav-views__count--waiting {
+  color: #7a4c00;
+  font-weight: 700;
+}
+
+/* Recent in the light panel: Zammad's tab styles are made for the dark drawer. */
+.sh-nav-panel__recent .text-slate-400\/80 {
+  color: var(--sh-muted) !important;
+}
+
+.sh-nav-panel__recent [role='treeitem'] > a {
+  color: var(--sh-ink-2) !important;
+  border-radius: 0.4375rem !important;
+  box-shadow: none !important;
+
+  --tw-ring-color: transparent !important;
+}
+
+.sh-nav-panel__recent [role='treeitem'] > a:hover,
+.sh-nav-panel__recent [role='treeitem'] > a:focus-visible {
+  background-color: var(--sh-row-hover) !important;
+  color: var(--sh-ink) !important;
+}
+
+.sh-nav-panel__recent [role='treeitem'] > a.ring-white\/25 {
+  background-color: var(--sh-app-soft) !important;
+  color: var(--sh-app) !important;
+}
+
+.sh-nav-panel__recent [role='treeitem'] > a > span {
+  color: inherit !important;
+}
+
+.sh-nav-panel__recent [role='treeitem'] > a > div:first-child {
+  border-color: var(--sh-line) !important;
+  background-color: var(--sh-card) !important;
+  color: var(--sh-ink-2) !important;
+}
+
 /* ---- Ticket lists (overviews and search results): white card, quiet rows ---- */
 .sh-ticket-table-card {
   background-color: var(--sh-card);

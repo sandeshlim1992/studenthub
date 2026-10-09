@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import { delay } from 'lodash-es'
-import { computed, onBeforeMount, ref, toRef, watch } from 'vue'
+import { computed, onBeforeMount, toRef, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { useReducedMotion } from '#shared/composables/useReducedMotion.ts'
@@ -13,39 +13,36 @@ import hasPermission from '#shared/utils/hasPermission.ts'
 
 import CustomerHeader from '#desktop/components/Customer/CustomerHeader.vue'
 import CustomerSidebar from '#desktop/components/Customer/CustomerSidebar.vue'
-import LeftSidebarFooterMenu from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarFooterMenu.vue'
-import LeftSidebarHeader from '#desktop/components/layout/LayoutSidebar/LeftSidebar/LeftSidebarHeader.vue'
-import LayoutSidebar from '#desktop/components/layout/LayoutSidebar.vue'
+import StudenthubNavPanel from '#desktop/components/layout/StudenthubNav/StudenthubNavPanel.vue'
+import StudenthubNavRail from '#desktop/components/layout/StudenthubNav/StudenthubNavRail.vue'
 import StudenthubTopBar from '#desktop/components/layout/StudenthubTopBar/StudenthubTopBar.vue'
 import { numberOfPermanentItems } from '#desktop/components/PageNavigation/firstLevelRoutes.ts'
-import PageNavigation from '#desktop/components/PageNavigation/PageNavigation.vue'
-import UserTaskbarTabs from '#desktop/components/UserTaskbarTabs/UserTaskbarTabs.vue'
 import { useAppBreakpoints } from '#desktop/composables/responsiveness/useAppBreakpoints.ts'
-import { useResizeGridColumns } from '#desktop/composables/useResizeGridColumns.ts'
 
 import { SidebarName } from './types.ts'
 import { useSidebarDisplay } from './useSidebarDisplay.ts'
 
 const config = toRef(useApplicationStore(), 'config')
 
-const noTransition = ref(false)
-
 const { isSmallScreen, isSmallestScreen } = useAppBreakpoints()
 
-const { toggleSidebar: togglePrimaryNavSidebar } = useSidebarDisplay(SidebarName.Primary)
+// Student Hub: navigation design C. The rail is always shown; the panel beside it can be hidden,
+// which is Zammad's collapsed primary sidebar (same remembered state, same small-screen rules).
+const RAIL_WIDTH = 68
+const NAV_PANEL_WIDTH = 224
+
+const { isSidebarCollapsed: isNavPanelHidden, toggleSidebar: togglePrimaryNavSidebar } =
+  useSidebarDisplay(SidebarName.Primary)
 
 const { isSidebarCollapsed: isContentSidebarCollapsed } = useSidebarDisplay(
   SidebarName.TicketContent,
 )
 
-const {
-  currentSidebarWidth,
-  maxSidebarWidth,
-  minSidebarWidth,
-  gridColumns,
-  resizeSidebar,
-  resetSidebarWidth,
-} = useResizeGridColumns(SidebarName.Primary)
+const gridColumns = computed(() =>
+  isNavPanelHidden.value
+    ? `${RAIL_WIDTH}px minmax(0, 1fr)`
+    : `${RAIL_WIDTH}px ${NAV_PANEL_WIDTH}px minmax(0, 1fr)`,
+)
 
 const emitSidebarEvent = (wait = 100) => {
   delay(() => {
@@ -53,15 +50,7 @@ const emitSidebarEvent = (wait = 100) => {
   }, wait)
 }
 
-const onResize = (width: number) => {
-  resizeSidebar(width)
-  emitSidebarEvent(0)
-}
-
-const onResetWidth = () => {
-  resetSidebarWidth()
-  emitSidebarEvent()
-}
+watch(isNavPanelHidden, () => emitSidebarEvent())
 
 onBeforeMount(() => {
   // On the smallest screen (<768px) the primary nav is collapsed by default.
@@ -111,17 +100,17 @@ const showCustomerSidebar = computed(() => {
 
 <template>
   <!-- CUSTOMER REDESIGNED PORTAL WRAPPER -->
-  <div v-if="isCustomer" class="flex flex-col h-full w-full bg-[#f8fafc] overflow-hidden">
+  <div v-if="isCustomer" class="flex h-full w-full flex-col overflow-hidden bg-[#f8fafc]">
     <!-- Persistent Customer Top Bar with Brand Logo & Profile Dropdown -->
     <CustomerHeader />
 
     <!-- Main Customer Body -->
-    <div class="flex flex-1 min-h-0 overflow-hidden relative">
+    <div class="relative flex min-h-0 flex-1 overflow-hidden">
       <!-- Left Sidebar with Recent Tickets (rendered on ticket detail / ticket create views) -->
       <CustomerSidebar v-if="showCustomerSidebar" />
 
       <!-- Center Content Area -->
-      <div id="main-content" class="flex-1 min-w-0 h-full overflow-y-auto relative">
+      <div id="main-content" class="relative h-full min-w-0 flex-1 overflow-y-auto">
         <RouterView #default="{ Component, route: currentRoute }">
           <KeepAlive :exclude="['ErrorTab']" :max="config.ui_task_mananger_max_task_count">
             <component
@@ -148,62 +137,31 @@ const showCustomerSidebar = computed(() => {
     :style="{
       '--grid-columns': gridColumns,
     }"
-    :class="{ 'transition-none': noTransition || hasReducedMotion }"
+    :class="{ 'transition-none': hasReducedMotion }"
     class="grid h-full max-h-full grid-cols-(--grid-columns) overflow-y-clip duration-100 print:h-auto print:max-h-none print:grid-cols-1 print:overflow-visible"
   >
-    <LayoutSidebar
-      v-if="!isCustomer"
-      id="primary-sidebar"
-      :name="SidebarName.Primary"
-      :aria-label="$t('Main sidebar')"
-      :current-width="currentSidebarWidth"
-      :max-width="maxSidebarWidth"
-      :min-width="minSidebarWidth"
-      :classes="{
-        collapseButton: 'z-51',
-        resizeLine: 'z-51',
-      }"
-      collapsible
-      resizable
-      no-scroll
-      no-padding
-      @collapse="emitSidebarEvent"
-      @expand="emitSidebarEvent"
-      @resize-horizontal="onResize"
-      @resize-horizontal-start="noTransition = true"
-      @resize-horizontal-end="noTransition = false"
-      @reset-width="onResetWidth"
-    >
-      <template #default="{ isCollapsed }">
-        <div class="flex h-full flex-col" data-theme="dark">
-          <LeftSidebarHeader class="px-3 pt-3 pb-2" :collapsed="isCollapsed" />
-          <PageNavigation class="px-3" :class="{ 'mb-1': !isCollapsed }" :collapsed="isCollapsed" />
-          <div class="my-2 h-px bg-white/15" :class="isCollapsed ? 'mx-auto w-6' : 'mx-4'" />
-          <UserTaskbarTabs class="px-3" :collapsed="isCollapsed" />
-          <LeftSidebarFooterMenu class="mt-auto" :class="{ 'p-3': !isCollapsed }" />
-        </div>
-      </template>
-    </LayoutSidebar>
+    <StudenthubNavRail />
+    <StudenthubNavPanel v-if="!isNavPanelHidden" />
 
     <div id="main-content" class="relative flex min-h-0 flex-col">
       <StudenthubTopBar />
       <div class="relative min-h-0 flex-1">
-      <RouterView #default="{ Component, route: currentRoute }">
-        <KeepAlive :exclude="['ErrorTab']" :max="config.ui_task_mananger_max_task_count">
-          <component
-            :is="Component"
-            v-if="!currentRoute.meta.permanentItem"
-            :key="currentRoute.meta.pageKey || currentRoute.path"
-          />
-        </KeepAlive>
-        <KeepAlive :max="numberOfPermanentItems">
-          <component
-            :is="Component"
-            v-if="currentRoute.meta.permanentItem"
-            :key="currentRoute.meta.pageKey || currentRoute.path"
-          />
-        </KeepAlive>
-      </RouterView>
+        <RouterView #default="{ Component, route: currentRoute }">
+          <KeepAlive :exclude="['ErrorTab']" :max="config.ui_task_mananger_max_task_count">
+            <component
+              :is="Component"
+              v-if="!currentRoute.meta.permanentItem"
+              :key="currentRoute.meta.pageKey || currentRoute.path"
+            />
+          </KeepAlive>
+          <KeepAlive :max="numberOfPermanentItems">
+            <component
+              :is="Component"
+              v-if="currentRoute.meta.permanentItem"
+              :key="currentRoute.meta.pageKey || currentRoute.path"
+            />
+          </KeepAlive>
+        </RouterView>
       </div>
     </div>
   </div>

@@ -88,6 +88,10 @@ Never put passwords, tokens or keys in this file.
   apply), Update at the foot of that column (unsaved note + Discard, After update, Update; Zammad's bar only while the
   column is collapsed); students and managers-only keep the sidebar on the left and Zammad's bar. Ticket tabs still go
   to Recent (Zammad's tabs left as they are)
+- Navigation = design C of <https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>: rail in the application colour
+  (always shown, short labels) + light panel (role, section name, ticket views on Tickets and ticket screens, Recent);
+  hiding the panel reuses Zammad's collapsed primary sidebar state; the Tickets page lost its own views column; no
+  resizing. Other pages' own menus (KB categories, Admin, Dashboard switch) could move into the panel later
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
@@ -146,6 +150,11 @@ Never put passwords, tokens or keys in this file.
 - Zammad's pinned-reply-panel specs (`ArticleReply.spec.ts` ×4, "can display and pin reply form") fail by design:
   staff write in the docked reply box, which has no pin
 - `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
+- Zammad's drawer specs (`left-sidebar.spec.ts` width handling ×6) and Tickets-page views specs
+  (`ticket-overviews.spec.ts` ×3, `ticket-overviews-empty-states.spec.ts` ×2) fail by design since design C
+- Vitest's module cache (`node_modules/.experimental-vitest-cache`) keeps old `import.meta.glob` results: after adding a
+  page (`routes.ts`) or a plugin, tests still see the old list (e.g. the rail without KB, Members, Reporting). Delete the
+  folder; it is rebuilt
 - Zammad's lint hook type-checks the whole frontend whenever a `.vue`/`.ts` file is uncommitted; ~100 old type
   errors make it fail on every reply until the work is committed
 - This container picks up Node 22 from `.mise.toml` (project needs 24): pnpm warns "Unsupported engine"
@@ -218,6 +227,9 @@ Never put passwords, tokens or keys in this file.
 - [ ] Check the new manager dashboard in a browser as manager@ (with and without waiting requests); decide whether
       to commit `PRODUCT.md`
 - [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
+- [ ] Check the navigation (design C) in a browser: rail labels fit, panel on Tickets / ticket screens / Dashboard,
+      Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, and a 1280 px ticket
+      screen with queue + panel
 - [ ] Check the reply box (option A) in a browser: typing a first character, switching Reply / Internal note with
       text, Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window
 
@@ -286,3 +298,5 @@ Never put passwords, tokens or keys in this file.
   checked in a browser (no headless browser in this container)
 - 2026-10-09: New ticket failed to load (500): old core workflow 58 pre-selects the removed "Manager Approval Status"
   field. Switched 55 and 58 off in this dev DB; README go-live step 2 now says to switch them off before hiding the field
+- 2026-10-09: Navigation design C: rail + panel (ticket views and Recent in the panel, role on top, BETA UI switch at the
+  foot); the Tickets page's views column removed. Not yet checked in a browser

@@ -10,16 +10,13 @@ import hasPermission from '#shared/utils/hasPermission.ts'
 import CommonEmptyMessage from '#desktop/components/CommonEmptyMessage/CommonEmptyMessage.vue'
 import type { NavigationTab } from '#desktop/components/CommonTabs/types.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import LayoutSidebar from '#desktop/components/layout/LayoutSidebar.vue'
 import { useStudenthubTopBarCrumbsWhileShown } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
-import { SidebarName } from '#desktop/components/layout/types.ts'
 import DragAndDropBulkWrapper from '#desktop/components/Ticket/DragAndDropBulk/DragAndDropBulkWrapper.vue'
 import { useDragAndDropBulk } from '#desktop/components/Ticket/DragAndDropBulk/useDragAndDropBulk.ts'
 import TicketBulkEditButton from '#desktop/components/Ticket/TicketBulkEditButton.vue'
 import { useTicketBulkEdit } from '#desktop/components/Ticket/TicketBulkEditFlyout/useTicketBulkEdit.ts'
 import StudenthubViewGroupBy from '#desktop/pages/ticket-overviews/components/StudenthubViewGroupBy.vue'
 import TicketList from '#desktop/pages/ticket-overviews/components/TicketList.vue'
-import TicketOverviewsSidebar from '#desktop/pages/ticket-overviews/components/TicketOverviewsSidebar.vue'
 import {
   isStudenthubTeamView,
   STUDENTHUB_UNASSIGNED_GROUP,
@@ -78,7 +75,7 @@ defineOptions({
   },
 })
 
-const { overviews, overviewsByLink, hasOverviews, overviewsTicketCountById } = useTicketOverviews()
+const { overviews, overviewsByLink, overviewsTicketCountById } = useTicketOverviews()
 
 const currentOverview = computed(() => overviewsByLink.value[props.overviewLink || ''])
 
@@ -135,21 +132,9 @@ useStudenthubTopBarCrumbsWhileShown(topBarCrumbs)
 </script>
 
 <template>
-  <div
-    class="h-full"
-    :class="{ 'grid grid-cols-1 grid-rows-1 lg:grid-cols-[260px_1fr]': hasOverviews && !isCustomer }"
-  >
-    <LayoutSidebar
-      v-if="hasOverviews && !isCustomer"
-      id="ticket-overviews"
-      class="hidden lg:flex"
-      :aria-label="$t('second level navigation sidebar')"
-      background-variant="secondary"
-      :name="SidebarName.TicketOverviews"
-    >
-      <TicketOverviewsSidebar />
-    </LayoutSidebar>
-
+  <!-- Student Hub: staff pick the view in the navigation panel (StudenthubNavTicketViews); on small
+       screens the tabs above the list stay. -->
+  <div class="h-full">
     <LayoutContent
       class="relative"
       :active-tab="activeTab"

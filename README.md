@@ -379,10 +379,11 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   are online, e.g. "3 / 18"; a click shows only that role or team, another click clears it). On the Knowledge Base: a
   filter by title and the category tree (the category shown is marked; New category and the language, for editors, sit
   above the page instead, and the page's own categories column returns while the panel is hidden). On those three pages
-  Recent is the rail's button. Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed
-  sidebar; hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the
-  list of Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column of
-  its own any more (on small screens its tabs above the list stay).
+  Recent is the rail's button. Administration and Reporting have no panel (Recent is the rail's button there too, and
+  Show panel isn't offered). Other pages show only Recent. **Hide panel** (remembered, like Zammad's collapsed sidebar;
+  hidden at first on screens narrower than 768 px) leaves the rail with **Show panel** and a button for the list of
+  Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The Tickets page has no views column of its own
+  any more (on small screens its tabs above the list stay).
 - **Start page:** staff (Agent, Admin and Managers roles) land on the Dashboard after signing in (password or Microsoft)
   and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.

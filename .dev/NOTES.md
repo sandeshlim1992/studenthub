@@ -98,7 +98,8 @@ Never put passwords, tokens or keys in this file.
   page groups by role by default (Sort by Name / Last active kept in the browser); hiding the panel reuses Zammad's
   collapsed primary sidebar state; the Tickets page lost its own views column; no resizing. On the Knowledge Base
   the panel has the title filter and category tree (no Recent; New category and language above the page, the page's
-  own column only while the panel is hidden). The Admin menu could move into the panel later
+  own column only while the panel is hidden). Administration and Reporting have no panel (only Recent was in it);
+  Recent from the rail there, no Show panel
 - Exchange, S/MIME and PGP stay, with pages in the new UI; visible "Zammad" text is now "Student Hub"
 - The Dashboard is registered in production builds too (Zammad only had it in development and test)
 - Staff start on the Dashboard (`/` sends agents, admins and managers there); students start on their ticket list
@@ -241,6 +242,6 @@ Never put passwords, tokens or keys in this file.
       Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, a 1280 px ticket
       screen with queue + panel, the Dashboard panel (views, Needs attention, who is online) and the Members panel
       (filters, role groups, Sort by, Clear filters), the Knowledge Base panel (filter, tree, New category above the
-      page), Recent collapsed after signing in
+      page), Recent collapsed after signing in, no panel on Administration and Reporting
 - [ ] Check the reply box (option A) in a browser: typing a first character, switching Reply / Internal note with
       text, Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window

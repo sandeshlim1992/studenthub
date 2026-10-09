@@ -19,7 +19,12 @@ import {
 import { useStudenthubMembersFilter } from '#desktop/pages/members/composables/useStudenthubMembersFilter.ts'
 import { mockDefaultOverviewQueries } from '#desktop/pages/ticket-overviews/__tests__/mocks/ticket-overviews-mocks.ts'
 
-import { isTicketSectionRoute, railLink, type StudenthubRailRoute } from '../studenthubNav.ts'
+import {
+  hasStudenthubNavPanel,
+  isTicketSectionRoute,
+  railLink,
+  type StudenthubRailRoute,
+} from '../studenthubNav.ts'
 import StudenthubNavPanel from '../StudenthubNavPanel.vue'
 import StudenthubNavRail from '../StudenthubNavRail.vue'
 
@@ -62,6 +67,9 @@ const routerRoutes: RouteRecordRaw[] = [
     name: 'StudenthubKnowledgeBase',
     component: page,
   },
+  { path: '/manage', name: 'ManageSettings', component: page },
+  { path: '/manage/roles', name: 'ManageRoles', component: page },
+  { path: '/report', name: 'Report', component: page },
   {
     path: '/personal-setting',
     name: 'PersonalSetting',
@@ -246,6 +254,18 @@ describe('navigation design C', () => {
       expect(isTicketSectionRoute(at('TicketOverview', '/tickets/view/my_assigned'))).toBe(true)
       expect(isTicketSectionRoute(at('Dashboard', '/dashboard'))).toBe(false)
     })
+
+    it('has no panel on Administration and Reporting', () => {
+      const at = (name: string, path: string) =>
+        ({ name, path }) as unknown as RouteLocationNormalizedLoaded
+
+      expect(hasStudenthubNavPanel(at('ManageSettings', '/manage'))).toBe(false)
+      expect(hasStudenthubNavPanel(at('ManageSettings', '/settings'))).toBe(false)
+      expect(hasStudenthubNavPanel(at('ManageRoles', '/manage/roles/2'))).toBe(false)
+      expect(hasStudenthubNavPanel(at('Report', '/report'))).toBe(false)
+      expect(hasStudenthubNavPanel(at('StudenthubMembers', '/members'))).toBe(true)
+      expect(hasStudenthubNavPanel(at('Error', '/management'))).toBe(true)
+    })
   })
 
   describe('rail', () => {
@@ -331,6 +351,24 @@ describe('navigation design C', () => {
       await visit('/tickets/view')
 
       expect(view.queryByTestId('recent-tabs')).not.toBeInTheDocument()
+    })
+
+    it('offers Recent but not Show panel on Administration and Reporting, which have no panel', async () => {
+      const view = await renderRail('/manage/roles')
+
+      expect(await view.findByTestId('recent-tabs')).toHaveAttribute('data-collapsed', 'true')
+
+      useSidebarDisplayStore().setCollapsed(SidebarName.Primary, true)
+      await visit('/report')
+
+      expect(view.getByTestId('recent-tabs')).toBeInTheDocument()
+      expect(view.queryByRole('button', { name: 'Show panel' })).not.toBeInTheDocument()
+
+      await visit('/members')
+
+      expect(view.getByRole('button', { name: 'Show panel' })).toBeInTheDocument()
+
+      useSidebarDisplayStore().setCollapsed(SidebarName.Primary, false)
     })
   })
 

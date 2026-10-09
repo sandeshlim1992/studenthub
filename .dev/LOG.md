@@ -79,3 +79,5 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-09: Knowledge Base panel: title filter and category tree instead of Recent (Recent from the rail); New
   category and language above the page while the panel shows; the page's own column only while the panel is hidden.
   Not yet checked in a browser
+- 2026-10-09: No navigation panel on Administration and Reporting (it only held Recent); Recent from the rail there.
+  Not yet checked in a browser

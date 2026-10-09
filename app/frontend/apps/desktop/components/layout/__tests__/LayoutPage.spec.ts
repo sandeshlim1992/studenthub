@@ -76,6 +76,34 @@ describe('LayoutPage', () => {
     ).toHaveFocus()
   })
 
+  it('leaves out the navigation panel on Administration and Reporting', async () => {
+    const page = { template: '<div />' }
+    const wrapper = renderComponent(LayoutPage, {
+      router: true,
+      form: true,
+      routerRoutes: [
+        { path: '/', name: 'Home', component: page },
+        { path: '/manage/roles', name: 'ManageRoles', component: page },
+        { path: '/report', name: 'Report', component: page },
+      ],
+    })
+
+    await wrapper.router.push('/')
+
+    expect(wrapper.container.querySelector('#studenthub-nav-panel')).toBeInTheDocument()
+
+    await wrapper.router.push('/manage/roles')
+
+    expect(wrapper.container.querySelector('#studenthub-nav-panel')).not.toBeInTheDocument()
+
+    await wrapper.router.push('/report')
+
+    expect(wrapper.container.querySelector('#studenthub-nav-panel')).not.toBeInTheDocument()
+
+    // The test router is shared; the next tests start on the home page.
+    await wrapper.router.push('/')
+  })
+
   describe('Feature: Beta UI Switch', () => {
     beforeAll(() => {
       Object.defineProperty(window, 'location', {

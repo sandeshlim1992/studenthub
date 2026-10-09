@@ -13,6 +13,7 @@ import hasPermission from '#shared/utils/hasPermission.ts'
 
 import CustomerHeader from '#desktop/components/Customer/CustomerHeader.vue'
 import CustomerSidebar from '#desktop/components/Customer/CustomerSidebar.vue'
+import { hasStudenthubNavPanel } from '#desktop/components/layout/StudenthubNav/studenthubNav.ts'
 import StudenthubNavPanel from '#desktop/components/layout/StudenthubNav/StudenthubNavPanel.vue'
 import StudenthubNavRail from '#desktop/components/layout/StudenthubNav/StudenthubNavRail.vue'
 import StudenthubTopBar from '#desktop/components/layout/StudenthubTopBar/StudenthubTopBar.vue'
@@ -28,6 +29,7 @@ const { isSmallScreen, isSmallestScreen } = useAppBreakpoints()
 
 // Student Hub: navigation design C. The rail is always shown; the panel beside it can be hidden,
 // which is Zammad's collapsed primary sidebar (same remembered state, same small-screen rules).
+// Administration and Reporting have no panel.
 const RAIL_WIDTH = 68
 const NAV_PANEL_WIDTH = 224
 
@@ -38,8 +40,12 @@ const { isSidebarCollapsed: isContentSidebarCollapsed } = useSidebarDisplay(
   SidebarName.TicketContent,
 )
 
+const route = useRoute()
+
+const isNavPanelShown = computed(() => !isNavPanelHidden.value && hasStudenthubNavPanel(route))
+
 const gridColumns = computed(() =>
-  isNavPanelHidden.value
+  !isNavPanelShown.value
     ? `${RAIL_WIDTH}px minmax(0, 1fr)`
     : `${RAIL_WIDTH}px ${NAV_PANEL_WIDTH}px minmax(0, 1fr)`,
 )
@@ -50,7 +56,7 @@ const emitSidebarEvent = (wait = 100) => {
   }, wait)
 }
 
-watch(isNavPanelHidden, () => emitSidebarEvent())
+watch(isNavPanelShown, () => emitSidebarEvent())
 
 onBeforeMount(() => {
   // On the smallest screen (<768px) the primary nav is collapsed by default.
@@ -78,8 +84,6 @@ const isCustomer = computed(
     hasPermission('ticket.customer', user.value?.permissions?.names ?? []) &&
     !hasPermission('ticket.agent', user.value?.permissions?.names ?? []),
 )
-
-const route = useRoute()
 
 const showCustomerSidebar = computed(() => {
   const { name: routeName, path } = route
@@ -141,7 +145,7 @@ const showCustomerSidebar = computed(() => {
     class="grid h-full max-h-full grid-cols-(--grid-columns) overflow-y-clip duration-100 print:h-auto print:max-h-none print:grid-cols-1 print:overflow-visible"
   >
     <StudenthubNavRail />
-    <StudenthubNavPanel v-if="!isNavPanelHidden" />
+    <StudenthubNavPanel v-if="isNavPanelShown" />
 
     <div id="main-content" class="relative flex min-h-0 flex-col">
       <StudenthubTopBar />

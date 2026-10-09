@@ -12,7 +12,8 @@ import { useStudenthubApprovalViewer } from '#desktop/composables/useStudenthubA
 // short label (the full name is the tooltip); the panel beside it belongs to the rail item that is
 // open: the ticket views and Recent on Tickets and the ticket screens, the dashboards and who is
 // online on the Dashboard, the filters of the Members page there, the categories on the Knowledge
-// Base, Recent elsewhere. Where the panel has no Recent, the rail offers it.
+// Base, Recent elsewhere. Administration and Reporting have no panel. Where the panel has no Recent,
+// or there is none, the rail offers it.
 
 export type StudenthubRailRoute = (typeof sortedFirstLevelRoutes)[number]
 
@@ -32,6 +33,13 @@ const TICKET_ROUTE_NAMES = new Set(['TicketOverview', 'TicketDetailView', 'Ticke
 
 export const isTicketSectionRoute = (route: RouteLocationNormalizedLoaded) =>
   TICKET_ROUTE_NAMES.has(String(route.name)) || /^\/tickets?\//.test(route.path)
+
+// Administration (with the old addresses of its start page) and Reporting.
+const NO_PANEL_PATHS = ['/manage', '/report']
+
+export const hasStudenthubNavPanel = (route: RouteLocationNormalizedLoaded) =>
+  route.name !== 'ManageSettings' &&
+  !NO_PANEL_PATHS.some((path) => route.path === path || route.path.startsWith(`${path}/`))
 
 export const useStudenthubNav = () => {
   const route = useRoute()
@@ -60,8 +68,13 @@ export const useStudenthubNav = () => {
   const isDashboardSection = computed(() => route.name === 'Dashboard')
   const isMembersSection = computed(() => route.name === 'StudenthubMembers')
   const isKnowledgeBaseSection = computed(() => route.name === 'StudenthubKnowledgeBase')
+  const hasPanel = computed(() => hasStudenthubNavPanel(route))
   const hasPanelRecent = computed(
-    () => !isDashboardSection.value && !isMembersSection.value && !isKnowledgeBaseSection.value,
+    () =>
+      hasPanel.value &&
+      !isDashboardSection.value &&
+      !isMembersSection.value &&
+      !isKnowledgeBaseSection.value,
   )
 
   const sectionTitle = computed(
@@ -78,6 +91,7 @@ export const useStudenthubNav = () => {
     isDashboardSection,
     isMembersSection,
     isKnowledgeBaseSection,
+    hasPanel,
     hasPanelRecent,
     sectionTitle,
   }

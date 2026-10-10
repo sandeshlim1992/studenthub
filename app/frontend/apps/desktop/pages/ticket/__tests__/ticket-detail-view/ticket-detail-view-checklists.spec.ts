@@ -123,7 +123,9 @@ describe('Ticket detail view', () => {
       expect(checklist).toBeInTheDocument()
 
       // Checking display of ticket link
-      expect(view.getByRole('link', { name: 'Ticket#53001 - Test Ticket' })).toBeInTheDocument()
+      expect(
+        view.getByRole('link', { name: `Ticket#${ticket.number} - ${ticket.title}` }),
+      ).toBeInTheDocument()
 
       // Ticket link has single item menu, hence we have to test it does not exist in readonly
       expect(
@@ -333,6 +335,9 @@ describe('Ticket detail view', () => {
         },
       })
 
+      // Student Hub: the ticket details are a list until Edit shows their fields
+      await view.events.click(await view.findByRole('button', { name: 'Edit' }))
+
       await view.events.click(await view.findByLabelText('State'))
 
       await view.events.click(await view.findByRole('option', { name: 'closed' }))
@@ -458,7 +463,15 @@ describe('Ticket detail view', () => {
 
     expect(view.getByRole('heading', { name: 'Ticket', level: 2 })).toBeInTheDocument()
 
-    await view.events.click(view.getByRole('button', { name: 'Open checklist' }))
+    // Student Hub: the compact header has no checklist badge; the Checklist icon among the panel
+    // icons opens the collapsed column on the checklist
+    await view.events.click(view.getByRole('button', { name: 'Collapse sidebar' }))
+
+    await view.events.click(
+      within(view.getByRole('navigation', { name: 'Ticket panels' })).getByRole('button', {
+        name: 'Checklist',
+      }),
+    )
 
     expect(await view.findByRole('heading', { name: 'Checklist', level: 2 })).toBeInTheDocument()
   })

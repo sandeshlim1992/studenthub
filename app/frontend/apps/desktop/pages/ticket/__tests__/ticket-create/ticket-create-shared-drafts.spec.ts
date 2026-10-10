@@ -57,7 +57,7 @@ describe('ticket create view - shared drafts sidebar', () => {
       const view = await visitView(`/ticket/create/${uid}`)
 
       await view.events.type(
-        await view.findByLabelText('Text'),
+        await view.findByLabelText('Details'),
         'foobar<div data-signature="true">Signature here</div>',
       )
 
@@ -68,15 +68,14 @@ describe('ticket create view - shared drafts sidebar', () => {
         ticketSharedDraftStartList: [],
       })
 
-      await view.events.click(view.getByLabelText('Group'))
+      await view.events.click(view.getByLabelText('Team'))
       await view.events.click(view.getByRole('option', { name: 'Users' }))
 
       await waitForTicketSharedDraftStartListQueryCalls()
 
       const aside = within(
-        view.getByRole('complementary', {
-          name: 'Content sidebar',
-        }),
+        // Student Hub: the only panel here, so it is open beside the form
+        await view.findByRole('region', { name: 'Shared drafts' }),
       )
 
       await view.events.type(aside.getByLabelText('Create a shared draft'), 'Test shared draft 1')
@@ -142,15 +141,14 @@ describe('ticket create view - shared drafts sidebar', () => {
         ticketSharedDraftStartList: [draftToMock],
       })
 
-      await view.events.click(await view.findByLabelText('Group'))
+      await view.events.click(await view.findByLabelText('Team'))
       await view.events.click(view.getByRole('option', { name: 'Users' }))
 
       await waitForTicketSharedDraftStartListQueryCalls()
 
       const aside = within(
-        view.getByRole('complementary', {
-          name: 'Content sidebar',
-        }),
+        // Student Hub: the only panel here, so it is open beside the form
+        await view.findByRole('region', { name: 'Shared drafts' }),
       )
 
       mockTicketSharedDraftStartSingleQuery({
@@ -217,9 +215,9 @@ describe('ticket create view - shared drafts sidebar', () => {
 
       await waitForNextTick()
 
-      expect(view.getByLabelText('Title')).toHaveValue(draftToMock.content.title)
+      expect(view.getByLabelText('Summary')).toHaveValue(draftToMock.content.title)
 
-      await view.events.click(view.getByRole('button', { name: 'Create' }))
+      await view.events.click(view.getByRole('button', { name: 'Create ticket' }))
 
       const ticketCreateCalls = await waitForTicketCreateMutationCalls()
       expect(ticketCreateCalls.at(-1)?.variables).toEqual(
@@ -248,15 +246,14 @@ describe('ticket create view - shared drafts sidebar', () => {
         ],
       })
 
-      await view.events.click(await view.findByLabelText('Group'))
+      await view.events.click(await view.findByLabelText('Team'))
       await view.events.click(view.getByRole('option', { name: 'Users' }))
 
       await waitForTicketSharedDraftStartListQueryCalls()
 
       const aside = within(
-        view.getByRole('complementary', {
-          name: 'Content sidebar',
-        }),
+        // Student Hub: the only panel here, so it is open beside the form
+        await view.findByRole('region', { name: 'Shared drafts' }),
       )
 
       mockTicketSharedDraftStartSingleQuery({
@@ -341,15 +338,14 @@ describe('ticket create view - shared drafts sidebar', () => {
         ],
       })
 
-      await view.events.click(await view.findByLabelText('Group'))
+      await view.events.click(await view.findByLabelText('Team'))
       await view.events.click(view.getByRole('option', { name: 'Users' }))
 
       await waitForTicketSharedDraftStartListQueryCalls()
 
       const aside = within(
-        view.getByRole('complementary', {
-          name: 'Content sidebar',
-        }),
+        // Student Hub: the only panel here, so it is open beside the form
+        await view.findByRole('region', { name: 'Shared drafts' }),
       )
 
       mockTicketSharedDraftStartSingleQuery({

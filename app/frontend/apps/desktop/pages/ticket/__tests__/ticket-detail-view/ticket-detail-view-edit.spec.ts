@@ -134,11 +134,12 @@ describe('Ticket detail view', () => {
         }),
       )
 
-      const statusBadges = view.getAllByTestId('common-badge')
+      // Student Hub: the state is a label in the ticket header, above the title
+      const ticketHeader = view
+        .getByRole('heading', { name: ticket.title })
+        .closest('header') as HTMLElement
 
-      const hasOpenTicketStatus = statusBadges.some((badge) => within(badge).getByText('open'))
-
-      expect(hasOpenTicketStatus).toBe(true)
+      expect(within(ticketHeader).getByText('open')).toBeInTheDocument()
 
       const ticketMetaSidebar = within(view.getByLabelText('Content sidebar'))
 
@@ -178,28 +179,8 @@ describe('Ticket detail view', () => {
         ticketId: convertToGraphQLId('Ticket', 1),
       })
 
-      await getTicketUpdatesSubscriptionHandler().trigger({
-        ticketUpdates: {
-          ticket: {
-            ...ticket,
-            state: {
-              ...ticket.state,
-              id: convertToGraphQLId('Ticket::State', 4),
-              name: 'closed',
-              stateType: {
-                ...ticket.state.stateType,
-                id: convertToGraphQLId('Ticket::StateType', 5),
-                name: 'closed',
-              },
-            },
-          },
-        },
-      })
-
-      await waitForNextTick()
-
-      const hasClosedTicketStatus = statusBadges.some((badge) => within(badge).getByText('closed'))
-      expect(hasClosedTicketStatus).toBe(true)
+      // Student Hub: a closed ticket moves on to the next ticket of the queue, so the closed state
+      // isn't shown here (see ticket-detail-view-studenthub-queue.spec.ts)
     })
   })
 
@@ -443,9 +424,11 @@ describe('Ticket detail view', () => {
 
       const view = await visitView('/tickets/1')
 
-      const articles = await view.findAllByRole('article')
+      // Student Hub: staff reply from the reply box under the messages (it answers the latest
+      // message); the messages have no Reply of their own
+      const replyBox = await view.findByRole('group', { name: 'Reply' })
 
-      await view.events.click(await within(articles[0]).findByRole('button', { name: 'Reply' }))
+      await view.events.click(within(replyBox).getByRole('textbox'))
 
       await view.events.type(await view.findByRole('textbox', { name: 'Text' }), 'Foo email')
 
@@ -507,9 +490,11 @@ describe('Ticket detail view', () => {
 
       const view = await visitView('/tickets/1')
 
-      const articles = await view.findAllByRole('article')
+      // Student Hub: staff reply from the reply box under the messages (it answers the latest
+      // message); the messages have no Reply of their own
+      const replyBox = await view.findByRole('group', { name: 'Reply' })
 
-      await view.events.click(await within(articles[0]).findByRole('button', { name: 'Reply' }))
+      await view.events.click(within(replyBox).getByRole('textbox'))
 
       // Recipient is visible by default; CC stays hidden behind the "Add CC" link.
       expect(await view.findByLabelText('To')).toBeInTheDocument()
@@ -696,7 +681,10 @@ describe('Ticket detail view', () => {
 
       await view.events.type(await view.findByRole('textbox', { name: 'Text' }), 'Foo note')
 
-      await view.events.click(view.getByRole('button', { name: 'Discard your unsaved changes' }))
+      await getNode('form-ticket-edit-1')?.settled
+
+      // Student Hub: the bin in the reply box discards the reply
+      await view.events.click(view.getByRole('button', { name: 'Discard unsaved reply' }))
 
       const confirmDialog = await view.findByRole('dialog')
 
@@ -817,6 +805,11 @@ describe('Ticket detail view', () => {
       // Sets dirty set for a ticket attribute
       await view.events.click(view.getByLabelText('State'))
       await view.events.click(await view.findByRole('option', { name: 'closed' }))
+
+      // Student Hub: only a reply with text (or attachments) asks before it is discarded
+      await view.events.type(await view.findByRole('textbox', { name: 'Text' }), 'Foo note')
+
+      await getNode('form-ticket-edit-1')?.settled
 
       await view.events.click(view.getByRole('button', { name: 'Discard unsaved reply' }))
 
@@ -962,41 +955,39 @@ describe('Ticket detail view', () => {
 
       await waitFor(() => expect(view.queryByRole('textbox', { name: 'Text' })).toBeInTheDocument())
 
-      await view.events.click(
-        await view.findByRole('button', {
-          name: 'Discard your unsaved changes',
-        }),
-      )
+      // Student Hub: Discard in the save area (shown while there are unsaved changes) discards the
+      // complete form
+      const saveArea = view.getByRole('region', { name: 'Save changes' })
+
+      await view.events.click(await within(saveArea).findByRole('button', { name: 'Discard' }))
 
       expect(await view.findByRole('dialog', { name: 'Unsaved changes' })).toBeInTheDocument()
 
       await view.events.click(view.getByRole('button', { name: 'Discard changes' }))
 
       await waitFor(() => {
-        expect(
-          view.queryByRole('button', {
-            name: 'Discard your unsaved changes',
-          }),
-        ).not.toBeInTheDocument()
+        expect(view.queryByRole('textbox', { name: 'Text' })).not.toBeInTheDocument()
       })
 
-      await view.events.click(within(toolbar).getByRole('button', { name: 'Add internal note' }))
+      expect(within(saveArea).queryByRole('button', { name: 'Discard' })).not.toBeInTheDocument()
 
+      // Student Hub: the screen shows another toolbar once the reply is closed
+      await view.events.click(
+        within(view.getByRole('toolbar', { name: 'Ticket actions' })).getByRole('button', {
+          name: 'Add internal note',
+        }),
+      )
+
+      await waitFor(() => expect(view.queryByRole('textbox', { name: 'Text' })).toBeInTheDocument())
+
+      // The bin in the reply box discards an empty reply directly, without asking
       await view.events.click(view.getByRole('button', { name: 'Discard unsaved reply' }))
 
-      const dialog = await view.findByRole('dialog', {
-        name: 'Unsaved changes',
-      })
-
-      await view.events.click(within(dialog).getByRole('button', { name: 'Discard changes' }))
-
       await waitFor(() => {
-        expect(
-          view.queryByRole('button', {
-            name: 'Discard your unsaved changes',
-          }),
-        ).not.toBeInTheDocument()
+        expect(view.queryByRole('textbox', { name: 'Text' })).not.toBeInTheDocument()
       })
+
+      expect(view.queryByRole('dialog', { name: 'Unsaved changes' })).not.toBeInTheDocument()
     })
 
     it('shows alert for missing attachments', async () => {
@@ -1104,9 +1095,11 @@ describe('Ticket detail view', () => {
 
       await getNode('form-ticket-edit-1')?.settled
 
-      const articles = await view.findAllByRole('article')
+      // Student Hub: staff reply from the reply box under the messages (it answers the latest
+      // message); the messages have no Reply of their own
+      const replyBox = await view.findByRole('group', { name: 'Reply' })
 
-      await view.events.click(await within(articles[0]).findByRole('button', { name: 'Reply' }))
+      await view.events.click(within(replyBox).getByRole('textbox'))
 
       await view.events.type(
         await view.findByRole('textbox', { name: 'Text' }),

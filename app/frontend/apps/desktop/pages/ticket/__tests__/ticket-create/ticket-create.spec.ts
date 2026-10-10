@@ -20,6 +20,8 @@ import {
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
 import getUuid from '#shared/utils/getUuid.ts'
 
+import { mockUserCurrentTaskbarItemAddMutation } from '#desktop/entities/user/current/graphql/mutations/userCurrentTaskbarItemAdd.mocks.ts'
+import { waitForUserCurrentTaskbarItemDeleteMutationCalls } from '#desktop/entities/user/current/graphql/mutations/userCurrentTaskbarItemDelete.mocks.ts'
 import { waitForUserCurrentTaskbarItemUpdateMutationCalls } from '#desktop/entities/user/current/graphql/mutations/userCurrentTaskbarItemUpdate.mocks.ts'
 import { mockUserCurrentTaskbarItemListQuery } from '#desktop/entities/user/current/graphql/queries/userCurrentTaskbarItemList.mocks.ts'
 import {
@@ -49,9 +51,12 @@ describe('ticket create view', () => {
 
       const view = await visitView('/ticket/create')
 
-      await view.events.type(await view.findByLabelText('Title'), 'Test Ticket')
+      await view.events.type(await view.findByLabelText('Summary'), 'Test Ticket')
 
-      await view.events.click(await view.findByRole('button', { name: 'Discard changes' }))
+      // Student Hub: Cancel in the header asks first once something is entered (the heading shows
+      // the summary once the form has it)
+      await view.findByRole('heading', { level: 1, name: 'Test Ticket' })
+      await view.events.click(view.getByRole('button', { name: 'Cancel' }))
 
       const dialog = await view.findByRole('dialog', {
         name: 'Unsaved changes',
@@ -61,7 +66,7 @@ describe('ticket create view', () => {
 
       await view.events.click(dialogView.getByRole('button', { name: 'Cancel & go back' }))
 
-      expect(view.getByText('Test Ticket')).toBeInTheDocument()
+      expect(view.getByLabelText('Summary')).toHaveValue('Test Ticket')
     })
 
     it('prevents submission on incomplete form', async () => {
@@ -73,9 +78,9 @@ describe('ticket create view', () => {
 
       const view = await visitView('/ticket/create')
 
-      await view.events.type(await view.findByLabelText('Title'), 'Test Ticket')
+      await view.events.type(await view.findByLabelText('Summary'), 'Test Ticket')
 
-      await view.events.click(view.getByRole('button', { name: 'Create' }))
+      await view.events.click(view.getByRole('button', { name: 'Create ticket' }))
 
       expect(await view.findAllByText('This field is required.')).toHaveLength(4)
     })
@@ -89,7 +94,7 @@ describe('ticket create view', () => {
 
       const view = await visitView('/ticket/create')
 
-      await view.events.type(await view.findByLabelText('Title'), 'Test Ticket')
+      await view.events.type(await view.findByLabelText('Summary'), 'Test Ticket')
 
       // Page title updates when title is set
       expect(
@@ -97,13 +102,13 @@ describe('ticket create view', () => {
       ).toBeInTheDocument()
 
       // Page title defaults back when title is cleared
-      await view.events.clear(view.getByLabelText('Title'))
+      await view.events.clear(view.getByLabelText('Summary'))
 
       await waitFor(() =>
         expect(view.getByRole('heading', { level: 1, name: 'New ticket' })).toBeInTheDocument(),
       )
 
-      await view.events.type(view.getByLabelText('Title'), 'Test Ticket')
+      await view.events.type(view.getByLabelText('Summary'), 'Test Ticket')
 
       // Customer field
       await handleCustomerMock(view)
@@ -116,15 +121,18 @@ describe('ticket create view', () => {
         }),
       )
 
-      const sidebar = view.getByLabelText('Content sidebar')
+      // Student Hub: the Customer panel opens beside the form, next to the panel icons
+      const sidebar = await view.findByRole('region', { name: 'Customer' })
 
       // Sidebar CUSTOMER
-      expect(within(sidebar).getByLabelText('Avatar (Nicole Braun)')).toBeInTheDocument()
+      expect(await within(sidebar).findByLabelText('Avatar (Nicole Braun)')).toBeInTheDocument()
       expect(within(sidebar).getByText('Zammad Foundation')).toBeInTheDocument()
       expect(within(sidebar).getByText('nicole.braun@zammad.org')).toBeInTheDocument()
       expect(within(sidebar).getByText('open tickets')).toBeInTheDocument()
       expect(within(sidebar).queryByText('closed tickets')).not.toBeInTheDocument() // 0 closed tickets
-      expect(within(sidebar).getByLabelText('Open tickets')).toHaveTextContent('17')
+      // The count of open tickets is on the Customer icon
+      const panelIcons = view.getByRole('navigation', { name: 'Ticket panels' })
+      expect(within(panelIcons).getByLabelText('Open tickets')).toHaveTextContent('17')
 
       await view.events.click(within(sidebar).getByLabelText('Action menu button'))
 
@@ -135,24 +143,30 @@ describe('ticket create view', () => {
       // Sidebar Organization
       handleMockOrganizationQuery()
 
-      await view.events.click(view.getByLabelText('Organization'))
+      await view.events.click(within(panelIcons).getByRole('button', { name: 'Organization' }))
 
-      expect(view.getByText('Organization')).toBeInTheDocument()
-      expect(view.getByText('Members')).toBeInTheDocument()
-      expect(await view.findByLabelText('Avatar (Nicole Braun)')).toBeInTheDocument()
+      const organizationPanel = await view.findByRole('region', { name: 'Organization' })
 
-      // Text field
-      await view.events.type(view.getByRole('textbox', { name: 'Text' }), 'Test ticket text')
+      expect(await within(organizationPanel).findByText('Members')).toBeInTheDocument()
+      expect(
+        await within(organizationPanel).findByLabelText('Avatar (Nicole Braun)'),
+      ).toBeInTheDocument()
 
-      // Group field
-      await view.events.click(view.getByLabelText('Group'))
+      // Details field
+      await view.events.type(view.getByRole('textbox', { name: 'Details' }), 'Test ticket text')
+
+      // Team field
+      await view.events.click(view.getByLabelText('Team'))
       await view.events.click(view.getByRole('option', { name: 'Users' }))
 
-      // State field
-      await view.events.click(view.getByLabelText('Priority'))
-      await view.events.click(view.getByRole('option', { name: '2 normal' }))
+      // Priority buttons
+      await view.events.click(
+        within(view.getByRole('group', { name: 'Priority' })).getByRole('button', {
+          name: '2 normal',
+        }),
+      )
 
-      // Priority Field
+      // State field
       await view.events.click(view.getByLabelText('State'))
       await view.events.click(view.getByRole('option', { name: 'pending reminder' }))
 
@@ -164,7 +178,7 @@ describe('ticket create view', () => {
       await view.events.click(<Element>dateCells.at(-1))
 
       // Submission
-      await view.events.click(view.getByRole('button', { name: 'Create' }))
+      await view.events.click(view.getByRole('button', { name: 'Create ticket' }))
 
       const calls = await waitForTicketCreateMutationCalls()
 
@@ -201,34 +215,46 @@ describe('ticket create view', () => {
 
       expect(await view.findByRole('heading', { level: 1, name: 'New ticket' })).toBeInTheDocument()
 
-      expect(view.getByRole('tablist')).toBeInTheDocument()
-
-      // Default tab is the first one
-      expect(view.getByRole('tab', { selected: true, name: 'Received call' })).toBeInTheDocument()
+      // Student Hub: how the ticket came in is a select, Received call by default
+      expect(await view.findByLabelText('Came in by')).toHaveTextContent('Received call')
+      expect(await view.findByRole('group', { name: 'Priority' })).toBeInTheDocument()
 
       rendersFields(view)
     })
 
     it('cancels ticket creation', async () => {
+      // The mocked tabs all get the same ID; this one gets its own, as it is removed (the store
+      // keeps removed IDs, so a later tab with the same ID would count as removed too).
+      mockUserCurrentTaskbarItemAddMutation({
+        userCurrentTaskbarItemAdd: {
+          taskbarItem: { id: convertToGraphQLId('Taskbar', 999) },
+        },
+      })
+
       const view = await visitView('/ticket/create')
 
       expect(await view.findByRole('heading', { level: 1, name: 'New ticket' })).toBeInTheDocument()
 
-      await view.events.click(view.getByRole('button', { name: 'Cancel & go back' }))
+      // Student Hub: nothing entered, so Cancel leaves without asking and removes the new ticket
+      // from Recent
+      await view.events.click(view.getByRole('button', { name: 'Cancel' }))
 
       await waitFor(() =>
         expect(
           view.queryByRole('heading', { level: 1, name: 'New ticket' }),
         ).not.toBeInTheDocument(),
       )
+
+      await waitForUserCurrentTaskbarItemDeleteMutationCalls()
     })
 
     it('shows send email article type', async () => {
       const view = await visitView('/ticket/create')
 
-      await view.events.click(await view.findByText('Send email'))
+      await view.events.click(await view.findByLabelText('Came in by'))
+      await view.events.click(await view.findByRole('option', { name: 'Send email' }))
 
-      expect(view.getByRole('tab', { selected: true, name: 'Send email' })).toBeInTheDocument()
+      expect(view.getByLabelText('Came in by')).toHaveTextContent('Send email')
       expect(view.getByLabelText('CC')).toBeInTheDocument()
       rendersFields(view)
     })
@@ -236,9 +262,11 @@ describe('ticket create view', () => {
     it('shows outbound call article type', async () => {
       const view = await visitView('/ticket/create')
 
-      await view.events.click(await view.findByText('Outbound call'))
+      await view.events.click(await view.findByLabelText('Came in by'))
+      await view.events.click(await view.findByRole('option', { name: 'Outbound call' }))
 
-      expect(view.getByRole('tab', { selected: true, name: 'Outbound call' })).toBeInTheDocument()
+      expect(view.getByLabelText('Came in by')).toHaveTextContent('Outbound call')
+      expect(view.queryByLabelText('CC')).not.toBeInTheDocument()
       rendersFields(view)
     })
 
@@ -259,7 +287,7 @@ describe('ticket create view', () => {
 
       const view = await visitView('/ticket/create')
 
-      await view.events.type(await view.findByLabelText('Title'), 'foo title')
+      await view.events.type(await view.findByLabelText('Summary'), 'foo title')
 
       await waitFor(() => expect(view.getByText('Similar tickets found')).toBeInTheDocument())
 
@@ -279,9 +307,9 @@ describe('ticket create view', () => {
 
       const view = await visitView('/ticket/create')
 
-      await view.events.type(await view.findByLabelText('Title'), 'Test Ticket')
+      await view.events.type(await view.findByLabelText('Summary'), 'Test Ticket')
 
-      await view.events.click(view.getByRole('button', { name: 'Create' }))
+      await view.events.click(view.getByRole('button', { name: 'Create ticket' }))
 
       expect(await view.findAllByText('This field is required.')).toHaveLength(4)
     })
@@ -291,15 +319,12 @@ describe('ticket create view', () => {
 
       const view = await visitView('/ticket/create')
 
-      expect(await view.findByRole('button', { name: 'Cancel & go back' })).toBeInTheDocument()
+      // Student Hub: Cancel in the header asks first once something is entered (the heading shows
+      // the summary once the form has it)
+      await view.events.type(await view.findByLabelText('Summary'), 'Test Ticket')
+      await view.findByRole('heading', { level: 1, name: 'Test Ticket' })
 
-      await view.events.type(view.getByLabelText('Title'), 'Test Ticket')
-
-      await waitFor(() =>
-        expect(view.queryByRole('button', { name: 'Cancel & go back' })).not.toBeInTheDocument(),
-      )
-
-      await view.events.click(await view.findByRole('button', { name: 'Discard changes' }))
+      await view.events.click(view.getByRole('button', { name: 'Cancel' }))
 
       const dialog = await view.findByRole('dialog', {
         name: 'Unsaved changes',
@@ -316,7 +341,7 @@ describe('ticket create view', () => {
       await view.events.click(dialogView.getByRole('button', { name: 'Discard changes' }))
 
       // should not be in the document anymore
-      await waitFor(() => expect(view.queryByLabelText('Title')).not.toBeInTheDocument())
+      await waitFor(() => expect(view.queryByLabelText('Summary')).not.toBeInTheDocument())
     })
 
     it('supports updating dirty flag in the associated taskbar tab', async () => {
@@ -345,9 +370,7 @@ describe('ticket create view', () => {
 
       const view = await visitView(`/ticket/create/${uid}`)
 
-      expect(await view.findByRole('button', { name: 'Cancel & go back' })).toBeInTheDocument()
-
-      await view.events.type(view.getByLabelText('Title'), 'Test Ticket')
+      await view.events.type(await view.findByLabelText('Summary'), 'Test Ticket')
 
       const calls = await waitForUserCurrentTaskbarItemUpdateMutationCalls()
 
@@ -365,7 +388,7 @@ describe('ticket create view', () => {
 
       const view = await visitView('/ticket/create')
 
-      await view.events.type(await view.findByLabelText('Title'), 'Test Ticket')
+      await view.events.type(await view.findByLabelText('Summary'), 'Test Ticket')
 
       // Customer field
       await handleCustomerMock(view)
@@ -378,26 +401,29 @@ describe('ticket create view', () => {
         }),
       )
 
-      // Text field
+      // Details field
       await view.events.type(
-        view.getByRole('textbox', { name: 'Text' }),
+        view.getByRole('textbox', { name: 'Details' }),
         'Test ticket text. See attachment.',
       )
 
-      // Group field
-      await view.events.click(view.getByLabelText('Group'))
+      // Team field
+      await view.events.click(view.getByLabelText('Team'))
       await view.events.click(view.getByRole('option', { name: 'Users' }))
 
-      // Priority Field
-      await view.events.click(view.getByLabelText('Priority'))
-      await view.events.click(view.getByRole('option', { name: '2 normal' }))
+      // Priority buttons
+      await view.events.click(
+        within(view.getByRole('group', { name: 'Priority' })).getByRole('button', {
+          name: '2 normal',
+        }),
+      )
 
       // State field
       await view.events.click(view.getByLabelText('State'))
       await view.events.click(view.getByRole('option', { name: 'new' }))
 
       // Submission
-      await view.events.click(view.getByRole('button', { name: 'Create' }))
+      await view.events.click(view.getByRole('button', { name: 'Create ticket' }))
 
       const dialog = await view.findByRole('dialog', {
         name: 'Confirmation',
@@ -455,7 +481,8 @@ describe('ticket create view', () => {
 
         handleMockFormUpdaterQuery()
 
-        const view = await visitView('/ticket/create')
+        // Student Hub: students start in the guided wizard; this is the full form
+        const view = await visitView('/ticket/create?mode=form')
 
         await view.events.type(await view.findByLabelText('Title'), 'Test Customer Ticket')
 

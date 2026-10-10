@@ -53,8 +53,9 @@ describe('TicketOverviews', () => {
       }),
     ).toHaveAttribute('href', expect.stringContaining('/desktop/tickets/view'))
 
-    const secondaryNavigationSidebar = await view.findByRole('complementary', {
-      name: 'second level navigation sidebar',
+    // Student Hub: the views are in the navigation panel ("My views"), not a column of their own
+    const secondaryNavigationSidebar = await view.findByRole('navigation', {
+      name: 'Overview navigation list',
     })
 
     expect(secondaryNavigationSidebar).toHaveTextContent('My Assigned Tickets')
@@ -82,8 +83,9 @@ describe('TicketOverviews', () => {
 
     const view = await visitView('tickets/view/my_assigned')
 
-    const secondaryNavigationSidebar = await view.findByRole('complementary', {
-      name: 'second level navigation sidebar',
+    // Student Hub: the views are in the navigation panel ("My views"), not a column of their own
+    const secondaryNavigationSidebar = await view.findByRole('navigation', {
+      name: 'Overview navigation list',
     })
 
     let currentOverviews = within(secondaryNavigationSidebar).getAllByRole('link')
@@ -115,8 +117,9 @@ describe('TicketOverviews', () => {
 
     const view = await visitView('tickets/view/my_assigned')
 
-    const secondaryNavigationSidebar = await view.findByRole('complementary', {
-      name: 'second level navigation sidebar',
+    // Student Hub: the views are in the navigation panel ("My views"), not a column of their own
+    const secondaryNavigationSidebar = await view.findByRole('navigation', {
+      name: 'Overview navigation list',
     })
 
     expect(within(secondaryNavigationSidebar).getAllByRole('link')).toHaveLength(2)

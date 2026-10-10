@@ -1,6 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { waitFor, within } from '@testing-library/vue'
+import { waitFor } from '@testing-library/vue'
 
 import { getTestRouter } from '#tests/support/components/renderComponent.ts'
 import { visitView } from '#tests/support/components/visitView.ts'
@@ -26,11 +26,15 @@ describe('Ticket Overviews > Empty states', () => {
       ),
     ).toBeInTheDocument()
 
-    expect(view.getByRole('heading', { level: 2 })).toHaveTextContent('No overviews')
+    // Student Hub: the navigation panel has a heading of its own
+    expect(view.getByRole('heading', { level: 2, name: /No overviews/ })).toBeInTheDocument()
 
     expect(view.getByIconName('exclamation-triangle')).toBeInTheDocument()
 
-    expect(view.queryByLabelText('second level navigation sidebar')).not.toBeInTheDocument()
+    // Student Hub: the views are in the navigation panel ("My views")
+    expect(
+      view.queryByRole('navigation', { name: 'Overview navigation list' }),
+    ).not.toBeInTheDocument()
   })
 
   it('displays a ticket create message to the customer when no tickets are available and no ticket history', async () => {
@@ -54,27 +58,15 @@ describe('Ticket Overviews > Empty states', () => {
 
     const view = await visitView('tickets/view')
 
-    const secondaryNavigationSidebar = await view.findByRole('complementary', {
-      name: 'second level navigation sidebar',
-    })
+    // Student Hub: students get their own Tickets page ("My Tickets"), with its own empty state
+    expect(await view.findByRole('heading', { name: /My Tickets/ })).toBeInTheDocument()
 
+    expect(await view.findByText('No tickets yet')).toBeInTheDocument()
     expect(
-      within(secondaryNavigationSidebar).getByRole('link', {
-        name: 'My Assigned Tickets0', // 0 comes from the ticket count
-      }),
+      view.getByText('Whenever you submit an enquiry, your tickets will appear here.'),
     ).toBeInTheDocument()
 
-    expect(await view.findByRole('heading', { level: 2 })).toHaveTextContent('Welcome!')
-
-    expect(view.getByText('You have not created a ticket yet.')).toBeInTheDocument()
-    expect(
-      view.getByText('The way to communicate with us is this thing called "ticket".'),
-    ).toBeInTheDocument()
-    expect(
-      view.getByText('Please click on the button below to create your first one.'),
-    ).toBeInTheDocument()
-
-    await view.events.click(view.getByRole('button', { name: 'Create your first ticket' }))
+    await view.events.click(view.getByRole('button', { name: 'Raise a New Ticket' }))
 
     const router = getTestRouter()
 
@@ -99,7 +91,10 @@ describe('Ticket Overviews > Empty states', () => {
 
     const view = await visitView('tickets/view')
 
-    expect(await view.findByRole('heading', { level: 2 })).toHaveTextContent('Empty overview')
+    // Student Hub: the navigation panel has a heading of its own
+    expect(
+      await view.findByRole('heading', { level: 2, name: 'Empty overview' }),
+    ).toBeInTheDocument()
 
     expect(view.getByText('No tickets in this state.')).toBeInTheDocument()
   })

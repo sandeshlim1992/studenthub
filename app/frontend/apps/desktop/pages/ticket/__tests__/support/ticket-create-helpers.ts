@@ -67,19 +67,16 @@ export const handleCustomerMock = async (view: ExtendedRenderResult) => {
   return waitForAutocompleteSearchGenericQueryCalls()
 }
 
+// Student Hub: the staff New ticket screen (Who is it for? / What is the issue? / Triage / More details)
 export const rendersFields = (view: ExtendedRenderResult) => {
-  // Same for all article types
-  expect(view.getByText('Title')).toBeInTheDocument()
   expect(view.getByLabelText('Customer')).toBeInTheDocument()
-  expect(view.getByText('Text')).toBeInTheDocument()
-  expect(view.getByLabelText('Group')).toBeInTheDocument()
-  expect(view.getByLabelText('Priority')).toBeInTheDocument()
+  expect(view.getByLabelText('Came in by')).toBeInTheDocument()
+  expect(view.getByLabelText('Summary')).toBeInTheDocument()
+  expect(view.getByText('Details')).toBeInTheDocument()
+  expect(view.getByRole('group', { name: 'Priority' })).toBeInTheDocument()
+  expect(view.getByLabelText('Team')).toBeInTheDocument()
+  expect(view.getByLabelText('Assign to')).toBeInTheDocument()
   expect(view.getByLabelText('State')).toBeInTheDocument()
-
-  expect(view.getByText('Group')).toBeInTheDocument()
-  expect(view.getByText('Owner')).toBeInTheDocument()
-  expect(view.getByText('State')).toBeInTheDocument()
-  expect(view.getByText('Priority')).toBeInTheDocument()
   expect(view.getByText('Tags')).toBeInTheDocument()
 }
 

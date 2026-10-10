@@ -118,9 +118,10 @@ describe('Ticket detail view', () => {
         await topHeader.findByRole('heading', { name: 'Test Ticket', level: 2 }),
       ).toBeInTheDocument()
 
-      const ticketDetailHeader = view.getByTestId('ticket-detail-top-bar-full-details')
+      // Student Hub: the breadcrumb is in the top bar ("Tickets / …")
+      const breadcrumb = view.getByRole('navigation', { name: 'Current page' })
 
-      expect(within(ticketDetailHeader).getByLabelText('Breadcrumb navigation')).toBeInTheDocument()
+      expect(within(breadcrumb).getByRole('link', { name: 'Tickets' })).toBeInTheDocument()
 
       expect(view.getByTestId('article-content')).toHaveTextContent('foobar')
 

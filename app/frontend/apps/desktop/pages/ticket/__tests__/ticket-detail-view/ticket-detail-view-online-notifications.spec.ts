@@ -57,7 +57,8 @@ describe('Ticket detail: sidebar - online notifications', () => {
 
       await view.events.click(notificationsButton)
 
-      const list = await view.findByRole('region')
+      // Student Hub: the ticket screen has more regions (e.g. Save changes)
+      const list = await view.findByRole('region', { name: 'Show notifications' })
 
       expect(within(list).getByText('created ticket', { exact: false })).toBeInTheDocument()
 

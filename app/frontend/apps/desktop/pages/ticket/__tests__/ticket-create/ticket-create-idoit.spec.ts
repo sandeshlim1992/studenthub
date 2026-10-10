@@ -121,9 +121,10 @@ describe('Ticket create i-doit links', () => {
     const uid = getUuid()
     const view = await visitView(`/ticket/create/${uid}`)
 
-    const sidebar = view.getByLabelText('Content sidebar')
+    // Student Hub: the panel icons are on the right edge of the screen
+    const panelIcons = await view.findByRole('navigation', { name: 'Ticket panels' })
 
-    expect(within(sidebar).getByRole('button', { name: 'i-doit' })).toBeInTheDocument()
+    expect(within(panelIcons).getByRole('button', { name: 'i-doit' })).toBeInTheDocument()
   })
 
   it('hides i-doit integration when not available', async () => {
@@ -136,8 +137,9 @@ describe('Ticket create i-doit links', () => {
     const uid = getUuid()
     const view = await visitView(`/ticket/create/${uid}`)
 
-    const sidebar = view.getByLabelText('Content sidebar')
+    expect(await view.findByRole('heading', { level: 1, name: 'New ticket' })).toBeInTheDocument()
 
-    expect(within(sidebar).queryByRole('button', { name: 'i-doit' })).not.toBeInTheDocument()
+    // Student Hub: no i-doit icon among the panel icons (with none, there are no icons at all)
+    expect(view.queryByRole('button', { name: 'i-doit', hidden: true })).not.toBeInTheDocument()
   })
 })

@@ -1,6 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { waitFor } from '@testing-library/vue'
+import { within } from '@testing-library/vue'
 
 import { visitView } from '#tests/support/components/visitView.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
@@ -88,13 +88,8 @@ describe('testing tickets create a11y view', () => {
 
     await waitForUserQueryCalls()
 
-    await waitFor(() => {
-      expect(
-        view.getByRole('complementary', {
-          name: 'Content sidebar',
-        }),
-      ).toBeInTheDocument()
-    })
+    // Student Hub: the panels open beside the form, next to the panel icons
+    expect(await view.findByRole('region', { name: 'Customer' })).toBeInTheDocument()
 
     await expect(view.container).toBeAccessible()
   })
@@ -140,17 +135,17 @@ describe('testing tickets create a11y view', () => {
 
     await waitForUserQueryCalls()
 
-    await waitFor(() => {
-      expect(
-        view.getByRole('complementary', {
-          name: 'Content sidebar',
-        }),
-      ).toBeInTheDocument()
-    })
+    expect(await view.findByRole('region', { name: 'Customer' })).toBeInTheDocument()
 
     handleMockOrganizationQuery()
 
-    await view.events.click(view.getByLabelText('Organization'))
+    await view.events.click(
+      within(view.getByRole('navigation', { name: 'Ticket panels' })).getByRole('button', {
+        name: 'Organization',
+      }),
+    )
+
+    expect(await view.findByRole('region', { name: 'Organization' })).toBeInTheDocument()
 
     await expect(view.container).toBeAccessible()
   })
@@ -191,13 +186,8 @@ describe('testing tickets create a11y view', () => {
 
     await waitForTicketSharedDraftStartListQueryCalls()
 
-    await waitFor(() => {
-      expect(
-        view.getByRole('complementary', {
-          name: 'Content sidebar',
-        }),
-      ).toBeInTheDocument()
-    })
+    // Student Hub: the only panel here, so it is open beside the form
+    expect(await view.findByRole('region', { name: 'Shared drafts' })).toBeInTheDocument()
 
     await expect(view.container).toBeAccessible()
   })

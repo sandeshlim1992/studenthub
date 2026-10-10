@@ -4,6 +4,7 @@ import { within, waitFor } from '@testing-library/vue'
 import { beforeEach } from 'vitest'
 
 import ticketCustomerObjectAttributes from '#tests/graphql/factories/fixtures/ticket-customer-object-attributes.ts'
+import type { ExtendedRenderResult } from '#tests/support/components/index.ts'
 import { visitView } from '#tests/support/components/visitView.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
@@ -20,6 +21,17 @@ import { mockUserCurrentTaskbarItemListQuery } from '#desktop/entities/user/curr
 import { mockTicketChecklistQuery } from '#desktop/pages/ticket/graphql/queries/ticketChecklist.mocks.ts'
 
 const getTaskbarEntityKey = (internalTicketId: number) => `Ticket-${internalTicketId}`
+
+// Student Hub: Recent (the open tickets, in the navigation panel) starts collapsed; it stays as
+// it was left between tests
+const openRecent = async (view: ExtendedRenderResult) => {
+  const toggle = view.getByTestId('controls-user-taskbar-tabs')
+  if (toggle.getAttribute('aria-expanded') === 'false') await view.events.click(toggle)
+}
+
+// Student Hub: the panels are named tabs above the panel column ("Student" is the Customer panel)
+const panelTab = (view: ExtendedRenderResult, name: string) =>
+  within(view.getByRole('navigation', { name: 'Ticket panels' })).getByRole('button', { name })
 
 describe('Ticket detail view multi tabs switching', () => {
   const ticket = createDummyTicket({ number: '53001' })
@@ -105,6 +117,8 @@ describe('Ticket detail view multi tabs switching', () => {
 
   it('remembers collapsed section states if user returns to tab', async () => {
     const view = await visitView('/tickets/1')
+
+    await openRecent(view)
 
     let contentSidebar = await view.findByLabelText('Content sidebar')
     let collapsableHeaderButtons = within(contentSidebar).getByTestId('controls-ticket-attributes')
@@ -238,18 +252,11 @@ describe('Ticket detail view multi tabs switching', () => {
   it('remembers the sidebar tab selection of the current taskbar tab', async () => {
     const view = await visitView('/tickets/1')
 
-    const customerSidebarTab = await view.findByRole('button', {
-      name: 'Customer',
-    })
+    await openRecent(view)
 
-    await view.events.click(customerSidebarTab)
+    await view.events.click(await view.findByRole('button', { name: 'Student' }))
 
-    /**
-     * @url https://github.com/zammad/coordination-desktop-view/issues/329?issue=zammad%7Ccoordination-desktop-view%7C330
-     * Sidebar tabs should be a tab rather than a button
-     * */
-
-    await waitFor(() => expect(customerSidebarTab).toHaveClass('outline-blue-800!'))
+    await waitFor(() => expect(panelTab(view, 'Student')).toHaveAttribute('aria-pressed', 'true'))
 
     await view.events.click(
       await view.findByRole('link', {
@@ -259,9 +266,7 @@ describe('Ticket detail view multi tabs switching', () => {
 
     await waitForNextTick()
 
-    await waitFor(() =>
-      expect(view.getByRole('button', { name: 'Ticket' })).toHaveClass('outline-blue-800!'),
-    )
+    await waitFor(() => expect(panelTab(view, 'Ticket')).toHaveAttribute('aria-pressed', 'true'))
 
     await view.events.click(
       await view.findByRole('link', {
@@ -269,8 +274,8 @@ describe('Ticket detail view multi tabs switching', () => {
       }),
     )
 
-    await waitFor(() => expect(customerSidebarTab).toHaveClass('outline-blue-800!'))
+    await waitFor(() => expect(panelTab(view, 'Student')).toHaveAttribute('aria-pressed', 'true'))
 
-    expect(view.getByRole('button', { name: 'Ticket' })).not.toHaveClass('outline-blue-800!')
+    expect(panelTab(view, 'Ticket')).toHaveAttribute('aria-pressed', 'false')
   })
 })

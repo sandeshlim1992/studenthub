@@ -50,9 +50,10 @@ describe('Ticket create GitHub links', () => {
 
     const view = await visitView(`/ticket/create/${uid}`)
 
-    const sidebar = view.getByLabelText('Content sidebar')
+    // Student Hub: the panel icons are on the right edge of the screen
+    const panelIcons = await view.findByRole('navigation', { name: 'Ticket panels' })
 
-    expect(within(sidebar).getByRole('button', { name: 'GitHub' })).toBeInTheDocument()
+    expect(within(panelIcons).getByRole('button', { name: 'GitHub' })).toBeInTheDocument()
   })
 
   it('hides sidebar when not available', async () => {
@@ -79,9 +80,10 @@ describe('Ticket create GitHub links', () => {
 
     const view = await visitView(`/ticket/create/${uid}`)
 
-    const sidebar = view.getByLabelText('Content sidebar')
+    expect(await view.findByRole('heading', { level: 1, name: 'New ticket' })).toBeInTheDocument()
 
-    expect(within(sidebar).queryByRole('button', { name: 'GitHub' })).not.toBeInTheDocument()
+    // Student Hub: no GitHub icon among the panel icons (with none, there are no icons at all)
+    expect(view.queryByRole('button', { name: 'GitHub', hidden: true })).not.toBeInTheDocument()
   })
 
   it('submits a new ticket with github links', async () => {
@@ -118,13 +120,14 @@ describe('Ticket create GitHub links', () => {
 
     const view = await visitView(`/ticket/create/${uid}`)
 
-    await view.events.click(view.getByRole('button', { name: 'GitHub' }))
+    // Student Hub: the only panel so far, so it is open beside the form
+    expect(await view.findByRole('region', { name: 'GitHub' })).toBeInTheDocument()
 
     await waitFor(() =>
       expect(view.getByRole('heading', { level: 1, name: 'New ticket' })).toBeInTheDocument(),
     )
 
-    await view.events.type(view.getByLabelText('Title'), 'Test Ticket')
+    await view.events.type(view.getByLabelText('Summary'), 'Test Ticket')
 
     await handleCustomerMock(view)
 
@@ -136,19 +139,29 @@ describe('Ticket create GitHub links', () => {
       }),
     )
 
-    await view.events.click(view.getByLabelText('Text'))
-    await view.events.type(view.getByLabelText('Text'), 'Test ticket text')
+    await view.events.click(view.getByRole('textbox', { name: 'Details' }))
+    await view.events.type(view.getByRole('textbox', { name: 'Details' }), 'Test ticket text')
 
-    await view.events.click(view.getByLabelText('Group'))
+    await view.events.click(view.getByLabelText('Team'))
     await view.events.click(view.getByRole('option', { name: 'Users' }))
 
-    await view.events.click(view.getByLabelText('Priority'))
-    await view.events.click(view.getByRole('option', { name: '2 normal' }))
+    await view.events.click(
+      within(view.getByRole('group', { name: 'Priority' })).getByRole('button', {
+        name: '2 normal',
+      }),
+    )
 
     await view.events.click(view.getByLabelText('State'))
     await view.events.click(view.getByRole('option', { name: 'open' }))
 
-    const sidebar = view.getByLabelText('Content sidebar')
+    // Choosing the customer opened the Customer panel; back to GitHub
+    await view.events.click(
+      within(view.getByRole('navigation', { name: 'Ticket panels' })).getByRole('button', {
+        name: 'GitHub',
+      }),
+    )
+
+    const sidebar = await view.findByRole('region', { name: 'GitHub' })
 
     await view.events.click(
       await within(sidebar).findByRole('button', {
@@ -181,7 +194,7 @@ describe('Ticket create GitHub links', () => {
 
     expect(await within(sidebar).findByText('#123 Issue 1')).toBeInTheDocument()
 
-    await view.events.click(view.getByRole('button', { name: 'Create' }))
+    await view.events.click(view.getByRole('button', { name: 'Create ticket' }))
 
     const calls = await waitForTicketCreateMutationCalls()
     expect(calls.at(-1)?.variables.input).toEqual(

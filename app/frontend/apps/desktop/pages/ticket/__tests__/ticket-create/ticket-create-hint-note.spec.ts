@@ -20,7 +20,8 @@ describe('ticket create hint note', () => {
 
     const view = await visitView('/ticket/create')
 
-    await view.findByRole('tab', { selected: true, name: 'Received call' })
+    // Student Hub: how the ticket came in is a select, Received call by default
+    expect(await view.findByLabelText('Came in by')).toHaveTextContent('Received call')
 
     expect(await view.findByText('Please fill in the call details carefully.')).toBeVisible()
   })
@@ -36,7 +37,8 @@ describe('ticket create hint note', () => {
 
     const view = await visitView('/ticket/create')
 
-    await view.findByRole('tab', { selected: true, name: 'Received call' })
+    // Student Hub: how the ticket came in is a select, Received call by default
+    expect(await view.findByLabelText('Came in by')).toHaveTextContent('Received call')
 
     expect(view.queryByText('Email-only note.')).not.toBeInTheDocument()
   })
@@ -52,12 +54,14 @@ describe('ticket create hint note', () => {
 
     const view = await visitView('/ticket/create')
 
-    await view.findByRole('tab', { selected: true, name: 'Received call' })
+    // Student Hub: how the ticket came in is a select, Received call by default
+    expect(await view.findByLabelText('Came in by')).toHaveTextContent('Received call')
 
     // Default type (phone-in) has no note — nothing visible yet.
     expect(view.queryByText('Note for outbound call.')).not.toBeInTheDocument()
 
-    await view.events.click(await view.findByText('Outbound call'))
+    await view.events.click(view.getByLabelText('Came in by'))
+    await view.events.click(await view.findByRole('option', { name: 'Outbound call' }))
 
     expect(await view.findByText('Note for outbound call.')).toBeVisible()
   })

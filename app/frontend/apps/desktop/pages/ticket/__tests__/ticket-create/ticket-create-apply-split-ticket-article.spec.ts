@@ -46,7 +46,8 @@ describe('ticket create view - splitting of a ticket article', () => {
 
     await waitForNextTick()
 
-    expect(view.getByLabelText('Title')).toHaveValue(ticketTitle)
+    // Student Hub: the title is the Summary field
+    expect(view.getByLabelText('Summary')).toHaveValue(ticketTitle)
   })
 
   it('submits linking when creating', async () => {
@@ -89,7 +90,7 @@ describe('ticket create view - splitting of a ticket article', () => {
 
     await waitForFormUpdaterQueryCalls()
 
-    await view.events.click(view.getByRole('button', { name: 'Create' }))
+    await view.events.click(view.getByRole('button', { name: 'Create ticket' }))
 
     const ticketCreateCalls = await waitForTicketCreateMutationCalls()
     expect(ticketCreateCalls.at(-1)?.variables).toEqual(

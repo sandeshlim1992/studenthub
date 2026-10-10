@@ -760,7 +760,9 @@ forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
 - **Who can use it:** everyone, or only customers in some organisations or roles (the ticket's customer: the person
   raising it, or whom staff raise it for). Other customers don't get that sub-category at all; staff still can.
 - **Content:** in order, the form's own **questions**, existing Zammad **fields**, **headings** between groups and
-  **notes** (help shown on the form only); up to 20 questions and fields together, 60 items in all.
+  **notes** (help shown on the form only); up to 20 questions and fields together, 60 items in all. A question or
+  field can be **Half width**: two such sit side by side where the form is wide enough (one under the other on a
+  phone); the rest take the whole row.
 - **Questions** belong to the form, not to Zammad: a label, a type (short text, long text, dropdown, multi-select,
   date, date and time, yes / no, number), options for lists, help text and required. Publishing needs no restart.
   Each question keeps the key it got when added, so renaming it keeps old answers meaningful; a published
@@ -774,11 +776,13 @@ forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
   shows only if its form asks for it or it holds a value. Fields shown on New ticket anyway are marked "also on…"; the
   form can make them required. Publishing gives a field a hidden New ticket entry for customers and staff, and a
   ticket entry for staff, where it had none (otherwise it couldn't appear in their forms).
-- **Where:** the student wizard shows the form's heading, help text, fields, headings and notes above the subject
-  and checks the required ones before sending. Every other ticket form (the student "Raise a New Ticket" form, staff's New ticket,
-  the classic UI) gets the fields through the core workflow "Student Hub - request forms" (locked, not listed with
-  the admins' own workflows), and the server checks the required fields and the sub-category when the ticket is
-  created. The heading, help text, headings and notes are only in the wizard.
+- **Where:** the student wizard's Details step shows a **Your request** card (the steps taken, each with Change)
+  beside the form: its heading, help text, then the Subject, then its fields, headings and notes. There is no
+  Description while a form applies (the message is the Category / Campus lines and the Request details block); the
+  wizard checks the required fields before sending. Every other ticket form (the student "Raise a New Ticket"
+  form, staff's New ticket, the classic UI) gets the fields through the core workflow "Student Hub - request
+  forms" (locked, not listed with the admins' own workflows), and the server checks the required fields and the
+  sub-category when the ticket is created. The heading, help text, headings and notes are only in the wizard.
 - **Request details:** when a ticket's first message is created under a published form, the server starts that
   message with a **Request details** block: the form's headings and the answers to its questions and fields in the
   form's order
@@ -796,7 +800,7 @@ forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
 | `db/migrate/20261010100000_studenthub_request_form_items.rb` | Gives forms made before headings and notes their fields as items |
 | `app/controllers/studenthub_request_forms_controller.rb` | API (`/api/v1/studenthub/request_forms`, `…/:id/{publish,unpublish,discard}`, `…/applicable` for the wizard) |
 | `app/frontend/apps/desktop/pages/manage/views/RequestForms.vue`, `…/manage/components/RequestForms/` | Admin page: list, editor (with the question panel), preview |
-| `app/frontend/apps/desktop/components/StudenthubRequestForm/` (shown by `CustomerTicketCreateWizard.vue`; answers sent by `TicketCreateContent.vue`) | The form's part of the wizard's Details step (fields, headings, notes), also used by the preview |
+| `app/frontend/apps/desktop/components/StudenthubRequestForm/` (shown by `CustomerTicketCreateWizard.vue`; answers sent by `TicketCreateContent.vue`) | The form's part of the wizard's Details step (fields in a grid, headings, notes) and the Your request card, also used by the preview |
 
 ---
 

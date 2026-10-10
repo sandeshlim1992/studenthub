@@ -107,3 +107,8 @@ the current state is in `.dev/NOTES.md`.
   Overviews page's Refresh button its missing icon
 - 2026-10-10: Ticket screen: agents send a reply by Email (default) or Web, picked next to Send; Email is greyed out
   without an address. A web reply emails the student a notice with a link (new trigger, Studenthub::WebReplyNotice)
+- 2026-10-10: Student wizard Details step: a Your request card (steps taken, Change) beside the form; with a request
+  form the Subject is at its top and the Description is gone. The admin preview matches
+- 2026-10-10: Request forms: a question or field can be Half width (two side by side where the form is wide enough);
+  the student's form lays its items out in a grid
+- 2026-10-10: Navigation panel: the group headers (Views, My views, Teams, Sites, Show, Recent…) are bold

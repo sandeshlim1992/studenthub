@@ -139,6 +139,18 @@ const setRequired = (index: number, required: boolean) => {
   setItems(items)
 }
 
+// Half width: two to a row in the student's form where there is room.
+const setHalfWidth = (index: number, half: boolean) => {
+  const item = definition.value.items[index]
+  if (item.type !== 'field' && item.type !== 'question') return
+  const changed = { ...item }
+  if (half) changed.width = 'half'
+  else delete changed.width
+  const items = [...definition.value.items]
+  items[index] = changed
+  setItems(items)
+}
+
 const setText = (index: number, text: string) => {
   const item = definition.value.items[index]
   if (item.type === 'field' || item.type === 'question') return
@@ -171,7 +183,8 @@ const saveQuestion = (question: Omit<StudenthubRequestFormQuestion, 'key'>) => {
     const taken = items.flatMap((item) => (item.type === 'question' ? [item.key] : []))
     items.push({ ...question, key: questionKey(question.label, taken) })
   } else if (editedQuestion.value) {
-    items[index] = { ...question, key: editedQuestion.value.key }
+    const { width } = editedQuestion.value
+    items[index] = { ...question, key: editedQuestion.value.key, ...(width ? { width } : {}) }
   }
 
   setItems(items)
@@ -399,6 +412,18 @@ const hintClass = 'text-xs font-normal text-[var(--sh-muted)]'
               />
               {{ $t('Required') }}
             </label>
+            <label
+              :for="`request-form-half-q-${item.key}`"
+              class="flex items-center gap-1.5 text-sm text-[var(--sh-ink)]"
+            >
+              <input
+                :id="`request-form-half-q-${item.key}`"
+                type="checkbox"
+                :checked="item.width === 'half'"
+                @change="setHalfWidth(index, ($event.target as HTMLInputElement).checked)"
+              />
+              {{ $t('Half width') }}
+            </label>
             <CommonButton
               variant="secondary"
               size="small"
@@ -433,6 +458,18 @@ const hintClass = 'text-xs font-normal text-[var(--sh-muted)]'
                 @change="setRequired(index, ($event.target as HTMLInputElement).checked)"
               />
               {{ $t('Required') }}
+            </label>
+            <label
+              :for="`request-form-half-${item.name}`"
+              class="flex items-center gap-1.5 text-sm text-[var(--sh-ink)]"
+            >
+              <input
+                :id="`request-form-half-${item.name}`"
+                type="checkbox"
+                :checked="item.width === 'half'"
+                @change="setHalfWidth(index, ($event.target as HTMLInputElement).checked)"
+              />
+              {{ $t('Half width') }}
             </label>
           </template>
           <label

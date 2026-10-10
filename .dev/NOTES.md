@@ -64,6 +64,12 @@ Never put passwords, tokens or keys in this file.
   message. Decided 10 Oct: title = the sub-category; agents' New ticket keeps the Zammad fields and gets a separate
   Request details panel for the form's own questions; own questions never in Details and not corrected by agents;
   `admin.request_forms` is the only permission; up to 20 questions and fields per form
+- Student wizard's Details step = design D + card D1 of <https://claude.ai/artifact/UeLPcFJBkKoFFxhtektpDb>: a
+  "Your request" card (steps taken, each with Change, then Details) beside the form, stacked when the wizard is
+  narrow (container query). With a request form the Subject sits at the top of the form and there is no Description
+  (the first message is the Category / Campus lines and the Request details block); without one, Subject and
+  Description as before. The admin preview shows the same. Questions and fields can be Half width (two columns from
+  32rem of form width, `width: 'half'` in the item; the whole width is the default and not stored)
 - New UI look follows the UI/UX Pro Max "minimal Swiss" guidance, all accents from the application colour
   (UI/UX Pro Max is a user-level Claude Code plugin; reinstall after a container rebuild)
 - New UI design: Halo-style (mockup <https://claude.ai/artifact/6H4uc22Wb4zTiUfy3PhXfj>), application colour chosen
@@ -201,9 +207,10 @@ Never put passwords, tokens or keys in this file.
 ## In progress
 
 - Request forms rework (design doc above): steps 1–3 built on 10 Oct (headings and notes, Request details block, the
-  form's own questions). Next: step 4 title = sub-category and description optional / hidden, step 5 the agents'
-  Request details panel on New ticket, step 6 file uploads and conditions. The admin editor is not yet checked in a
-  browser (no admin login works in this container: admin@example.com is refused; agent@ and student@ work)
+  form's own questions), step 4 too (Subject at the top of the form, no Description while a form applies). Next:
+  step 5 the agents' Request details panel on New ticket, step 6 file uploads and conditions. The admin editor is not
+  yet checked in a browser (no admin login works in this container: admin@example.com is refused; agent@ and student@
+  work)
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
@@ -278,3 +285,5 @@ Never put passwords, tokens or keys in this file.
       undid unsaved ticket field changes) fixed something; if so, find another way
 - [ ] Check Request forms in a browser as an admin: add a question, a heading and a note, publish, then raise a ticket
       under it as student@ and look at the Request details block and the saved answers
+- [ ] Check the new Details step in a browser as student@: the Your request card and its Change buttons, Subject at the
+      top of the form, no Description with a form (and the message still reads well), stacking on a phone

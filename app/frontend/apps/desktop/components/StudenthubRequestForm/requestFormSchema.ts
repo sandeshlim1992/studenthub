@@ -10,10 +10,18 @@ import {
   type StudenthubRequestFormQuestion,
   type StudenthubRequestFormQuestionKind,
   type StudenthubRequestFormResult,
+  type StudenthubRequestFormWidth,
 } from './types.ts'
 
 export const HEADING_CLASS = 'col-span-full mt-2 text-sm font-semibold text-slate-900'
 export const NOTE_CLASS = 'col-span-full text-sm leading-relaxed whitespace-pre-line text-slate-600'
+
+// The form's items sit in a grid: two columns where the form is wide enough (the section is the
+// container), one on a phone. A half-width item takes one column, everything else the whole row.
+export const GRID_CLASS = 'grid grid-cols-1 gap-x-4 gap-y-3 @lg:grid-cols-2'
+
+const widthClass = (width?: StudenthubRequestFormWidth) =>
+  width === 'half' ? 'col-span-1' : 'col-span-full'
 
 // Text in a form schema that starts with "$" would be read as an expression.
 const literal = (text: string) => text.replace(/^\$/, '\\$')
@@ -50,23 +58,35 @@ const questionField = (question: StudenthubRequestFormQuestion): FormSchemaNode 
   // A yes / no question always has an answer.
   required: question.required && question.kind !== 'boolean',
   ...(question.kind === 'boolean' ? { value: false } : {}),
+  outerClass: widthClass(question.width),
   props: questionProps(question),
 })
 
 // Student Hub: a request form as Zammad form schema: its own questions and Zammad fields in order,
-// with its headings and notes between them (see StudenthubRequestFormSection).
-export const requestFormSchema = (form: StudenthubRequestFormDefinition): FormSchemaNode[] =>
-  requestFormItems(form).map((item) => {
-    if (item.type === 'heading')
-      return { isLayout: true, element: 'h4', attrs: { class: HEADING_CLASS }, children: literal(item.text) }
+// with its headings and notes between them, in the grid (see StudenthubRequestFormSection).
+export const requestFormSchema = (form: StudenthubRequestFormDefinition): FormSchemaNode[] => [
+  {
+    isLayout: true,
+    element: 'div',
+    attrs: { class: GRID_CLASS },
+    children: requestFormItems(form).map((item): FormSchemaNode => {
+      if (item.type === 'heading')
+        return { isLayout: true, element: 'h4', attrs: { class: HEADING_CLASS }, children: literal(item.text) }
 
-    if (item.type === 'note')
-      return { isLayout: true, element: 'p', attrs: { class: NOTE_CLASS }, children: literal(item.text) }
+      if (item.type === 'note')
+        return { isLayout: true, element: 'p', attrs: { class: NOTE_CLASS }, children: literal(item.text) }
 
-    if (item.type === 'question') return questionField(item)
+      if (item.type === 'question') return questionField(item)
 
-    return { name: item.name, object: EnumObjectManagerObjects.Ticket, required: item.required }
-  })
+      return {
+        name: item.name,
+        object: EnumObjectManagerObjects.Ticket,
+        required: item.required,
+        outerClass: widthClass(item.width),
+      }
+    }),
+  },
+]
 
 // The form's values split into the Zammad fields' values and the answers to its own questions.
 export const splitRequestFormValues = (values: FormValues): StudenthubRequestFormResult => {

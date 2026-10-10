@@ -350,10 +350,13 @@ const handleWizardSubmit = async (data: WizardData) => {
 
     const bodyHeader = `<p><strong>${__('Category')}:</strong> ${categoryName} &gt; ${subCatText}</p><p><strong>${__('Campus')}:</strong> ${campusText}</p><hr/>`
 
-    const formattedParagraphs = data.body
-      .split('\n\n')
-      .map((para) => `<p>${para.replace(/\n/g, '<br/>')}</p>`)
-      .join('')
+    // Student Hub: empty with a request form (its answers make the message).
+    const formattedParagraphs = data.body.trim()
+      ? data.body
+          .split('\n\n')
+          .map((para) => `<p>${para.replace(/\n/g, '<br/>')}</p>`)
+          .join('')
+      : ''
 
     const fullBodyHtml = `${bodyHeader}${formattedParagraphs}`
 

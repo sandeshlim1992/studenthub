@@ -7,6 +7,10 @@ export interface StudenthubRequestFormField {
   required: boolean
 }
 
+// How wide a field or question is drawn: half of the form's width (two to a row where there is
+// room), or the whole width when not set.
+export type StudenthubRequestFormWidth = 'half'
+
 export type StudenthubRequestFormQuestionKind =
   | 'text'
   | 'textarea'
@@ -28,13 +32,14 @@ export interface StudenthubRequestFormQuestion {
   required: boolean
   // Dropdowns and multi-selects.
   options?: string[]
+  width?: StudenthubRequestFormWidth
 }
 
 // The form in order: its own questions, Zammad ticket fields, headings between groups of questions
 // and notes.
 export type StudenthubRequestFormItem =
   | StudenthubRequestFormQuestion
-  | ({ type: 'field' } & StudenthubRequestFormField)
+  | ({ type: 'field'; width?: StudenthubRequestFormWidth } & StudenthubRequestFormField)
   | { type: 'heading'; text: string }
   | { type: 'note'; text: string }
 

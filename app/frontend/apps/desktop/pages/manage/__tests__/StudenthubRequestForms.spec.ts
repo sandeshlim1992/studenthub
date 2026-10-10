@@ -162,6 +162,7 @@ describe('Request forms', () => {
     await view.events.selectOptions(view.getByLabelText('Add an existing Zammad field'), 'impact')
     await view.events.click(view.getByRole('button', { name: 'Add' }))
     await view.events.click(view.getByLabelText('Required'))
+    await view.events.click(view.getByLabelText('Half width'))
 
     const field = view.getByRole('listitem', { name: 'Impact' })
     expect(field).toHaveTextContent("also on staff's New ticket form")
@@ -174,7 +175,7 @@ describe('Request forms', () => {
       sub_category: 'Password Reset',
       title: '',
       help_text: '',
-      items: [{ type: 'field', name: 'impact', required: true }],
+      items: [{ type: 'field', name: 'impact', required: true, width: 'half' }],
       fields: [{ name: 'impact', required: true }],
       organization_ids: [],
       role_ids: [],

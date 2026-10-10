@@ -66,6 +66,29 @@ RSpec.describe StudenthubRequestForm, aggregate_failures: true, type: :model do
                                         ])
       expect(definition['fields']).to eq([])
     end
+
+    it 'keeps half width on fields and questions, and nothing else as a width' do
+      definition = described_class.normalize_definition(
+        'category' => 'People', 'sub_category' => 'Onboarding',
+        'items'    => [
+          { 'type' => 'field', 'name' => 'device', 'width' => 'half' },
+          { 'type' => 'field', 'name' => 'laptop', 'width' => 'wide' },
+          { 'type' => 'question', 'label' => 'Name', 'kind' => 'text', 'width' => 'half' },
+          { 'type' => 'heading', 'text' => 'Employee', 'width' => 'half' },
+        ]
+      )
+
+      expect(definition['items']).to eq([
+                                          { 'type' => 'field', 'name' => 'device', 'required' => false, 'width' => 'half' },
+                                          { 'type' => 'field', 'name' => 'laptop', 'required' => false },
+                                          { 'type' => 'question', 'key' => 'name', 'label' => 'Name', 'kind' => 'text', 'help' => '', 'required' => false, 'width' => 'half' },
+                                          { 'type' => 'heading', 'text' => 'Employee' },
+                                        ])
+      expect(definition['fields']).to eq([
+                                           { 'name' => 'device', 'required' => false },
+                                           { 'name' => 'laptop', 'required' => false },
+                                         ])
+    end
   end
 
   describe 'questions' do

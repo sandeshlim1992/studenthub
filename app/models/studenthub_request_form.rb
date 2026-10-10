@@ -64,7 +64,14 @@ class StudenthubRequestForm < ApplicationModel
   def self.normalize_field(item)
     return if item[:name].blank?
 
-    { 'type' => 'field', 'name' => item[:name].to_s, 'required' => ActiveModel::Type::Boolean.new.cast(item[:required]) == true }
+    field = { 'type' => 'field', 'name' => item[:name].to_s, 'required' => ActiveModel::Type::Boolean.new.cast(item[:required]) == true }
+    with_width(field, item)
+  end
+
+  # Half width (two to a row in the form where there is room) is kept; the whole width is the
+  # default and not stored.
+  def self.with_width(normalized, item)
+    item[:width].to_s == 'half' ? normalized.merge('width' => 'half') : normalized
   end
 
   def self.normalize_ids(ids)

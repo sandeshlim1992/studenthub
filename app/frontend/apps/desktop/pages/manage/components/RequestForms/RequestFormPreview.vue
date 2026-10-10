@@ -1,9 +1,11 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 
 import StudenthubRequestFormSection from '#desktop/components/StudenthubRequestForm/StudenthubRequestFormSection.vue'
+import StudenthubRequestSummary from '#desktop/components/StudenthubRequestForm/StudenthubRequestSummary.vue'
 
 import type { RequestFormDefinition } from './types.ts'
 
@@ -20,6 +22,12 @@ const section = ref<InstanceType<typeof StudenthubRequestFormSection>>()
 const outcome = ref<'ok' | 'missing' | null>(null)
 
 const hasSubCategory = computed(() => Boolean(props.definition.sub_category))
+
+// The form part is shown once it has something; until then the step looks as it does without a
+// form (Subject and Description).
+const hasForm = computed(() => Boolean(props.definition.items.length || props.definition.help_text))
+
+const [DefineSubject, ReuseSubject] = createReusableTemplate()
 
 watch(
   () => props.definition.items,
@@ -68,7 +76,7 @@ const tryIt = async () => {
     <div class="rounded-xl border border-dashed border-[var(--sh-line)] bg-slate-100 p-3 sm:p-4">
       <div
         class="mx-auto flex flex-col gap-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
-        :class="width === 'phone' ? 'max-w-[390px]' : 'max-w-2xl'"
+        :class="width === 'phone' ? 'max-w-[390px]' : 'max-w-4xl'"
       >
         <p v-if="!hasSubCategory" class="py-10 text-center text-sm text-slate-500">
           {{ $t('Choose a category and sub-category to see the form.') }}
@@ -81,55 +89,56 @@ const tryIt = async () => {
             </p>
             <p class="mt-1 text-xs text-slate-500">
               {{
-                $t(
-                  'Review your choices below, enter a subject, and describe what you need help with.',
-                )
+                hasForm
+                  ? $t('Check your request, then fill in the form.')
+                  : $t(
+                      'Review your choices below, enter a subject, and describe what you need help with.',
+                    )
               }}
             </p>
           </div>
 
-          <div class="rounded-2xl border border-slate-200/80 bg-slate-50 p-3">
-            <p class="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
-              {{ $t('Your Selections') }}
-            </p>
-            <div class="flex flex-wrap gap-2 text-xs font-bold text-emerald-800">
-              <span class="rounded-xl border border-emerald-200 bg-white px-3 py-1.5"
-                >📁 {{ categoryLabel }}</span
+          <DefineSubject>
+            <div class="flex flex-col gap-1.5">
+              <span class="text-xs font-bold text-slate-800 sm:text-sm">
+                {{ $t('Subject / Short Title') }} <span class="text-rose-500">*</span>
+              </span>
+              <span
+                class="rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm text-slate-400"
               >
-              <span class="rounded-xl border border-emerald-200 bg-white px-3 py-1.5"
-                >🏷️ {{ definition.sub_category }}</span
-              >
-              <span class="rounded-xl border border-emerald-200 bg-white px-3 py-1.5"
-                >📍 {{ $t('Campus') }}</span
-              >
+                {{ definition.sub_category }}
+              </span>
             </div>
-          </div>
+          </DefineSubject>
 
-          <StudenthubRequestFormSection
-            v-if="definition.items.length || definition.help_text"
-            ref="section"
-            :form="definition"
-          />
+          <div class="@container">
+            <div class="grid gap-5 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:items-start">
+              <StudenthubRequestSummary
+                :category="categoryLabel"
+                :sub-category="definition.sub_category"
+                :campus="$t('Campus')"
+              />
 
-          <div class="flex flex-col gap-1.5">
-            <span class="text-xs font-bold text-slate-800 sm:text-sm">
-              {{ $t('Subject / Short Title') }} <span class="text-rose-500">*</span>
-            </span>
-            <span
-              class="rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm text-slate-400"
-            >
-              {{ definition.sub_category }}
-            </span>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <span class="text-xs font-bold text-slate-800 sm:text-sm">
-              {{ $t('Description / Issue Details') }} <span class="text-rose-500">*</span>
-            </span>
-            <span
-              class="h-24 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm text-slate-400"
-            >
-              {{ $t('Describe your issue in short and simple...') }}
-            </span>
+              <div class="flex min-w-0 flex-col gap-5">
+                <StudenthubRequestFormSection v-if="hasForm" ref="section" :form="definition">
+                  <ReuseSubject />
+                </StudenthubRequestFormSection>
+
+                <template v-else>
+                  <ReuseSubject />
+                  <div class="flex flex-col gap-1.5">
+                    <span class="text-xs font-bold text-slate-800 sm:text-sm">
+                      {{ $t('Description / Issue Details') }} <span class="text-rose-500">*</span>
+                    </span>
+                    <span
+                      class="h-24 rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3 text-sm text-slate-400"
+                    >
+                      {{ $t('Describe your issue in short and simple...') }}
+                    </span>
+                  </div>
+                </template>
+              </div>
+            </div>
           </div>
 
           <div class="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">

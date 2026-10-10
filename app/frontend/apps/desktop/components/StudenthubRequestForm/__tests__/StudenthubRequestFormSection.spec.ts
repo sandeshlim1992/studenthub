@@ -2,10 +2,19 @@
 
 import { renderComponent } from '#tests/support/components/index.ts'
 
+import type { FormSchemaNode } from '#shared/components/Form/types.ts'
 import { EnumObjectManagerObjects } from '#shared/graphql/types.ts'
 
-import { requestFormSchema, splitRequestFormValues } from '../requestFormSchema.ts'
+import { GRID_CLASS, requestFormSchema, splitRequestFormValues } from '../requestFormSchema.ts'
 import StudenthubRequestFormSection from '../StudenthubRequestFormSection.vue'
+
+// The items inside the form's grid.
+const gridItems = (schema: FormSchemaNode[]) => {
+  expect(schema).toEqual([
+    expect.objectContaining({ isLayout: true, element: 'div', attrs: { class: GRID_CLASS } }),
+  ])
+  return (schema[0] as { children: FormSchemaNode[] }).children
+}
 
 describe('StudenthubRequestFormSection', () => {
   it('shows the form heading, then its headings and notes in order (no fields yet)', async () => {
@@ -46,25 +55,49 @@ describe('StudenthubRequestFormSection', () => {
       fields: [],
     })
 
-    expect(schema).toEqual([
+    expect(gridItems(schema)).toEqual([
       expect.objectContaining({ isLayout: true, element: 'h4', children: 'Employee' }),
-      { name: 'start_date', object: EnumObjectManagerObjects.Ticket, required: true },
+      { name: 'start_date', object: EnumObjectManagerObjects.Ticket, required: true, outerClass: 'col-span-full' },
       expect.objectContaining({
         isLayout: true,
         element: 'p',
         children: '\\$ costs are approved by your manager.',
       }),
-      { name: 'laptop', object: EnumObjectManagerObjects.Ticket, required: false },
+      { name: 'laptop', object: EnumObjectManagerObjects.Ticket, required: false, outerClass: 'col-span-full' },
     ])
   })
 
   it('reads a form from before items as its fields', () => {
     expect(
+      gridItems(
+        requestFormSchema({
+          sub_category: 'Onboarding (New Starter)',
+          fields: [{ name: 'start_date', required: true }],
+        }),
+      ),
+    ).toEqual([
+      { name: 'start_date', object: EnumObjectManagerObjects.Ticket, required: true, outerClass: 'col-span-full' },
+    ])
+  })
+
+  it('puts half-width fields and questions in one column of the grid', () => {
+    const items = gridItems(
       requestFormSchema({
         sub_category: 'Onboarding (New Starter)',
-        fields: [{ name: 'start_date', required: true }],
+        items: [
+          { type: 'field', name: 'device', required: false, width: 'half' },
+          { type: 'question', key: 'name', label: 'Name', kind: 'text', help: '', required: false, width: 'half' },
+          { type: 'field', name: 'laptop', required: false },
+        ],
+        fields: [],
       }),
-    ).toEqual([{ name: 'start_date', object: EnumObjectManagerObjects.Ticket, required: true }])
+    )
+
+    expect(items.map((item) => (item as { outerClass?: string }).outerClass)).toEqual([
+      'col-span-1',
+      'col-span-1',
+      'col-span-full',
+    ])
   })
 
   it("draws the form's own questions with Zammad's field types", () => {
@@ -80,8 +113,8 @@ describe('StudenthubRequestFormSection', () => {
       fields: [],
     })
 
-    expect(schema).toEqual([
-      { type: 'text', name: 'studenthub_question__full_name', label: 'Full name', help: 'As on the contract', required: true, props: {} },
+    expect(gridItems(schema)).toEqual([
+      { type: 'text', name: 'studenthub_question__full_name', label: 'Full name', help: 'As on the contract', required: true, outerClass: 'col-span-full', props: {} },
       expect.objectContaining({
         type: 'select',
         name: 'studenthub_question__model',

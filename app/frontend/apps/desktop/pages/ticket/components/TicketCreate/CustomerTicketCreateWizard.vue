@@ -1,6 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
+import { createReusableTemplate } from '@vueuse/core'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 
 import { getNodeByName } from '#shared/components/Form/utils.ts'
@@ -8,6 +9,7 @@ import { useObjectAttributesStore } from '#shared/entities/object-attributes/sto
 import { EnumObjectManagerObjects } from '#shared/graphql/types.ts'
 
 import StudenthubRequestFormSection from '#desktop/components/StudenthubRequestForm/StudenthubRequestFormSection.vue'
+import StudenthubRequestSummary from '#desktop/components/StudenthubRequestForm/StudenthubRequestSummary.vue'
 import type { StudenthubRequestFormDefinition } from '#desktop/components/StudenthubRequestForm/types.ts'
 import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
@@ -125,9 +127,13 @@ watch(
 )
 
 // Student Hub: the request form for the chosen Category › Sub-category that is meant for this
-// person (Administration → Request forms); its fields go above the subject in the Details step.
+// person (Administration → Request forms). In the Details step the Subject goes at its top and its
+// fields replace the Description (the first message is made of the answers).
 const requestForm = ref<StudenthubRequestFormDefinition | null>(null)
 const requestFormSection = ref<InstanceType<typeof StudenthubRequestFormSection>>()
+
+// Student Hub: the Subject field, drawn in the request form or, without one, above the Description.
+const [DefineSubject, ReuseSubject] = createReusableTemplate()
 
 watch(
   () => [wizardData.value.category, wizardData.value.subCategory] as const,
@@ -176,10 +182,11 @@ const bodyError = computed(() => {
   return ''
 })
 
+// Student Hub: no Description is asked for while a request form applies.
 const isDetailsValid = computed(() => {
   return (
     wizardData.value.title.trim().length >= 5 &&
-    wizardData.value.body.trim().length >= 10
+    (Boolean(requestForm.value) || wizardData.value.body.trim().length >= 10)
   )
 })
 
@@ -846,6 +853,8 @@ const handleSubmit = async () => {
 
   emit('submit', {
     ...wizardData.value,
+    // A Description typed for another sub-category isn't sent along with a request form.
+    body: requestForm.value ? '' : wizardData.value.body,
     requestFields: request?.fields ?? {},
     requestAnswers: request ? { form_id: requestForm.value?.id, answers: request.answers } : undefined,
   })
@@ -1617,66 +1626,18 @@ const steps = [
                 {{ $t('Provide ticket details') }}
               </h2>
               <p class="mt-1.5 text-sm text-slate-500 leading-relaxed">
-                {{ $t('Review your choices below, enter a subject, and describe what you need help with.') }}
+                {{
+                  requestForm
+                    ? $t('Check your request, then fill in the form.')
+                    : $t('Review your choices below, enter a subject, and describe what you need help with.')
+                }}
               </p>
             </div>
 
-            <!-- Summary Header with Edit Chips -->
-            <div class="rounded-2xl bg-slate-50 border border-slate-200/80 p-4">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-                  {{ $t('Your Selections') }}
-                </span>
-                <span class="text-xs font-semibold text-slate-400">
-                  {{ $t('Tap any chip to edit') }}
-                </span>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <!-- Category Chip -->
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300 transition-colors cursor-pointer shadow-2xs"
-                  @click="goToStep(1)"
-                >
-                  <span>📁</span>
-                  <span>{{ currentCategoryLabel }}</span>
-                  <span class="text-slate-400">✎</span>
-                </button>
-
-                <!-- Sub-Category Chip -->
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300 transition-colors cursor-pointer shadow-2xs"
-                  @click="goToStep(2)"
-                >
-                  <span>🏷️</span>
-                  <span>{{ wizardData.subCategory }}</span>
-                  <span class="text-slate-400">✎</span>
-                </button>
-
-                <!-- Campus Chip -->
-                <button
-                  type="button"
-                  class="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-50 hover:border-emerald-300 transition-colors cursor-pointer shadow-2xs"
-                  @click="goToStep(3)"
-                >
-                  <span>📍</span>
-                  <span>{{ wizardData.campus }}</span>
-                  <span class="text-slate-400">✎</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Student Hub: the sub-category's request form -->
-            <StudenthubRequestFormSection
-              v-if="requestForm"
-              ref="requestFormSection"
-              :form="requestForm"
-            />
-
-            <!-- Free Text Inputs -->
+            <!-- Student Hub: the Subject, defined once: at the top of the request form, or of the
+                 form column when no form applies -->
             <!-- eslint-disable vuejs-accessibility/label-has-for -->
-            <div class="space-y-5">
+            <DefineSubject>
               <!-- Title Field -->
               <div>
                 <div class="flex items-center justify-between mb-1.5">
@@ -1716,96 +1677,123 @@ const steps = [
                 </p>
               </div>
 
-              <!-- Description Field -->
-              <div>
-                <label for="wizard-ticket-body" class="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
-                  {{ $t('Description / Issue Details') }}
-                  <span class="text-rose-500">*</span>
-                </label>
-                <textarea
-                  id="wizard-ticket-body"
-                  v-model="wizardData.body"
-                  rows="6"
-                  aria-required="true"
-                  class="w-full rounded-xl border px-4 py-3 text-sm font-medium text-slate-900 transition-all outline-none placeholder:text-slate-400 resize-y"
-                  :class="
-                    bodyError
-                      ? 'border-rose-300 bg-rose-50/40 focus:border-rose-500 focus:ring-2 focus:ring-rose-200'
-                      : 'border-slate-200 bg-slate-50/60 focus:bg-white focus:border-[#16a34a] focus:ring-2 focus:ring-emerald-500/15'
-                  "
-                  :placeholder="descriptionPlaceholder"
-                  @blur="bodyTouched = true"
+            </DefineSubject>
+
+            <!-- Student Hub: "Your request" beside the form (design D1); stacked when narrow -->
+            <div class="@container">
+              <div class="grid gap-6 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:items-start">
+                <StudenthubRequestSummary
+                  :category="currentCategoryLabel"
+                  :sub-category="wizardData.subCategory"
+                  :campus="wizardData.campus"
+                  @change="goToStep"
                 />
-                <p v-if="bodyError" class="mt-1 text-xs font-semibold text-rose-600">
-                  {{ bodyError }}
-                </p>
-              </div>
 
-              <!-- Attachments Dropzone -->
-              <div>
-                <label for="wizard-ticket-files" class="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
-                  {{ $t('Attach Files or Screenshots (Optional)') }}
-                </label>
-                <button
-                  type="button"
-                  aria-label="Upload files or screenshots"
-                  class="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all cursor-pointer w-full"
-                  :class="
-                    isDragging
-                      ? 'border-[#16a34a] bg-emerald-50/80'
-                      : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
-                  "
-                  @dragover.prevent="isDragging = true"
-                  @dragleave.prevent="isDragging = false"
-                  @drop.prevent="onDrop"
-                  @click="fileInputRef?.click()"
-                >
-                  <input
-                    id="wizard-ticket-files"
-                    ref="fileInputRef"
-                    type="file"
-                    multiple
-                    class="hidden"
-                    aria-label="File upload"
-                    @change="(e) => handleFiles((e.target as HTMLInputElement).files)"
-                  />
-                  <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-2xs border border-slate-200/80 mb-2">
-                    <svg class="h-6 w-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </div>
-                  <div class="text-xs sm:text-sm font-bold text-slate-800">
-                    {{ $t('Click to browse or drag and drop files here') }}
-                  </div>
-                  <div class="text-xs text-slate-400 mt-0.5">
-                    {{ $t('Screenshots, PDFs, documents up to 50MB') }}
-                  </div>
-                </button>
-              </div>
-
-                <!-- Attached Files List -->
-                <div v-if="wizardData.attachments.length > 0" class="mt-3 space-y-2">
-                  <div
-                    v-for="(f, fIdx) in wizardData.attachments"
-                    :key="f.name + fIdx"
-                    class="flex items-center justify-between rounded-xl bg-slate-50 px-3.5 py-2.5 border border-slate-200 text-xs sm:text-sm"
+                <div class="flex min-w-0 flex-col gap-5">
+                  <!-- The sub-category's request form asks for the details: no Description -->
+                  <StudenthubRequestFormSection
+                    v-if="requestForm"
+                    ref="requestFormSection"
+                    :form="requestForm"
                   >
-                    <div class="flex items-center gap-2.5 truncate rtl:pl-2 ltr:pr-2">
-                      <span class="text-emerald-700">📎</span>
-                      <span class="font-bold text-slate-800 truncate">{{ f.name }}</span>
-                      <span class="text-xs text-slate-400 shrink-0">({{ formatFileSize(f.size) }})</span>
+                    <ReuseSubject />
+                  </StudenthubRequestFormSection>
+
+                  <template v-else>
+                    <ReuseSubject />
+                    <!-- Description Field -->
+                    <div>
+                      <label for="wizard-ticket-body" class="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
+                        {{ $t('Description / Issue Details') }}
+                        <span class="text-rose-500">*</span>
+                      </label>
+                      <textarea
+                        id="wizard-ticket-body"
+                        v-model="wizardData.body"
+                        rows="6"
+                        aria-required="true"
+                        class="w-full rounded-xl border px-4 py-3 text-sm font-medium text-slate-900 transition-all outline-none placeholder:text-slate-400 resize-y"
+                        :class="
+                          bodyError
+                            ? 'border-rose-300 bg-rose-50/40 focus:border-rose-500 focus:ring-2 focus:ring-rose-200'
+                            : 'border-slate-200 bg-slate-50/60 focus:bg-white focus:border-[#16a34a] focus:ring-2 focus:ring-emerald-500/15'
+                        "
+                        :placeholder="descriptionPlaceholder"
+                        @blur="bodyTouched = true"
+                      />
+                      <p v-if="bodyError" class="mt-1 text-xs font-semibold text-rose-600">
+                        {{ bodyError }}
+                      </p>
                     </div>
+                  </template>
+
+                  <!-- Attachments Dropzone -->
+                  <div>
+                    <label for="wizard-ticket-files" class="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
+                      {{ $t('Attach Files or Screenshots (Optional)') }}
+                    </label>
                     <button
                       type="button"
-                      class="text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors p-1 cursor-pointer shrink-0"
-                      :title="$t('Remove file')"
-                      @click="removeFile(fIdx)"
+                      aria-label="Upload files or screenshots"
+                      class="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all cursor-pointer w-full"
+                      :class="
+                        isDragging
+                          ? 'border-[#16a34a] bg-emerald-50/80'
+                          : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300'
+                      "
+                      @dragover.prevent="isDragging = true"
+                      @dragleave.prevent="isDragging = false"
+                      @drop.prevent="onDrop"
+                      @click="fileInputRef?.click()"
                     >
-                      ✕
+                      <input
+                        id="wizard-ticket-files"
+                        ref="fileInputRef"
+                        type="file"
+                        multiple
+                        class="hidden"
+                        aria-label="File upload"
+                        @change="(e) => handleFiles((e.target as HTMLInputElement).files)"
+                      />
+                      <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-2xs border border-slate-200/80 mb-2">
+                        <svg class="h-6 w-6 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                      </div>
+                      <div class="text-xs sm:text-sm font-bold text-slate-800">
+                        {{ $t('Click to browse or drag and drop files here') }}
+                      </div>
+                      <div class="text-xs text-slate-400 mt-0.5">
+                        {{ $t('Screenshots, PDFs, documents up to 50MB') }}
+                      </div>
                     </button>
                   </div>
+
+                    <!-- Attached Files List -->
+                    <div v-if="wizardData.attachments.length > 0" class="mt-3 space-y-2">
+                      <div
+                        v-for="(f, fIdx) in wizardData.attachments"
+                        :key="f.name + fIdx"
+                        class="flex items-center justify-between rounded-xl bg-slate-50 px-3.5 py-2.5 border border-slate-200 text-xs sm:text-sm"
+                      >
+                        <div class="flex items-center gap-2.5 truncate rtl:pl-2 ltr:pr-2">
+                          <span class="text-emerald-700">📎</span>
+                          <span class="font-bold text-slate-800 truncate">{{ f.name }}</span>
+                          <span class="text-xs text-slate-400 shrink-0">({{ formatFileSize(f.size) }})</span>
+                        </div>
+                        <button
+                          type="button"
+                          class="text-xs font-bold text-slate-400 hover:text-rose-600 transition-colors p-1 cursor-pointer shrink-0"
+                          :title="$t('Remove file')"
+                          @click="removeFile(fIdx)"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
                 </div>
               </div>
+            </div>
 
             <!-- Bottom Actions -->
             <div class="flex items-center justify-between pt-6 border-t border-slate-100">
@@ -1822,7 +1810,7 @@ const steps = [
               <button
                 type="button"
                 class="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#16a34a] hover:bg-[#15803d] px-8 py-3 text-sm sm:text-base font-bold text-white shadow-md shadow-emerald-950/20 transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none select-none min-w-[170px]"
-                :disabled="isSubmitting || !wizardData.title.trim() || !wizardData.body.trim()"
+                :disabled="isSubmitting || !wizardData.title.trim() || (!requestForm && !wizardData.body.trim())"
                 @click="handleSubmit"
               >
                 <svg

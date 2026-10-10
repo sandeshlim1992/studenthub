@@ -18,8 +18,8 @@ import {
   type StudenthubRequestFormResult,
 } from './types.ts'
 
-// Student Hub: a request form's part of the student wizard's Details step: its heading, help text
-// and its items in order (the ticket fields it asks for, drawn by Zammad's own form fields, with
+// Student Hub: a request form's part of the student wizard's Details step: its heading, help text,
+// what the page puts in the default slot (the ticket's Subject) and its items in order (the ticket fields it asks for, drawn by Zammad's own form fields, with
 // headings and notes between them). The admin page's preview shows the same component, so admins
 // see exactly what the person raising the ticket gets.
 
@@ -63,7 +63,7 @@ defineExpose({ submit })
 
 <template>
   <section
-    class="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 sm:p-5"
+    class="@container rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 sm:p-5"
     :aria-labelledby="headingId"
     data-test-id="studenthub-request-form"
   >
@@ -76,6 +76,9 @@ defineExpose({ submit })
     >
       {{ form.help_text }}
     </p>
+    <div v-if="$slots.default" class="mt-3">
+      <slot />
+    </div>
     <Form v-if="hasFields" :key="schemaKey" ref="formRef" class="mt-3" :schema="schema" />
     <div v-else class="mt-3 flex flex-col gap-2">
       <template v-for="(item, index) in items" :key="index">

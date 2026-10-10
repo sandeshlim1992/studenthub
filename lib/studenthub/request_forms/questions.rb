@@ -31,7 +31,7 @@ module Studenthub::RequestForms::Questions
       'required' => ActiveModel::Type::Boolean.new.cast(item[:required]) == true,
     }
     question['options'] = options(item[:options]) if OPTION_KINDS.include?(kind)
-    question
+    StudenthubRequestForm.with_width(question, item)
   end
 
   def self.key_base(text)

@@ -787,12 +787,6 @@ const discardReplyForm = async () => {
 
   articleFormGroupNode.value?.reset(ticketArticleDefaultValues)
 
-  formReset({
-    values: {
-      article: ticketArticleDefaultValues,
-    },
-  })
-
   return triggerFormUpdater()
 }
 

@@ -87,3 +87,11 @@ the current state is in `.dev/NOTES.md`.
   preview, who it is for); the student wizard shows them, every other ticket form gets them by core workflow
 - 2026-10-09: Students reply in the docked reply box under the messages with the compact header; Subscribers
   listed with avatar and full name
+- 2026-10-10: Staff reply box redesigned (option 1 of <https://claude.ai/artifact/3JzJfNe582BUwGe1knpdLc>): Reply /
+  Internal note / Phone call as tabs above the text (Phone call new, light blue, Save call), the box in the mode's
+  colour, Zammad's channel row and "Text" label hidden, the editor flat with its toolbar under the text and trimmed to
+  the common tools (the rest under ⋮). Not yet checked in a browser
+- 2026-10-10: Zammad's New ticket, ticket screen and Tickets page specs rewritten for the Student Hub screens (50
+  tests that failed on their own: new labels, panels, Recent, the reply box, the student Tickets page)
+- 2026-10-10: Discarding a reply no longer undoes unsaved ticket field changes (a whole-form reset added on 30 Sep put
+  them back; caught by Zammad's spec)

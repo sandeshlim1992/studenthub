@@ -85,9 +85,11 @@ Never put passwords, tokens or keys in this file.
 - Students get their own ticket column (summary, progress steps, files, close / reopen / rate) instead of Details
 - Staff ticket screen = option B of the design board (<https://claude.ai/artifact/SKNJWEgQtaeSMKD3GwPTZJ>): the queue of
   a view on the left (J / K, next ticket after closing), compact header (actions as icons, ⋯ Merge, Close), reply box
-  docked under the messages (option A of <https://claude.ai/artifact/9Maq1Eh5zvawnUkE2sNEnQ>: text box with Reply /
-  Internal note under it, Zammad's editor in the same box once you write, Send = Update, Reply all in the box; messages
-  have no Reply / Reply all of their own, no pinned reply panel), panels in one column on the right
+  docked under the messages (option 1 of <https://claude.ai/artifact/3JzJfNe582BUwGe1knpdLc>: Reply / Internal note /
+  Phone call tabs above a text box that takes the mode's colour, Zammad's editor in the same box once you write
+  without its channel row and "Text" label, toolbar under the text with the common tools and the rest under ⋮,
+  Send = Update, Reply all in the box; messages have no Reply / Reply all of their own, no pinned reply panel), panels
+  in one column on the right
   behind four tabs Ticket / Student / Checklist / Approval (no Organization tab; occasional panels add a tab while they
   apply), Update at the foot of that column (unsaved note + Discard, After update, Update; Zammad's bar only while the
   column is collapsed); students and managers-only keep the sidebar on the left and Zammad's bar. Ticket tabs still go
@@ -150,19 +152,17 @@ Never put passwords, tokens or keys in this file.
 - Patched a Zammad bug in `TicketList.vue` (onActivated): coming back to the kept-alive Tickets page with another
   view refetched the old one at the same time, so the tickets query went out without an overview (error on
   "View team" from the Dashboard). Keep the patch when merging Zammad updates unless they fixed it
-- Zammad's own create / ticket-screen specs fail by design (renamed labels, moved buttons); 4 overview specs
-  fail on the committed code too; Taxil's `AgentTicketCreateCard.vue` is unused
-- Running all of `pages/ticket` at once, about 100 tests fail on the committed code too: some by design (above), many
-  by timing out at 5 s under load (e.g. the screen behaviour and a11y specs, which pass when run on their own)
+- Taxil's `AgentTicketCreateCard.vue` is unused
+- Running all of `pages/ticket` and `pages/ticket-overviews` at once, about 15 tests fail under load, nearly all by
+  timing out at 5 s (e.g. the a11y, history and merge specs); every spec there passes when run on its own
+- The student New ticket wizard (Taxil's `CustomerTicketCreateWizard.vue`, the default for students) has no tests;
+  Zammad's create spec covers the students' full form (`?mode=form`) only
 - The staff ticket layout edits more Zammad files (`TicketDetailViewContent.vue`, `TicketSidebar.vue`,
   `TicketSidebarWrapper.vue`, `TicketSidebarContent.vue`, `ArticleReply.vue`, `TopBarHeaderFull.vue`, `LayoutContent.vue`,
   `useResizeGridColumns.ts`): expect conflicts when merging Zammad
 - Queue: Mine / Unassigned only filter the tickets loaded so far (30 per page)
-- Zammad's pinned-reply-panel specs (`ArticleReply.spec.ts` ×4, "can display and pin reply form") fail by design:
-  staff write in the docked reply box, which has no pin
 - `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
-- Zammad's drawer specs (`left-sidebar.spec.ts` width handling ×6) and Tickets-page views specs
-  (`ticket-overviews.spec.ts` ×3, `ticket-overviews-empty-states.spec.ts` ×2) fail by design since design C
+- Zammad's drawer specs (`left-sidebar.spec.ts` width handling ×6) fail by design since design C
 - Vitest's module cache (`node_modules/.experimental-vitest-cache`) keeps old `import.meta.glob` results: after adding a
   page (`routes.ts`) or a plugin, tests still see the old list (e.g. the rail without KB, Members, Reporting). Delete the
   folder; it is rebuilt
@@ -233,8 +233,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] Decide: should "5. Resolved" count as open on the dashboards
 - [ ] Decide: the Teams views' first group "Unassigned tickets" clashes with the team "Unassigned Tickets"; rename
       the label (suggested: Needs an agent, Not yet assigned) or the team
-- [ ] Decide: update Zammad's failing specs or list them; keep or change the Auto Select Priority triggers;
-      delete `AgentTicketCreateCard.vue`
+- [ ] Decide: keep or change the Auto Select Priority triggers; delete `AgentTicketCreateCard.vue`
 - [ ] Test server: check the moved pages with real data, and the LDAP wizard against the real directory (trial run
       first; dev has no LDAP server)
 - [ ] Fix the Reporting & Analytics routes and `ticket_wizard_metadata` (Taxil's code)
@@ -248,5 +247,8 @@ Never put passwords, tokens or keys in this file.
       screen with queue + panel, the Dashboard panel (views, Needs attention, who is online) and the Members panel
       (filters, role groups, Sort by, Clear filters), the Knowledge Base panel (filter, tree, New category above the
       page), Recent collapsed after signing in, no panel on Administration and Reporting
-- [ ] Check the reply box (option A) in a browser: typing a first character, switching Reply / Internal note with
-      text, Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window
+- [ ] Check the reply box (option 1) in a browser: typing a first character, switching Reply / Internal note /
+      Phone call with text, the box colours, Zammad's channel row and "Text" label gone, the toolbar under the text
+      (⋮ for the rest), Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window
+- [ ] Ask Taxil whether the whole-form reset he added to discarding a reply (30 Sep, removed 10 Oct because it
+      undid unsaved ticket field changes) fixed something; if so, find another way

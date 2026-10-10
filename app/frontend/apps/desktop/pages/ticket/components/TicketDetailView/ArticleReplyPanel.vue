@@ -10,6 +10,7 @@ import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import ResizeLine from '#desktop/components/ResizeLine/ResizeLine.vue'
 import { useResizeLine } from '#desktop/components/ResizeLine/useResizeLine.ts'
 import {
+  type StudenthubReplyChannel,
   type StudenthubReplyMode,
   useStudenthubTicketReply,
 } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
@@ -88,22 +89,32 @@ const articlePanel = useTemplateRef<HTMLElement>('article-panel')
 
 // ---- Student Hub reply box (design option 1) ----
 const { form } = useTicketInformation()
-const { reply, replyAll, canReplyAll, openMode } = useStudenthubTicketReply()
+const { reply, replyAll, canReplyAll, canEmail, openMode } = useStudenthubTicketReply()
+
+const articleType = computed(
+  () => (form?.value?.values?.article as { articleType?: string } | undefined)?.articleType,
+)
 
 const boxMode = computed<StudenthubReplyMode>(() => {
   if (props.hasInternalArticle) return 'note'
-  const article = form?.value?.values?.article as { articleType?: string } | undefined
-  return article?.articleType === 'phone' ? 'phone' : 'reply'
+  return articleType.value === 'phone' ? 'phone' : 'reply'
 })
 
-// Reply all is offered while replying to an email that went to other people too.
+// A reply goes out as an email or on the web (the form's article type).
+const channel = computed<StudenthubReplyChannel>(() =>
+  articleType.value === 'web' ? 'web' : 'email',
+)
+
+// Reply all is offered while replying by email to an email that went to other people too.
 const isReplyAll = ref(false)
-watch(boxMode, (mode) => {
-  if (mode !== 'reply') isReplyAll.value = false
+watch([boxMode, channel], ([mode, current]) => {
+  if (mode !== 'reply' || current !== 'email') isReplyAll.value = false
 })
 
 const replyAllState = computed(() =>
-  boxMode.value === 'reply' && canReplyAll.value ? isReplyAll.value : undefined,
+  boxMode.value === 'reply' && channel.value === 'email' && canReplyAll.value
+    ? isReplyAll.value
+    : undefined,
 )
 
 const toggleReplyAll = (all: boolean) => {
@@ -112,10 +123,25 @@ const toggleReplyAll = (all: boolean) => {
   else reply()
 }
 
+// A note or call in between keeps the reply's channel for when Reply is picked again.
+const replyChannel = ref<StudenthubReplyChannel>(canEmail.value ? 'email' : 'web')
+watch(
+  [boxMode, channel],
+  ([mode, current]) => {
+    if (mode === 'reply') replyChannel.value = current
+  },
+  { immediate: true },
+)
+
 // Switching keeps the text (each keeps the body Zammad already has).
 const switchMode = (mode: StudenthubReplyMode) => {
   if (mode === boxMode.value) return
-  openMode(mode)
+  openMode(mode, replyChannel.value)
+}
+
+const switchChannel = (next: StudenthubReplyChannel) => {
+  if (next === channel.value) return
+  reply(next)
 }
 
 // Send is Update: the ticket fields changed in the Ticket panel are saved with the message.
@@ -184,7 +210,10 @@ onMounted(() => {
         :mode="boxMode"
         :ticket-changes="studenthubStudent ? 0 : ticketChanges"
         :reply-all="replyAllState"
+        :channel="studenthubStudent ? undefined : channel"
+        :can-email="canEmail"
         writing
+        @channel="switchChannel"
         @reply-all="toggleReplyAll"
         @attach="attach"
         @send="$emit('submit')"

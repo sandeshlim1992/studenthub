@@ -3,12 +3,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type { StudenthubReplyMode } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
+import type {
+  StudenthubReplyChannel,
+  StudenthubReplyMode,
+} from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
 
 // Student Hub: the foot of the reply box (design option 1), the same at rest and while writing:
-// attach and Send (the mode is in the tabs above the text, StudenthubReplyBoxTabs). While writing
-// it also says how many ticket fields are saved with the message (Send is Update) and offers the
-// bin, which discards the text.
+// attach and Send (the mode is in the tabs above the text, StudenthubReplyBoxTabs). A reply says
+// how it is sent, Email or Web. While writing it also says how many ticket fields are saved with
+// the message (Send is Update) and offers the bin, which discards the text.
 interface Props {
   mode: StudenthubReplyMode
   writing?: boolean
@@ -16,11 +19,16 @@ interface Props {
   disabled?: boolean
   // undefined: not offered (no other recipients, or a note)
   replyAll?: boolean
+  // undefined: not offered (students)
+  channel?: StudenthubReplyChannel
+  // Email can be picked (the group has an address to send from, the student has one)
+  canEmail?: boolean
 }
 
 const props = defineProps<Props>()
 
 defineEmits<{
+  channel: [StudenthubReplyChannel]
   'reply-all': [boolean]
   attach: []
   send: []
@@ -36,6 +44,42 @@ const sendLabel = computed(() => {
 
 <template>
   <div class="sh-reply-box__foot">
+    <div
+      v-if="mode === 'reply' && channel"
+      class="sh-reply-box__channel"
+      role="radiogroup"
+      :aria-label="$t('Send by')"
+    >
+      <button
+        v-tooltip.supportive="
+          canEmail ? undefined : $t('No email address to send from or to on this ticket.')
+        "
+        type="button"
+        role="radio"
+        class="sh-reply-box__toggle"
+        :aria-checked="channel === 'email'"
+        :aria-disabled="!canEmail"
+        :disabled="disabled"
+        data-test-id="studenthub-reply-channel-email"
+        @click="canEmail && $emit('channel', 'email')"
+      >
+        <CommonIcon name="mail" size="xs" decorative />
+        {{ $t('Email') }}
+      </button>
+      <button
+        type="button"
+        role="radio"
+        class="sh-reply-box__toggle"
+        :aria-checked="channel === 'web'"
+        :disabled="disabled"
+        data-test-id="studenthub-reply-channel-web"
+        @click="$emit('channel', 'web')"
+      >
+        <CommonIcon name="web" size="xs" decorative />
+        {{ $t('Web') }}
+      </button>
+    </div>
+
     <button
       v-if="writing && replyAll !== undefined"
       type="button"

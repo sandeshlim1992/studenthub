@@ -164,7 +164,7 @@ const moreItems = computed<MenuItem[]>(() => [
     role="toolbar"
     :aria-label="$t('Ticket header actions')"
   >
-    <button type="button" class="sh-header-action sh-header-action--primary" @click="reply">
+    <button type="button" class="sh-header-action sh-header-action--primary" @click="reply()">
       <CommonIcon name="reply" size="xs" decorative />
       {{ $t('Reply') }}
     </button>

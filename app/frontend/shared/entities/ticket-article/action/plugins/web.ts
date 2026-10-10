@@ -14,6 +14,8 @@ const actionPlugin: TicketArticleActionPlugin = {
       icon: 'web',
       view: {
         customer: ['change'],
+        // Student Hub: agents can reply on the web too (the reply box's Email / Web choice)
+        agent: ['change'],
       },
       fields: {
         body: {

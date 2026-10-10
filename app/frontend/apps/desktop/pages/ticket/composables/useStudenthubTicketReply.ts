@@ -22,8 +22,13 @@ export const STUDENTHUB_REPLY_BAR_KEY = Symbol('studenthub-reply-bar') as Inject
 // internal note or a phone call log.
 export type StudenthubReplyMode = 'reply' | 'note' | 'phone'
 
+// Student Hub: how an agent's reply reaches the student: an email, or a message in the portal
+// only (the "Agent web reply" trigger emails the student a notice, Studenthub::WebReplyNotice).
+export type StudenthubReplyChannel = 'email' | 'web'
+
 // Student Hub: "Reply" on the ticket screen (header for students, reply bar for agents) answers
-// the student's latest message the way that message's own reply action would (email, web…).
+// the student's latest message. Agents send it by email (in the thread of the student's email when
+// there is one) or on the web; students always reply on the web.
 // "Add note" opens an internal note, "Log call" a public phone message.
 export const useStudenthubTicketReply = () => {
   const { ticket, form, showTicketArticleReplyForm } = useTicketInformation()
@@ -59,12 +64,17 @@ export const useStudenthubTicketReply = () => {
   })
 
   const replyAction = computed(
-    () => targetActions.value.find((action) => action.name.endsWith('-reply')) ?? null,
+    () => targetActions.value.find((action) => action.name === 'email-reply') ?? null,
   )
 
   // Offered only when the student's email went to other people too.
   const replyAllAction = computed(
-    () => targetActions.value.find((action) => action.name.endsWith('-reply-all')) ?? null,
+    () => targetActions.value.find((action) => action.name === 'email-reply-all') ?? null,
+  )
+
+  // Email needs an address to send from (the ticket's group) and one to send to (the student).
+  const canEmail = computed(
+    () => !!ticket.value?.group.emailAddress && !!ticket.value?.customer.email,
   )
 
   const performOnTarget = (action: (typeof targetActions.value)[number]) => {
@@ -75,15 +85,22 @@ export const useStudenthubTicketReply = () => {
     })
   }
 
-  const reply = () => {
+  const reply = (channel: StudenthubReplyChannel = 'email') => {
     if (!ticket.value) return
+
+    const { email } = ticket.value.customer
+
+    if (!isAgent.value || channel === 'web' || !canEmail.value || !email) {
+      openReplyForm({ articleType: 'web', internal: false })
+      return
+    }
 
     if (replyAction.value && replyTarget.value) {
       performOnTarget(replyAction.value)
       return
     }
 
-    openReplyForm({ articleType: isAgent.value ? 'email' : 'web', internal: false })
+    openReplyForm({ articleType: 'email', internal: false, subtype: 'reply', to: [email] })
   }
 
   // Reply all on the reply box (it left the message cards): the same reply with every recipient.
@@ -98,17 +115,17 @@ export const useStudenthubTicketReply = () => {
 
   const logCall = () => openReplyForm({ articleType: 'phone', internal: false })
 
-  const openMode = (mode: StudenthubReplyMode) => {
+  const openMode = (mode: StudenthubReplyMode, channel?: StudenthubReplyChannel) => {
     if (mode === 'note') return addNote()
     if (mode === 'phone') return logCall()
-    reply()
+    reply(channel)
   }
 
   // The reply box (option A): open Zammad's form in the chosen mode and put in what was typed
   // into the resting box, at the cursor (above the signature). Switching modes later goes through
   // openMode too, which keeps the text already written.
-  const open = async (mode: StudenthubReplyMode, typed = '') => {
-    await openMode(mode)
+  const open = async (mode: StudenthubReplyMode, typed = '', channel?: StudenthubReplyChannel) => {
+    await openMode(mode, channel)
 
     if (!typed) return
 
@@ -121,5 +138,5 @@ export const useStudenthubTicketReply = () => {
     document.execCommand?.('insertText', false, typed)
   }
 
-  return { reply, replyAll, canReplyAll, addNote, logCall, openMode, open, isAgent }
+  return { reply, replyAll, canReplyAll, canEmail, addNote, logCall, openMode, open, isAgent }
 }

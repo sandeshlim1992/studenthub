@@ -105,3 +105,5 @@ the current state is in `.dev/NOTES.md`.
   editor not yet
 - 2026-10-10: Dashboards: the Refresh button uses the new arrow-clockwise icon (Bootstrap), which also gives the
   Overviews page's Refresh button its missing icon
+- 2026-10-10: Ticket screen: agents send a reply by Email (default) or Web, picked next to Send; Email is greyed out
+  without an address. A web reply emails the student a notice with a link (new trigger, Studenthub::WebReplyNotice)

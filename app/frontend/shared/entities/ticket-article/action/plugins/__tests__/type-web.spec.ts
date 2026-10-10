@@ -14,12 +14,13 @@ describe('web type', () => {
     expect(types).toContainEqual(expect.objectContaining({ value: 'web' }))
   })
 
-  it('agent does not get web type', () => {
+  // Student Hub: agents reply on the web too (the reply box's Email / Web choice).
+  it('agent does get web type', () => {
     mockPermissions(['ticket.agent'])
     const ticket = createTicket()
 
     const types = createTestArticleTypes(ticket)
 
-    expect(types).not.toContainEqual(expect.objectContaining({ value: 'web' }))
+    expect(types).toContainEqual(expect.objectContaining({ value: 'web' }))
   })
 })

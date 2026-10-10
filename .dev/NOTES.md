@@ -100,6 +100,11 @@ Never put passwords, tokens or keys in this file.
   apply), Update at the foot of that column (unsaved note + Discard, After update, Update; Zammad's bar only while the
   column is collapsed); students and managers-only keep the sidebar on the left and Zammad's bar. Ticket tabs still go
   to Recent (Zammad's tabs left as they are)
+- Agents' Reply goes by Email (default; in the student's email thread when there is one) or Web (portal only), picked
+  next to Send. Email is greyed out when the student or the ticket's group has no address. Zammad's web type is open
+  to agents for this (`plugins/web.ts`, so it is also in Zammad's own type list and on mobile). A web reply emails the
+  student a notice with a link (trigger "Agent replied on the web : Email Notification to Customer", created once by
+  `Studenthub::WebReplyNotice`; admins edit or switch it off under Triggers; the notice is an internal message)
 - Navigation = design C of <https://claude.ai/artifact/N1Lp8tk5n2cT3CfjS9VmhL>: rail in the application colour
   (always shown, short labels) + light panel (role, section name, ticket views on Tickets and ticket screens, Recent,
   collapsed after each sign-in and kept as the user leaves it until signing out);
@@ -266,6 +271,9 @@ Never put passwords, tokens or keys in this file.
 - [ ] Check the reply box (option 1) in a browser: typing a first character, switching Reply / Internal note /
       Phone call with text, the box colours, Zammad's channel row and "Text" label gone, the toolbar under the text
       (⋮ for the rest), Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window
+- [ ] Check the Email / Web choice in a browser: Email by default, Web posts in the portal only and the student gets
+      the notice email, switching keeps the text, Reply all only with Email, Email greyed out for a student without
+      an address; run `bin/rails db:migrate` first (creates the trigger)
 - [ ] Ask Taxil whether the whole-form reset he added to discarding a reply (30 Sep, removed 10 Oct because it
       undid unsaved ticket field changes) fixed something; if so, find another way
 - [ ] Check Request forms in a browser as an admin: add a question, a heading and a note, publish, then raise a ticket

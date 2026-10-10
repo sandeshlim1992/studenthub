@@ -4,6 +4,7 @@
 import { computed, ref } from 'vue'
 
 import {
+  type StudenthubReplyChannel,
   type StudenthubReplyMode,
   useStudenthubTicketReply,
 } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
@@ -16,7 +17,8 @@ import StudenthubReplyBoxTabs from './StudenthubReplyBoxTabs.vue'
 // real text box with Reply / Internal note / Phone call tabs above it, so the mode shows before
 // anyone writes. The first click or keystroke opens Zammad's reply form in its place
 // (ArticleReplyPanel, styled as the same box) in that mode, keeping what was typed. Reply answers
-// the student's latest message. Students get the box too, for their replies only (no tabs).
+// the student's latest message, by email unless Web is picked. Students get the box too, for
+// their replies only (no tabs).
 const props = defineProps<{
   student?: boolean
   // Phone call is offered (the ticket allows phone messages)
@@ -24,9 +26,15 @@ const props = defineProps<{
 }>()
 
 const { ticket } = useTicketInformation()
-const { open } = useStudenthubTicketReply()
+const { open, canEmail } = useStudenthubTicketReply()
 
 const mode = ref<StudenthubReplyMode>('reply')
+
+// Email unless Web is picked, or email can't be sent on this ticket.
+const pickedChannel = ref<StudenthubReplyChannel>('email')
+const channel = computed<StudenthubReplyChannel>(() =>
+  canEmail.value ? pickedChannel.value : 'web',
+)
 
 const name = computed(
   () => ticket.value?.customer.firstname?.trim() || ticket.value?.customer.fullname || '',
@@ -44,7 +52,7 @@ let opening = false
 const start = (typed = '') => {
   if (opening) return
   opening = true
-  open(mode.value, typed).finally(() => {
+  open(mode.value, typed, channel.value).finally(() => {
     opening = false
   })
 }
@@ -88,7 +96,9 @@ const onPaste = (event: ClipboardEvent) => {
     />
     <StudenthubReplyBoxFooter
       :mode="mode"
-      :student="student"
+      :channel="student ? undefined : channel"
+      :can-email="canEmail"
+      @channel="pickedChannel = $event"
       @attach="start()"
     />
   </div>

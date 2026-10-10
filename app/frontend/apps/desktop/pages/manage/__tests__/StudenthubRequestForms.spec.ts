@@ -46,6 +46,7 @@ const definition = {
   sub_category: 'Onboarding (New Starter)',
   title: 'Staff onboarding',
   help_text: 'Tell us about the new starter.',
+  items: [{ type: 'field', name: 'start_date', required: true }],
   fields: [{ name: 'start_date', required: true }],
   organization_ids: [9],
   role_ids: [],
@@ -158,7 +159,7 @@ describe('Request forms', () => {
     ).toBeDisabled()
     await view.events.selectOptions(subCategory, 'Password Reset')
 
-    await view.events.selectOptions(view.getByLabelText('Add a field'), 'impact')
+    await view.events.selectOptions(view.getByLabelText('Add an existing Zammad field'), 'impact')
     await view.events.click(view.getByRole('button', { name: 'Add' }))
     await view.events.click(view.getByLabelText('Required'))
 
@@ -173,11 +174,44 @@ describe('Request forms', () => {
       sub_category: 'Password Reset',
       title: '',
       help_text: '',
+      items: [{ type: 'field', name: 'impact', required: true }],
       fields: [{ name: 'impact', required: true }],
       organization_ids: [],
       role_ids: [],
     })
     expect(await view.findByRole('heading', { level: 1 })).toHaveTextContent('Password Reset Draft')
+  })
+
+  it('puts headings and notes between the fields', async () => {
+    const calls = mockServer({
+      'GET /api/v1/studenthub/request_forms': () => ({ body: { forms: [publishedForm], options } }),
+      'PUT /api/v1/studenthub/request_forms/1': (body) => ({
+        body: { ...publishedForm, draft: body.draft, status: 'changed' },
+      }),
+    })
+
+    const view = renderPage()
+    await view.events.click(await view.findByRole('button', { name: 'Edit Staff onboarding' }))
+
+    await view.events.click(view.getByRole('button', { name: 'Add heading' }))
+    await view.events.type(view.getByPlaceholderText('e.g. Employee'), 'Employee')
+    await view.events.click(view.getByRole('button', { name: 'Move Employee up' }))
+    await view.events.click(view.getByRole('button', { name: 'Add note' }))
+    await view.events.type(
+      view.getByPlaceholderText('Shown on the form only, e.g. what an answer is used for.'),
+      'We set up the account before this date.',
+    )
+
+    await view.events.click(view.getByRole('button', { name: 'Save draft' }))
+
+    expect(calls.find((call) => call.method === 'PUT')?.body.draft).toMatchObject({
+      items: [
+        { type: 'heading', text: 'Employee' },
+        { type: 'field', name: 'start_date', required: true },
+        { type: 'note', text: 'We set up the account before this date.' },
+      ],
+      fields: [{ name: 'start_date', required: true }],
+    })
   })
 
   it('keeps changes to a published form apart until they are published', async () => {
@@ -217,5 +251,45 @@ describe('Request forms', () => {
     expect(useNotifications().notifications.value.at(-1)?.message).toBe(
       'The request form has been published.',
     )
+  })
+
+  it('adds a question of the form itself', async () => {
+    const calls = mockServer({
+      'GET /api/v1/studenthub/request_forms': () => ({ body: { forms: [publishedForm], options } }),
+      'PUT /api/v1/studenthub/request_forms/1': (body) => ({
+        body: { ...publishedForm, draft: body.draft, status: 'changed' },
+      }),
+    })
+
+    const view = renderPage()
+    await view.events.click(await view.findByRole('button', { name: 'Edit Staff onboarding' }))
+
+    await view.events.click(view.getByRole('button', { name: 'New question' }))
+    const panel = view.getByRole('region', { name: 'New question' })
+    expect(within(panel).getByRole('button', { name: 'Add question' })).toBeDisabled()
+
+    await view.events.type(within(panel).getByLabelText('Question'), 'Laptop model')
+    await view.events.selectOptions(within(panel).getByLabelText('Type'), 'select')
+    await view.events.type(within(panel).getByLabelText('Options, one per line'), 'Standard{Enter}High-spec{Enter}Standard')
+    await view.events.click(within(panel).getByLabelText('Required'))
+    await view.events.click(within(panel).getByRole('button', { name: 'Add question' }))
+
+    const row = view.getByRole('listitem', { name: 'Laptop model' })
+    expect(row).toHaveTextContent('Question of this form · Dropdown')
+
+    await view.events.click(view.getByRole('button', { name: 'Save draft' }))
+
+    expect(calls.find((call) => call.method === 'PUT')?.body.draft.items).toEqual([
+      { type: 'field', name: 'start_date', required: true },
+      {
+        type: 'question',
+        key: 'laptop_model',
+        label: 'Laptop model',
+        kind: 'select',
+        help: '',
+        required: true,
+        options: ['Standard', 'High-spec'],
+      },
+    ])
   })
 })

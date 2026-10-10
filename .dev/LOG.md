@@ -95,3 +95,11 @@ the current state is in `.dev/NOTES.md`.
   tests that failed on their own: new labels, panels, Recent, the reply box, the student Tickets page)
 - 2026-10-10: Discarding a reply no longer undoes unsaved ticket field changes (a whole-form reset added on 30 Sep put
   them back; caught by Zammad's spec)
+- 2026-10-10: Request forms: headings and notes between the fields (a form is now an ordered list of items; today's
+  form converted by migration); the preview draws headings and notes alone too
+- 2026-10-10: Request forms: the server writes a Request details block (the form's headings and answers) at the top of
+  a ticket's first message and records the form version; mail-channel emails are left as they are
+- 2026-10-10: Request forms: a form's own questions (label, type, options, help, required), made in the editor's New
+  question panel; answers go with the first message, are checked on the server and saved by Student Hub, so
+  publishing needs no restart. Student wizard checked in a browser with a test form (nothing written); the admin
+  editor not yet

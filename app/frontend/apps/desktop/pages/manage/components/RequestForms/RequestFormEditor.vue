@@ -4,11 +4,23 @@
 import { computed, ref, watch } from 'vue'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
+import {
+  requestFormFields,
+  type StudenthubRequestFormItem,
+  type StudenthubRequestFormQuestion,
+} from '#desktop/components/StudenthubRequestForm/types.ts'
 
-import type { RequestFormDefinition, RequestFormOptions } from './types.ts'
+import RequestFormQuestionPanel from './RequestFormQuestionPanel.vue'
+import {
+  QUESTION_KIND_LABELS,
+  questionKey,
+  type RequestFormDefinition,
+  type RequestFormOptions,
+} from './types.ts'
 
 // Student Hub: the editor half of Administration → Request forms: when the form applies
-// (Category › Sub-category), who it is for, its text and its fields.
+// (Category › Sub-category), who it is for, its text and its content: the form's own questions
+// and existing Zammad fields, with headings and notes between them.
 
 const definition = defineModel<RequestFormDefinition>({ required: true })
 
@@ -16,6 +28,8 @@ const props = defineProps<{
   options: RequestFormOptions
   // "Category::Sub-category" of the other forms: each sub-category has one form.
   taken: Set<string>
+  // Keys of the questions in the published form: their type can't change.
+  publishedQuestionKeys?: string[]
 }>()
 
 const TYPE_LABELS: Record<string, string> = {
@@ -75,6 +89,19 @@ const alsoOn = (name: string) => {
   return null
 }
 
+// The items, with the definition's fields kept in step.
+const setItems = (items: StudenthubRequestFormItem[]) => {
+  definition.value.items = items
+  definition.value.fields = requestFormFields(items)
+}
+
+const itemName = (item: StudenthubRequestFormItem) => {
+  if (item.type === 'field') return choiceFor(item.name)?.display ?? item.name
+  if (item.type === 'question') return item.label
+  if (item.type === 'heading') return item.text || __('Heading')
+  return __('Note')
+}
+
 const remainingChoices = computed(() =>
   props.options.fields.filter(
     (choice) => !definition.value.fields.some((field) => field.name === choice.name),
@@ -85,29 +112,70 @@ const fieldToAdd = ref('')
 
 const addField = () => {
   if (!fieldToAdd.value) return
-  definition.value.fields = [
-    ...definition.value.fields,
-    { name: fieldToAdd.value, required: false },
-  ]
+  setItems([...definition.value.items, { type: 'field', name: fieldToAdd.value, required: false }])
   fieldToAdd.value = ''
 }
 
-const moveField = (index: number, step: -1 | 1) => {
-  const fields = [...definition.value.fields]
+const addText = (type: 'heading' | 'note') =>
+  setItems([...definition.value.items, { type, text: '' }])
+
+const moveItem = (index: number, step: -1 | 1) => {
+  const items = [...definition.value.items]
   const target = index + step
-  if (target < 0 || target >= fields.length) return
-  ;[fields[index], fields[target]] = [fields[target], fields[index]]
-  definition.value.fields = fields
+  if (target < 0 || target >= items.length) return
+  ;[items[index], items[target]] = [items[target], items[index]]
+  setItems(items)
 }
 
-const removeField = (index: number) => {
-  definition.value.fields = definition.value.fields.filter((_, position) => position !== index)
+const removeItem = (index: number) => {
+  setItems(definition.value.items.filter((_, position) => position !== index))
 }
 
 const setRequired = (index: number, required: boolean) => {
-  const fields = [...definition.value.fields]
-  fields[index] = { name: fields[index].name, required }
-  definition.value.fields = fields
+  const item = definition.value.items[index]
+  if (item.type !== 'field' && item.type !== 'question') return
+  const items = [...definition.value.items]
+  items[index] = { ...item, required }
+  setItems(items)
+}
+
+const setText = (index: number, text: string) => {
+  const item = definition.value.items[index]
+  if (item.type === 'field' || item.type === 'question') return
+  const items = [...definition.value.items]
+  items[index] = { type: item.type, text }
+  setItems(items)
+}
+
+const itemKey = (item: StudenthubRequestFormItem, index: number) => {
+  if (item.type === 'field') return `field-${item.name}`
+  if (item.type === 'question') return `question-${item.key}`
+  return `${item.type}-${index}`
+}
+
+// The question panel: closed, a new question (index null) or the question at that index.
+const questionPanel = ref<{ index: number | null } | null>(null)
+
+const editedQuestion = computed(() => {
+  const index = questionPanel.value?.index
+  if (index === null || index === undefined) return undefined
+  const item = definition.value.items[index]
+  return item?.type === 'question' ? item : undefined
+})
+
+const saveQuestion = (question: Omit<StudenthubRequestFormQuestion, 'key'>) => {
+  const index = questionPanel.value?.index ?? null
+  const items = [...definition.value.items]
+
+  if (index === null) {
+    const taken = items.flatMap((item) => (item.type === 'question' ? [item.key] : []))
+    items.push({ ...question, key: questionKey(question.label, taken) })
+  } else if (editedQuestion.value) {
+    items[index] = { ...question, key: editedQuestion.value.key }
+  }
+
+  setItems(items)
+  questionPanel.value = null
 }
 
 const inputClass =
@@ -164,7 +232,7 @@ const hintClass = 'text-xs font-normal text-[var(--sh-muted)]'
       <p :class="hintClass">
         {{
           $t(
-            "The form is used when a ticket is raised under this sub-category, one form per sub-category. Afterwards staff see the answers in the ticket's details.",
+            "The form is used when a ticket is raised under this sub-category, one form per sub-category. The answers are written at the top of the ticket's first message, under the form's headings.",
           )
         }}
       </p>
@@ -279,79 +347,153 @@ const hintClass = 'text-xs font-normal text-[var(--sh-muted)]'
 
     <section :class="cardClass" aria-labelledby="request-form-fields">
       <h2 id="request-form-fields" class="font-semibold text-[var(--sh-ink)]">
-        {{ $t('Fields') }}
+        {{ $t('Fields, headings and notes') }}
       </h2>
-      <p v-if="!definition.fields.length" class="text-sm text-[var(--sh-muted)]">
+      <p v-if="!definition.items.length" class="text-sm text-[var(--sh-muted)]">
         {{ $t('No fields yet.') }}
       </p>
       <ol v-else class="divide-y divide-[var(--sh-line)] rounded-lg border border-[var(--sh-line)]">
         <li
-          v-for="(field, index) in definition.fields"
-          :key="field.name"
+          v-for="(item, index) in definition.items"
+          :key="itemKey(item, index)"
           class="flex flex-wrap items-center gap-3 px-3 py-2"
-          :aria-label="choiceFor(field.name)?.display ?? field.name"
+          :aria-label="$t(itemName(item))"
         >
           <div class="flex flex-col">
             <button
               type="button"
               class="rounded p-0.5 text-[var(--sh-muted)] hover:text-[var(--sh-app)] disabled:opacity-30"
-              :aria-label="$t('Move %s up', choiceFor(field.name)?.display ?? field.name)"
+              :aria-label="$t('Move %s up', $t(itemName(item)))"
               :disabled="index === 0"
-              @click="moveField(index, -1)"
+              @click="moveItem(index, -1)"
             >
               <CommonIcon name="chevron-up" size="xs" decorative />
             </button>
             <button
               type="button"
               class="rounded p-0.5 text-[var(--sh-muted)] hover:text-[var(--sh-app)] disabled:opacity-30"
-              :aria-label="$t('Move %s down', choiceFor(field.name)?.display ?? field.name)"
-              :disabled="index === definition.fields.length - 1"
-              @click="moveField(index, 1)"
+              :aria-label="$t('Move %s down', $t(itemName(item)))"
+              :disabled="index === definition.items.length - 1"
+              @click="moveItem(index, 1)"
             >
               <CommonIcon name="chevron-down" size="xs" decorative />
             </button>
           </div>
-          <div class="flex min-w-0 grow flex-col">
-            <span class="font-semibold text-[var(--sh-ink)]">{{
-              choiceFor(field.name)?.display ?? field.name
-            }}</span>
-            <span v-if="!choiceFor(field.name)" class="text-xs font-semibold text-red-700">{{
-              $t('This field no longer exists.')
-            }}</span>
-            <span v-else class="text-xs text-[var(--sh-muted)]">
-              {{
-                $t(
-                  TYPE_LABELS[choiceFor(field.name)!.data_type] ?? choiceFor(field.name)!.data_type,
-                )
-              }}
-              <template v-if="alsoOn(field.name)">· {{ $t(alsoOn(field.name)!) }}</template>
-            </span>
-          </div>
-          <label
-            :for="`request-form-required-${field.name}`"
-            class="flex items-center gap-1.5 text-sm text-[var(--sh-ink)]"
-          >
-            <input
-              :id="`request-form-required-${field.name}`"
-              type="checkbox"
-              :checked="field.required"
-              @change="setRequired(index, ($event.target as HTMLInputElement).checked)"
+          <template v-if="item.type === 'question'">
+            <div class="flex min-w-0 grow flex-col">
+              <span class="font-semibold text-[var(--sh-ink)]">{{ item.label }}</span>
+              <span class="text-xs text-[var(--sh-muted)]">
+                {{ $t('Question of this form') }} · {{ $t(QUESTION_KIND_LABELS[item.kind]) }}
+              </span>
+            </div>
+            <label
+              v-if="item.kind !== 'boolean'"
+              :for="`request-form-required-q-${item.key}`"
+              class="flex items-center gap-1.5 text-sm text-[var(--sh-ink)]"
+            >
+              <input
+                :id="`request-form-required-q-${item.key}`"
+                type="checkbox"
+                :checked="item.required"
+                @change="setRequired(index, ($event.target as HTMLInputElement).checked)"
+              />
+              {{ $t('Required') }}
+            </label>
+            <CommonButton
+              variant="secondary"
+              size="small"
+              icon="pencil"
+              :aria-label="$t('Change %s', item.label)"
+              @click="questionPanel = { index }"
             />
-            {{ $t('Required') }}
+          </template>
+          <template v-else-if="item.type === 'field'">
+            <div class="flex min-w-0 grow flex-col">
+              <span class="font-semibold text-[var(--sh-ink)]">{{ itemName(item) }}</span>
+              <span v-if="!choiceFor(item.name)" class="text-xs font-semibold text-red-700">{{
+                $t('This field no longer exists.')
+              }}</span>
+              <span v-else class="text-xs text-[var(--sh-muted)]">
+                {{
+                  $t(
+                    TYPE_LABELS[choiceFor(item.name)!.data_type] ?? choiceFor(item.name)!.data_type,
+                  )
+                }}
+                <template v-if="alsoOn(item.name)">· {{ $t(alsoOn(item.name)!) }}</template>
+              </span>
+            </div>
+            <label
+              :for="`request-form-required-${item.name}`"
+              class="flex items-center gap-1.5 text-sm text-[var(--sh-ink)]"
+            >
+              <input
+                :id="`request-form-required-${item.name}`"
+                type="checkbox"
+                :checked="item.required"
+                @change="setRequired(index, ($event.target as HTMLInputElement).checked)"
+              />
+              {{ $t('Required') }}
+            </label>
+          </template>
+          <label
+            v-else
+            :for="`request-form-text-${index}`"
+            :class="[labelClass, 'min-w-48 grow']"
+          >
+            {{ item.type === 'heading' ? $t('Heading') : $t('Note') }}
+            <input
+              v-if="item.type === 'heading'"
+              :id="`request-form-text-${index}`"
+              type="text"
+              maxlength="120"
+              :value="item.text"
+              :placeholder="$t('e.g. Employee')"
+              :class="inputClass"
+              @input="setText(index, ($event.target as HTMLInputElement).value)"
+            />
+            <textarea
+              v-else
+              :id="`request-form-text-${index}`"
+              rows="2"
+              maxlength="1000"
+              :value="item.text"
+              :placeholder="$t('Shown on the form only, e.g. what an answer is used for.')"
+              :class="[inputClass, 'h-auto py-2 font-normal']"
+              @input="setText(index, ($event.target as HTMLTextAreaElement).value)"
+            />
           </label>
           <CommonButton
             variant="remove"
             size="small"
             icon="trash3"
-            :aria-label="$t('Remove %s', choiceFor(field.name)?.display ?? field.name)"
-            @click="removeField(index)"
+            :aria-label="$t('Remove %s', $t(itemName(item)))"
+            @click="removeItem(index)"
           />
         </li>
       </ol>
 
+      <RequestFormQuestionPanel
+        v-if="questionPanel"
+        :key="questionPanel.index ?? 'new'"
+        :question="editedQuestion"
+        :kind-locked="Boolean(editedQuestion && publishedQuestionKeys?.includes(editedQuestion.key))"
+        @save="saveQuestion"
+        @cancel="questionPanel = null"
+      />
+      <div v-else class="flex flex-wrap gap-2">
+        <CommonButton
+          variant="primary"
+          size="small"
+          prefix-icon="plus"
+          @click="questionPanel = { index: null }"
+        >
+          {{ $t('New question') }}
+        </CommonButton>
+      </div>
+
       <div class="flex flex-wrap items-end gap-2">
         <label for="request-form-add-field" :class="[labelClass, 'min-w-48 grow']">
-          {{ $t('Add a field') }}
+          {{ $t('Add an existing Zammad field') }}
           <select id="request-form-add-field" v-model="fieldToAdd" :class="inputClass">
             <option value="" disabled>{{ $t('Choose a ticket field…') }}</option>
             <option v-for="choice in remainingChoices" :key="choice.name" :value="choice.name">
@@ -369,16 +511,27 @@ const hintClass = 'text-xs font-normal text-[var(--sh-muted)]'
           {{ $t('Add') }}
         </CommonButton>
       </div>
+      <div class="flex flex-wrap gap-2">
+        <CommonButton variant="secondary" size="small" prefix-icon="plus" @click="addText('heading')">
+          {{ $t('Add heading') }}
+        </CommonButton>
+        <CommonButton variant="secondary" size="small" prefix-icon="plus" @click="addText('note')">
+          {{ $t('Add note') }}
+        </CommonButton>
+      </div>
       <p :class="hintClass">
-        {{ $t('Need a new field? Create it under') }}
+        {{
+          $t(
+            "A new question belongs to this form: its answers are written into the ticket's Request details and saved by Student Hub. Use an existing Zammad field (made under",
+          )
+        }}
         <RouterLink
           to="/manage/system/objects"
           class="font-semibold text-[var(--sh-app)] hover:underline"
           >{{ $t('Objects') }}</RouterLink
-        >
-        {{
+        >{{
           $t(
-            'and set it not to show on New ticket: it then appears only on the forms that ask for it. Fields marked "also on…" show on that New ticket form anyway; the form can make them required.',
+            ') when the answer has to drive triggers, overviews or reports. Fields marked "also on…" show on that New ticket form anyway; the form can make them required.',
           )
         }}
       </p>

@@ -12,16 +12,18 @@ module Studenthub::RequestForms
 
   # Ticket field types a request form can ask for.
   FIELD_TYPES = %w[input textarea select multiselect tree_select multi_tree_select boolean integer date datetime].freeze
-  MAX_FIELDS  = 30
+  MAX_FIELDS  = 20 # questions per form
+  MAX_ITEMS   = 60 # questions, headings and notes together
 
   WORKFLOW_NAME = 'Student Hub - request forms'.freeze # rubocop:disable Zammad/DetectTranslatableString -- a record name, not shown
   PERMISSION    = 'admin.request_forms'.freeze
 
-  # The published forms (their definitions with string keys, plus 'id'). Cached until a form changes.
+  # The published forms (their definitions with string keys, plus 'id' and 'version', the time it
+  # was published). Cached until a form changes.
   def self.live
     Rails.cache.fetch(['Studenthub::RequestForms.live', forms_version]) do
       StudenthubRequestForm.where.not(published: nil).reorder(:id).map do |form|
-        form.published.merge('id' => form.id)
+        form.published.merge('id' => form.id, 'version' => form.published_at&.iso8601)
       end
     end
   end

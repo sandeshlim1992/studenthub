@@ -759,24 +759,44 @@ forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
   renamed or removed is marked **Not applied** and stops matching.
 - **Who can use it:** everyone, or only customers in some organisations or roles (the ticket's customer: the person
   raising it, or whom staff raise it for). Other customers don't get that sub-category at all; staff still can.
+- **Content:** in order, the form's own **questions**, existing Zammad **fields**, **headings** between groups and
+  **notes** (help shown on the form only); up to 20 questions and fields together, 60 items in all.
+- **Questions** belong to the form, not to Zammad: a label, a type (short text, long text, dropdown, multi-select,
+  date, date and time, yes / no, number), options for lists, help text and required. Publishing needs no restart.
+  Each question keeps the key it got when added, so renaming it keeps old answers meaningful; a published
+  question's type can't change. The new UI sends the answers with the ticket's first message
+  (`preferences.studenthub_request_answers`); the server keeps only answers to the form's questions with valid
+  types and options, refuses the ticket when a required one is missing, and saves them per ticket in
+  `studenthub_request_answers` with the questions as they were. The classic UI and the API can't ask them. Answers
+  can't be used in triggers, overviews or reports: use an existing Zammad field for that.
 - **Fields** are ordinary ticket fields (made under **Objects**), so they can be searched and used in triggers,
   overviews and reports. A field set not to show on New ticket appears only where a form asks for it; on a ticket it
   shows only if its form asks for it or it holds a value. Fields shown on New ticket anyway are marked "also on…"; the
   form can make them required. Publishing gives a field a hidden New ticket entry for customers and staff, and a
   ticket entry for staff, where it had none (otherwise it couldn't appear in their forms).
-- **Where:** the student wizard shows the form's heading, help text and fields above the subject and checks the
-  required ones before sending. Every other ticket form (the student "Raise a New Ticket" form, staff's New ticket,
+- **Where:** the student wizard shows the form's heading, help text, fields, headings and notes above the subject
+  and checks the required ones before sending. Every other ticket form (the student "Raise a New Ticket" form, staff's New ticket,
   the classic UI) gets the fields through the core workflow "Student Hub - request forms" (locked, not listed with
   the admins' own workflows), and the server checks the required fields and the sub-category when the ticket is
-  created. The heading and help text are only in the wizard.
+  created. The heading, help text, headings and notes are only in the wizard.
+- **Request details:** when a ticket's first message is created under a published form, the server starts that
+  message with a **Request details** block: the form's headings and the answers to its questions and fields in the
+  form's order
+  (unanswered fields and notes left out), then a line, then the message itself. It is written once; later changes to
+  the fields don't change it. The message remembers the form and its version (`preferences.studenthub_request_form`).
+  Emails that arrive through a mail channel get no block.
 
 | File(s) | Purpose |
 |---|---|
 | `db/migrate/20261009100000_studenthub_request_forms.rb`, `lib/studenthub/request_forms*`, `app/models/studenthub_request_form.rb` | Table, permission, core workflow; draft / publish, checks; the choices on the admin page |
 | `app/models/core_workflow/custom/studenthub_request_form.rb` | Applies the published forms on every ticket form and on the server |
+| `lib/studenthub/request_forms/details.rb`, `…/first_article.rb`, `config/initializers/studenthub_request_forms.rb` | The Request details block on the first message |
+| `lib/studenthub/request_forms/questions.rb`, `app/models/studenthub_request_answer.rb`, `db/migrate/20261010110000_studenthub_request_answers.rb` | The form's own questions: cleaning, checking and saving the answers |
+| `app/frontend/shared/entities/ticket/composables/useTicketCreate.ts` (Zammad's, one line) | Sends the answers with the first message |
+| `db/migrate/20261010100000_studenthub_request_form_items.rb` | Gives forms made before headings and notes their fields as items |
 | `app/controllers/studenthub_request_forms_controller.rb` | API (`/api/v1/studenthub/request_forms`, `…/:id/{publish,unpublish,discard}`, `…/applicable` for the wizard) |
-| `app/frontend/apps/desktop/pages/manage/views/RequestForms.vue`, `…/manage/components/RequestForms/` | Admin page: list, editor, preview |
-| `app/frontend/apps/desktop/components/StudenthubRequestForm/` (shown by `CustomerTicketCreateWizard.vue`; answers sent by `TicketCreateContent.vue`) | The form's part of the wizard's Details step, also used by the preview |
+| `app/frontend/apps/desktop/pages/manage/views/RequestForms.vue`, `…/manage/components/RequestForms/` | Admin page: list, editor (with the question panel), preview |
+| `app/frontend/apps/desktop/components/StudenthubRequestForm/` (shown by `CustomerTicketCreateWizard.vue`; answers sent by `TicketCreateContent.vue`) | The form's part of the wizard's Details step (fields, headings, notes), also used by the preview |
 
 ---
 

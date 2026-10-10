@@ -135,6 +135,10 @@ export const useTicketCreate = (
           : ticketCreateArticleType[formData.articleSenderType].type,
         contentType: 'text/html',
         security: formData.security,
+        // Student Hub: the answers to a request form's own questions, checked and saved by the server.
+        ...(formData.studenthub_request_answers
+          ? { preferences: { studenthub_request_answers: formData.studenthub_request_answers } }
+          : {}),
       },
       objectAttributeValues: additionalObjectAttributeValues,
     } as TicketCreateInput

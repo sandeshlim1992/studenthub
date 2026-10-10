@@ -4,15 +4,24 @@
 import { computed, useId } from 'vue'
 
 import Form from '#shared/components/Form/Form.vue'
-import type { FormSchemaNode, FormValues } from '#shared/components/Form/types.ts'
 import { useForm } from '#shared/components/Form/useForm.ts'
-import { EnumObjectManagerObjects } from '#shared/graphql/types.ts'
 
-import type { StudenthubRequestFormDefinition } from './types.ts'
+import {
+  HEADING_CLASS,
+  NOTE_CLASS,
+  requestFormSchema,
+  splitRequestFormValues,
+} from './requestFormSchema.ts'
+import {
+  requestFormItems,
+  type StudenthubRequestFormDefinition,
+  type StudenthubRequestFormResult,
+} from './types.ts'
 
 // Student Hub: a request form's part of the student wizard's Details step: its heading, help text
-// and the ticket fields it asks for, drawn by Zammad's own form fields. The admin page's preview
-// shows the same component, so admins see exactly what the person raising the ticket gets.
+// and its items in order (the ticket fields it asks for, drawn by Zammad's own form fields, with
+// headings and notes between them). The admin page's preview shows the same component, so admins
+// see exactly what the person raising the ticket gets.
 
 const props = defineProps<{
   form: StudenthubRequestFormDefinition
@@ -22,23 +31,23 @@ const headingId = useId()
 
 const { form: formRef, isValid } = useForm()
 
-const schema = computed<FormSchemaNode[]>(() =>
-  props.form.fields.map((field) => ({
-    name: field.name,
-    object: EnumObjectManagerObjects.Ticket,
-    required: field.required,
-  })),
+const items = computed(() => requestFormItems(props.form))
+const schema = computed(() => requestFormSchema(props.form))
+
+// Zammad's form waits for a field before it shows anything, so headings and notes alone (a draft
+// in the admin preview) are drawn here.
+const hasFields = computed(() =>
+  items.value.some((item) => item.type === 'field' || item.type === 'question'),
 )
 
-// The form builds its fields once, so a change of fields (in the admin preview) draws it anew.
-const schemaKey = computed(() =>
-  props.form.fields.map((field) => `${field.name}:${field.required}`).join('|'),
-)
+// The form builds its fields once, so a change of items (in the admin preview) draws it anew.
+const schemaKey = computed(() => JSON.stringify(items.value))
 
-// The answers, or null while a required one is missing (the form then shows what is missing).
-const submit = async (): Promise<FormValues | null> => {
+// The Zammad fields' values and the answers to the form's own questions, or null while a required
+// one is missing (the form then shows what is missing).
+const submit = async (): Promise<StudenthubRequestFormResult | null> => {
   const node = formRef.value?.formNode
-  if (!node) return {}
+  if (!node) return { fields: {}, answers: {} }
 
   await node.settled
   if (!isValid.value) {
@@ -46,7 +55,7 @@ const submit = async (): Promise<FormValues | null> => {
     return null
   }
 
-  return { ...formRef.value?.values }
+  return splitRequestFormValues({ ...formRef.value?.values })
 }
 
 defineExpose({ submit })
@@ -67,6 +76,12 @@ defineExpose({ submit })
     >
       {{ form.help_text }}
     </p>
-    <Form :key="schemaKey" ref="formRef" class="mt-3" :schema="schema" />
+    <Form v-if="hasFields" :key="schemaKey" ref="formRef" class="mt-3" :schema="schema" />
+    <div v-else class="mt-3 flex flex-col gap-2">
+      <template v-for="(item, index) in items" :key="index">
+        <h4 v-if="item.type === 'heading'" :class="HEADING_CLASS">{{ item.text }}</h4>
+        <p v-else-if="item.type === 'note'" :class="NOTE_CLASS">{{ item.text }}</p>
+      </template>
+    </div>
   </section>
 </template>

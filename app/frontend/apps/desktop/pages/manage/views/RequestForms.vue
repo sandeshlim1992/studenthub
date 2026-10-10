@@ -104,11 +104,26 @@ const startEdit = (form: RequestForm) => {
   editing.value = { saved: form, draft: copy(form.draft) }
 }
 
+// The questions of the published form keep their type.
+const publishedQuestionKeys = computed(() =>
+  (editing.value?.saved?.published?.items ?? []).flatMap((item) =>
+    item.type === 'question' ? [item.key] : [],
+  ),
+)
+
+// The definition as text with its keys sorted: the server stores keys in its own order.
+const comparable = (definition: RequestFormDefinition) =>
+  JSON.stringify(definition, (_key, value) =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)))
+      : value,
+  )
+
 const isDirty = computed(() => {
   if (!editing.value) return false
   return (
-    JSON.stringify(editing.value.draft) !==
-    JSON.stringify(editing.value.saved?.draft ?? emptyDefinition())
+    comparable(editing.value.draft) !==
+    comparable(editing.value.saved?.draft ?? emptyDefinition())
   )
 })
 
@@ -409,6 +424,7 @@ const editingTitle = computed(() => {
             v-model="editing.draft"
             :options="options"
             :taken="taken"
+            :published-question-keys="publishedQuestionKeys"
           />
           <div class="lg:sticky lg:top-4">
             <RequestFormPreview

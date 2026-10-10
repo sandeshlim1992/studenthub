@@ -56,8 +56,14 @@ Never put passwords, tokens or keys in this file.
   reorders)
 - Students on the ticket screen: compact header without actions, the docked reply box (reply only, Send saves),
   no message actions
-- Request forms: one per Category › Sub-category, draft then publish; fields are ordinary ticket fields applied by
-  a locked core workflow on every ticket form and checked on the server (README → Request forms)
+- Request forms: one per Category › Sub-category, draft then publish (README → Request forms; design doc
+  <https://claude.ai/code/artifact/d646f913-e0b6-482d-b929-13c9744ddc27>). A form is items in order: its own
+  questions (stored by Student Hub in `studenthub_request_answers`, not Zammad fields, so publishing never restarts the
+  app; they can't drive triggers, overviews or reports), existing Zammad fields (applied by a locked core workflow,
+  checked on the server), headings and notes. The server writes a Request details block at the top of the first
+  message. Decided 10 Oct: title = the sub-category; agents' New ticket keeps the Zammad fields and gets a separate
+  Request details panel for the form's own questions; own questions never in Details and not corrected by agents;
+  `admin.request_forms` is the only permission; up to 20 questions and fields per form
 - New UI look follows the UI/UX Pro Max "minimal Swiss" guidance, all accents from the application colour
   (UI/UX Pro Max is a user-level Claude Code plugin; reinstall after a container rebuild)
 - New UI design: Halo-style (mockup <https://claude.ai/artifact/6H4uc22Wb4zTiUfy3PhXfj>), application colour chosen
@@ -160,6 +166,12 @@ Never put passwords, tokens or keys in this file.
 - The staff ticket layout edits more Zammad files (`TicketDetailViewContent.vue`, `TicketSidebar.vue`,
   `TicketSidebarWrapper.vue`, `TicketSidebarContent.vue`, `ArticleReply.vue`, `TopBarHeaderFull.vue`, `LayoutContent.vue`,
   `useResizeGridColumns.ts`): expect conflicts when merging Zammad
+- Request forms edit one line of Zammad's `useTicketCreate.ts` (the answers go with the first message): expect a
+  conflict there when merging Zammad
+- `eslint --fix` on whole folders rewrites other people's files: Zammad's translatable-string autofix wraps object
+  keys in `__()`, which broke the wizard's category tables once (10 Oct, restored). Only fix files you changed
+- Taxil's wizard writes its own "Category: … / Campus: …" lines into the description, under the Request details
+  block (to tidy with request forms step 4)
 - Queue: Mine / Unassigned only filter the tickets loaded so far (30 per page)
 - `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
 - Zammad's drawer specs (`left-sidebar.spec.ts` width handling ×6) fail by design since design C
@@ -183,6 +195,10 @@ Never put passwords, tokens or keys in this file.
 
 ## In progress
 
+- Request forms rework (design doc above): steps 1–3 built on 10 Oct (headings and notes, Request details block, the
+  form's own questions). Next: step 4 title = sub-category and description optional / hidden, step 5 the agents'
+  Request details panel on New ticket, step 6 file uploads and conditions. The admin editor is not yet checked in a
+  browser (no admin login works in this container: admin@example.com is refused; agent@ and student@ work)
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
@@ -252,3 +268,5 @@ Never put passwords, tokens or keys in this file.
       (⋮ for the rest), Reply all on an email with Cc, Ctrl + Enter, Esc, and that the box stops at half the window
 - [ ] Ask Taxil whether the whole-form reset he added to discarding a reply (30 Sep, removed 10 Oct because it
       undid unsaved ticket field changes) fixed something; if so, find another way
+- [ ] Check Request forms in a browser as an admin: add a question, a heading and a note, publish, then raise a ticket
+      under it as student@ and look at the Request details block and the saved answers

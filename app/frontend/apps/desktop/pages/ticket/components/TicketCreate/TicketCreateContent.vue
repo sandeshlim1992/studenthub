@@ -447,8 +447,10 @@ const handleWizardSubmit = async (data: WizardData) => {
       campus: campusAttributeValue,
       sub_category: subCategoryAttributeValue,
       subcategory: subCategoryAttributeValue,
-      // Student Hub: the answers to the sub-category's request form.
+      // Student Hub: the answers to the sub-category's request form: its Zammad fields become
+      // ticket attributes, its own questions go with the first message (useTicketCreate).
       ...data.requestFields,
+      studenthub_request_answers: data.requestAnswers,
     } as unknown as FormSubmitData<TicketFormData>
 
     if (customerId) {

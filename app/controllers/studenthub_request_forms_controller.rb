@@ -60,7 +60,7 @@ class StudenthubRequestFormsController < ApplicationController
   def applicable
     found = Studenthub::RequestForms.applicable(params[:category].to_s, params[:sub_category].to_s, current_user)
 
-    render json: found&.slice('id', 'category', 'sub_category', 'title', 'help_text', 'fields')
+    render json: found&.slice('id', 'category', 'sub_category', 'title', 'help_text', 'items', 'fields')
   end
 
   private

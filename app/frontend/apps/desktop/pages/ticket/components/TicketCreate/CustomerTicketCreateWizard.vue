@@ -31,6 +31,8 @@ export interface WizardData {
   attachments: File[]
   // Student Hub: the answers to the sub-category's request form, if it has one.
   requestFields?: Record<string, unknown>
+  // Student Hub: the answers to the request form's own questions (sent with the first message).
+  requestAnswers?: { form_id?: number; answers: Record<string, unknown> }
 }
 
 interface Props {
@@ -837,12 +839,16 @@ const handleSubmit = async () => {
   bodyTouched.value = true
 
   // null: a required answer of the request form is missing (the form shows which).
-  const requestFields = requestForm.value ? await requestFormSection.value?.submit() : undefined
-  if (requestFields === null) return
+  const request = requestForm.value ? await requestFormSection.value?.submit() : undefined
+  if (request === null) return
 
   if (!isDetailsValid.value || props.isSubmitting) return
 
-  emit('submit', { ...wizardData.value, requestFields: requestFields ?? {} })
+  emit('submit', {
+    ...wizardData.value,
+    requestFields: request?.fields ?? {},
+    requestAnswers: request ? { form_id: requestForm.value?.id, answers: request.answers } : undefined,
+  })
 }
 
 // Cancel prompt

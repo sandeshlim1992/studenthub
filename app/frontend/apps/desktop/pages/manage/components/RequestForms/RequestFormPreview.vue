@@ -22,7 +22,7 @@ const outcome = ref<'ok' | 'missing' | null>(null)
 const hasSubCategory = computed(() => Boolean(props.definition.sub_category))
 
 watch(
-  () => props.definition.fields,
+  () => props.definition.items,
   () => {
     outcome.value = null
   },
@@ -106,7 +106,7 @@ const tryIt = async () => {
           </div>
 
           <StudenthubRequestFormSection
-            v-if="definition.fields.length || definition.help_text"
+            v-if="definition.items.length || definition.help_text"
             ref="section"
             :form="definition"
           />

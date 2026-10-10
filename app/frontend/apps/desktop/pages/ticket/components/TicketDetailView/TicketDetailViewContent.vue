@@ -821,9 +821,11 @@ const handleShowArticleForm = (
 <template>
   <!-- Student Hub: the layout waits for the managers-only check (see isQueueLayout); the
        sidebar's side is fixed when LayoutContent is set up, hence the key. -->
+  <!-- Student Hub: sh-student-ticket gives the student's own ticket the portal's green -->
   <LayoutContent
     v-if="isViewerLoaded"
     :key="isQueueLayout ? 'queue' : 'details-start'"
+    :class="{ 'sh-student-ticket': isTicketCustomer }"
     name="ticket-detail"
     no-padding
     background-variant="primary"

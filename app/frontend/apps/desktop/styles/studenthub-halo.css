@@ -26,6 +26,18 @@
   --sh-mono: ui-monospace, 'SFMono-Regular', menlo, consolas, monospace;
 }
 
+/* The student's own ticket screen (TicketDetailViewContent): the student portal's green in
+   place of the application colour, so it matches the rest of the portal. */
+.sh-student-ticket {
+  --sh-app: #15803d;
+  --sh-app-hover: #166534;
+  --sh-app-soft: #ecfdf5;
+  --sh-app-border: #a7f3d0;
+  --sh-on-app-muted: color-mix(in sRGB, var(--sh-on-app) 72%, #15803d);
+  --sh-row-hover: color-mix(in sRGB, #15803d 6%, white);
+  --sh-row-checked: color-mix(in sRGB, #15803d 10%, white);
+}
+
 @theme inline {
   --color-app: var(--sh-app);
   --color-on-app: var(--sh-on-app);

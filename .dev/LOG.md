@@ -112,3 +112,5 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-10: Request forms: a question or field can be Half width (two side by side where the form is wide enough);
   the student's form lays its items out in a grid
 - 2026-10-10: Navigation panel: the group headers (Views, My views, Teams, Sites, Show, Recent…) are bold
+- 2026-10-11: Student's own ticket screen in the portal's green (#15803d) instead of the application colour
+  (`.sh-student-ticket` on TicketDetailViewContent)

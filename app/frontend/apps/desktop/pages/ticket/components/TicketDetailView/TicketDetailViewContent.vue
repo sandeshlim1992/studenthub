@@ -23,6 +23,10 @@ import {
   NotificationTypes,
   useNotifications,
 } from '#shared/components/CommonNotifications/index.ts'
+import { EXTENSION_NAME as AiAssistanceTextToolsName } from '#shared/components/Form/fields/FieldEditor/extensions/AiAssistantTextTools.ts'
+import { EXTENSION_NAME as KnowledgeBaseMentionName } from '#shared/components/Form/fields/FieldEditor/extensions/KnowledgeBaseSuggestion.ts'
+import { EXTENSION_NAME as TextModuleMentionName } from '#shared/components/Form/fields/FieldEditor/extensions/TextModuleSuggestion.ts'
+import { EXTENSION_NAME as UserMentionName } from '#shared/components/Form/fields/FieldEditor/extensions/UserMention.ts'
 import Form from '#shared/components/Form/Form.vue'
 import type { FormSubmitData, FormValues } from '#shared/components/Form/types.ts'
 import { useForm } from '#shared/components/Form/useForm.ts'
@@ -63,6 +67,10 @@ import { useFlyout } from '#desktop/components/CommonFlyout/useFlyout.ts'
 import CommonIndicator from '#desktop/components/CommonIndicator/CommonIndicator.vue'
 import { useIndicator } from '#desktop/components/CommonIndicator/useIndicator.ts'
 import CommonLoader from '#desktop/components/CommonLoader/CommonLoader.vue'
+import {
+  provideFieldEditorOptions,
+  useFieldEditorOptions,
+} from '#desktop/components/Form/fields/FieldEditor/useFieldEditorOptions.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import { SidebarName, SidebarPosition } from '#desktop/components/layout/types.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
@@ -349,6 +357,28 @@ provide(
   STUDENTHUB_REPLY_BAR_KEY,
   computed(() => isQueueLayout.value && isTicketAgent.value),
 )
+
+// Student Hub: the agents' reply box keeps the common tools in the editor's toolbar (design
+// option 1); the rest are in its overflow menu.
+const studenthubReplyTools = [
+  AiAssistanceTextToolsName,
+  UserMentionName,
+  KnowledgeBaseMentionName,
+  TextModuleMentionName,
+  'bold',
+  'italic',
+  'link',
+  'bulletList',
+  'orderedList',
+  'blockquote',
+]
+
+provideFieldEditorOptions({
+  ...useFieldEditorOptions(),
+  toolbarActions: computed(() =>
+    isQueueLayout.value && isTicketAgent.value ? studenthubReplyTools : undefined,
+  ),
+})
 
 const formEditAttributeLocation = computed(() => {
   // Student Hub: the Ticket panel stays mounted while others are open (beside it, or hidden in the

@@ -43,6 +43,10 @@ export const useArticleReply = (
     availableArticleTypes.value.find((t) => t.articleType === 'note'),
   )
 
+  const phoneArticleType = computed(() =>
+    availableArticleTypes.value.find((t) => t.articleType === 'phone'),
+  )
+
   const customerReplyArticleType = computed(() =>
     availableArticleTypes.value.find((t) => t.articleType === 'web'),
   )
@@ -51,5 +55,5 @@ export const useArticleReply = (
     isTicketCustomer.value ? customerReplyArticleType.value : noteArticleType.value,
   )
 
-  return { noteArticleType, customerReplyArticleType, defaultArticleType }
+  return { noteArticleType, phoneArticleType, customerReplyArticleType, defaultArticleType }
 }

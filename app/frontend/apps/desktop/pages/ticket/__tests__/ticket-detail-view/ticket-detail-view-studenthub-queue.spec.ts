@@ -153,13 +153,20 @@ describe('Ticket detail view: queue beside the ticket (Student Hub)', () => {
     expect(within(toolbar).queryByRole('button', { name: 'Reply' })).not.toBeInTheDocument()
     expect(within(toolbar).queryByRole('button', { name: 'Add note' })).not.toBeInTheDocument()
 
-    // Design option A: a text box at rest, Reply / Internal note under it, Send off until writing.
+    // Design option 1: Reply / Internal note / Phone call tabs over a text box at rest, Send off
+    // until writing.
     const replyBox = await view.findByRole('group', { name: 'Reply' })
     expect(
       within(replyBox).getByRole('textbox', { name: /Write a reply to \S+…/ }),
     ).toBeInTheDocument()
-    expect(within(replyBox).getByRole('radio', { name: 'Reply' })).toBeChecked()
-    expect(within(replyBox).getByRole('radio', { name: 'Internal note' })).not.toBeChecked()
+    expect(within(replyBox).getByRole('tab', { name: 'Reply' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
+    expect(within(replyBox).getByRole('tab', { name: 'Internal note' })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    )
     expect(within(replyBox).getByRole('button', { name: 'Send' })).toBeDisabled()
 
     const panels = view.getByRole('navigation', { name: 'Ticket panels' })
@@ -181,8 +188,11 @@ describe('Ticket detail view: queue beside the ticket (Student Hub)', () => {
     expect(within(saveArea).getByRole('button', { name: 'Update' })).toBeInTheDocument()
     expect(saveArea).toHaveTextContent('After update')
 
-    await view.events.click(within(replyBox).getByRole('radio', { name: 'Internal note' }))
-    expect(within(replyBox).getByRole('radio', { name: 'Internal note' })).toBeChecked()
+    await view.events.click(within(replyBox).getByRole('tab', { name: 'Internal note' }))
+    expect(within(replyBox).getByRole('tab', { name: 'Internal note' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
     expect(within(replyBox).getByRole('button', { name: 'Add note' })).toBeDisabled()
 
     // The first click opens Zammad's form in the same box, in the chosen mode.
@@ -191,7 +201,10 @@ describe('Ticket detail view: queue beside the ticket (Student Hub)', () => {
     )
     const writing = await view.findByRole('complementary', { name: 'Reply' })
     expect(view.queryByRole('group', { name: 'Reply' })).not.toBeInTheDocument()
-    expect(within(writing).getByRole('radio', { name: 'Internal note' })).toBeChecked()
+    expect(within(writing).getByRole('tab', { name: 'Internal note' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
     expect(within(writing).getByRole('button', { name: 'Add note' })).toBeEnabled()
     expect(
       within(writing).getByRole('button', { name: 'Discard unsaved reply' }),

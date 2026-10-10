@@ -18,13 +18,13 @@ export const STUDENTHUB_REPLY_BAR_KEY = Symbol('studenthub-reply-bar') as Inject
   Readonly<Ref<boolean>>
 >
 
-// Student Hub: what the agents' reply box writes (design option A): a reply to the student or an
-// internal note.
-export type StudenthubReplyMode = 'reply' | 'note'
+// Student Hub: what the agents' reply box writes (design option 1): a reply to the student, an
+// internal note or a phone call log.
+export type StudenthubReplyMode = 'reply' | 'note' | 'phone'
 
 // Student Hub: "Reply" on the ticket screen (header for students, reply bar for agents) answers
 // the student's latest message the way that message's own reply action would (email, web…).
-// "Add note" opens an internal note.
+// "Add note" opens an internal note, "Log call" a public phone message.
 export const useStudenthubTicketReply = () => {
   const { ticket, form, showTicketArticleReplyForm } = useTicketInformation()
   // The article list provides this; without it Reply opens a plain reply.
@@ -96,12 +96,19 @@ export const useStudenthubTicketReply = () => {
 
   const addNote = () => openReplyForm({ articleType: 'note', internal: true })
 
+  const logCall = () => openReplyForm({ articleType: 'phone', internal: false })
+
+  const openMode = (mode: StudenthubReplyMode) => {
+    if (mode === 'note') return addNote()
+    if (mode === 'phone') return logCall()
+    reply()
+  }
+
   // The reply box (option A): open Zammad's form in the chosen mode and put in what was typed
   // into the resting box, at the cursor (above the signature). Switching modes later goes through
-  // reply / addNote too, which keep the text already written.
+  // openMode too, which keeps the text already written.
   const open = async (mode: StudenthubReplyMode, typed = '') => {
-    if (mode === 'note') await addNote()
-    else reply()
+    await openMode(mode)
 
     if (!typed) return
 
@@ -114,5 +121,5 @@ export const useStudenthubTicketReply = () => {
     document.execCommand?.('insertText', false, typed)
   }
 
-  return { reply, replyAll, canReplyAll, addNote, open, isAgent }
+  return { reply, replyAll, canReplyAll, addNote, logCall, openMode, open, isAgent }
 }

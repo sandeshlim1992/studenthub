@@ -259,4 +259,24 @@ describe('basic toolbar testing', () => {
 
     expect(popover).toHaveStyle('z-index: 100;')
   })
+
+  // Student Hub: the agents' reply box keeps only some tools in the bar
+  it('keeps only the injected tools in the bar and the rest in the overflow menu', async () => {
+    const view = renderComponent(FieldEditorActionBar, {
+      props: {
+        contentType: 'text/html',
+        visible: true,
+        disabledPlugins: [],
+        formId: getUuid(),
+      },
+      provide: [[FIELD_EDITOR_OPTIONS, { zIndex: '20', toolbarActions: ['bold', 'italic'] }]],
+    })
+
+    expect(view.getByRole('button', { name: 'Format as bold' })).toBeInTheDocument()
+    expect(view.getByRole('button', { name: 'Format as italic' })).toBeInTheDocument()
+    expect(view.queryByRole('button', { name: 'Format as underlined' })).not.toBeInTheDocument()
+
+    // The overflow menu (beside the buttons) is there for the tools left out.
+    expect(view.getByRole('toolbar').children).toHaveLength(2)
+  })
 })

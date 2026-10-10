@@ -5,8 +5,8 @@ import { computed } from 'vue'
 
 import type { StudenthubReplyMode } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
 
-// Student Hub: the foot of the agents' reply box (design option A), the same at rest and while
-// writing: Reply / Internal note as a switch under the text, then attach and Send. While writing
+// Student Hub: the foot of the reply box (design option 1), the same at rest and while writing:
+// attach and Send (the mode is in the tabs above the text, StudenthubReplyBoxTabs). While writing
 // it also says how many ticket fields are saved with the message (Send is Update) and offers the
 // bin, which discards the text.
 interface Props {
@@ -16,55 +16,26 @@ interface Props {
   disabled?: boolean
   // undefined: not offered (no other recipients, or a note)
   replyAll?: boolean
-  // Students only reply: no Reply / Internal note switch
-  student?: boolean
 }
 
 const props = defineProps<Props>()
 
 defineEmits<{
-  mode: [StudenthubReplyMode]
   'reply-all': [boolean]
   attach: []
   send: []
   discard: []
 }>()
 
-const sendLabel = computed(() => (props.mode === 'note' ? __('Add note') : __('Send')))
+const sendLabel = computed(() => {
+  if (props.mode === 'note') return __('Add note')
+  if (props.mode === 'phone') return __('Save call')
+  return __('Send')
+})
 </script>
 
 <template>
   <div class="sh-reply-box__foot">
-    <div
-      v-if="!student"
-      class="sh-reply-mode"
-      role="radiogroup"
-      :aria-label="$t('Reply or internal note')"
-    >
-      <button
-        type="button"
-        role="radio"
-        class="sh-reply-mode__option"
-        :aria-checked="mode === 'reply'"
-        :disabled="disabled"
-        @click="$emit('mode', 'reply')"
-      >
-        <CommonIcon name="reply" size="xs" decorative />
-        {{ $t('Reply') }}
-      </button>
-      <button
-        type="button"
-        role="radio"
-        class="sh-reply-mode__option sh-reply-mode__option--note"
-        :aria-checked="mode === 'note'"
-        :disabled="disabled"
-        @click="$emit('mode', 'note')"
-      >
-        <CommonIcon name="pencil-square" size="xs" decorative />
-        {{ $t('Internal note') }}
-      </button>
-    </div>
-
     <button
       v-if="writing && replyAll !== undefined"
       type="button"
@@ -107,7 +78,10 @@ const sendLabel = computed(() => (props.mode === 'note' ? __('Add note') : __('S
     <button
       type="button"
       class="sh-reply-box__send"
-      :class="{ 'sh-reply-box__send--note': mode === 'note' }"
+      :class="{
+        'sh-reply-box__send--note': mode === 'note',
+        'sh-reply-box__send--phone': mode === 'phone',
+      }"
       :disabled="!writing || disabled"
       @click="$emit('send')"
     >

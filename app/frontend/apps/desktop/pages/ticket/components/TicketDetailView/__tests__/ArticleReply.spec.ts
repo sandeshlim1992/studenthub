@@ -146,7 +146,7 @@ describe('ArticleReply', () => {
     const box = wrapper.getByRole('group', { name: 'Reply' })
     expect(within(box).getByRole('textbox', { name: 'Write your reply…' })).toBeInTheDocument()
     expect(within(box).getByRole('button', { name: 'Send' })).toBeDisabled()
-    expect(within(box).queryByRole('radio', { name: 'Internal note' })).not.toBeInTheDocument()
+    expect(within(box).queryByRole('tablist')).not.toBeInTheDocument()
 
     expect(wrapper.queryByRole('button', { name: 'Add reply' })).not.toBeInTheDocument()
     expect(wrapper.queryByRole('button', { name: 'Add internal note' })).not.toBeInTheDocument()

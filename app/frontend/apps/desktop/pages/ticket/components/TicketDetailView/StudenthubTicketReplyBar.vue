@@ -10,14 +10,17 @@ import {
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 
 import StudenthubReplyBoxFooter from './StudenthubReplyBoxFooter.vue'
+import StudenthubReplyBoxTabs from './StudenthubReplyBoxTabs.vue'
 
-// Student Hub: the agents' reply box at rest, docked under the messages (design option A). It is a
-// real text box with Reply / Internal note under it, so the mode shows before anyone writes. The
-// first click or keystroke opens Zammad's reply form in its place (ArticleReplyPanel, styled as
-// the same box) in that mode, keeping what was typed. Reply answers the student's latest message.
-// Students get the box too, for their replies only (no Reply / Internal note switch).
+// Student Hub: the agents' reply box at rest, docked under the messages (design option 1). It is a
+// real text box with Reply / Internal note / Phone call tabs above it, so the mode shows before
+// anyone writes. The first click or keystroke opens Zammad's reply form in its place
+// (ArticleReplyPanel, styled as the same box) in that mode, keeping what was typed. Reply answers
+// the student's latest message. Students get the box too, for their replies only (no tabs).
 const props = defineProps<{
   student?: boolean
+  // Phone call is offered (the ticket allows phone messages)
+  phone?: boolean
 }>()
 
 const { ticket } = useTicketInformation()
@@ -32,6 +35,7 @@ const name = computed(
 const placeholder = computed(() => {
   if (props.student) return __('Write your reply…')
   if (mode.value === 'note') return __('Write an internal note…')
+  if (mode.value === 'phone') return __('What was said on the call?')
   return name.value ? __('Write a reply to %s…') : __('Write a reply…')
 })
 
@@ -67,10 +71,11 @@ const onPaste = (event: ClipboardEvent) => {
 <template>
   <div
     class="sh-reply-box"
-    :class="{ 'sh-reply-box--note': mode === 'note' }"
+    :class="{ 'sh-reply-box--note': mode === 'note', 'sh-reply-box--phone': mode === 'phone' }"
     role="group"
     :aria-label="$t('Reply')"
   >
+    <StudenthubReplyBoxTabs v-if="!student" :mode="mode" :phone="phone" @mode="mode = $event" />
     <textarea
       class="sh-reply-box__rest"
       rows="2"
@@ -84,7 +89,6 @@ const onPaste = (event: ClipboardEvent) => {
     <StudenthubReplyBoxFooter
       :mode="mode"
       :student="student"
-      @mode="mode = $event"
       @attach="start()"
     />
   </div>

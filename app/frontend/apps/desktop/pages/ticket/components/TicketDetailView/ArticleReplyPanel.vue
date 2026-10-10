@@ -9,10 +9,14 @@ import { useSessionStore } from '#shared/stores/session.ts'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import ResizeLine from '#desktop/components/ResizeLine/ResizeLine.vue'
 import { useResizeLine } from '#desktop/components/ResizeLine/useResizeLine.ts'
-import { useStudenthubTicketReply } from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
+import {
+  type StudenthubReplyMode,
+  useStudenthubTicketReply,
+} from '#desktop/pages/ticket/composables/useStudenthubTicketReply.ts'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 
 import StudenthubReplyBoxFooter from './StudenthubReplyBoxFooter.vue'
+import StudenthubReplyBoxTabs from './StudenthubReplyBoxTabs.vue'
 
 import type { FormKitNode } from '@formkit/core'
 
@@ -22,10 +26,12 @@ interface Props {
   // Customers get a visible "Reply" heading inside the form (which carries the region's
   //  `aria-labelledby` id), so this panel omits its own sr-only heading for them.
   isTicketCustomer?: boolean
-  // Student Hub: agents with the queue layout write in the reply box (design option A)
+  // Student Hub: agents with the queue layout write in the reply box (design option 1)
   studenthubBox?: boolean
-  // … and students, without the switch to internal notes
+  // … and students, without the tabs
   studenthubStudent?: boolean
+  // Phone call is offered in the tabs (the ticket allows phone messages)
+  studenthubPhone?: boolean
 }
 
 const props = defineProps<Props>()
@@ -80,16 +86,20 @@ const resetHeight = () => {
 
 const articlePanel = useTemplateRef<HTMLElement>('article-panel')
 
-// ---- Student Hub reply box (design option A) ----
+// ---- Student Hub reply box (design option 1) ----
 const { form } = useTicketInformation()
-const { reply, replyAll, canReplyAll, addNote } = useStudenthubTicketReply()
+const { reply, replyAll, canReplyAll, openMode } = useStudenthubTicketReply()
 
-const boxMode = computed(() => (props.hasInternalArticle ? 'note' : 'reply'))
+const boxMode = computed<StudenthubReplyMode>(() => {
+  if (props.hasInternalArticle) return 'note'
+  const article = form?.value?.values?.article as { articleType?: string } | undefined
+  return article?.articleType === 'phone' ? 'phone' : 'reply'
+})
 
 // Reply all is offered while replying to an email that went to other people too.
 const isReplyAll = ref(false)
 watch(boxMode, (mode) => {
-  if (mode === 'note') isReplyAll.value = false
+  if (mode !== 'reply') isReplyAll.value = false
 })
 
 const replyAllState = computed(() =>
@@ -102,11 +112,10 @@ const toggleReplyAll = (all: boolean) => {
   else reply()
 }
 
-// Switching keeps the text (both keep the body Zammad already has).
-const switchMode = (mode: 'reply' | 'note') => {
+// Switching keeps the text (each keeps the body Zammad already has).
+const switchMode = (mode: StudenthubReplyMode) => {
   if (mode === boxMode.value) return
-  if (mode === 'note') addNote()
-  else reply()
+  openMode(mode)
 }
 
 // Send is Update: the ticket fields changed in the Ticket panel are saved with the message.
@@ -157,20 +166,25 @@ onMounted(() => {
     <div
       class="sh-reply-box sh-reply-box--open"
       :class="{
-        'sh-reply-box--note': hasInternalArticle,
+        'sh-reply-box--note': boxMode === 'note',
+        'sh-reply-box--phone': boxMode === 'phone',
         'sh-reply-box--student': studenthubStudent,
       }"
       data-test-id="article-reply-stripes-panel"
       @keydown="onBoxKeydown"
     >
+      <StudenthubReplyBoxTabs
+        v-if="!studenthubStudent"
+        :mode="boxMode"
+        :phone="studenthubPhone"
+        @mode="switchMode"
+      />
       <div id="ticketArticleReplyForm" class="sh-reply-box__form" />
       <StudenthubReplyBoxFooter
         :mode="boxMode"
         :ticket-changes="studenthubStudent ? 0 : ticketChanges"
         :reply-all="replyAllState"
-        :student="studenthubStudent"
         writing
-        @mode="switchMode"
         @reply-all="toggleReplyAll"
         @attach="attach"
         @send="$emit('submit')"

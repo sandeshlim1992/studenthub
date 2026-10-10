@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
 import { onKeyDown, useEventListener, useIntersectionObserver, whenever } from '@vueuse/core'
-import { computed, ref, shallowRef, useTemplateRef, type Ref, toRef } from 'vue'
+import { computed, ref, shallowRef, useTemplateRef, type Ref, toRef, toValue } from 'vue'
 
 import FieldEditorActionMenu from '#shared/components/Form/fields/FieldEditor/FieldEditorActionMenu/FieldEditorActionMenu.vue'
 import type { EditorButton } from '#shared/components/Form/fields/FieldEditor/types.ts'
@@ -11,6 +11,7 @@ import stopEvent from '#shared/utils/events.ts'
 
 import ActionButtonWrapper from '#desktop/components/Form/fields/FieldEditor/FieldEditorActionBar/ActionButtonWrapper.vue'
 import useEditorActions from '#desktop/components/Form/fields/FieldEditor/useEditorActions.ts'
+import { useFieldEditorOptions } from '#desktop/components/Form/fields/FieldEditor/useFieldEditorOptions.ts'
 
 import ActionButton from './ActionButton.vue'
 
@@ -87,9 +88,23 @@ const disabledActionNames = ref<Set<string>>(new Set())
 
 const editorActions = useEditorActions(toRef(props, 'editor'), 'text/html')
 
+// Student Hub: a provider can keep only some tools in the bar; the rest go into the overflow menu.
+const { toolbarActions } = useFieldEditorOptions()
+
+const isTrimmed = (name: string) => {
+  const kept = toValue(toolbarActions)
+  return !!kept && !kept.includes(name)
+}
+
+const barActions = computed(() => props.actions.filter((action) => !isTrimmed(action.name)))
+
 const invisibleActions = computed(() =>
   editorActions.actions.value
-    .filter((action) => visibleActions.value.get(action.name) === false)
+    .filter(
+      (action) =>
+        visibleActions.value.get(action.name) === false ||
+        (isTrimmed(action.name) && props.actions.some(({ name }) => name === action.name)),
+    )
     .map((action) =>
       Object.assign(action, {
         key: action.name,
@@ -146,10 +161,10 @@ whenever(
       }"
     >
       <ActionButtonWrapper
-        v-for="(action, index) in actions"
+        v-for="(action, index) in barActions"
         :key="action.name"
         :invisible-actions="invisibleActions"
-        :actions="actions"
+        :actions="barActions"
         :index="index"
       >
         <template v-if="!disabledActionNames.has(action.name)" #default="{ hideDivider }">

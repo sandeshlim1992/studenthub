@@ -162,7 +162,7 @@ const ticketLink = (ticketId: number) => `/tickets/${ticketId}`
             @click="refreshAll"
           >
             <CommonIcon
-              name="arrow-repeat"
+              name="arrow-clockwise"
               size="tiny"
               decorative
               :class="{ 'animate-spin': isLoading }"

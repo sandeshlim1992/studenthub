@@ -4,6 +4,7 @@
 - `assets/arrow-right.svg`
 - `assets/arrow-bar-left.svg`
 - `assets/arrow-bar-right.svg`
+- `assets/arrow-clockwise.svg`
 - `assets/arrow-repeat.svg`
 - `assets/arrows-collapse.svg`
 - `assets/arrows-expand.svg`

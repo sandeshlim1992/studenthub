@@ -64,7 +64,9 @@ const loadFailed = ref(false)
 const loadOverview = async () => {
   isLoading.value = true
   try {
-    data.value = await studenthubApi<StudenthubAdminOverview>('/api/v1/studenthub/dashboard/overview')
+    data.value = await studenthubApi<StudenthubAdminOverview>(
+      '/api/v1/studenthub/dashboard/overview',
+    )
     loadFailed.value = false
   } catch {
     loadFailed.value = true
@@ -102,7 +104,8 @@ const otherTeamsCount = computed(() =>
   (data.value?.open.teams.slice(TEAM_LIMIT) ?? []).reduce((sum, team) => sum + team.count, 0),
 )
 const teamMax = computed(() => Math.max(1, ...teams.value.map((team) => team.count)))
-const teamLabel = (team: TeamCount) => (team.waiting_for_approval ? i18n.t('Waiting for approval') : team.name)
+const teamLabel = (team: TeamCount) =>
+  team.waiting_for_approval ? i18n.t('Waiting for approval') : team.name
 
 const slaParts = computed(() => {
   const sla = data.value?.sla
@@ -218,7 +221,7 @@ const stars = (average: number) => {
       </div>
       <CommonButton
         variant="secondary"
-        prefix-icon="arrow-repeat"
+        prefix-icon="arrow-clockwise"
         :disabled="isLoading || isActivityLoading"
         @click="refresh"
       >
@@ -232,12 +235,21 @@ const stars = (average: number) => {
 
     <div v-if="data" class="sh-bento-wrap">
       <div class="sh-bento">
-        <section class="sh-dash-card sh-bento-hero sh-span-2 sh-rows-2" :aria-label="$t('Open tickets')">
+        <section
+          class="sh-dash-card sh-bento-hero sh-span-2 sh-rows-2"
+          :aria-label="$t('Open tickets')"
+        >
           <div>
             <span class="sh-dash-label">{{ $t('Open tickets') }}</span>
             <div class="sh-dash-big">{{ data.open.total }}</div>
             <span class="sh-dash-sub">
-              {{ $t('%s new today · %s closed today', data.open.created_today, data.open.closed_today) }}
+              {{
+                $t(
+                  '%s new today · %s closed today',
+                  data.open.created_today,
+                  data.open.closed_today,
+                )
+              }}
             </span>
           </div>
           <ul class="sh-bento-teams">
@@ -260,11 +272,15 @@ const stars = (average: number) => {
 
         <section class="sh-dash-card sh-span-2" :aria-label="$t('SLA deadlines')">
           <header class="sh-dash-card__head">
-            <span class="sh-dash-sq"><CommonIcon name="exclamation-triangle" size="xs" decorative /></span>
+            <span class="sh-dash-sq"
+              ><CommonIcon name="exclamation-triangle" size="xs" decorative
+            /></span>
             <h2>{{ $t('SLA deadlines') }}</h2>
           </header>
           <div class="sh-dash-row">
-            <span class="sh-dash-big">{{ data.sla.overdue }}<small>{{ $t('overdue') }}</small></span>
+            <span class="sh-dash-big"
+              >{{ data.sla.overdue }}<small>{{ $t('overdue') }}</small></span
+            >
             <span class="sh-dash-chip" :data-tone="data.sla.overdue ? 'bad' : 'good'">
               {{ data.sla.overdue ? $t('Needs attention') : $t('All on time') }}
             </span>
@@ -283,11 +299,17 @@ const stars = (average: number) => {
           </div>
           <ul class="sh-dash-legend">
             <li v-for="part in slaParts" :key="part.key">
-              <i :style="{ backgroundColor: part.color }" />{{ $t(part.label) }} <b>{{ part.count }}</b>
+              <i :style="{ backgroundColor: part.color }" />{{ $t(part.label) }}
+              <b>{{ part.count }}</b>
             </li>
           </ul>
           <span class="sh-dash-sub">
-            {{ $t('Due soon: within %s minutes. No deadline: on hold or without an SLA.', data.settings.escalation_warning_minutes) }}
+            {{
+              $t(
+                'Due soon: within %s minutes. No deadline: on hold or without an SLA.',
+                data.settings.escalation_warning_minutes,
+              )
+            }}
           </span>
         </section>
 
@@ -297,7 +319,11 @@ const stars = (average: number) => {
             <h2>{{ $t('Without an agent') }}</h2>
           </header>
           <span class="sh-dash-big">{{ data.unassigned.count }}</span>
-          <span v-if="data.unassigned.oldest_created_at" class="sh-dash-sub" :title="i18n.dateTime(data.unassigned.oldest_created_at)">
+          <span
+            v-if="data.unassigned.oldest_created_at"
+            class="sh-dash-sub"
+            :title="i18n.dateTime(data.unassigned.oldest_created_at)"
+          >
             {{ $t('Oldest opened %s', i18n.relativeDateTime(data.unassigned.oldest_created_at)) }}
           </span>
         </section>
@@ -308,8 +334,20 @@ const stars = (average: number) => {
             <h2>{{ $t('Agents online') }}</h2>
           </header>
           <div class="sh-bento-ring">
-            <svg :width="RING_SIZE" :height="RING_SIZE" :viewBox="`0 0 ${RING_SIZE} ${RING_SIZE}`" aria-hidden="true">
-              <circle data-track :cx="RING_SIZE / 2" :cy="RING_SIZE / 2" :r="ringRadius" fill="none" :stroke-width="RING_STROKE" />
+            <svg
+              :width="RING_SIZE"
+              :height="RING_SIZE"
+              :viewBox="`0 0 ${RING_SIZE} ${RING_SIZE}`"
+              aria-hidden="true"
+            >
+              <circle
+                data-track
+                :cx="RING_SIZE / 2"
+                :cy="RING_SIZE / 2"
+                :r="ringRadius"
+                fill="none"
+                :stroke-width="RING_STROKE"
+              />
               <circle
                 data-value
                 :cx="RING_SIZE / 2"
@@ -323,15 +361,21 @@ const stars = (average: number) => {
               />
             </svg>
             <div class="sh-bento-ring__text">
-              <span class="sh-dash-big">{{ data.agents.online }}<small>{{ $t('of %s', data.agents.total) }}</small></span>
-              <CommonLink class="sh-dash-card__link" link="/members" internal>{{ $t('Members') }} →</CommonLink>
+              <span class="sh-dash-big"
+                >{{ data.agents.online }}<small>{{ $t('of %s', data.agents.total) }}</small></span
+              >
+              <CommonLink class="sh-dash-card__link" link="/members" internal
+                >{{ $t('Members') }} →</CommonLink
+              >
             </div>
           </div>
         </section>
 
         <section class="sh-dash-card sh-span-2" :aria-label="$t('New and closed tickets')">
           <header class="sh-dash-card__head">
-            <span class="sh-dash-sq"><CommonIcon name="calendar-range" size="xs" decorative /></span>
+            <span class="sh-dash-sq"
+              ><CommonIcon name="calendar-range" size="xs" decorative
+            /></span>
             <h2>{{ $t('New and closed, last %s days', data.settings.trend_days) }}</h2>
           </header>
           <svg
@@ -341,13 +385,48 @@ const stars = (average: number) => {
             role="img"
             :aria-label="trendDescription"
           >
-            <line x1="0" :x2="CHART_WIDTH" :y1="CHART_TOP + chartPlot" :y2="CHART_TOP + chartPlot" />
+            <line
+              x1="0"
+              :x2="CHART_WIDTH"
+              :y1="CHART_TOP + chartPlot"
+              :y2="CHART_TOP + chartPlot"
+            />
             <g v-for="day in trendDays" :key="day.key">
-              <rect data-created :x="day.created.x" :y="day.created.y" :width="day.barWidth" :height="day.created.height" rx="2" />
-              <rect data-closed :x="day.closed.x" :y="day.closed.y" :width="day.barWidth" :height="day.closed.height" rx="2" />
-              <text data-value :x="day.created.x + day.barWidth / 2" :y="day.created.y - 3" text-anchor="middle">{{ day.created.value }}</text>
-              <text data-value :x="day.closed.x + day.barWidth / 2" :y="day.closed.y - 3" text-anchor="middle">{{ day.closed.value }}</text>
-              <text :x="day.center" :y="CHART_HEIGHT - 4" text-anchor="middle">{{ day.label }}</text>
+              <rect
+                data-created
+                :x="day.created.x"
+                :y="day.created.y"
+                :width="day.barWidth"
+                :height="day.created.height"
+                rx="2"
+              />
+              <rect
+                data-closed
+                :x="day.closed.x"
+                :y="day.closed.y"
+                :width="day.barWidth"
+                :height="day.closed.height"
+                rx="2"
+              />
+              <text
+                data-value
+                :x="day.created.x + day.barWidth / 2"
+                :y="day.created.y - 3"
+                text-anchor="middle"
+              >
+                {{ day.created.value }}
+              </text>
+              <text
+                data-value
+                :x="day.closed.x + day.barWidth / 2"
+                :y="day.closed.y - 3"
+                text-anchor="middle"
+              >
+                {{ day.closed.value }}
+              </text>
+              <text :x="day.center" :y="CHART_HEIGHT - 4" text-anchor="middle">
+                {{ day.label }}
+              </text>
             </g>
           </svg>
           <ul class="sh-dash-legend">
@@ -363,9 +442,16 @@ const stars = (average: number) => {
           </header>
           <ul v-if="sites.length" class="sh-bento-sites">
             <li v-for="site in sites" :key="site.id">
-              <CommonLink v-if="site.view_link" :link="`/tickets/view/${site.view_link}`" internal>{{ site.name }}</CommonLink>
+              <CommonLink
+                v-if="site.view_link"
+                :link="`/tickets/view/${site.view_link}`"
+                internal
+                >{{ site.name }}</CommonLink
+              >
               <span v-else>{{ site.name }}</span>
-              <span class="sh-dash-track" aria-hidden="true"><span :style="{ width: `${share(site.count, siteMax)}%` }" /></span>
+              <span class="sh-dash-track" aria-hidden="true"
+                ><span :style="{ width: `${share(site.count, siteMax)}%` }"
+              /></span>
               <span>{{ site.count }}</span>
             </li>
           </ul>
@@ -377,11 +463,18 @@ const stars = (average: number) => {
 
         <section class="sh-dash-card" :class="channelSpan" :aria-label="$t('How tickets came in')">
           <header class="sh-dash-card__head">
-            <span class="sh-dash-sq"><CommonIcon name="chat-left-text" size="xs" decorative /></span>
+            <span class="sh-dash-sq"
+              ><CommonIcon name="chat-left-text" size="xs" decorative
+            /></span>
             <h2>{{ $t('How tickets came in, last %s days', data.settings.channel_days) }}</h2>
           </header>
           <div v-if="channelTotal" class="sh-bento-ring">
-            <svg :width="DONUT_SIZE" :height="DONUT_SIZE" :viewBox="`0 0 ${DONUT_SIZE} ${DONUT_SIZE}`" aria-hidden="true">
+            <svg
+              :width="DONUT_SIZE"
+              :height="DONUT_SIZE"
+              :viewBox="`0 0 ${DONUT_SIZE} ${DONUT_SIZE}`"
+              aria-hidden="true"
+            >
               <circle
                 v-for="arc in donutArcs"
                 :key="arc.key"
@@ -401,34 +494,57 @@ const stars = (average: number) => {
                 <i :style="{ backgroundColor: STUDENTHUB_DASHBOARD_CHANNELS[channel.key].color }" />
                 {{ $t(STUDENTHUB_DASHBOARD_CHANNELS[channel.key].label) }}
                 <b>{{ channel.count }}</b>
-                <span class="sh-dash-sub">({{ Math.round((channel.count / channelTotal) * 100) }}%)</span>
+                <span class="sh-dash-sub"
+                  >({{ Math.round((channel.count / channelTotal) * 100) }}%)</span
+                >
               </li>
             </ul>
           </div>
           <p v-else class="sh-dash-empty">{{ $t('No new tickets in this time.') }}</p>
         </section>
 
-        <section v-if="data.approvals" class="sh-dash-card" :class="smallSpan" :aria-label="$t('Waiting for approval')">
+        <section
+          v-if="data.approvals"
+          class="sh-dash-card"
+          :class="smallSpan"
+          :aria-label="$t('Waiting for approval')"
+        >
           <header class="sh-dash-card__head">
             <span class="sh-dash-sq"><CommonIcon name="check2-circle" size="xs" decorative /></span>
             <h2>{{ $t('Waiting for approval') }}</h2>
           </header>
           <span class="sh-dash-big">{{ data.approvals.waiting }}</span>
-          <span v-if="data.approvals.oldest_requested_at" class="sh-dash-sub" :title="i18n.dateTime(data.approvals.oldest_requested_at)">
+          <span
+            v-if="data.approvals.oldest_requested_at"
+            class="sh-dash-sub"
+            :title="i18n.dateTime(data.approvals.oldest_requested_at)"
+          >
             {{ $t('Oldest asked %s', i18n.relativeDateTime(data.approvals.oldest_requested_at)) }}
           </span>
         </section>
 
-        <section v-if="data.rating" class="sh-dash-card" :class="smallSpan" :aria-label="$t('Student rating')">
+        <section
+          v-if="data.rating"
+          class="sh-dash-card"
+          :class="smallSpan"
+          :aria-label="$t('Student rating')"
+        >
           <header class="sh-dash-card__head">
             <span class="sh-dash-sq"><CommonIcon name="star-fill" size="xs" decorative /></span>
             <h2>{{ $t('Student rating') }}</h2>
           </header>
           <template v-if="data.rating.count && data.rating.average !== null">
             <span class="sh-dash-big">{{ data.rating.average }}<small>/ 5</small></span>
-            <span class="sh-bento-stars" role="img" :aria-label="$t('%s of 5 stars', data.rating.average)">{{ stars(data.rating.average) }}</span>
+            <span
+              class="sh-bento-stars"
+              role="img"
+              :aria-label="$t('%s of 5 stars', data.rating.average)"
+              >{{ stars(data.rating.average) }}</span
+            >
           </template>
-          <span class="sh-dash-sub">{{ $t('%s ratings in the last %s days', data.rating.count, data.settings.rating_days) }}</span>
+          <span class="sh-dash-sub">{{
+            $t('%s ratings in the last %s days', data.rating.count, data.settings.rating_days)
+          }}</span>
         </section>
       </div>
 

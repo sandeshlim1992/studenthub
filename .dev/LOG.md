@@ -103,3 +103,5 @@ the current state is in `.dev/NOTES.md`.
   question panel; answers go with the first message, are checked on the server and saved by Student Hub, so
   publishing needs no restart. Student wizard checked in a browser with a test form (nothing written); the admin
   editor not yet
+- 2026-10-10: Dashboards: the Refresh button uses the new arrow-clockwise icon (Bootstrap), which also gives the
+  Overviews page's Refresh button its missing icon

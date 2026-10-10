@@ -148,7 +148,7 @@ const scale = (...values: (number | null)[]) =>
       </div>
       <CommonButton
         variant="secondary"
-        prefix-icon="arrow-repeat"
+        prefix-icon="arrow-clockwise"
         :disabled="isStatsLoading || isActivityLoading || isUnassignedLoading"
         @click="refresh"
       >

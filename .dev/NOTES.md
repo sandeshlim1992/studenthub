@@ -211,6 +211,8 @@ Never put passwords, tokens or keys in this file.
   step 5 the agents' Request details panel on New ticket, step 6 file uploads and conditions. The admin editor is not
   yet checked in a browser (no admin login works in this container: admin@example.com is refused; agent@ and student@
   work)
+- Departments (admin section, 11 Oct): name, locations (values of the ticket's Campus field) and one email address;
+  what they do comes next (README → Departments)
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
@@ -285,5 +287,7 @@ Never put passwords, tokens or keys in this file.
       undid unsaved ticket field changes) fixed something; if so, find another way
 - [ ] Check Request forms in a browser as an admin: add a question, a heading and a note, publish, then raise a ticket
       under it as student@ and look at the Request details block and the saved answers
+- [ ] Run `bin/rails db:migrate` (the departments table and permission), then check Administration → Manage →
+      Departments in a browser: new, edit, delete, a taken name, a wrong email address
 - [ ] Check the new Details step in a browser as student@: the Your request card and its Change buttons, Subject at the
       top of the form, no Description with a form (and the message still reads well), stacking on a phone

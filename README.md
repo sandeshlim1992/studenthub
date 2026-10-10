@@ -804,6 +804,25 @@ forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
 
 ---
 
+## Departments
+
+Departments with a **name**, the **locations** (campuses) they cover and one **email address**, made by admins under
+**Administration → Manage → Departments** (`/desktop/manage/departments`, permission `admin.departments`). What they
+are used for comes next.
+
+- **Locations** are values of the ticket's **Campus** field (`campus`, made by admins under **Objects**), read from the
+  field each time, so a campus added there can be chosen at once. A campus later removed from the field stays on the
+  department, marked **No longer a campus**, until someone takes it off; it can't be chosen anew.
+- **Checks:** a name is needed and is unique whatever its case; the email address must be valid; at least one location.
+
+| File(s) | Purpose |
+|---|---|
+| `db/migrate/20261011100000_studenthub_departments.rb`, `lib/studenthub/departments.rb`, `app/models/studenthub_department.rb` | Table, permission, the campuses to choose from; the checks |
+| `app/controllers/studenthub_departments_controller.rb` | API (`/api/v1/studenthub/departments`, `…/:id`) |
+| `app/frontend/apps/desktop/pages/manage/views/Departments.vue` | Admin page: list, new / edit / delete |
+
+---
+
 ## Sign-in and notifications
 
 - **No self-registration.** The sign-in page has no "New user? Register" link, and the migration

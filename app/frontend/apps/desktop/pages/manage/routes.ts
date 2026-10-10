@@ -195,6 +195,18 @@ const route: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/manage/departments',
+    name: 'ManageDepartments',
+    component: () => import('./views/Departments.vue'),
+    meta: {
+      title: __('Departments'),
+      requiresAuth: true,
+      requiredPermission: ['admin.departments'],
+      level: 3,
+      pageKey: 'manage-departments',
+    },
+  },
+  {
     path: '/manage/roles',
     name: 'ManageRoles',
     component: () => import('./views/Roles.vue'),

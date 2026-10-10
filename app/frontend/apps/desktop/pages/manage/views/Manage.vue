@@ -127,6 +127,12 @@ const categories = ref<Category[]>([
         description: __('Ask for extra details when a ticket is raised under a chosen sub-category.'),
       },
       {
+        name: __('Departments'),
+        icon: 'buildings',
+        target: '/manage/departments',
+        description: __('Set up departments with the campuses they cover and their email address.'),
+      },
+      {
         name: __('Ticket States'),
         icon: 'check2-square',
         target: '/manage/ticket-states',

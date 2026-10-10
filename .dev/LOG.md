@@ -114,3 +114,5 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-10: Navigation panel: the group headers (Views, My views, Teams, Sites, Show, Recent…) are bold
 - 2026-10-11: Student's own ticket screen in the portal's green (#15803d) instead of the application colour
   (`.sh-student-ticket` on TicketDetailViewContent)
+- 2026-10-11: Administration → Manage → Departments: departments with a name, locations (Campus field values) and one
+  email address (`studenthub_departments`, permission `admin.departments`)

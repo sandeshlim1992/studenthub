@@ -121,3 +121,5 @@ the current state is in `.dev/NOTES.md`.
   `frontend-design` plugin from `.claude/settings.json` and `.claude/ui-rules.md` (old navy/blue classic-UI theme)
 - 2026-10-11: Branding → Sign-in page: admins set the sign-in panel's heading, tagline and description
   (`studenthub_login_panel`); the sign-in heading reads "Sign in to <Product Name>"
+- 2026-10-11: Sign-in page: "Welcome back" and "Use your work or school account."; person and lock icons in the
+  Admin / Local Login fields

@@ -423,7 +423,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   on the right.
   Admins write the panel's heading, tagline and description under **Administration → Settings → Branding → Sign-in
   page** (setting `studenthub_login_panel`; plain text, at most 60 / 120 / 300 characters; an empty text hides its
-  line). The heading on the right reads "Sign in to <Product Name>" (Branding → Identity → Product Name).
+  line).
+  The sign-in side reads "Welcome back" / "Use your work or school account." (Microsoft's own wording), and the
+  Admin / Local Login fields have a person and a lock icon at the start.
   "Continue with Microsoft" now really starts the Microsoft sign-in (it posts to `/auth/microsoft_office365`).
 - **Ticket lists (staff overviews and search results):** white card with quiet rows, a "Views" panel tinted in the
   application colour, and these cells when an overview has the column: state as a coloured label, priority as bars

@@ -139,12 +139,14 @@ const loginSchema = [
     name: 'login',
     type: 'text',
     label: __('Username / Email'),
+    prefixIcon: 'user',
     required: true,
   },
   {
     name: 'password',
     label: __('Password'),
     type: 'password',
+    prefixIcon: 'lock-fill',
     required: true,
   },
   {
@@ -245,11 +247,11 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
     <main class="flex items-center justify-center px-5 py-10">
       <div class="card-enter flex w-full max-w-[400px] flex-col gap-4">
         <div>
-          <h1 class="text-[26px] leading-tight font-bold tracking-tight">{{ $t('Sign in to %s', $c.product_name) }}</h1>
+          <h1 class="text-[26px] leading-tight font-bold tracking-tight">{{ $t('Welcome back') }}</h1>
           <p class="mt-1 text-[var(--sh-ink-2)]">
             {{
               hasEnabledProviders
-                ? $t('Use your college Microsoft account.')
+                ? $t('Use your work or school account.')
                 : $t('Sign in with your Student Hub account.')
             }}
           </p>
@@ -554,6 +556,18 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
   padding: 0 !important;
   margin: 0 !important;
   cursor: pointer !important;
+}
+
+/* Student Hub: the person and lock icons sit at the start of their field (the rule above is for the eye) */
+:deep(.formkit-prefix-icon) {
+  inset-inline-start: 0.875rem !important;
+  inset-inline-end: auto !important;
+  cursor: default !important;
+  pointer-events: none;
+}
+
+:deep(.formkit-inner:has(.formkit-prefix-icon) .formkit-input) {
+  padding-inline-start: 2.5rem !important;
 }
 
 /* Hide required dots */

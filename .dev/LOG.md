@@ -144,3 +144,6 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-11: The new UI is served at `/` instead of `/desktop` (old `/desktop/…` links redirect, the classic UI is at
   `/app`); restore tag `before-new-ui-at-root`, every changed file in `.dev/new-ui-at-root.md`
 - 2026-10-12: Devcontainer: Elasticsearch gets 3 CPUs and a 1 GB heap (was 2 CPUs and 512 MB; the cap stays 2 GB)
+- 2026-10-12: Reporting redesigned (design A, "filter column"): report profiles in one list with their counts, the
+  measure and the period (‹ › steps) on the left; figures, a created / closed chart with the backlog change and the
+  tickets behind each series (Show more, Download Excel) on the right

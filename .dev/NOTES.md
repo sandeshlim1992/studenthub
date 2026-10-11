@@ -139,6 +139,9 @@ Never put passwords, tokens or keys in this file.
   a seeded database (`Studenthub::Setup.seeded?`). On a new database (devcontainer, CI) migrations run before the
   seeds, so `lib/tasks/studenthub_setup.rake` runs `Studenthub::Setup.ensure_all!` after `db:seed` (not in test:
   spec support re-runs the `*/setup.rb` it needs after the test DB reset; Zammad's seed list is fixed, so no seed files)
+- Reporting = design A ("filter column") of <https://claude.ai/artifact/UQdd5UKVEdKBRCkbo85fMW>: report profiles in
+  one list, not grouped by LSST / FSB / UKBC (admins make every profile); every figure comes from Zammad's reporting
+  API, so it needs Elasticsearch (README → Reporting)
 
 ## Known issues
 
@@ -233,6 +236,8 @@ Never put passwords, tokens or keys in this file.
 - Departments (admin section, 11 Oct): name, locations (values of the ticket's Campus field) and one email address;
   on/off switch (off by default) that also shows students "Talk to Student Support" (still opens the ticket wizard);
   what departments and that button do comes next (README → Departments)
+- Reporting redesign (design A, 12 Oct): replaces Taxil's page. Not yet checked in a browser: in this container only
+  `admin@example.com` may open Reporting, and no admin login works here
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
@@ -327,3 +332,6 @@ Never put passwords, tokens or keys in this file.
       "Add contributor" button and its search box
 - [ ] Check the new Details step in a browser as student@: the Your request card and its Change buttons, Subject at the
       top of the form, no Description with a form (and the message still reads well), stacking on a phone
+- [ ] Check Reporting in a browser as an admin (light, dark and narrow): the profile list, its counts and Find a
+      profile, each measure, every period and ‹ ›, the chart's readout and backlog row, the ticket tabs, Show more,
+      Download Excel and Live

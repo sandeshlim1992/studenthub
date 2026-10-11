@@ -890,19 +890,35 @@ tickets in** lists the pairs; the list of checklists shows them under each name.
 
 ## Reporting
 
-**Reports** in the rail (`/report`, permission `report` or `admin`) shows Zammad's own reports: pick a
-**report profile** (made under **Administration → Report Profiles**), a metric (ticket counts, creation channels,
-communication) and a year, month, week, day or the last hour; the chart, the tickets behind a series and their
-**Excel download** come from Zammad's reporting API (`/api/v1/reports/config`, `generate`, `sets`).
+**Reports** in the rail (`/report`, permission `report` or `admin`) shows Zammad's own reports, laid out as design A
+("filter column") of the Reporting redesign:
 
+- **Left column:** the **report profile** (one list of the profiles made under **Administration → Report Profiles**,
+  each with the tickets it had created in the period; a "Find a profile" filter from six profiles on), the
+  **measure** (Ticket count, How tickets came in, Messages in and out: Zammad's Ticket Count, Creation Channels and
+  Communication) and the **period** (year, month, week, day or the last hour, with ‹ › to step back and forward, never
+  into the future).
+- **Figures:** for ticket counts Created, Closed (with the share of those created), Backlog (created minus closed) and
+  the busiest month, day or hour; for the other measures the total and the three biggest series.
+- **Chart:** created and closed (the other measures: each series, told apart by dash as well as colour), with the
+  backlog change of each month or day under it. Pointing at it shows the numbers; screen readers get a table.
+- **Tickets behind the figures:** a tab for each series with its total; ticket, title, campus, state and created date.
+  Zammad gives the 100 most recently updated (10 shown, **Show more**); **Download Excel** has them all. Messages in and
+  out has no ticket list in Zammad.
+- **Live** refreshes the figures (every 10 seconds for the last hour, up to 5 minutes for a year); the choices are kept
+  while the browser tab stays open.
 - **Needs Elasticsearch:** Zammad works reports out in Elasticsearch. Without it, or without any report profile, the
   page shows Zammad's reason instead of figures (and links to Report Profiles for those who may edit them).
-- The page asks with the CSRF token (`studenthubApi`); it has no figures of its own. The ticket list shows the state
-  names for those who may read ticket states (agents and admins), otherwise "-".
+- The page asks with the CSRF token (`studenthubApi`); it has no figures of its own. The profile counts are one small
+  request per profile, made when the period changes. The ticket list shows the state names for those who may read
+  ticket states (agents and admins), otherwise "–".
 
 | File(s) | Purpose |
 |---|---|
-| `app/frontend/apps/desktop/pages/report/views/Report.vue` (Taxil's page, repaired) | The page |
+| `app/frontend/apps/desktop/pages/report/views/Report.vue` | The page (replaces Taxil's) |
+| `app/frontend/apps/desktop/pages/report/composables/useStudenthubReport.ts` | Loading, the choices, Live and the download |
+| `app/frontend/apps/desktop/pages/report/utils/studenthubReport.ts` | Periods, the figures, the chart's scale |
+| `app/frontend/apps/desktop/pages/report/components/StudenthubReport{Settings,Tiles,Chart,Tickets}.vue` | Left column, figures, chart, ticket list |
 
 ---
 

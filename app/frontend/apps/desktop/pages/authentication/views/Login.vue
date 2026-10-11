@@ -478,6 +478,9 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
   max-height: 0;
   overflow: hidden;
   transition: max-height 300ms ease;
+  /* room for the fields' focus halo, which overflow: hidden would cut off at the sides */
+  margin-inline: -4px;
+  padding-inline: 4px;
 }
 
 .accordion-body.open {
@@ -496,6 +499,7 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
   align-items: center !important;
   padding: 0 !important;
   margin: 0 !important;
+  outline: none !important; /* Zammad's blue hover/focus outline; the input below has its own focus style */
 }
 
 :deep(.formkit-wrapper) {
@@ -527,8 +531,21 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
 :deep(input[type='text']:focus),
 :deep(input[type='password']:focus),
 :deep(input[type='email']:focus) {
-  border-color: var(--sh-app) !important; /* border-blue-500 */
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sh-app) 18%, transparent) !important;
+  border-color: var(--sh-app) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--sh-app) 12%, transparent) !important;
+}
+
+/* Student Hub: keep fields the browser filled in white (Chrome paints them light blue); the inset shadow
+   covers its colour, and the focus halo is repeated because box-shadow can't be combined across rules */
+:deep(input:-webkit-autofill) {
+  box-shadow: inset 0 0 0 100px #ffffff !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+:deep(input:-webkit-autofill:focus) {
+  box-shadow:
+    inset 0 0 0 100px #ffffff,
+    0 0 0 3px color-mix(in srgb, var(--sh-app) 12%, transparent) !important;
 }
 
 :deep(input[type='text']::placeholder),
@@ -564,6 +581,10 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
   inset-inline-end: auto !important;
   cursor: default !important;
   pointer-events: none;
+}
+
+:deep(.formkit-inner:focus-within .formkit-prefix-icon) {
+  color: var(--sh-app) !important;
 }
 
 :deep(.formkit-inner:has(.formkit-prefix-icon) .formkit-input) {

@@ -129,3 +129,5 @@ the current state is in `.dev/NOTES.md`.
   a view, which made it run without end after any change of order (work PC: puma near 100% CPU, no live updates)
 - 2026-10-11: Checklists added automatically: admins assign checklists to Category › Sub-category on the Checklists
   page; the migration turned the four webhook triggers into assignments (they keep their tag action)
+- 2026-10-11: Sign-in page: the local login fields keep their whole focus glow, have no blue outline, stay white when
+  the browser fills them in, and their icons take the application colour while typing

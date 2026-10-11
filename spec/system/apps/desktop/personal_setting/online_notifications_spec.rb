@@ -80,7 +80,7 @@ RSpec.describe 'Desktop > Ticket > Online Notifications', app: :desktop_view, au
         click_on "#{agent_b.fullname} created ticket"
       end
 
-      expect(page).to have_current_path("/desktop/tickets/#{ticket_b.id}")
+      expect(page).to have_current_path("/tickets/#{ticket_b.id}")
 
       find('button[aria-label="Show notifications"]').click
 

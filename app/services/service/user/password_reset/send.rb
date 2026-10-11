@@ -6,8 +6,9 @@ class Service::User::PasswordReset::Send < Service::Base
 
   def initialize(username:)
     @username = username
+    # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot)
     @path = {
-      reset: 'desktop/reset-password/verify/'
+      reset: 'reset-password/verify/'
     }
   end
 

@@ -9,8 +9,10 @@ const buildSampleElement = () => {
 
   elem.innerHTML = `some text
   <a href="http://example.com/asd" external>external</a>
-  <a href="/desktop/test" internal>internal</a>
-  <a href="/desktop/blank" blank target=_blank>blank</a>
+  <a href="/test" internal>internal</a>
+  <a href="/desktop/old" legacy>legacy</a>
+  <a href="/api/v1/attachments/1" server>server</a>
+  <a href="/blank" blank target=_blank>blank</a>
   <a data-mention-user-id="123" mention>mention</a>
   her text`
 
@@ -24,6 +26,11 @@ vi.mock('vue-router', async () => {
     useRouter: () => {
       return {
         push: routerPush,
+        // Student Hub: the router knows every page except the server's own paths
+        resolve: (path: string) => ({
+          name: path.startsWith('/api/') ? 'Error' : 'Page',
+          fullPath: path,
+        }),
       }
     },
   }
@@ -35,7 +42,7 @@ describe('setupLinkHandlers', () => {
   it('replaces mention links with URLs to user profile', async () => {
     const elem = buildSampleElement()
 
-    const { setupLinksHandlers } = useHtmlLinks('/desktop')
+    const { setupLinksHandlers } = useHtmlLinks('')
 
     setupLinksHandlers(elem)
 
@@ -47,7 +54,7 @@ describe('setupLinkHandlers', () => {
   it('opens internal link via the router', () => {
     const elem = buildSampleElement()
 
-    const { setupLinksHandlers } = useHtmlLinks('/desktop')
+    const { setupLinksHandlers } = useHtmlLinks('')
 
     setupLinksHandlers(elem)
 
@@ -56,19 +63,46 @@ describe('setupLinkHandlers', () => {
     expect(routerPush).toHaveBeenCalledWith('/test')
   })
 
+  it('opens an old /desktop link via the router without /desktop', () => {
+    const elem = buildSampleElement()
+
+    const { setupLinksHandlers } = useHtmlLinks('')
+
+    setupLinksHandlers(elem)
+
+    elem.querySelector<HTMLLinkElement>('a[legacy]')?.click()
+
+    expect(routerPush).toHaveBeenCalledWith('/old')
+  })
+
+  it('leaves links to the server (attachments, the API) to the browser', () => {
+    vi.stubGlobal('open', vi.fn())
+    routerPush.mockClear()
+
+    const elem = buildSampleElement()
+
+    const { setupLinksHandlers } = useHtmlLinks('')
+
+    setupLinksHandlers(elem)
+
+    elem.querySelector<HTMLLinkElement>('a[server]')?.click()
+
+    expect(routerPush).not.toHaveBeenCalled()
+  })
+
   it('opens internal _blank link in a new tab', () => {
     vi.stubGlobal('open', vi.fn())
     const spy = vi.spyOn(window, 'open')
 
     const elem = buildSampleElement()
 
-    const { setupLinksHandlers } = useHtmlLinks('/desktop')
+    const { setupLinksHandlers } = useHtmlLinks('')
 
     setupLinksHandlers(elem)
 
     elem.querySelector<HTMLLinkElement>('a[blank]')?.click()
 
-    expect(spy).toHaveBeenCalledWith('/desktop/blank', '_blank')
+    expect(spy).toHaveBeenCalledWith('/blank', '_blank')
   })
 
   it('opens external link directly', () => {
@@ -77,7 +111,7 @@ describe('setupLinkHandlers', () => {
 
     const elem = buildSampleElement()
 
-    const { setupLinksHandlers } = useHtmlLinks('/desktop')
+    const { setupLinksHandlers } = useHtmlLinks('')
 
     setupLinksHandlers(elem)
 

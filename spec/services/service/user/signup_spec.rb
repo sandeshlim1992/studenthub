@@ -53,7 +53,7 @@ RSpec.describe Service::User::Signup do
 
       service_result
 
-      expect(message).to include("<a href=\"http://zammad.example.com/desktop/signup/verify/#{Token.last[:token]}\">")
+      expect(message).to include("<a href=\"http://zammad.example.com/signup/verify/#{Token.last[:token]}\">")
     end
 
     it 'sends an email with the password reset link', if: with_existing_user && !with_resend do
@@ -65,7 +65,7 @@ RSpec.describe Service::User::Signup do
 
       service_result
 
-      expect(message).to include("<a href=\"http://zammad.example.com/desktop/reset-password/verify/#{Token.last[:token]}\">")
+      expect(message).to include("<a href=\"http://zammad.example.com/reset-password/verify/#{Token.last[:token]}\">")
     end
 
     it 'sends no email', if: !with_new_user && with_existing_user && with_resend do

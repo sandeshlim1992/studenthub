@@ -50,14 +50,17 @@ RSpec.describe 'Error handling', type: :request do
     end
 
     context 'requesting HTML' do
-      let(:title) { '404: Not Found' }
+      # Student Hub: other unknown page addresses open the new UI, which says the page doesn't exist
+      # (Studenthub::NewUiAtRoot); under the server's own paths they stay this 404.
+      let(:url)      { '/api/not_existing_url' }
+      let(:title)    { '404: Not Found' }
       let(:headline) { '404: Requested resource was not found' }
 
       include_examples 'HTML response format'
 
       context 'when request ends with URL' do
 
-        let(:url) { '//////this__website__is__closed__visit__our__new__site:_someother.com' }
+        let(:url) { '/api//////this__website__is__closed__visit__our__new__site:_someother.com' }
 
         include_examples 'HTML response format'
       end

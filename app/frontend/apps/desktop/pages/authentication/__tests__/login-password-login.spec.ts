@@ -53,7 +53,7 @@ describe('password login', () => {
 
     const link = view.getByText('Request the password login here.')
 
-    expect(link).toHaveAttribute('href', '/desktop/admin-password-auth')
+    expect(link).toHaveAttribute('href', '/admin-password-auth')
     expect(link).not.toHaveAttribute('target', '_blank')
   })
 

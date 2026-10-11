@@ -229,9 +229,9 @@ bin/dev                                              # starts Rails, Vite, webso
 
 | URL | What |
 |---|---|
-| `http://localhost:3000/desktop` | New Vue 3 UI (Student Hub portal, dashboard) |
-| `http://localhost:3000/desktop/manage` | New Student Hub admin area |
-| `http://localhost:3000/#dashboard` | Legacy UI with the custom theme |
+| `http://localhost:3000/` | New Vue 3 UI (Student Hub portal, dashboard) |
+| `http://localhost:3000/manage` | New Student Hub admin area |
+| `http://localhost:3000/app#dashboard` | Legacy UI with the custom theme |
 
 ---
 
@@ -296,7 +296,7 @@ and the server kept serving the old UI.
 | **Build:** `git merge --ff-only`, `bundle install`, `pnpm install`, `assets:precompile`, then a check that every built file exists and nginx can read it | running (old version) | code and build are put back automatically; no restart, so users notice nothing |
 | **Stop**, back up the database, switch the rvm default Ruby if the new code needs another one | stopped | the old version is put back and started again |
 | **Migrations**, cache clear | stopped | Zammad stays stopped; the script prints the rollback command |
-| **Start and check:** HTTP, `/desktop/login` serves the new build, both websockets connect, services stay up | running (new version) | the script prints the rollback command |
+| **Start and check:** HTTP, `/desktop/login` (redirected to `/login`) serves the new build, both websockets connect, services stay up | running (new version) | the script prints the rollback command |
 
 Every run keeps its database backup, state and log in `/var/backups/zammad-deploy/<date-time>/`.
 
@@ -354,9 +354,35 @@ git, node, ruby and the PostgreSQL server binaries (`initdb`), which the test se
 
 ---
 
+## The new UI is served at /
+
+The new UI is the main view: it is served at the home address (`/`) and at its own pages (`/tickets`, `/ticket/…`,
+`/login`, `/manage`…), not at Zammad's `/desktop`. Old links keep working:
+
+- `/desktop/…` (bookmarks, emails sent before the move) is sent to the same page without `/desktop` (302, so an undo
+  isn't stuck in browsers' caches).
+- `/#ticket/zoom/123` (Zammad's notification emails, the classic UI's links) opens `/ticket/zoom/123`: the new UI turns
+  `#…` addresses into its own.
+- The classic UI stays at **`/app`** (and `/init`) for the few pages only it has (see Moved from the classic UI); the new
+  UI's "back to the old UI" switch goes there, and a Microsoft sign-in started there returns there.
+- Addresses under the server's own paths (`/api`, `/assets`, `/auth`, `/mobile`, `/help`…) that don't exist stay a 404;
+  any other unknown address opens the new UI, which says the page doesn't exist.
+- Phones get the new UI too (the classic page that sent them to Zammad's mobile app is no longer the home page).
+
+**Undo:** everything changed for this is listed, file by file, in [`.dev/new-ui-at-root.md`](.dev/new-ui-at-root.md),
+with the git tag `before-new-ui-at-root` (the last commit before it) and the commands to restore.
+
+| File(s) | Purpose |
+|---|---|
+| `lib/studenthub/new_ui_at_root.rb`, `config/routes.rb`, `config/routes/desktop.rb` | Which addresses open the new UI; `/desktop/…` redirect |
+| `app/controllers/sessions_controller.rb` | Where a Microsoft (or other) sign-in returns to |
+| `app/frontend/apps/desktop/router/index.ts`, `app/frontend/shared/composables/useHtmlLinks.ts` | The new UI's router at `/`; links inside messages |
+
+---
+
 ## New UI look (Halo-style)
 
-The new UI (`/desktop`) follows the Halo-style design agreed in October 2026 (navigation panel in the
+The new UI (served at `/`) follows the Halo-style design agreed in October 2026 (navigation panel in the
 application colour, white top bar, Halo-style sign-in page). Work happens on the branch `studenthub-newUI`.
 
 - **Application colour:** admins choose it under **Administration → Settings → Branding → Application colour**
@@ -608,7 +634,7 @@ a second heading) fail by design too; `StudenthubNav.spec.ts` covers the rail an
 ## Feedback Collection
 
 Replaces the PHP add-on (`/assets/feedback.php`) that production used for customer ratings.
-Admins manage it under **Administration → Manage → Feedback Collection** (`/desktop/manage/feedback-collection`,
+Admins manage it under **Administration → Manage → Feedback Collection** (`/manage/feedback-collection`,
 permission `admin.feedback_collection`).
 
 **How it works:** when a ticket changes to a _closed_ state (by an agent or a scheduler), a background step checks
@@ -657,7 +683,7 @@ Only a SHA-256 hash of each token is stored.
 
 Agents send a ticket to a manager for approval; the manager approves or denies it and the result goes back to
 the agent. Admins turn it on or off under **Administration → Manage → Ticket Approvals**
-(`/desktop/manage/ticket-approvals`, permission `admin.ticket_approval`).
+(`/manage/ticket-approvals`, permission `admin.ticket_approval`).
 
 - **Managers** are everyone with the **Managers** role. The role carries the `ticket.approver` permission (created
   by the migration, together with the role itself if it doesn't exist).
@@ -679,7 +705,7 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 - **The two approval overviews** (**Awaiting my approval** for the Managers role, **Sent for approval** for every
   agent role except Managers and Admin) are managed by Student Hub: on while Ticket Approvals is on, hidden while it
   is off. They are locked
-  on `/desktop/manage/overviews`, and changes made elsewhere (classic admin, API) or a new agent role are put right
+  on `/manage/overviews`, and changes made elsewhere (classic admin, API) or a new agent role are put right
   in the background a few seconds later.
 - **Managers** see the ticket in the **Awaiting my approval** overview until they decide. In the new UI's views panel
   both overviews are listed first, under **Approval needed**. In the new UI the request appears as a card
@@ -753,7 +779,7 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
 
 For a **Category › Sub-category**, the extra ticket fields asked for when a ticket is raised under it, e.g. a start
 date for "Service Request › Onboarding (New Starter)". Admins make them under **Administration → Manage → Request
-forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
+forms** (`/manage/request-forms`, permission `admin.request_forms`).
 
 - **Editor and preview:** the page shows the form next to a preview of the student wizard's Details step as the
   person raising the ticket gets it (the same component, with Zammad's real fields; Desktop / Phone width). **Submit
@@ -814,7 +840,7 @@ forms** (`/desktop/manage/request-forms`, permission `admin.request_forms`).
 ## Departments
 
 Departments with a **name**, the **locations** (campuses) they cover and one **email address**, made by admins under
-**Administration → Manage → Departments** (`/desktop/manage/departments`, permission `admin.departments`). What they
+**Administration → Manage → Departments** (`/manage/departments`, permission `admin.departments`). What they
 are used for comes next.
 
 - **On / off:** the **Use departments** switch at the top of the page (setting `studenthub_departments`, off by
@@ -838,7 +864,7 @@ are used for comes next.
 ## Checklists added automatically
 
 Admins choose which **Category › Sub-category** gets which checklist under **Administration → Checklists**
-(`/desktop/manage/checklists`, Zammad's permission `admin.checklist`): editing a checklist, **Add automatically to
+(`/manage/checklists`, Zammad's permission `admin.checklist`): editing a checklist, **Add automatically to
 tickets in** lists the pairs; the list of checklists shows them under each name.
 
 - **When:** a ticket created in one of those sub-categories gets the checklist at once, however it was raised (student
@@ -864,7 +890,7 @@ tickets in** lists the pairs; the list of checklists shows them under each name.
 
 ## Reporting
 
-**Reports** in the rail (`/desktop/report`, permission `report` or `admin`) shows Zammad's own reports: pick a
+**Reports** in the rail (`/report`, permission `report` or `admin`) shows Zammad's own reports: pick a
 **report profile** (made under **Administration → Report Profiles**), a metric (ticket counts, creation channels,
 communication) and a year, month, week, day or the last hour; the chart, the tickets behind a series and their
 **Excel download** come from Zammad's reporting API (`/api/v1/reports/config`, `generate`, `sets`).
@@ -897,7 +923,7 @@ communication) and a year, month, week, day or the last hour; the chart, the tic
 ## Members
 
 Agents and admins see who of them is online and when each last signed in: a people button with the number online in
-the top bar (its drop-down lists them) and the **Members** page in the navigation (`/desktop/members`: online now,
+the top bar (its drop-down lists them) and the **Members** page in the navigation (`/members`: online now,
 then everyone else with their last login). The page is grouped by role (Admin & Manager, Admin, Agent & Manager,
 Agent; names in alphabetical order); **Sort by** switches to Name or Last active (kept in the browser), and the search
 finds names. The navigation panel filters it (Show, Roles, Teams; see Navigation above); the page names the filters
@@ -923,7 +949,7 @@ Zammad's own `last_login`. Email addresses aren't shown.
 These classic features now also work in the new UI. Each page reads through a small Student Hub endpoint where
 Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and permissions still apply.
 
-- **Knowledge Base** (`/desktop/knowledge-base`, in the navigation panel for staff with Knowledge Base access):
+- **Knowledge Base** (`/knowledge-base`, in the navigation panel for staff with Knowledge Base access):
   categories with a title filter in the navigation panel, the start page (categories, answers changed last, full-text
   search), categories, answers with their text, files and tags, and for editors: new and edited answers (rich text, in
   the language chosen above the page), publishing (draft → internal → public → archived and back), files, and new,
@@ -933,32 +959,32 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
 - **Knowledge Base answers in search:** the top bar's search drop-down lists matching answers under "Found
   knowledge base answers" (title and text; Zammad's own Knowledge Base search, which also works without
   Elasticsearch), and "More in the Knowledge Base" opens all results on the Knowledge Base page.
-- **Scheduler** (`/desktop/manage/scheduler`): jobs with when they run (days, hours, minutes), conditions (state,
+- **Scheduler** (`/manage/scheduler`): jobs with when they run (days, hours, minutes), conditions (state,
   priority, team, owner incl. unassigned, organisation, select fields such as Category and Campus, tags, title,
   and times such as "updated more than 2 days ago" or "escalation within the next hour") and actions (state,
   priority, team, owner, select fields, tags, internal note, email, webhook, delete). The editor shows how many
   tickets match now. Settings it doesn't know (e.g. expert-mode conditions, SMS) are kept as they are.
-- **Roles** (`/desktop/manage/roles`): permissions grouped as admin area, agent work, customers and profile
+- **Roles** (`/manage/roles`): permissions grouped as admin area, agent work, customers and profile
   settings, and team access per team (read, create, change, overview, full). Warns before an admin removes their own
   admin access. The Admin role's team access is still kept in step by the Teams views.
-- **LDAP** (`/desktop/manage/system/integrations/ldap`, also from **Configure** on the Integrations page): on/off,
+- **LDAP** (`/manage/system/integrations/ldap`, also from **Configure** on the Integrations page): on/off,
   servers, the last sync and **Sync now**, and the classic wizard for a server: connect, sign in with the service
   account, map LDAP attributes to user fields (login required) and groups to roles, a trial run that changes nothing,
   save. The service account password is never sent to the browser; it stays as it is unless a new one is typed.
 - **Customer feedback** in the ticket sidebar of closed tickets (star icon on the right): the rating and comment from
   Feedback Collection.
-- **Public Links** (`/desktop/manage/public-links`): links shown under the sign-in form (and on the password reset
+- **Public Links** (`/manage/public-links`): links shown under the sign-in form (and on the password reset
   page if chosen), in the order set there. The new sign-in page shows them again.
-- **Ticket States**, **Ticket Priorities** and **Tags** (`/desktop/manage/ticket-states`, `…/ticket-priorities`,
+- **Ticket States**, **Ticket Priorities** and **Tags** (`/manage/ticket-states`, `…/ticket-priorities`,
   `…/tags`): add, change and switch off states and priorities (only unused ones can be deleted; merged/removed states
   are Zammad's own); add, rename (renaming to an existing tag merges them) and delete tags, and whether agents may
   create new tags.
 
-- **S/MIME** and **PGP** (`/desktop/manage/system/integrations/smime`, `…/pgp`, also from **Configure** on the
+- **S/MIME** and **PGP** (`/manage/system/integrations/smime`, `…/pgp`, also from **Configure** on the
   Integrations page): on/off, signing of system notifications, certificates and private keys (S/MIME) or keys (PGP)
   added by pasting or from a file, downloaded and deleted, and per team whether new emails are signed and encrypted by
   default.
-- **Exchange** (`/desktop/manage/system/integrations/exchange`): contact import from Exchange address books. Sign in
+- **Exchange** (`/manage/system/integrations/exchange`): contact import from Exchange address books. Sign in
   with a Microsoft 365 app (app details, then **Connect account**; Microsoft sends you back to this page) or a user
   and password for Exchange on site, choose folders, map fields to user fields, a trial run, save, **Import now**.
   The stored password is never sent to the browser.

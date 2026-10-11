@@ -16,7 +16,7 @@ module Studenthub::WebReplyNotice
     <div><br></div>
     <div>There is a new reply to your request "\#{ticket.title}" (ticket \#{ticket.number}).</div>
     <div><br></div>
-    <div><a href="\#{config.http_type}://\#{config.fqdn}/desktop/tickets/\#{ticket.id}">Read the reply in \#{config.product_name}</a></div>
+    <div><a href="\#{config.http_type}://\#{config.fqdn}/tickets/\#{ticket.id}">Read the reply in \#{config.product_name}</a></div>
     <div><br></div>
     <div>Best regards,</div>
     <div>\#{config.product_name}</div>

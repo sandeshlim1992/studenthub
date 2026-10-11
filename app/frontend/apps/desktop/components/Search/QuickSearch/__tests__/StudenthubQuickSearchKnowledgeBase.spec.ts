@@ -33,12 +33,12 @@ describe('Knowledge Base answers in the quick search', () => {
 
     expect(await view.findByRole('link', { name: 'Printer guide 1' })).toHaveAttribute(
       'href',
-      '/desktop/knowledge-base/answer/20',
+      '/knowledge-base/answer/20',
     )
     expect(view.getAllByRole('link', { name: /Printer guide/ })).toHaveLength(5)
     expect(view.getByRole('link', { name: 'More in the Knowledge Base' })).toHaveAttribute(
       'href',
-      '/desktop/knowledge-base?search=printer',
+      '/knowledge-base?search=printer',
     )
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/studenthub/knowledge_base/search?query=printer&limit=6', expect.anything())
     expect(view.emitted('update:count')?.at(-1)).toEqual([6])

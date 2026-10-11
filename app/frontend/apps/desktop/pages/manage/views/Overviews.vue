@@ -530,7 +530,7 @@ const handleEditOverview = (overview: OverviewItem) => {
 const handleViewOverview = (overview: OverviewItem) => {
   activeActionMenuOverviewId.value = null
   if (overview.link) {
-    router.push(`/desktop/ticket/view/${overview.link}`)
+    router.push(`/ticket/view/${overview.link}`)
   }
 }
 

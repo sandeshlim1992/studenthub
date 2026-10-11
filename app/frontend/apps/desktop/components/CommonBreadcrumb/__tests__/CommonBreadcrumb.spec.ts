@@ -27,7 +27,7 @@ describe('breadcrumb', () => {
     const link = view.getByRole('link')
 
     expect(link).toHaveTextContent('Dashboard')
-    expect(link).toHaveAttribute('href', '/desktop/')
+    expect(link).toHaveAttribute('href', '/')
     expect(view.getByText('Settings')).toBeInTheDocument()
     expect(view.getByText('trailing slot')).toBeInTheDocument()
   })

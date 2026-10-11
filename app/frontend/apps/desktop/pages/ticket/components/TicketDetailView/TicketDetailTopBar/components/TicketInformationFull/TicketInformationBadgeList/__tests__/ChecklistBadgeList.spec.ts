@@ -183,12 +183,12 @@ describe('TicketChecklistBadges', () => {
 
     expect(wrapper.getByRole('link', { name: 'Hook#123 - Foo Title' })).toHaveAttribute(
       'href',
-      '/desktop/tickets/2',
+      '/tickets/2',
     )
 
     expect(wrapper.getByRole('link', { name: 'Hook#456 - Bar Title' })).toHaveAttribute(
       'href',
-      '/desktop/tickets/23',
+      '/tickets/23',
     )
   })
 

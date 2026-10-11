@@ -1,6 +1,6 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# Admin API for the Feedback Collection page under /desktop/manage, plus one read-only
+# Admin API for the Feedback Collection page under /manage, plus one read-only
 # endpoint agents use to show a ticket's rating in the ticket sidebar.
 class FeedbackCollectionController < ApplicationController
   prepend_before_action :authenticate_and_authorize!

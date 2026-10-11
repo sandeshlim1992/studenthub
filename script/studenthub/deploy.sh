@@ -579,7 +579,9 @@ health_check() {
   else
     ok "web server answers"
     expected="/assets/frontend/vite/$(node -e "$VITE_ENTRY_JS" "$VITE_DIR/.vite/manifest.json")"
-    html=$(curl -s --max-time 30 "$WEB_URL/desktop/login") || true
+    # -L: since the new UI is served at /, /desktop/login redirects to /login (older versions,
+    # e.g. after a rollback, serve it directly)
+    html=$(curl -sL --max-time 30 "$WEB_URL/desktop/login") || true
     if grep -qF "$expected" <<<"$html"; then
       ok "/desktop/login serves the new frontend build"
     else

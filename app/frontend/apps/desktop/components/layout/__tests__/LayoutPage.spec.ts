@@ -139,7 +139,8 @@ describe('LayoutPage', () => {
 
       await wrapper.events.click(toggle)
 
-      await waitFor(() => expect(window.location.href).toBe('/'))
+      // Student Hub: the classic UI is at /app
+      await waitFor(() => expect(window.location.href).toBe('/app'))
     })
 
     it('hides the switch if the feature is disabled', async () => {

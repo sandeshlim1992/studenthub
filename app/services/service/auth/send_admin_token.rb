@@ -7,7 +7,7 @@ class Service::Auth::SendAdminToken < Service::Base
 
   def initialize(login:)
     @login = login
-    @path = 'desktop/login?token='
+    @path = 'login?token=' # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot)
   end
 
   def execute

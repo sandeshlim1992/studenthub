@@ -121,7 +121,7 @@ describe('StudenthubTicketQueue', () => {
     expect(rows[1]).toHaveTextContent('Laptop won’t join eduroam')
     expect(rows[1]).toHaveTextContent('Helen Ward')
     expect(within(rows[1]).getByRole('link')).toHaveAttribute('aria-current', 'page')
-    expect(within(rows[1]).getByRole('link')).toHaveAttribute('href', '/desktop/tickets/12')
+    expect(within(rows[1]).getByRole('link')).toHaveAttribute('href', '/tickets/12')
     expect(within(rows[0]).getByRole('link')).not.toHaveAttribute('aria-current')
 
     expect(view.getByRole('button', { name: 'Choose the view of the queue' })).toHaveTextContent(

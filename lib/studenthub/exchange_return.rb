@@ -5,7 +5,7 @@
 # page instead, with the outcome ("success/1" or "error/<code>") as ?result=.
 module Studenthub::ExchangeReturn
   CLASSIC_PAGE = '/#system/integration/exchange/'.freeze
-  NEW_UI_PAGE  = '/desktop/manage/system/integrations/exchange'.freeze
+  NEW_UI_PAGE  = '/manage/system/integrations/exchange'.freeze
 
   def link_account(...)
     url = super

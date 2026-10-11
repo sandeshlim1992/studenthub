@@ -27,7 +27,7 @@ RSpec.describe 'Desktop > Registration', app: :desktop_view, authenticated_as: f
     expect(page).to have_text('Thanks for joining. Email sent to "john.doe@example.com".')
     expect(notification_url).to be_present
 
-    visit notification_url.sub(%r{.*/desktop/}, '')
+    visit notification_url.sub(%r{\Ahttps?://[^/]+/}, '')
 
     expect_current_route '/'
   end

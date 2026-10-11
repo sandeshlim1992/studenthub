@@ -7,13 +7,25 @@ import { isStandalone } from '#shared/utils/pwa.ts'
 
 import { useBaseUrl } from './useBaseUrl.ts'
 
-const useHtmlLinks = (urlPrefix: '/desktop' | '/mobile') => {
+// Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot), so its prefix is ''.
+const useHtmlLinks = (urlPrefix: '' | '/mobile') => {
   const { baseUrl } = useBaseUrl()
   const router = useRouter()
 
   const getRedirectRoute = (url: URL): string | undefined => {
-    if (url.pathname.startsWith(urlPrefix)) {
+    if (urlPrefix && url.pathname.startsWith(urlPrefix)) {
       return url.href.slice(`${url.origin}${urlPrefix}`.length)
+    }
+
+    // Student Hub: at / a link is one of the app's pages when the router knows its address (older
+    // links still start with /desktop); anything else (attachments, the API…) opens normally.
+    if (!urlPrefix) {
+      const path = url.pathname.replace(/^\/desktop(?=\/|$)/, '') || '/'
+
+      if (path !== '/') {
+        const route = router.resolve(`${path}${url.search}${url.hash}`)
+        return route.name === 'Error' ? undefined : route.fullPath
+      }
     }
 
     const route = router.resolve(`/${url.hash.slice(1)}${url.search}`)

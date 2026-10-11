@@ -107,7 +107,7 @@ describe('TopBarHeaderFull', () => {
     expect(copyToClipboardMock).toHaveBeenCalledWith([
       {
         data: {
-          'text/html': '<a href="http://zammad.example.com/desktop/tickets/1">Ticket#89001</a>',
+          'text/html': '<a href="http://zammad.example.com/tickets/1">Ticket#89001</a>',
           'text/plain': 'Ticket#89001',
         },
         options: {

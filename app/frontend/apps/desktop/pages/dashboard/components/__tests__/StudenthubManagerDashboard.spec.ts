@@ -195,7 +195,7 @@ describe('StudenthubManagerDashboard', () => {
     const stillOpen = view.getByRole('region', { name: 'Back with teams, still open' })
     expect(within(stillOpen).getByRole('link', { name: /Replacement ID card/ })).toHaveAttribute(
       'href',
-      '/desktop/tickets/7',
+      '/tickets/7',
     )
 
     const recent = view.getByRole('region', { name: 'Recent decisions' })

@@ -59,7 +59,7 @@ describe('TicketOverviewsSidebar', () => {
     expect(await wrapper.findByRole('link')).toHaveTextContent('reorder items')
     expect(wrapper.getByRole('link')).toHaveAttribute(
       'href',
-      '/desktop/personal-setting/ticket-overviews',
+      '/personal-setting/ticket-overviews',
     )
 
     expect(wrapper.getByIconName('list-columns-reverse')).toBeInTheDocument()

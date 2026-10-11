@@ -41,7 +41,7 @@ RSpec.describe Studenthub::WebReplyNotice, aggregate_failures: true do
       expect(notices.size).to eq(1)
       expect(notices.first).to have_attributes(internal: true, to: 'ada@student.example')
       expect(notices.first.subject).to eq('New reply to your request: Lost my ID card')
-      expect(notices.first.body).to include('Hi Ada', "/desktop/tickets/#{ticket.id}")
+      expect(notices.first.body).to include('Hi Ada', "/tickets/#{ticket.id}")
     end
 
     it 'leaves email replies, internal web messages and the student’s own messages alone' do

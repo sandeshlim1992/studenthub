@@ -380,7 +380,7 @@ describe('CommonAdvancedTable', () => {
     const linkCell = wrapper.getByRole('link')
 
     expect(linkCell).toHaveTextContent('Dummy ticket')
-    expect(linkCell).toHaveAttribute('href', '/desktop/tickets/1')
+    expect(linkCell).toHaveAttribute('href', '/tickets/1')
     expect(linkCell).not.toHaveAttribute('target')
   })
 

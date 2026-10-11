@@ -141,3 +141,5 @@ the current state is in `.dev/NOTES.md`.
   "Discard changes" on a footer band, main button in the application colour
 - 2026-10-11: Ticket sidebar: Contributors right below SLA, no Accounted time section; the editor's "Mention user"
   button is now "Add contributor" (staff only)
+- 2026-10-11: The new UI is served at `/` instead of `/desktop` (old `/desktop/…` links redirect, the classic UI is at
+  `/app`); restore tag `before-new-ui-at-root`, every changed file in `.dev/new-ui-at-root.md`

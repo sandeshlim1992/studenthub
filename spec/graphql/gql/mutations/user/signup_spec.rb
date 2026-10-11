@@ -56,7 +56,7 @@ RSpec.describe Gql::Mutations::User::Signup, type: :graphql do
         gql.execute(query, variables: variables)
         expect(gql.result.data).to eq({ 'success' => true, 'errors' => nil })
         expect(User.find_by(email: 'bender@futurama.fiction')).to be_present
-        expect(message).to include("<a href=\"http://zammad.example.com/desktop/signup/verify/#{Token.last[:token]}\">")
+        expect(message).to include("<a href=\"http://zammad.example.com/signup/verify/#{Token.last[:token]}\">")
       end
 
       context 'when the password is weak' do
@@ -118,7 +118,7 @@ RSpec.describe Gql::Mutations::User::Signup, type: :graphql do
 
           expect(gql.result.data).to eq({ 'success' => true, 'errors' => nil })
           expect(message).to include('You or someone else tried to sign up with this email address.')
-          expect(message).to include("<a href=\"http://zammad.example.com/desktop/reset-password/verify/#{Token.last[:token]}\">")
+          expect(message).to include("<a href=\"http://zammad.example.com/reset-password/verify/#{Token.last[:token]}\">")
         end
       end
 

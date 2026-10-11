@@ -287,23 +287,23 @@ describe('navigation design C', () => {
 
       expect(within(nav).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
         'href',
-        '/desktop/dashboard',
+        '/dashboard',
       )
       expect(within(nav).getByRole('link', { name: 'Tickets' })).toHaveAttribute(
         'href',
-        '/desktop/tickets/view',
+        '/tickets/view',
       )
       expect(within(nav).getByRole('link', { name: 'KB' })).toHaveAttribute(
         'href',
-        '/desktop/knowledge-base',
+        '/knowledge-base',
       )
       expect(within(nav).getByRole('link', { name: 'Admin' })).toHaveAttribute(
         'href',
-        '/desktop/manage',
+        '/manage',
       )
       expect(within(nav).getByRole('link', { name: 'Reports' })).toHaveAttribute(
         'href',
-        '/desktop/report',
+        '/report',
       )
       expect(within(nav).getByRole('link', { name: 'Members' })).toBeInTheDocument()
       expect(within(nav).getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
@@ -402,7 +402,7 @@ describe('navigation design C', () => {
       const approvals = await view.findByRole('navigation', { name: 'Approval views' })
       const waiting = within(approvals).getByRole('link', { name: /Awaiting my approval/ })
 
-      expect(waiting).toHaveAttribute('href', '/desktop/tickets/view/awaiting_my_approval')
+      expect(waiting).toHaveAttribute('href', '/tickets/view/awaiting_my_approval')
       // A view waiting for approval shows its count in amber.
       await vi.waitFor(() =>
         expect(waiting.querySelector('.sh-nav-views__count--waiting')).toBeInTheDocument(),
@@ -411,7 +411,7 @@ describe('navigation design C', () => {
       const teams = view.getByRole('navigation', { name: 'Team views' })
       expect(within(teams).getByRole('link', { name: /Service Desk/ })).toHaveAttribute(
         'href',
-        '/desktop/tickets/view/studenthub_team_26',
+        '/tickets/view/studenthub_team_26',
       )
 
       const sites = view.getByRole('navigation', { name: 'Site views' })
@@ -465,7 +465,7 @@ describe('navigation design C', () => {
         within(attention)
           .getAllByRole('link')
           .map((link) => link.getAttribute('href')),
-      ).toEqual(['/desktop/tickets/view/awaiting_my_approval', '/desktop/tickets/view/my_assigned'])
+      ).toEqual(['/tickets/view/awaiting_my_approval', '/tickets/view/my_assigned'])
 
       const online = await view.findByRole('list', { name: 'Online members' })
       expect(within(online).getByText('Ada Lovelace')).toBeInTheDocument()

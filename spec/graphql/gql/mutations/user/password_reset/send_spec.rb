@@ -62,7 +62,7 @@ RSpec.describe Gql::Mutations::User::PasswordReset::Send, type: :graphql do
 
         expect { gql.execute(query, variables: variables) }.to change(Token, :count)
         expect(gql.result.data).to eq({ 'success' => true, 'errors' => nil })
-        expect(message).to include("<a href=\"http://zammad.example.com/desktop/reset-password/verify/#{Token.last[:token]}\">")
+        expect(message).to include("<a href=\"http://zammad.example.com/reset-password/verify/#{Token.last[:token]}\">")
       end
     end
 

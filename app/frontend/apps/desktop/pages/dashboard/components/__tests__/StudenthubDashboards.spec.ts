@@ -181,7 +181,7 @@ describe('Student Hub dashboards', () => {
       expect(feed).toHaveTextContent('System updated #886812')
       expect(within(feed).getByRole('link', { name: '#886844' })).toHaveAttribute(
         'href',
-        '/desktop/tickets/7004',
+        '/tickets/7004',
       )
     })
 
@@ -201,11 +201,11 @@ describe('Student Hub dashboards', () => {
       expect(desk).toHaveTextContent('2 more waiting')
       expect(within(desk).getByRole('link', { name: '#886850' })).toHaveAttribute(
         'href',
-        '/desktop/tickets/7010',
+        '/tickets/7010',
       )
       expect(within(desk).getByRole('link', { name: 'View team →' })).toHaveAttribute(
         'href',
-        '/desktop/tickets/view/studenthub_team_26',
+        '/tickets/view/studenthub_team_26',
       )
 
       const vle = within(section).getByRole('region', { name: 'VLE' })
@@ -277,7 +277,7 @@ describe('Student Hub dashboards', () => {
       const open = view.getByRole('region', { name: 'Open tickets' })
       expect(within(open).getByRole('link', { name: 'Service Desk' })).toHaveAttribute(
         'href',
-        '/desktop/tickets/view/studenthub_team_26',
+        '/tickets/view/studenthub_team_26',
       )
       expect(open).toHaveTextContent('Waiting for approval2')
       expect(open).toHaveTextContent('3 new today · 1 closed today')
@@ -296,7 +296,7 @@ describe('Student Hub dashboards', () => {
       const sites = view.getByRole('region', { name: 'Sites' })
       expect(within(sites).getByRole('link', { name: 'FSB' })).toHaveAttribute(
         'href',
-        '/desktop/tickets/view/studenthub_institution_7',
+        '/tickets/view/studenthub_institution_7',
       )
       expect(sites).toHaveTextContent('Without a site: 3')
 

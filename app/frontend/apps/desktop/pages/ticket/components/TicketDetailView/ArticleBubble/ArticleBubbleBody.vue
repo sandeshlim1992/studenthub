@@ -55,7 +55,7 @@ const showAuthorInformation = computed(() => {
   return !props.showMetaInformation && author !== '-' && (author?.length ?? 0) > 0
 })
 
-const { setupLinksHandlers } = useHtmlLinks('/desktop')
+const { setupLinksHandlers } = useHtmlLinks('') // Student Hub: the new UI is served at /
 const { populateInlineImages } = useHtmlInlineImages(toRef(props, 'inlineImages'), (index) =>
   emit('preview', props.inlineImages[index]),
 )

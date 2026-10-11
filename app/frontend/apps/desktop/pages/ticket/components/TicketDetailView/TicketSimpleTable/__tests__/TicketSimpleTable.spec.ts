@@ -42,7 +42,7 @@ describe('TicketSimpleData', () => {
     expect(wrapper.getByText('ROCK YOUR TICKET TABLE')).toBeInTheDocument()
     expect(wrapper.getByText('89002')).toBeInTheDocument()
     expect(wrapper.getByText('1111')).toBeInTheDocument()
-    expect(wrapper.getByText('1111')).toHaveAttribute('href', '/desktop/tickets/2')
+    expect(wrapper.getByText('1111')).toHaveAttribute('href', '/tickets/2')
     expect(wrapper.getByText('Dummy')).toBeInTheDocument()
     expect(wrapper.getAllByRole('status', { name: 'open' })).toHaveLength(2)
     expect(wrapper.getAllByText('Test Agents')).toHaveLength(2)

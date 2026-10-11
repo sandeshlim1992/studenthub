@@ -66,7 +66,7 @@ const initializeRouter: InitializeAppRouter = (app: App) => {
     routes,
     [systemSetupInfo, studenthubHome, activeTaskbarTab],
     [],
-    'desktop',
+    '/', // Student Hub: served at / (Studenthub::NewUiAtRoot), not Zammad's /desktop
   )
 }
 

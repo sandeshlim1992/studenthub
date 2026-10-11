@@ -54,7 +54,7 @@ describe('article permanent link action', () => {
     articlePermalink?.perform?.(ticket, article as TicketArticle, {} as TicketArticlePerformOptions)
 
     expect(copyToClipboardMock).toHaveBeenCalledWith(
-      `https://example.com/desktop/tickets/${ticket.internalId}/${article.internalId}`,
+      `https://example.com/tickets/${ticket.internalId}/${article.internalId}`,
     )
   })
 })

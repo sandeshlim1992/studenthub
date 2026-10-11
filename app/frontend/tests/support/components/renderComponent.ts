@@ -173,7 +173,8 @@ interface MockedRouter extends Router {
 
 let routerInitialized = false
 let router: MockedRouter
-const history = createWebHistory(isDesktop ? '/desktop' : '/mobile')
+// Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot)
+const history = createWebHistory(isDesktop ? '/' : '/mobile')
 
 export const getTestPlugins = () => [...plugins]
 export const getTestRouter = () => router

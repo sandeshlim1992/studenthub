@@ -127,14 +127,15 @@ describe('useNewBetaUi', () => {
       expect(hasFeedbackConsent.value).not.toBe(null)
     })
 
-    it('redirects to root URL', () => {
+    // Student Hub: / opens the new UI, the classic UI is at /app
+    it('redirects to the classic UI at /app', () => {
       const { toggleBetaUiSwitch } = useBetaUi()
 
       expect(window.location.href).toBe('/desktop')
 
       toggleBetaUiSwitch()
 
-      expect(window.location.href).toBe('/')
+      expect(window.location.href).toBe('/app')
     })
 
     it('does not re-trigger milestone dialog after switching back to old UI', async () => {

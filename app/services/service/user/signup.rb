@@ -7,9 +7,10 @@ class Service::User::Signup < Service::Base
   def initialize(user_data:, resend: false)
     @user_data = user_data
     @resend = resend
+    # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot)
     @path = {
-      signup: 'desktop/signup/verify/',
-      taken:  'desktop/reset-password/verify/'
+      signup: 'signup/verify/',
+      taken:  'reset-password/verify/'
     }
   end
 

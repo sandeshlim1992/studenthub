@@ -114,7 +114,7 @@ RSpec.describe 'Student Hub S/MIME, PGP and Exchange (new UI)', aggregate_failur
       classic = Class.new { def self.link_account(*) = 'https://helpdesk.example/#system/integration/exchange/success/1' }
       classic.singleton_class.prepend(Studenthub::ExchangeReturn)
 
-      expect(classic.link_account('token', {})).to eq('https://helpdesk.example/desktop/manage/system/integrations/exchange?result=success%2F1')
+      expect(classic.link_account('token', {})).to eq('https://helpdesk.example/manage/system/integrations/exchange?result=success%2F1')
       expect(ExternalCredential::Exchange.singleton_class.ancestors).to include(Studenthub::ExchangeReturn)
     end
   end

@@ -51,7 +51,7 @@ describe('TicketOverviews', () => {
       within(primaryNavigationSidebar).getByRole('link', {
         name: 'Tickets',
       }),
-    ).toHaveAttribute('href', expect.stringContaining('/desktop/tickets/view'))
+    ).toHaveAttribute('href', expect.stringContaining('/tickets/view'))
 
     // Student Hub: the views are in the navigation panel ("My views"), not a column of their own
     const secondaryNavigationSidebar = await view.findByRole('navigation', {

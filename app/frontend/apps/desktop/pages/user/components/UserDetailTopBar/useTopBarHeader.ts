@@ -18,7 +18,7 @@ export const useTopBarHeader = (props: Ref<Props>) => {
     copyToClipboard([
       new ClipboardItem({
         'text/plain': props.value.userDisplayName,
-        'text/html': `<a href="${config.value.http_type}://${config.value.fqdn}/desktop/users/${props.value.user.internalId}">${props.value.userDisplayName}</a>`,
+        'text/html': `<a href="${config.value.http_type}://${config.value.fqdn}/users/${props.value.user.internalId}">${props.value.userDisplayName}</a>`,
       }),
     ])
   }

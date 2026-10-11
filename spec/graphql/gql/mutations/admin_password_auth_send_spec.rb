@@ -62,7 +62,7 @@ RSpec.describe Gql::Mutations::AdminPasswordAuthSend, type: :graphql do
 
           gql.execute(query, variables: variables)
 
-          expect(message).to include "<a href=\"http://zammad.example.com/desktop/login?token=#{Token.last.token}\">"
+          expect(message).to include "<a href=\"http://zammad.example.com/login?token=#{Token.last.token}\">"
         end
 
         context 'when user requests admin auth more than throttle allows', :rack_attack do

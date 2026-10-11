@@ -165,9 +165,9 @@ describe('Student Hub Knowledge Base page', () => {
 
     expect(await view.findByRole('heading', { level: 1, name: 'How-To Guides' })).toBeInTheDocument()
     const subcategories = view.getByRole('region', { name: 'Sub-categories' })
-    expect(within(subcategories).getByRole('link', { name: /Wi-Fi/ })).toHaveAttribute('href', '/desktop/knowledge-base/category/7')
+    expect(within(subcategories).getByRole('link', { name: /Wi-Fi/ })).toHaveAttribute('href', '/knowledge-base/category/7')
     const answers = view.getByRole('region', { name: 'Answers' })
-    expect(within(answers).getByRole('link', { name: /Reset your password/ })).toHaveAttribute('href', '/desktop/knowledge-base/answer/11')
+    expect(within(answers).getByRole('link', { name: /Reset your password/ })).toHaveAttribute('href', '/knowledge-base/answer/11')
     expect(view.getByRole('button', { name: 'New answer' })).toBeInTheDocument()
     expect(view.getByRole('button', { name: 'Edit' })).toBeInTheDocument()
     // Not empty, so it can't be deleted.
@@ -317,7 +317,7 @@ describe('Student Hub Knowledge Base page', () => {
     const result = await within(results).findByRole('link', { name: /Eduroam setup/ })
     expect(result).toHaveTextContent('How-To Guides › Wi-Fi')
     expect(result).toHaveTextContent('Join eduroam with your student login.')
-    expect(result).toHaveAttribute('href', '/desktop/knowledge-base/answer/12')
+    expect(result).toHaveAttribute('href', '/knowledge-base/answer/12')
   })
 
   it('says when there is no Knowledge Base', async () => {

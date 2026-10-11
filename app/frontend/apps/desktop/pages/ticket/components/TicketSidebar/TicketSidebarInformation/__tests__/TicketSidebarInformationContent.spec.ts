@@ -110,12 +110,12 @@ describe('TicketSidebarInformationContent', () => {
 
       expect(wrapper.getByRole('link', { name: 'tag1' })).toHaveAttribute(
         'href',
-        `/desktop/search/${encodeURI('tags:"tag1"')}?entity=Ticket`,
+        `/search/${encodeURI('tags:"tag1"')}?entity=Ticket`,
       )
 
       expect(wrapper.getByRole('link', { name: 'tag2' })).toHaveAttribute(
         'href',
-        `/desktop/search/${encodeURI('tags:"tag2"')}?entity=Ticket`,
+        `/search/${encodeURI('tags:"tag2"')}?entity=Ticket`,
       )
     })
 

@@ -24,7 +24,7 @@ const actionPlugin: TicketArticleActionPlugin = {
         const { copyToClipboard } = useCopyToClipboard()
 
         copyToClipboard(
-          `${baseUrl.value}/desktop/tickets/${ticket.internalId}/${article.internalId}`,
+          `${baseUrl.value}/tickets/${ticket.internalId}/${article.internalId}`, // Student Hub: new UI at /
         )
       },
     }

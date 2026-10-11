@@ -205,7 +205,7 @@ describe('User Detail View', () => {
         expect(copyToClipboardMock).toHaveBeenCalledWith([
           {
             data: {
-              'text/html': '<a href="http://zammad.example.com/desktop/users/2">Nicole Braun</a>',
+              'text/html': '<a href="http://zammad.example.com/users/2">Nicole Braun</a>',
               'text/plain': 'Nicole Braun',
             },
             options: {

@@ -127,7 +127,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const link = getByRole(tab, 'link')
 
-    expect(link).toHaveAttribute('href', '/desktop/tickets/1')
+    expect(link).toHaveAttribute('href', '/tickets/1')
     expect(link).toHaveAccessibleName('Ticket#53001 - Welcome to Zammad!')
     expect(link).not.toHaveClass('router-link-active router-link-exact-active')
 
@@ -170,7 +170,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const link = getByRole(tab, 'link')
 
-    expect(link).toHaveAttribute('href', '/desktop/tickets/create/999')
+    expect(link).toHaveAttribute('href', '/tickets/create/999')
     expect(link).toHaveAccessibleName('Received call: Test title')
 
     expect(getByRole(tab, 'button', { name: 'Close this tab' })).toBeInTheDocument()
@@ -201,7 +201,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const link = getByRole(tab, 'link')
 
-    expect(link).toHaveAttribute('href', '/desktop/tickets/999')
+    expect(link).toHaveAttribute('href', '/tickets/999')
 
     expect(link).toHaveAccessibleName('You have insufficient rights to view this object.')
 
@@ -233,7 +233,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const link = getByRole(tab, 'link')
 
-    expect(link).toHaveAttribute('href', '/desktop/tickets/999')
+    expect(link).toHaveAttribute('href', '/tickets/999')
     expect(link).toHaveAccessibleName('This object could not be found.')
 
     expect(getByRole(tab, 'button', { name: 'Close this tab' })).toBeInTheDocument()
@@ -268,7 +268,7 @@ describe('UserTaskbarTabs.vue', () => {
 
     const link = getByRole(tab, 'link')
 
-    expect(link).toHaveAttribute('href', '/desktop/tickets/1')
+    expect(link).toHaveAttribute('href', '/tickets/1')
     expect(link).toHaveAccessibleName('Ticket#53001 - Welcome to Zammad!')
 
     await wrapper.events.click(link)

@@ -47,7 +47,8 @@ export const useBetaUi = () => {
     clearSwitchAndRedirect(redirectTo)
   }
 
-  const toggleBetaUiSwitch = (redirectTo = '/', skipFeedback = false) => {
+  // Student Hub: / opens the new UI (Studenthub::NewUiDefault), the classic UI is at /app
+  const toggleBetaUiSwitch = (redirectTo = '/app', skipFeedback = false) => {
     if (skipFeedback) {
       clearSwitchAndRedirect(redirectTo)
       return

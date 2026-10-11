@@ -29,7 +29,7 @@ export const useTopBarHeader = () => {
     copyToClipboard([
       new ClipboardItem({
         'text/plain': ticketNumberWithTicketHook.value,
-        'text/html': `<a href="${config.value.http_type}://${config.value.fqdn}/desktop/tickets/${ticket.value.internalId}">${ticketNumberWithTicketHook.value}</a>`,
+        'text/html': `<a href="${config.value.http_type}://${config.value.fqdn}/tickets/${ticket.value.internalId}">${ticketNumberWithTicketHook.value}</a>`,
       }),
     ])
   }

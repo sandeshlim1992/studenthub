@@ -198,7 +198,7 @@ describe('Organization Detail View', () => {
         {
           data: {
             'text/html':
-              '<a href="http://zammad.example.com/desktop/organizations/1">Zammad Foundation</a>',
+              '<a href="http://zammad.example.com/organizations/1">Zammad Foundation</a>',
             'text/plain': 'Zammad Foundation',
           },
           options: {

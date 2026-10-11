@@ -122,7 +122,8 @@ export const visitView = async (
   useNotifications().clearAllNotifications()
 
   const history = getHistory()
-  history.replace(href)
+  // Student Hub: the new UI's history has no base (served at /), so an address needs its leading /
+  history.replace(href.startsWith('/') ? href : `/${href}`)
 
   const view = renderComponent(
     {

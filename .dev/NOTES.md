@@ -25,11 +25,13 @@ Never put passwords, tokens or keys in this file.
 - Test server pulls from this repo (read-only deploy key), not from Taxil's
 - Servers are updated only with `script/studenthub/deploy.sh` (README → Deploying to the servers),
   never with a manual `git pull`; production gets the exact commit tested on the test server (`--ref`)
-- Staff work in the new UI (`/desktop`; the login page lands everyone there) → new staff features go there first
+- Staff work in the new UI, served at `/` since 11 Oct (Zammad's `/desktop/…` redirects there, the classic UI is at
+  `/app`) → new staff features go there first. Every file changed for the move and how to undo it:
+  `.dev/new-ui-at-root.md` (restore tag `before-new-ui-at-root`)
 - Feedback Collection is native (replaces the PHP `feedback.php` add-on); sends through a Zammad email
-  channel; admin page in `/desktop/manage` (README → Feedback Collection)
+  channel; admin page in `/manage` (README → Feedback Collection)
 - Ticket Approvals: the agent picks any manager (anyone with the Managers role, whatever the team); on/off
-  switch in `/desktop/manage`; the ticket's state never changes. While waiting the ticket sits in the system
+  switch in `/manage`; the ticket's state never changes. While waiting the ticket sits in the system
   group "Managers" (nobody has group access) and only the chosen manager + the agent who asked can read it
   (TicketAccess, not group access); team and owner come back with the decision. SLA pauses while waiting
   (admin switch, on by default). Managers without another staff role get only the decision card and their own
@@ -46,7 +48,7 @@ Never put passwords, tokens or keys in this file.
 - Who sees Teams: agents get the groups their roles give them (the plain Agent role gives Service Desk, VLE and
   Infrastructure, so most agents see 3); users with the Managers role get none unless they are admins; admins see
   all. For that the Teams sync makes the Admin role an agent role with full access to every team group
-- Teams views are locked on `/desktop/manage/overviews` ("Managed automatically": no on/off, reorder or delete),
+- Teams views are locked on `/manage/overviews` ("Managed automatically": no on/off, reorder or delete),
   because the sync resets them; remove one by switching off its group
 - Sites views (called Institutions in the code): one per active organisation (its customers' open tickets), Admin role
   only, kept in step
@@ -190,7 +192,7 @@ Never put passwords, tokens or keys in this file.
 - Taxil's wizard writes its own "Category: … / Campus: …" lines into the description, under the Request details
   block (to tidy with request forms step 4)
 - Queue: Mine / Unassigned only filter the tickets loaded so far (30 per page)
-- `/desktop/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
+- `/manage/overviews`: 45 old accessibility lint errors in Taxil's edit drawer (labels not linked to fields)
 - Zammad's drawer specs (`left-sidebar.spec.ts` width handling ×6) fail by design since design C
 - Vitest's module cache (`node_modules/.experimental-vitest-cache`) keeps old `import.meta.glob` results: after adding a
   page (`routes.ts`) or a plugin, tests still see the old list (e.g. the rail without KB, Members, Reporting). Delete the
@@ -224,6 +226,10 @@ Never put passwords, tokens or keys in this file.
 - Confirmation dialogs (Unsaved changes, Delete object, Yes/Cancel; 11 Oct): Student Hub layout with an icon badge
   (amber unsaved, red delete, application colour otherwise), "Keep editing" / "Discard changes", main button in the
   application colour. Other dialogs keep Zammad's look. Not yet checked in a browser
+- New UI at `/` (11 Oct; README → The new UI is served at /): `/` and its pages open it, `/desktop/…` redirects (302),
+  unknown page addresses show the new UI's own "not found" (only the server's paths such as `/api` keep the 404).
+  OpenID Connect logouts still return to `/desktop/login` (must match the provider's registered address; redirects).
+  Not yet checked in a browser or deployed
 - Departments (admin section, 11 Oct): name, locations (values of the ticket's Campus field) and one email address;
   on/off switch (off by default) that also shows students "Talk to Student Support" (still opens the ticket wizard);
   what departments and that button do comes next (README → Departments)
@@ -261,7 +267,10 @@ Never put passwords, tokens or keys in this file.
 - [ ] Set up the same environment on the home PC (check data-protection rules before copying real data)
 - [ ] Test server: stash the hand-applied logo fix, install the deploy script, run the first scripted deploy
 - [ ] Rehearse the first production deploy on a fresh clone of the production VM, then do it
-- [ ] Decide whether everyone goes from `/#…` to `/desktop` (now only per browser via the beta switch)
+- [ ] New UI at `/`: reinstall the deploy script on the test server (it now follows `/desktop/login` → `/login`) and
+      run `script/studenthub/test/deploy_test.sh` there (needs `initdb`, missing in the container); after deploying,
+      check `/` signed out and in, an old `/desktop/…` link, a `/#ticket/zoom/<id>` email link, Microsoft sign-in, a
+      password-reset email, `/app` and a phone
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
 - [ ] Decide which review findings to fix, starting with the `/manage` saves
 - [ ] Fix the committed database password

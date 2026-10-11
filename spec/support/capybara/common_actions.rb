@@ -171,10 +171,9 @@ module CommonActions
               end
     end
 
+    # Student Hub: the new UI (desktop_view) is served at / (Studenthub::NewUiAtRoot)
     if app == :mobile
       route = "/mobile#{route}"
-    elsif app == :desktop_view
-      route = "/desktop#{route}"
     end
 
     super(route)
@@ -240,7 +239,7 @@ module CommonActions
         if !route.start_with?('/')
           route = "/#{route}"
         end
-        route = Regexp.new(Regexp.quote("/desktop#{route}"))
+        route = Regexp.new(Regexp.quote(route)) # Student Hub: the new UI is served at /
       else
         route = Regexp.new(Regexp.quote("/##{route}"))
       end

@@ -32,7 +32,7 @@ RSpec.describe Service::User::PasswordReset::Send do
 
       service_result
 
-      expect(message).to include "<a href=\"http://zammad.example.com/desktop/reset-password/verify/#{Token.last.token}\">"
+      expect(message).to include "<a href=\"http://zammad.example.com/reset-password/verify/#{Token.last.token}\">"
     end
   end
 

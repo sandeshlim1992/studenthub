@@ -147,7 +147,7 @@ onClickOutside(target, () => {
   stopEditing()
 })
 
-const { setupLinksHandlers } = useHtmlLinks('/desktop')
+const { setupLinksHandlers } = useHtmlLinks('') // Student Hub: the new UI is served at /
 
 const handleEnterKey = (event: KeyboardEvent) => {
   event.preventDefault()

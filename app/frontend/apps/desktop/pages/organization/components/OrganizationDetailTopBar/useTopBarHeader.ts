@@ -20,7 +20,7 @@ export const useTopBarHeader = (props: Ref<Props>) => {
     copyToClipboard([
       new ClipboardItem({
         'text/plain': props.value.organizationDisplayName,
-        'text/html': `<a href="${config.value.http_type}://${config.value.fqdn}/desktop/organizations/${props.value.organization.internalId}">${props.value.organizationDisplayName}</a>`,
+        'text/html': `<a href="${config.value.http_type}://${config.value.fqdn}/organizations/${props.value.organization.internalId}">${props.value.organizationDisplayName}</a>`,
       }),
     ])
   }

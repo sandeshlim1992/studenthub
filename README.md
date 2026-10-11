@@ -835,6 +835,33 @@ are used for comes next.
 
 ---
 
+## Checklists added automatically
+
+Admins choose which **Category › Sub-category** gets which checklist under **Administration → Checklists**
+(`/desktop/manage/checklists`, Zammad's permission `admin.checklist`): editing a checklist, **Add automatically to
+tickets in** lists the pairs; the list of checklists shows them under each name.
+
+- **When:** a ticket created in one of those sub-categories gets the checklist at once, however it was raised (student
+  wizard, staff New ticket, classic UI, API). A ticket moved there later gets it too, but only if it has no checklist
+  yet: a checklist is never replaced, so ticked items stay.
+- **Rules:** one checklist per sub-category (a ticket has one checklist); a checklist can cover many. Inactive
+  checklists aren't added, and nothing is while checklists are switched off. The pair is used, not the sub-category
+  alone ("Others" exists under several categories); the lists come from the same place as for Request forms. A pair
+  the fields no longer offer is marked **No longer a sub-category** until someone takes it off.
+- **Before this:** triggers on "Sub-category is …" called webhooks that posted to Zammad's own `/api/v1/checklists`.
+  The migration turned each such trigger into assignments, removed its webhook action (the `checklist-checd` tag it
+  adds stays, other triggers react to it) and switched those webhooks off. Triggers it couldn't convert are listed in
+  its output and left as they were.
+
+| File(s) | Purpose |
+|---|---|
+| `db/migrate/20261011140000_studenthub_checklist_assignments.rb`, `app/models/studenthub_checklist_assignment.rb`, `lib/studenthub/checklist_assignments.rb` | Table, the checks, adding the checklist to tickets (`TicketHook`, included by `config/initializers/studenthub_checklist_assignments.rb`) |
+| `lib/studenthub/checklist_assignments/webhook_triggers.rb` | The one-off conversion of the old triggers and webhooks |
+| `app/controllers/studenthub_checklist_assignments_controller.rb` | API (`/api/v1/studenthub/checklist_assignments`, `…/:checklist_template_id`) |
+| `app/frontend/apps/desktop/pages/manage/components/Checklists/`, edits in `views/Checklists.vue` | The sub-category picker in the checklist drawer; Added to under each name |
+
+---
+
 ## Sign-in and notifications
 
 - **No self-registration.** The sign-in page has no "New user? Register" link, and the migration

@@ -90,6 +90,10 @@ Never put passwords, tokens or keys in this file.
   browser pop-up or sound, both UIs)
 - Manager sites: admins assign organisations to managers (Ticket Approvals admin page) → read access to those tickets,
   a site view under Sites for those managers, My sites stats on the manager dashboard; teams unchanged
+- Checklists are added by Student Hub, not by triggers: admins pick Category › Sub-category pairs per checklist on
+  the Checklists page; the server adds it when a ticket is created there or moved there without a checklist, never
+  replacing one (README → Checklists added automatically). The four "Checklist : …" triggers keep only their
+  `checklist-checd` tag (other triggers react to it); their loopback webhooks are off (migration, 11 Oct)
 - Classic features move to the new UI as pages that read through small Student Hub endpoints and save through
   Zammad's own REST API (its checks and permissions apply); settings a page doesn't know are kept as they are
 - Customer feedback is for admins only (`admin.feedback_collection`: sidebar panel in both UIs and the API); the
@@ -293,6 +297,9 @@ Never put passwords, tokens or keys in this file.
 - [ ] Run `bin/rails db:migrate` (the departments table, permission and on/off setting), then check Administration →
       Manage → Departments in a browser: new, edit, delete, a taken name, a wrong email address (the on/off switch
       and the student button were checked with headless Chrome on 11 Oct, also live on an open student page)
+- [ ] After deploying the checklist assignments: read the migration's output on the test server and production (one
+      line per converted "Checklist : …" trigger; a trigger it couldn't convert is left as it was), then raise an
+      Onboarding ticket and check it gets one checklist and the `checklist-checd` tag
 - [ ] Check Branding → Sign-in page in a browser as an admin (the section itself; the sign-in page was checked with
       headless Chrome on 11 Oct): editing, the preview, Save, Use the default texts, a refused text
 - [ ] Check the new Details step in a browser as student@: the Your request card and its Change buttons, Subject at the

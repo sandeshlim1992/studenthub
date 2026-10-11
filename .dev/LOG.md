@@ -127,3 +127,5 @@ the current state is in `.dev/NOTES.md`.
   "Talk to Student Support" only while it is on
 - 2026-10-11: Fix: the Teams / Sites / manager-site views sync no longer renumbers every other overview when it moves
   a view, which made it run without end after any change of order (work PC: puma near 100% CPU, no live updates)
+- 2026-10-11: Checklists added automatically: admins assign checklists to Category › Sub-category on the Checklists
+  page; the migration turned the four webhook triggers into assignments (they keep their tag action)

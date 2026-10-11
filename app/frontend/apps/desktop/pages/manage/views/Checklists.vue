@@ -4,6 +4,14 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+
+import StudenthubChecklistSubCategories from '../components/Checklists/StudenthubChecklistSubCategories.vue'
+
+import type {
+  ChecklistAssignmentsData,
+  ChecklistSubCategory,
+} from '../components/Checklists/types.ts'
 
 interface ChecklistTemplateItem {
   id: number
@@ -32,9 +40,34 @@ const defaultFormState = () => ({
   name: '',
   active: true,
   items: [''],
+  subCategories: [] as ChecklistSubCategory[],
 })
 
 const formState = ref(defaultFormState())
+
+// Student Hub: the sub-categories each checklist is added to automatically
+// (Studenthub::ChecklistAssignments). Saved after the checklist itself, and only once loaded, so
+// a failed load can't wipe them.
+const assignmentsData = ref<ChecklistAssignmentsData | null>(null)
+
+const fetchAssignments = async () => {
+  try {
+    assignmentsData.value = await studenthubApi<ChecklistAssignmentsData>(
+      '/api/v1/studenthub/checklist_assignments',
+    )
+  } catch (e) {
+    console.error('Failed to fetch checklist sub-categories:', e)
+  }
+}
+
+const subCategoriesOf = (templateId: number): ChecklistSubCategory[] =>
+  (assignmentsData.value?.assignments ?? [])
+    .filter((assignment) => assignment.checklist_template_id === templateId)
+    .map(({ category, sub_category }) => ({ category, sub_category }))
+
+const templateNames = computed(() =>
+  Object.fromEntries(checklistTemplates.value.map((template) => [template.id, template.name])),
+)
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -168,6 +201,7 @@ const handleEditChecklist = async (tmpl: ChecklistTemplateItem) => {
         name: record.name || tmpl.name || '',
         active: record.active !== false,
         items: itemTexts.length > 0 ? itemTexts : [''],
+        subCategories: subCategoriesOf(tmpl.id),
       }
       drawerTitle.value = __('Edit Checklist')
       showDrawer.value = true
@@ -213,8 +247,26 @@ const saveChecklistTemplate = async () => {
     })
 
     if (res.ok) {
+      const saved = await res.json()
+      formState.value.id = saved.id
+
+      if (assignmentsData.value) {
+        try {
+          await studenthubApi(`/api/v1/studenthub/checklist_assignments/${saved.id}`, {
+            method: 'PUT',
+            body: { sub_categories: formState.value.subCategories },
+          })
+        } catch (e) {
+          // The checklist is saved; the drawer stays open to correct the sub-categories.
+          alert((e as Error).message)
+          fetchChecklistTemplates()
+          return
+        }
+      }
+
       showDrawer.value = false
       fetchChecklistTemplates()
+      fetchAssignments()
     } else {
       const data = await res.json()
       alert(data.error || __('Failed to save checklist.'))
@@ -301,6 +353,7 @@ const handleCloneChecklist = async (tmpl: ChecklistTemplateItem) => {
         name: `${__('Clone')}: ${record.name || tmpl.name || ''}`,
         active: record.active !== false,
         items: itemTexts.length > 0 ? itemTexts : [''],
+        subCategories: [], // a sub-category gets one checklist
       }
       drawerTitle.value = __('New Checklist')
       showDrawer.value = true
@@ -326,6 +379,7 @@ const handleDeleteChecklistTemplate = async (id: number, name: string) => {
     })
     if (res.ok) {
       fetchChecklistTemplates()
+      fetchAssignments()
     } else {
       const data = await res.json()
       alert(data.error || __('Failed to delete checklist.'))
@@ -358,6 +412,7 @@ const toggleActiveState = async (tmpl: ChecklistTemplateItem) => {
 onMounted(() => {
   fetchChecklistTemplates()
   fetchChecklistSetting()
+  fetchAssignments()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -487,6 +542,19 @@ onMounted(() => {
               <!-- Name -->
               <td class="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">
                 {{ tmpl.name }}
+                <span
+                  v-if="subCategoriesOf(tmpl.id).length"
+                  class="mt-0.5 block text-xs font-normal text-slate-500 dark:text-slate-400"
+                >
+                  {{
+                    $t(
+                      'Added to: %s',
+                      subCategoriesOf(tmpl.id)
+                        .map((pair) => `${pair.category} › ${pair.sub_category}`)
+                        .join(', '),
+                    )
+                  }}
+                </span>
               </td>
               <!-- Active -->
               <td class="py-4 px-6 text-center" @click.stop>
@@ -652,6 +720,14 @@ onMounted(() => {
               </button>
             </div>
           </div>
+
+          <StudenthubChecklistSubCategories
+            v-if="assignmentsData"
+            v-model="formState.subCategories"
+            :template-id="formState.id"
+            :data="assignmentsData"
+            :template-names="templateNames"
+          />
 
           <!-- Active -->
           <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl">

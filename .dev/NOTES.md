@@ -138,7 +138,6 @@ Never put passwords, tokens or keys in this file.
 - Test server: `/etc/zammad/zammad.env` is world-readable and holds the M365 client secret
   (check production too)
 - `config/database/database.yml` has a leaked password → not yet fixed
-- `.claude/ui-rules.md` describes the old navy/blue theme; current theme is emerald / dark slate
 - Base is a July `develop` snapshot, not a stable Zammad release
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
@@ -250,7 +249,6 @@ Never put passwords, tokens or keys in this file.
 - [ ] Decide whether everyone goes from `/#…` to `/desktop` (now only per browser via the beta switch)
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
 - [ ] Decide which review findings to fix, starting with the `/manage` saves
-- [ ] Decide on `.claude/ui-rules.md` (update or drop)
 - [ ] Fix the committed database password
 - [ ] Feedback Collection go-live (README → Feedback Collection): pick the sending channel, give
       `it@studenthub.ac` Send As on `feedback@`, import `feedback_tokens.json`, remove the webhook action

@@ -950,11 +950,8 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 ## AI assistant configuration in this repo
 
 - `AGENTS.md`, `.claude/CLAUDE.md` and `.github/copilot-instructions.md` are Zammad's own coding guidelines for AI tools.
-- `.claude/ui-rules.md` was added by Taxil and describes the legacy-UI theme rules (palette,
-  typography, spacing). Its colours reflect the first theme pass (navy/blue). Later
-  commits moved to emerald / dark slate.
 - `.claude/settings.json` is Zammad's Claude Code config (permissions plus lint/regenerate
-  hooks). Taxil added the `frontend-design` plugin to it.
+  hooks).
 
 ---
 

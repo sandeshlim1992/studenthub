@@ -21,6 +21,7 @@ module Studenthub::Setup
     Studenthub::WebReplyNotice.ensure!
     Studenthub::Theme::Setup.ensure!
     Studenthub::Theme::TicketListSetup.ensure!
+    Studenthub::Theme::LoginPanelSetup.ensure!
     Studenthub::TicketViews::Teams.sync!
     Studenthub::TicketViews::Institutions.sync!
     Setting.set('user_create_account', false)

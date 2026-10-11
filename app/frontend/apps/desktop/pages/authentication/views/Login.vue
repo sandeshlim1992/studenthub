@@ -28,6 +28,7 @@ import { useBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonPublicLinks from '#desktop/components/CommonPublicLinks/CommonPublicLinks.vue'
 import LayoutPublicPage from '#desktop/components/layout/LayoutPublicPage/LayoutPublicPage.vue'
+import { readStudenthubLoginPanel } from '#desktop/utils/studenthubLoginPanel.ts'
 
 import { ensureAfterAuth } from '../after-auth/composable/useAfterAuthPlugins.ts'
 import LoginRecoveryCode from '../components/LoginRecoveryCode.vue'
@@ -36,6 +37,8 @@ import LoginTwoFactorMethods from '../components/LoginTwoFactorMethods.vue'
 import { useAdminPasswordAuthVerify } from '../composables/useAdminPasswordAuthVerify.ts'
 
 const application = useApplicationStore()
+
+const loginPanel = computed(() => readStudenthubLoginPanel(application.config.studenthub_login_panel))
 
 const router = useRouter()
 const route = useRoute()
@@ -213,15 +216,12 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
         <div class="flex h-[76px] w-[76px] items-center justify-center rounded-2xl bg-white shadow-lg">
           <img :src="studentHubLogo" alt="Student Hub" class="h-[60px] w-[60px] object-contain" />
         </div>
-        <p class="text-3xl leading-tight font-bold tracking-tight md:text-[34px]">Student Hub</p>
-        <p class="text-lg text-white/90">{{ $t('Your support, simplified.') }}</p>
-        <p class="max-w-[36ch] text-white/80">
-          {{
-            $t(
-              'IT and student support for LSST, FSB and UKBC. Ask for help, follow your requests and find answers in one place.',
-            )
-          }}
+        <!-- Student Hub: texts from Administration → Branding → Sign-in page; an empty text hides its line -->
+        <p v-if="loginPanel.heading" class="text-3xl leading-tight font-bold tracking-tight md:text-[34px]">
+          {{ loginPanel.heading }}
         </p>
+        <p v-if="loginPanel.tagline" class="text-lg text-white/90">{{ loginPanel.tagline }}</p>
+        <p v-if="loginPanel.description" class="max-w-[36ch] text-white/80">{{ loginPanel.description }}</p>
       </div>
       <div class="relative z-10 flex flex-col items-center gap-2.5">
         <span class="text-[11.5px] font-semibold tracking-widest text-white/75 uppercase">
@@ -245,7 +245,7 @@ const { switchValue, toggleBetaUiSwitch } = useBetaUi()
     <main class="flex items-center justify-center px-5 py-10">
       <div class="card-enter flex w-full max-w-[400px] flex-col gap-4">
         <div>
-          <h1 class="text-[26px] leading-tight font-bold tracking-tight">{{ $t('Sign in to Student Hub') }}</h1>
+          <h1 class="text-[26px] leading-tight font-bold tracking-tight">{{ $t('Sign in to %s', $c.product_name) }}</h1>
           <p class="mt-1 text-[var(--sh-ink-2)]">
             {{
               hasEnabledProviders

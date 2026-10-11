@@ -119,3 +119,5 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-11: Devcontainer: Elasticsearch heap 1 GB → 512 MB, container capped at 2 GB RAM and 2 CPUs
 - 2026-10-11: Removed `.claude/SKILL.md` (copy of the generic frontend-design skill, never loaded), the
   `frontend-design` plugin from `.claude/settings.json` and `.claude/ui-rules.md` (old navy/blue classic-UI theme)
+- 2026-10-11: Branding → Sign-in page: admins set the sign-in panel's heading, tagline and description
+  (`studenthub_login_panel`); the sign-in heading reads "Sign in to <Product Name>"

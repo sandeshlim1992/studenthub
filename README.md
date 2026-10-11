@@ -421,6 +421,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
 - **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in
   on the right.
+  Admins write the panel's heading, tagline and description under **Administration → Settings → Branding → Sign-in
+  page** (setting `studenthub_login_panel`; plain text, at most 60 / 120 / 300 characters; an empty text hides its
+  line). The heading on the right reads "Sign in to <Product Name>" (Branding → Identity → Product Name).
   "Continue with Microsoft" now really starts the Microsoft sign-in (it posts to `/auth/microsoft_office365`).
 - **Ticket lists (staff overviews and search results):** white card with quiet rows, a "Views" panel tinted in the
   application colour, and these cells when an overview has the column: state as a coloured label, priority as bars
@@ -567,6 +570,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
 | `app/frontend/apps/desktop/utils/studenthubAppColor.ts`, `composables/useStudenthubAppColor.ts` | Applies the admin colour (called in `AppDesktop.vue`) |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubAppColorSetting.vue` | Colour picker on the Branding page |
 | `lib/studenthub/theme/setup.rb`, `app/models/setting/validation/studenthub_app_color.rb`, `db/migrate/20261004160000_studenthub_app_color.rb` | Setting and its server-side check |
+| `pages/manage/components/Branding/StudenthubLoginPanelSetting.vue`, `utils/studenthubLoginPanel.ts`; edit in `pages/authentication/views/Login.vue` | Sign-in page texts on the Branding page and on the sign-in page |
+| `lib/studenthub/theme/login_panel_setup.rb`, `app/models/setting/validation/studenthub_login_panel.rb`, `db/migrate/20261011120000_studenthub_login_panel.rb` | Sign-in page texts setting and its server-side check |
 | `app/frontend/apps/desktop/components/Ticket/StudenthubTicketCells/` (used by `TicketListTable.vue`), `utils/studenthubTicketList.ts` | State, priority, SLA and campus cells; palette and rules |
 | `app/frontend/apps/desktop/pages/manage/components/Branding/StudenthubTicketListSetting.vue` | Ticket list colours on the Branding page |
 | `lib/studenthub/ticket_views.rb`, `app/controllers/studenthub_ticket_views_controller.rb` (`GET /api/v1/studenthub/ticket_views`), `entities/ticket/composables/useStudenthubTicketViews.ts` | Sorting the views panel (and the queue's view menu) into Approval needed / My views / Teams / Institutions |

@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 import StudenthubAppColorSetting from '../components/Branding/StudenthubAppColorSetting.vue'
+import StudenthubLoginPanelSetting from '../components/Branding/StudenthubLoginPanelSetting.vue'
 import StudenthubTicketListSetting from '../components/Branding/StudenthubTicketListSetting.vue'
 
 interface SettingRecord {
@@ -517,6 +518,9 @@ onMounted(() => {
 
         <!-- Student Hub: application colour of the new UI -->
         <StudenthubAppColorSetting />
+
+        <!-- Student Hub: heading, tagline and description of the sign-in page -->
+        <StudenthubLoginPanelSetting />
 
         <!-- Student Hub: ticket state colours and "due soon" point of the ticket lists -->
         <StudenthubTicketListSetting />

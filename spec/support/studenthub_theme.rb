@@ -5,6 +5,7 @@ RSpec.configure do |config|
   config.before :suite do
     Studenthub::Theme::Setup.ensure!
     Studenthub::Theme::TicketListSetup.ensure!
+    Studenthub::Theme::LoginPanelSetup.ensure!
     Rails.cache.clear
   end
 end

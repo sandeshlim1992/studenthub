@@ -287,5 +287,7 @@ Never put passwords, tokens or keys in this file.
       under it as student@ and look at the Request details block and the saved answers
 - [ ] Run `bin/rails db:migrate` (the departments table and permission), then check Administration → Manage →
       Departments in a browser: new, edit, delete, a taken name, a wrong email address
+- [ ] Check Branding → Sign-in page in a browser as an admin (the section itself; the sign-in page was checked with
+      headless Chrome on 11 Oct): editing, the preview, Save, Use the default texts, a refused text
 - [ ] Check the new Details step in a browser as student@: the Your request card and its Change buttons, Subject at the
       top of the form, no Description with a form (and the message still reads well), stacking on a phone

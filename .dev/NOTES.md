@@ -217,6 +217,8 @@ Never put passwords, tokens or keys in this file.
   step 5 the agents' Request details panel on New ticket, step 6 file uploads and conditions. The admin editor is not
   yet checked in a browser (no admin login works in this container: admin@example.com is refused; agent@ and student@
   work)
+- Ticket sidebar's Subscribers panel is called Contributors and has no "Subscribe me" toggle (11 Oct): people get on
+  the list only through @mentions and can't take themselves off in the new UI (the classic UI still can)
 - Departments (admin section, 11 Oct): name, locations (values of the ticket's Campus field) and one email address;
   on/off switch (off by default) that also shows students "Talk to Student Support" (still opens the ticket wizard);
   what departments and that button do comes next (README → Departments)

@@ -8,7 +8,6 @@ import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
 import { waitForNextTick } from '#tests/support/utils.ts'
 
 import { mockFormUpdaterQuery } from '#shared/components/Form/graphql/queries/formUpdater.mocks.ts'
-import { waitForMentionSubscribeMutationCalls } from '#shared/entities/ticket/graphql/mutations/subscribe.mocks.ts'
 import { mockTicketQuery } from '#shared/entities/ticket/graphql/queries/ticket.mocks.ts'
 import { getTicketUpdatesSubscriptionHandler } from '#shared/entities/ticket/graphql/subscriptions/ticketUpdates.mocks.ts'
 import { createDummyTicket } from '#shared/entities/ticket-article/__tests__/mocks/ticket.ts'
@@ -26,8 +25,9 @@ describe('Ticket detail view', () => {
     mockPermissions(['ticket.agent'])
   })
 
-  describe('Subscribers', () => {
-    it('shows subscriber information', async () => {
+  // Student Hub: the panel is Contributors, a list only (no "Subscribe me" toggle).
+  describe('Contributors', () => {
+    it('shows the contributors and adds a new one live', async () => {
       const ticket = createDummyTicket({
         mentions: {
           __typename: 'MentionConnection',
@@ -172,19 +172,12 @@ describe('Ticket detail view', () => {
 
       const ticketMetaSidebar = within(view.getByLabelText('Content sidebar'))
 
-      const subscribers = ticketMetaSidebar.getByText('Subscribers')
-
-      expect(subscribers).toBeInTheDocument()
+      expect(ticketMetaSidebar.getByText('Contributors')).toBeInTheDocument()
+      expect(view.queryByLabelText('Subscribe me')).not.toBeInTheDocument()
 
       expect(ticketMetaSidebar.queryByLabelText('Avatar (Adam Doe)')).not.toBeInTheDocument()
 
-      const toggle = view.getByLabelText('Subscribe me')
-      expect(toggle).toBeInTheDocument()
-
-      await view.events.click(toggle)
-
-      await waitForMentionSubscribeMutationCalls()
-
+      // e.g. someone @mentioned Adam in a note
       await getTicketUpdatesSubscriptionHandler().trigger({
         ticketUpdates: {
           ticket: {

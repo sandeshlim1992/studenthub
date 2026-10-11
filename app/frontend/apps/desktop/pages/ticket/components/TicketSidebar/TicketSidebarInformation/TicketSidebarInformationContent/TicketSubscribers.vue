@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { nextTick, toRef, watch } from 'vue'
+import { toRef } from 'vue'
 
 import CommonUserAvatar from '#shared/components/CommonUserAvatar/CommonUserAvatar.vue'
 import { useTicketSubscribe } from '#shared/entities/ticket/composables/useTicketSubscribe.ts'
@@ -17,53 +17,19 @@ const props = defineProps<Props>()
 
 const ticketReactive = toRef(props, 'ticket')
 
-const { isSubscribed, isSubscriptionLoading, toggleSubscribe, subscribers, totalSubscribers } =
-  useTicketSubscribe(ticketReactive)
-
-let isOutsideUpdate = false
-watch(
-  () => isSubscribed.value,
-  () => {
-    isOutsideUpdate = true
-    nextTick(() => {
-      isOutsideUpdate = false
-    })
-  },
-)
-
-const handleToggleInput = async () => {
-  // do not trigger update, if value was changed from the outside,
-  // and not by clicking on toggle button, otherwise it goes into infinite loop
-  if (isOutsideUpdate) return false
-  return toggleSubscribe()
-}
+// Student Hub: the panel is "Contributors", a list only: no "Subscribe me" toggle. People are
+// added when someone @mentions them in a note.
+const { subscribers } = useTicketSubscribe(ticketReactive)
 </script>
 
 <template>
   <div class="flex flex-col gap-2">
     <div class="flex w-full flex-col rounded-lg bg-blue-200 px-3 py-3.5 dark:bg-gray-700">
-      <div
-        class="flex gap-2"
-        :class="{
-          'border-b border-neutral-100 pb-2 dark:border-gray-900': subscribers.length,
-        }"
-      >
-        <FormKit
-          type="toggle"
-          :model-value="isSubscribed"
-          :label="__('Subscribe me')"
-          :variants="{
-            true: __('yes'),
-            false: __('no'),
-          }"
-          :disabled="isSubscriptionLoading"
-          outer-class="grow"
-          wrapper-class="!px-0 $remove:h-10"
-          @input-raw="handleToggleInput"
-        />
-      </div>
-      <!-- Student Hub: each subscriber on a line of their own, with their full name -->
-      <ul v-if="totalSubscribers > 0" class="flex flex-col gap-2 pt-2.5">
+      <CommonLabel v-if="!subscribers.length" class="text-stone-200! dark:text-neutral-500!">
+        {{ $t('No contributors yet.') }}
+      </CommonLabel>
+      <!-- Student Hub: each contributor on a line of their own, with their full name -->
+      <ul v-else class="flex flex-col gap-2">
         <li v-for="subscriber in subscribers" :key="subscriber.user.id">
           <UserPopoverWithTrigger
             :user="subscriber.user"

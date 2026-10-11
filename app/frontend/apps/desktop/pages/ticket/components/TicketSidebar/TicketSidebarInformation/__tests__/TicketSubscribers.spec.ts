@@ -89,23 +89,22 @@ const renderTicketSubscribers = (props: Partial<Props> = {}) =>
   })
 
 describe('TicketSubscribers', () => {
-  it('renders a toggle to subscribe/unsubscribe', () => {
-    const wrapper = renderTicketSubscribers()
+  // Student Hub: a list of contributors only, without the "Subscribe me" toggle.
+  it('has no toggle to subscribe', () => {
+    const wrapper = renderTicketSubscribers({ ticket: provideTestTicket(true) })
 
-    const toggle = wrapper.getByLabelText('Subscribe me')
-
-    expect(toggle).toBeInTheDocument()
-    expect(toggle).not.toBeChecked()
+    expect(wrapper.queryByLabelText('Subscribe me')).not.toBeInTheDocument()
   })
 
-  it('renders a toggle as checked if user is subscribed to ticket', () => {
+  it('says so when nobody contributes yet', () => {
     const wrapper = renderTicketSubscribers({
-      ticket: provideTestTicket(true),
+      ticket: createDummyTicket({
+        mentions: { __typename: 'MentionConnection', totalCount: 0, edges: [] },
+      }),
     })
 
-    const toggle = wrapper.getByLabelText('Subscribe me')
-
-    expect(toggle).toBeChecked()
+    expect(wrapper.getByText('No contributors yet.')).toBeInTheDocument()
+    expect(wrapper.queryByRole('list')).not.toBeInTheDocument()
   })
 
   it('renders a list of subscribers', () => {

@@ -135,3 +135,5 @@ the current state is in `.dev/NOTES.md`.
   list is fetched once for all parts shown together, and it looks up everyone's teams at once
 - 2026-10-11: Reporting shows Zammad's real reports again: asks with the CSRF token (was refused), no made-up
   "database mode" figures, says why when Elasticsearch or report profiles are missing, real ticket states, icons
+- 2026-10-11: Ticket sidebar: Subscribers is now Contributors, a list only (no "Subscribe me" toggle; people are added
+  by @mentions)

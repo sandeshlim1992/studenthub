@@ -228,7 +228,7 @@ const actions = computed<MenuItem[]>(() => [
       v-if="isTicketAgent"
       id="ticket-subscribers"
       v-model="persistentStates.collapseSubscribers"
-      :title="__('Subscribers')"
+      :title="__('Contributors')"
     >
       <TicketSubscribers :ticket="ticket" />
     </CommonSectionCollapse>

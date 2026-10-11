@@ -34,7 +34,7 @@ services:
   elasticsearch:
     image: elasticsearch:9.3.2
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g" # half of mem_limit below, as Elasticsearch advises
       - discovery.type=single-node
       - xpack.security.enabled=false
       - http.cors.enabled=true
@@ -49,7 +49,7 @@ services:
       # - indexing_pressure.memory.coordinating.limit=10%
     restart: unless-stopped
     mem_limit: 2g # hard cap for the whole container
-    cpus: 2.0
+    cpus: 3.0
     ports:
       # Expose the ES service for direct access if needed, but avoid conflicts with host services.
       - 127.0.0.1:19200:9200

@@ -251,6 +251,10 @@ Never put passwords, tokens or keys in this file.
   dev-only test users agent@ (Agent : Service Desk), manager@ (Managers), <student@example.com>, password `test`.
   9 Oct: core workflows 55 and 58 (old approval) switched off, 21 stays on; the old "Manager Approval Status" field
   doesn't exist in this DB, so 58 made every New ticket form fail to load (500 on `formUpdater`)
+- Dev DB (this container, 12 Oct): `es_url` points at the devcontainer's Elasticsearch (`http://elasticsearch:9200`)
+  and the search index is rebuilt, so search and Reporting work here. After restoring a test-server dump, set it again,
+  wait until the background jobs are done (`Delayed::Job.count` is 0; a rebuild alongside them failed), then run
+  `bundle exec rake zammad:searchindex:rebuild`
 - Home PC (7 Oct), merged into `develop`, not yet deployed: New ticket for managers, top bar crumbs, role under the
   logo, Members page, no self-registration, silent in-app notifications, manager sites, Dashboard in production
   builds, scrolling on small screens fixed, and the classic features moved to the new UI (Knowledge Base + search,

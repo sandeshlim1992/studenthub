@@ -143,3 +143,4 @@ the current state is in `.dev/NOTES.md`.
   button is now "Add contributor" (staff only)
 - 2026-10-11: The new UI is served at `/` instead of `/desktop` (old `/desktop/…` links redirect, the classic UI is at
   `/app`); restore tag `before-new-ui-at-root`, every changed file in `.dev/new-ui-at-root.md`
+- 2026-10-12: Devcontainer: Elasticsearch gets 3 CPUs and a 1 GB heap (was 2 CPUs and 512 MB; the cap stays 2 GB)

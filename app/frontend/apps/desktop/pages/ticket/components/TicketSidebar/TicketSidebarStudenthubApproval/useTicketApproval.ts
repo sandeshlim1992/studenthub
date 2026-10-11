@@ -24,6 +24,9 @@ export interface ApprovalRound {
   decided_by: ApprovalUser | null
   requested_at: string
   decided_at: string | null
+  sla_paused: boolean
+  // The team the ticket goes back to after the decision.
+  team: string | null
 }
 
 export type ApprovalManager = ApprovalUser

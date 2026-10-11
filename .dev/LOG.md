@@ -149,3 +149,6 @@ the current state is in `.dev/NOTES.md`.
   tickets behind each series (Show more, Download Excel) on the right
 - 2026-10-12: Dashboard: Approvals sits in the same frame as Team overview and My work (up to 1440 px wide, the same
   margins, a 24 px heading)
+- 2026-10-12: Approval tab redesigned (design B): a state chip, a timeline of every request and decision (newest
+  first) with Withdraw or Approve / Deny on the waiting step, "Send for approval again", white fields and buttons in
+  the application colour; the approval API returns each request's team

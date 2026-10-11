@@ -33,6 +33,7 @@ class TicketApproval < ApplicationModel
       requested_at: created_at,
       decided_at:   decided_at,
       sla_paused:   sla_paused,
+      team:         previous_group&.name,
     }
   end
 

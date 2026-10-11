@@ -142,6 +142,9 @@ Never put passwords, tokens or keys in this file.
 - Reporting = design A ("filter column") of <https://claude.ai/artifact/UQdd5UKVEdKBRCkbo85fMW>: report profiles in
   one list, not grouped by LSST / FSB / UKBC (admins make every profile); every figure comes from Zammad's reporting
   API, so it needs Elasticsearch (README → Reporting)
+- Approval tab (staff ticket screen) = design B ("timeline") of <https://claude.ai/artifact/JaKwPJH4KdCuDoxQDgqC4j>:
+  a state chip, the form (open until something was sent, then behind "Send for approval again") and every request
+  and decision newest first, the waiting step carrying Withdraw or Approve / Deny
 
 ## Known issues
 
@@ -241,6 +244,8 @@ Never put passwords, tokens or keys in this file.
   what departments and that button do comes next (README → Departments)
 - Reporting redesign (design A, 12 Oct): replaces Taxil's page. Not yet checked in a browser: in this container only
   `admin@example.com` may open Reporting, and no admin login works here
+- Approval tab redesign (design B, 12 Oct): checked in headless Chromium as agent@ on #886840 (approved) and a ticket
+  without requests; the waiting states (Withdraw, Approve / Deny) only in tests, as the dev data has no waiting request
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
@@ -338,3 +343,5 @@ Never put passwords, tokens or keys in this file.
 - [ ] Check Reporting in a browser as an admin (light, dark and narrow): the profile list, its counts and Find a
       profile, each measure, every period and ‹ ›, the chart's readout and backlog row, the ticket tabs, Show more,
       Download Excel and Live
+- [ ] Check the Approval tab while a request waits: Withdraw as the agent who asked (and its confirmation), Comment
+      and Approve / Deny as the manager, the "Waiting · …" chip, dark mode

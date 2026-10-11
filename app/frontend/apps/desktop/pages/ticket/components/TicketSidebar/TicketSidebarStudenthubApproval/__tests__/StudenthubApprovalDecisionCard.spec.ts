@@ -48,6 +48,8 @@ const round = (fields: Partial<ApprovalRound> = {}): ApprovalRound => ({
   decided_by: null,
   requested_at: '2026-10-05T08:00:00Z',
   decided_at: null,
+  sla_paused: true,
+  team: 'Service Desk',
   ...fields,
 })
 

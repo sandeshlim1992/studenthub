@@ -689,7 +689,9 @@ the agent. Admins turn it on or off under **Administration → Manage → Ticket
   by the migration, together with the role itself if it doesn't exist).
 - **Agents** use the **Approval** tab in the ticket sidebar (new UI and classic UI): choose a manager (every
   manager is listed, whatever the team), give a reason, send. They can withdraw a request while it waits, and send
-  again after a denial. Their requests wait in the **Sent for approval** overview until the manager decides.
+  again after a denial. Their requests wait in the **Sent for approval** overview until the manager decides. In the
+  new UI the tab shows where the ticket stands (a coloured chip) and a timeline of every request and decision, newest
+  first; after a decision the form opens with **Send for approval again**.
 - **While a ticket waits** it is in the **Managers** group, a system group of Ticket Approvals that nobody has
   access to (so nobody can pick it as a team). Only the chosen manager and the agent who asked can open it, read-only;
   the team doesn't see it meanwhile, and replies from the customer only reach those two. The decision (or

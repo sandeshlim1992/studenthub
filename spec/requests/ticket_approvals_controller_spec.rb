@@ -24,7 +24,7 @@ RSpec.describe TicketApprovalsController, aggregate_failures: true, type: :reque
       post url, params: { approver_id: manager.id, reason: 'Please approve' }, as: :json
       expect(response).to have_http_status(:ok)
       expect(json_response).to include('state' => 'pending', 'can_request' => false, 'can_cancel' => true, 'can_decide' => false)
-      expect(json_response['current']).to include('reason' => 'Please approve')
+      expect(json_response['current']).to include('reason' => 'Please approve', 'team' => group.name)
     end
 
     it 'shows why a request is refused' do

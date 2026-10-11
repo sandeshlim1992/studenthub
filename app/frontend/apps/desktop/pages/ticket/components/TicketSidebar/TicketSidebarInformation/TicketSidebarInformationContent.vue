@@ -25,7 +25,6 @@ import TicketSidebarContent from '../TicketSidebarContent.vue'
 import StudenthubCustomerTicketColumn from './TicketSidebarInformationContent/StudenthubCustomerTicketColumn.vue'
 import StudenthubTicketDetailsList from './TicketSidebarInformationContent/StudenthubTicketDetailsList.vue'
 import StudenthubTicketSlaBox from './TicketSidebarInformationContent/StudenthubTicketSlaBox.vue'
-import TicketAccountedTime from './TicketSidebarInformationContent/TicketAccountedTime.vue'
 import TicketAIKnowledgeBaseAnswers from './TicketSidebarInformationContent/TicketAIKnowledgeBaseAnswers.vue'
 import TicketAISuggestedKnowledgeBaseAnswers from './TicketSidebarInformationContent/TicketAISuggestedKnowledgeBaseAnswers.vue'
 import TicketLinks from './TicketSidebarInformationContent/TicketLinks.vue'
@@ -184,6 +183,16 @@ const actions = computed<MenuItem[]>(() => [
       <StudenthubTicketSlaBox :ticket="ticket" />
     </CommonSectionCollapse>
 
+    <!-- Student Hub: Contributors right below the SLA card; no Accounted time section -->
+    <CommonSectionCollapse
+      v-if="isTicketAgent"
+      id="ticket-subscribers"
+      v-model="persistentStates.collapseSubscribers"
+      :title="__('Contributors')"
+    >
+      <TicketSubscribers :ticket="ticket" />
+    </CommonSectionCollapse>
+
     <CommonSectionCollapse
       v-if="isTicketAgent && (isTicketEditable || ticket?.tags?.length)"
       id="ticket-tags"
@@ -213,24 +222,6 @@ const actions = computed<MenuItem[]>(() => [
         <TicketAISuggestedKnowledgeBaseAnswers v-if="showAISuggestedKnowledgeBaseAnswers" />
         <TicketAIKnowledgeBaseAnswers v-if="showAIKnowledgeBaseDraft" />
       </div>
-    </CommonSectionCollapse>
-
-    <CommonSectionCollapse
-      v-if="ticket?.timeUnit && isTicketAgent"
-      id="ticket-time-accounting"
-      v-model="persistentStates.collapseTimeAccounting"
-      :title="__('Accounted time')"
-    >
-      <TicketAccountedTime :ticket="ticket!" />
-    </CommonSectionCollapse>
-
-    <CommonSectionCollapse
-      v-if="isTicketAgent"
-      id="ticket-subscribers"
-      v-model="persistentStates.collapseSubscribers"
-      :title="__('Contributors')"
-    >
-      <TicketSubscribers :ticket="ticket" />
     </CommonSectionCollapse>
   </TicketSidebarContent>
 </template>

@@ -137,3 +137,7 @@ the current state is in `.dev/NOTES.md`.
   "database mode" figures, says why when Elasticsearch or report profiles are missing, real ticket states, icons
 - 2026-10-11: Ticket sidebar: Subscribers is now Contributors, a list only (no "Subscribe me" toggle; people are added
   by @mentions)
+- 2026-10-11: Confirmation dialogs redesigned: icon badge beside a bold title, the message under it, "Keep editing" /
+  "Discard changes" on a footer band, main button in the application colour
+- 2026-10-11: Ticket sidebar: Contributors right below SLA, no Accounted time section; the editor's "Mention user"
+  button is now "Add contributor" (staff only)

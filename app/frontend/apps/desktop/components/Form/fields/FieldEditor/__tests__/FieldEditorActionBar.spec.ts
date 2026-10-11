@@ -148,10 +148,43 @@ describe('basic toolbar testing', () => {
       },
     })
 
-    expect(view.queryByRole('button', { name: 'Mention user' })).not.toBeInTheDocument()
-    expect(view.queryByLabelText('Mention user')).not.toBeInTheDocument()
-    expect(view.queryByText('Mention user')).not.toBeInTheDocument()
+    expect(view.queryByRole('button', { name: 'Add contributor' })).not.toBeInTheDocument()
+    expect(view.queryByLabelText('Add contributor')).not.toBeInTheDocument()
+    expect(view.queryByText('Add contributor')).not.toBeInTheDocument()
     expect(view.queryByIconName('at-sign')).not.toBeInTheDocument()
+  })
+
+  // Student Hub: mentioning someone adds them to the ticket's Contributors
+  it('labels the mention button "Add contributor" for staff', () => {
+    mockPermissions(['ticket.agent'])
+
+    const view = renderComponent(FieldEditorActionBar, {
+      props: {
+        contentType: 'text/html',
+        visible: true,
+        disabledPlugins: [],
+        formId: getUuid(),
+      },
+    })
+
+    expect(view.getByRole('button', { name: 'Add contributor' })).toBeInTheDocument()
+    expect(view.queryByRole('button', { name: 'Mention user' })).not.toBeInTheDocument()
+  })
+
+  it('has no mention button for customers', () => {
+    mockPermissions(['ticket.customer'])
+
+    const view = renderComponent(FieldEditorActionBar, {
+      props: {
+        contentType: 'text/html',
+        visible: true,
+        disabledPlugins: [],
+        formId: getUuid(),
+      },
+    })
+
+    expect(view.queryByRole('button', { name: 'Add contributor' })).not.toBeInTheDocument()
+    expect(view.queryByRole('button', { name: 'Mention user' })).not.toBeInTheDocument()
   })
 
   it("don't see plain text actions", async () => {
@@ -164,8 +197,8 @@ describe('basic toolbar testing', () => {
       },
     })
 
-    expect(view.queryByRole('button', { name: 'Mention user' })).not.toBeInTheDocument()
-    expect(view.queryByLabelText('Mention user')).not.toBeInTheDocument()
+    expect(view.queryByRole('button', { name: 'Add contributor' })).not.toBeInTheDocument()
+    expect(view.queryByLabelText('Add contributor')).not.toBeInTheDocument()
 
     expect(view.queryByLabelText('Add link')).not.toBeInTheDocument()
     expect(view.queryByLabelText('Add image')).not.toBeInTheDocument()

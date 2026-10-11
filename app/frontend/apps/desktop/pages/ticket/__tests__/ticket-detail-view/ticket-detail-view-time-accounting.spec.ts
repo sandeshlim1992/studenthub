@@ -30,7 +30,8 @@ describe('Ticket detail view', () => {
   })
 
   describe('Time accounting', () => {
-    it('shows accounted time information in sidebar', async () => {
+    // Student Hub: the sidebar has no Accounted time section
+    it('does not show accounted time information in sidebar', async () => {
       await mockApplicationConfig({
         time_accounting_types: true,
       })
@@ -75,14 +76,13 @@ describe('Ticket detail view', () => {
       const sidebar = view.getByLabelText('Content sidebar')
 
       expect(
-        within(sidebar).getByRole('heading', {
+        within(sidebar).queryByRole('heading', {
           level: 3,
           name: 'Accounted time',
         }),
-      ).toBeInTheDocument()
+      ).not.toBeInTheDocument()
 
-      expect(within(sidebar).getByText('Total')).toBeInTheDocument()
-      expect(within(sidebar).getByText('15.00')).toBeInTheDocument()
+      expect(within(sidebar).queryByText('15.00')).not.toBeInTheDocument()
     })
 
     it('opens time accounting flyout when the condition is met', async () => {

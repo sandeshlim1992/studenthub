@@ -496,9 +496,9 @@ describe('search view', () => {
           })
           await view.events.click(closeSearchTab)
 
-          await waitUntil(() => view.queryByRole('button', { name: 'Cancel & go back' }) !== null)
+          await waitUntil(() => view.queryByRole('button', { name: 'Keep editing' }) !== null)
 
-          const confirmationButton = view.getByRole('button', { name: 'Cancel & go back' })
+          const confirmationButton = view.getByRole('button', { name: 'Keep editing' })
           await view.events.click(confirmationButton)
 
           await waitFor(() => {

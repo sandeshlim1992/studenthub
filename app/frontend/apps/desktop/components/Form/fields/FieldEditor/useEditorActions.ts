@@ -78,7 +78,8 @@ export default function useEditorActions(
       id: getUuid(),
       name: UserMentionName,
       contentType: ['text/html'],
-      label: __('Mention user'),
+      // Student Hub: whoever is mentioned joins the ticket's Contributors (staff only)
+      label: __('Add contributor'),
       icon: 'editor-mention-user',
       command: focused((c) => c.openUserMention()),
       permission: 'ticket.agent',

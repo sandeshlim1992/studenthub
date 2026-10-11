@@ -193,7 +193,8 @@ describe('TicketSidebarInformationContent', () => {
       ).not.toBeInTheDocument()
     })
 
-    it('displays accounted time.', () => {
+    // Student Hub: the sidebar has no Accounted time section
+    it('does not display accounted time, even with records', () => {
       mockPermissions(['ticket.agent'])
 
       const wrapper = renderInformationSidebar({
@@ -208,7 +209,9 @@ describe('TicketSidebarInformationContent', () => {
         ],
       })
 
-      expect(wrapper.getByRole('heading', { name: 'Accounted time', level: 3 })).toBeInTheDocument()
+      expect(
+        wrapper.queryByRole('heading', { name: 'Accounted time', level: 3 }),
+      ).not.toBeInTheDocument()
     })
 
     it('hides tags, links, accounted time if user has readonly permission and no entries are present', () => {

@@ -64,7 +64,7 @@ describe('ticket create view', () => {
 
       const dialogView = within(dialog)
 
-      await view.events.click(dialogView.getByRole('button', { name: 'Cancel & go back' }))
+      await view.events.click(dialogView.getByRole('button', { name: 'Keep editing' }))
 
       expect(view.getByLabelText('Summary')).toHaveValue('Test Ticket')
     })
@@ -335,7 +335,9 @@ describe('ticket create view', () => {
       const dialogView = within(dialog)
 
       expect(
-        await dialogView.findByText('Are you sure? You have unsaved changes that will get lost.'),
+        await dialogView.findByText(
+          "You have changes that aren't saved. If you leave now, they'll be lost.",
+        ),
       )
 
       await view.events.click(dialogView.getByRole('button', { name: 'Discard changes' }))

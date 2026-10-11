@@ -63,8 +63,9 @@ export default (context: Ref<FormFieldContext<FieldEditorProps>>) => {
     suggestion: buildMentionSuggestion({
       activator: ACTIVATOR,
       type: 'user',
-      label: __('Users'),
-      placeholder: __('Start typing to search for users…'),
+      // Student Hub: mentioned people join the ticket's Contributors; only staff can mention
+      label: __('Contributors'),
+      placeholder: __('Start typing to search for contributors…'),
       insert(props: MentionUserItem) {
         const { fqdn, http_type: httpType } = app.config
         // app/assets/javascripts/app/lib/base/jquery.textmodule.js:705

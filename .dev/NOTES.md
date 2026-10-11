@@ -218,7 +218,12 @@ Never put passwords, tokens or keys in this file.
   yet checked in a browser (no admin login works in this container: admin@example.com is refused; agent@ and student@
   work)
 - Ticket sidebar's Subscribers panel is called Contributors and has no "Subscribe me" toggle (11 Oct): people get on
-  the list only through @mentions and can't take themselves off in the new UI (the classic UI still can)
+  the list only through @mentions and can't take themselves off in the new UI (the classic UI still can). It sits
+  right below the SLA card; the Accounted time section is gone from the sidebar (time accounting itself still works).
+  The editor's @ button reads "Add contributor" (staff only; the mobile app's button still says "Mention user")
+- Confirmation dialogs (Unsaved changes, Delete object, Yes/Cancel; 11 Oct): Student Hub layout with an icon badge
+  (amber unsaved, red delete, application colour otherwise), "Keep editing" / "Discard changes", main button in the
+  application colour. Other dialogs keep Zammad's look. Not yet checked in a browser
 - Departments (admin section, 11 Oct): name, locations (values of the ticket's Campus field) and one email address;
   on/off switch (off by default) that also shows students "Talk to Student Support" (still opens the ticket wizard);
   what departments and that button do comes next (README → Departments)
@@ -304,5 +309,8 @@ Never put passwords, tokens or keys in this file.
       Onboarding ticket and check it gets one checklist and the `checklist-checd` tag
 - [ ] Check Branding → Sign-in page in a browser as an admin (the section itself; the sign-in page was checked with
       headless Chrome on 11 Oct): editing, the preview, Save, Use the default texts, a refused text
+- [ ] Check the confirmation dialogs in a browser (light and dark): Unsaved changes (leave a ticket with a draft),
+      Delete object, a Yes/Cancel one; then the ticket sidebar order (Details, SLA, Contributors, Tags…) and the
+      "Add contributor" button and its search box
 - [ ] Check the new Details step in a browser as student@: the Your request card and its Change buttons, Subject at the
       top of the form, no Description with a form (and the message still reads well), stacking on a phone

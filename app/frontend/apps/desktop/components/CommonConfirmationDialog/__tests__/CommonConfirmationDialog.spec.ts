@@ -76,6 +76,41 @@ describe('dialog confirm behaviour', () => {
     expect(confirmCallbackSpy).toHaveBeenCalledTimes(1)
   })
 
+  it('renders the unsaved changes variant with Keep editing and Discard changes', async () => {
+    const confirmCallbackSpy = vi.fn()
+    const cancelCallbackSpy = vi.fn()
+
+    const wrapper = renderComponent(CommonConfirmationDialog, {
+      props: {
+        uniqueId: 'confirmation',
+      },
+      router: true,
+    })
+
+    confirmationOptions.value.set('confirmation', {
+      confirmationVariant: 'unsaved',
+      confirmCallback: confirmCallbackSpy,
+      cancelCallback: cancelCallbackSpy,
+      closeCallback: vi.fn(),
+    })
+
+    await waitForNextTick()
+
+    expect(wrapper.getByRole('dialog', { name: 'Unsaved changes' })).toBeInTheDocument()
+    expect(
+      wrapper.getByText("You have changes that aren't saved. If you leave now, they'll be lost."),
+    ).toBeInTheDocument()
+    expect(wrapper.getByIconName('exclamation-triangle')).toBeInTheDocument()
+    expect(wrapper.getByRole('button', { name: 'Discard changes' })).toHaveClass(
+      'sh-confirm__action',
+    )
+
+    await wrapper.events.click(wrapper.getByRole('button', { name: 'Keep editing' }))
+
+    expect(cancelCallbackSpy).toHaveBeenCalledTimes(1)
+    expect(confirmCallbackSpy).not.toHaveBeenCalled()
+  })
+
   it('renders confirmation dialog with custom values', async () => {
     const confirmCallbackSpy = vi.fn()
 

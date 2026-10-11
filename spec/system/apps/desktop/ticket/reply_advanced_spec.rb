@@ -378,13 +378,13 @@ RSpec.describe 'Desktop > Ticket > Editor and Advanced Features', app: :desktop_
     wait_for_test_flag(editor_focus_flag)
 
     # Wait for the freshly remounted reply form to be ready before
-    # interacting with the editor. The Mention user button is part of the
+    # interacting with the editor. The Add contributor button is part of the
     # note-mode toolbar, and [role="textbox"] is the TipTap editor's input —
     # both render once the form has finished mounting with the note schema.
     # Use page-level matchers so they re-resolve the form on each retry —
     # the form was just remounted, so a previously-held reply_form element
     # handle from before the submission would be stale.
-    expect(page).to have_css('#ticketArticleReplyForm button[aria-label="Mention user"]')
+    expect(page).to have_css('#ticketArticleReplyForm button[aria-label="Add contributor"]')
     expect(page).to have_css('#ticketArticleReplyForm [role="textbox"]')
 
     # Focus the editor and type activator + query in one call, so the

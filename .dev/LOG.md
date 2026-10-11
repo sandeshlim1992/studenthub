@@ -116,3 +116,4 @@ the current state is in `.dev/NOTES.md`.
   (`.sh-student-ticket` on TicketDetailViewContent)
 - 2026-10-11: Administration → Manage → Departments: departments with a name, locations (Campus field values) and one
   email address (`studenthub_departments`, permission `admin.departments`)
+- 2026-10-11: Devcontainer: Elasticsearch heap 1 GB → 512 MB, container capped at 2 GB RAM and 2 CPUs

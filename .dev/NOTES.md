@@ -214,6 +214,9 @@ Never put passwords, tokens or keys in this file.
   `Blob.stream`), also on the code before the Knowledge Base panel
 - Zammad's `spec/graphql/gql/mutations/ticket/create_spec.rb`: 4 examples fail since Ticket Approvals added the
   `approval_*` ticket fields (they show in `objectAttributeValues`)
+- Staff get Zammad's "New desktop BETA UI … not ready for production use" pop-up once per browser after signing in
+  (`useBetaUiDisclaimer.ts`), although the new UI is now the main one at `/`; not decided yet whether to drop or
+  reword it
 
 ## In progress
 
@@ -301,8 +304,8 @@ Never put passwords, tokens or keys in this file.
 - [ ] Reporting needs Elasticsearch on the servers: set it up on the test server and check production has it
 - [ ] Home PC (and the work PC if it's still on C:): move the repo to the Ubuntu file system
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser
-- [ ] Check the new manager dashboard in a browser as manager@ (with and without waiting requests); decide whether
-      to commit `PRODUCT.md`
+- [ ] Check the manager dashboard in a browser as manager@ with a waiting request (without one: checked 12 Oct, in
+      the same frame as Team overview and My work); decide whether to commit `PRODUCT.md`
 - [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
 - [ ] Check the navigation (design C) in a browser: rail labels fit, panel on Tickets / ticket screens / Dashboard,
       Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, a 1280 px ticket

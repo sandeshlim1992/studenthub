@@ -21,6 +21,7 @@ import '#desktop/pages/dashboard/styles/studenthub-dashboard.css'
 
 // Student Hub: the dashboards (see useStudenthubDashboardViews). Users with more than one pick
 // it in the navigation panel; while the panel is hidden, the switch is above the dashboard.
+// All of them sit in the same frame, so switching keeps the width and the margins.
 const { isLoaded: isViewerLoaded } = useStudenthubApprovalViewer()
 
 restoreStudenthubDashboardView()
@@ -39,19 +40,13 @@ useStudenthubTopBarCrumbsWhileShown(() => {
 </script>
 
 <template>
-  <template v-if="isViewerLoaded">
-    <StudenthubManagerDashboard v-if="view === 'approvals'">
-      <template v-if="showSwitch" #top>
-        <StudenthubDashboardSwitch v-model="view" :views="views" />
-      </template>
-    </StudenthubManagerDashboard>
-    <LayoutMain v-else background-variant="tertiary" class="p-6 md:p-8">
-      <div class="sh-dash" style="gap: 0.75rem">
-        <StudenthubDashboardSwitch v-if="showSwitch" v-model="view" :views="views" />
+  <LayoutMain v-if="isViewerLoaded" background-variant="tertiary" class="p-6 md:p-8">
+    <div class="sh-dash" style="gap: 0.75rem">
+      <StudenthubDashboardSwitch v-if="showSwitch" v-model="view" :views="views" />
 
-        <StudenthubAdminDashboard v-if="view === 'team'" />
-        <StudenthubAgentDashboard v-else />
-      </div>
-    </LayoutMain>
-  </template>
+      <StudenthubManagerDashboard v-if="view === 'approvals'" />
+      <StudenthubAdminDashboard v-else-if="view === 'team'" />
+      <StudenthubAgentDashboard v-else />
+    </div>
+  </LayoutMain>
 </template>

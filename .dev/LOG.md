@@ -147,3 +147,5 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: Reporting redesigned (design A, "filter column"): report profiles in one list with their counts, the
   measure and the period (‹ › steps) on the left; figures, a created / closed chart with the backlog change and the
   tickets behind each series (Show more, Download Excel) on the right
+- 2026-10-12: Dashboard: Approvals sits in the same frame as Team overview and My work (up to 1440 px wide, the same
+  margins, a 24 px heading)

@@ -23,14 +23,8 @@ vi.mock('#desktop/pages/dashboard/components/StudenthubAgentDashboard.vue', asyn
 })
 
 vi.mock('#desktop/pages/dashboard/components/StudenthubManagerDashboard.vue', async () => {
-  const { defineComponent, h } = await import('vue')
-  return {
-    default: defineComponent(
-      (_props, { slots }) =>
-        () =>
-          h('div', [slots.top?.(), h('p', 'Approvals dashboard')]),
-    ),
-  }
+  const { h } = await import('vue')
+  return { default: { render: () => h('p', 'Approvals dashboard') } }
 })
 
 mockRouterHooks()

@@ -64,4 +64,16 @@ module Studenthub::TicketViews
 
     group_ids.first.to_i
   end
+
+  # Saves one of the views Student Hub keeps at fixed positions (Teams from 5000, Institutions from
+  # 9000, manager sites from 9500). Zammad renumbers every other overview from 1 whenever one
+  # overview's position changes (CanPriorization#rearrangement), which took the other Student Hub
+  # views off theirs: each sync then found positions to put back and, through the Institutions and
+  # approval overview hooks, queued the next one, without end. Skipped here, as Zammad does when it
+  # renumbers (CanPriorization#rearrange_entry), so the other overviews stay where they are.
+  def self.update_view!(overview, attributes)
+    Overview.without_callback(:update, :before, :rearrangement) do
+      overview.update!(**attributes, updated_by_id: 1)
+    end
+  end
 end

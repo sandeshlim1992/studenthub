@@ -55,7 +55,7 @@ module Studenthub::TicketViews::ManagerSites
     }
 
     if overview
-      overview.update!(**attributes, updated_by_id: 1) if changed?(overview, attributes)
+      Studenthub::TicketViews.update_view!(overview, attributes) if changed?(overview, attributes)
       return overview
     end
 

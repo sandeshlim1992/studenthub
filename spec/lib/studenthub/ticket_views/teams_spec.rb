@@ -9,6 +9,18 @@ RSpec.describe Studenthub::TicketViews::Teams, aggregate_failures: true do
     Overview.find_by(link: described_class.link(group))
   end
 
+  def team_positions
+    described_class.groups.to_h { |group| [group.name, team_view(group).prio] }
+  end
+
+  def wanted_positions
+    described_class.groups.each_with_index.to_h { |group, index| [group.name, described_class::PRIO_START + index] }
+  end
+
+  def all_positions
+    Overview.reorder(:id).pluck(:id, :prio, :updated_at)
+  end
+
   it "makes a view per group with its open tickets, grouped by agent, for the agents' roles" do
     described_class.sync!
 
@@ -41,6 +53,35 @@ RSpec.describe Studenthub::TicketViews::Teams, aggregate_failures: true do
     expect(admin_role.with_permission?('ticket.agent')).to be(true)
     expect(admin_role.group_ids_access('full')).to include(service_desk.id, vle.id)
     expect(team_view(vle).role_ids).to include(admin_role.id)
+  end
+
+  # Zammad renumbers every other overview when one overview's position changes; the syncs skip
+  # that, or each run moves the other Student Hub views and the next has to put them back.
+  it 'moves the teams after a new one down one place, leaving every other view where it is' do
+    create(:group, name: 'VLE')
+    create(:organization, name: 'LSST')
+    described_class.sync!
+    Studenthub::TicketViews::Institutions.sync! # a Sites view among the others
+    others = Overview.where.not('link LIKE ?', "#{described_class::LINK_PREFIX}%").reorder(:id).pluck(:id, :prio)
+
+    create(:group, name: 'Infrastructure') # sorts first
+    described_class.sync!
+
+    expect(team_positions).to eq(wanted_positions)
+    expect(Overview.where.not('link LIKE ?', "#{described_class::LINK_PREFIX}%").reorder(:id).pluck(:id, :prio)).to eq(others)
+    expect { described_class.sync! }.not_to(change { all_positions })
+  end
+
+  it 'moves the teams after the Managers group up when Ticket Approvals takes that group' do
+    managers = create(:group, name: Studenthub::TicketApproval::WaitingGroup::NAME)
+    described_class.sync!
+
+    Studenthub::TicketApproval::WaitingGroup.ensure!
+    described_class.sync!
+
+    expect(team_view(managers)).to be_nil
+    expect(team_positions).to eq(wanted_positions)
+    expect { described_class.sync! }.not_to(change { all_positions })
   end
 
   it 'syncs in the background when a group changes', performs_jobs: true do

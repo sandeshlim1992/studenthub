@@ -125,3 +125,5 @@ the current state is in `.dev/NOTES.md`.
   Admin / Local Login fields
 - 2026-10-11: Departments: on/off switch (`studenthub_departments`, off by default) on the admin page; students see
   "Talk to Student Support" only while it is on
+- 2026-10-11: Fix: the Teams / Sites / manager-site views sync no longer renumbers every other overview when it moves
+  a view, which made it run without end after any change of order (work PC: puma near 100% CPU, no live updates)

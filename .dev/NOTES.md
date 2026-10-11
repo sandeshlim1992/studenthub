@@ -142,7 +142,8 @@ Never put passwords, tokens or keys in this file.
 
 - Zammad's Claude hooks need pnpm → errors if Claude runs outside the container
   (switched off on the test server with `disableAllHooks` in `.claude/settings.local.json`)
-- Test server: Elasticsearch isn't running → search index jobs fail and fill the log
+- Test server: Elasticsearch isn't running → search index jobs fail and fill the log, and Reporting only says
+  "Elasticsearch needs to be configured!" (Zammad's reports need it)
 - Test server: `/etc/zammad/zammad.env` is world-readable and holds the M365 client secret
   (check production too)
 - `config/database/database.yml` has a leaked password → not yet fixed
@@ -156,8 +157,6 @@ Never put passwords, tokens or keys in this file.
   - Theme switch and "Continue to mobile" removed; `/manage` messages show "%s"
     (login-page public links are back since 7 Oct)
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
-- Taxil's 3 Oct commit removed the `/api/v1/reports/analytics` and `/reports/export` routes, but the
-  new UI's Reporting & Analytics page still calls them → probably broken
 - Taxil's ticket wizard and ticket list call `/api/v1/ticket_wizard_metadata`, which doesn't exist (404)
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
   phone (CTI) log (both unused), setup screens for Exchange, S/MIME, PGP and Clearbit (README → Moved from the
@@ -273,7 +272,8 @@ Never put passwords, tokens or keys in this file.
 - [ ] Decide: keep or change the Auto Select Priority triggers; delete `AgentTicketCreateCard.vue`
 - [ ] Test server: check the moved pages with real data, and the LDAP wizard against the real directory (trial run
       first; dev has no LDAP server)
-- [ ] Fix the Reporting & Analytics routes and `ticket_wizard_metadata` (Taxil's code)
+- [ ] Fix `ticket_wizard_metadata` (Taxil's code)
+- [ ] Reporting needs Elasticsearch on the servers: set it up on the test server and check production has it
 - [ ] Home PC (and the work PC if it's still on C:): move the repo to the Ubuntu file system
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser
 - [ ] Check the new manager dashboard in a browser as manager@ (with and without waiting requests); decide whether

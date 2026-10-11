@@ -862,6 +862,24 @@ tickets in** lists the pairs; the list of checklists shows them under each name.
 
 ---
 
+## Reporting
+
+**Reports** in the rail (`/desktop/report`, permission `report` or `admin`) shows Zammad's own reports: pick a
+**report profile** (made under **Administration → Report Profiles**), a metric (ticket counts, creation channels,
+communication) and a year, month, week, day or the last hour; the chart, the tickets behind a series and their
+**Excel download** come from Zammad's reporting API (`/api/v1/reports/config`, `generate`, `sets`).
+
+- **Needs Elasticsearch:** Zammad works reports out in Elasticsearch. Without it, or without any report profile, the
+  page shows Zammad's reason instead of figures (and links to Report Profiles for those who may edit them).
+- The page asks with the CSRF token (`studenthubApi`); it has no figures of its own. The ticket list shows the state
+  names for those who may read ticket states (agents and admins), otherwise "-".
+
+| File(s) | Purpose |
+|---|---|
+| `app/frontend/apps/desktop/pages/report/views/Report.vue` (Taxil's page, repaired) | The page |
+
+---
+
 ## Sign-in and notifications
 
 - **No self-registration.** The sign-in page has no "New user? Register" link, and the migration

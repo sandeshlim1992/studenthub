@@ -133,3 +133,5 @@ the current state is in `.dev/NOTES.md`.
   the browser fills them in, and their icons take the application colour while typing
 - 2026-10-11: Faster dashboard: the Team overview counts online staff without building the Members list, the Members
   list is fetched once for all parts shown together, and it looks up everyone's teams at once
+- 2026-10-11: Reporting shows Zammad's real reports again: asks with the CSRF token (was refused), no made-up
+  "database mode" figures, says why when Elasticsearch or report profiles are missing, real ticket states, icons

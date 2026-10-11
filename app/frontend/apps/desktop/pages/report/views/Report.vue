@@ -5,8 +5,10 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import CommonIcon from '#shared/components/CommonIcon/CommonIcon.vue'
+import { useSessionStore } from '#shared/stores/session.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface ReportProfile {
   id: number
@@ -34,7 +36,7 @@ interface TicketRecord {
   number: string
   title: string
   customer?: string
-  state?: string
+  stateId?: number
   created_at: string
 }
 
@@ -143,7 +145,11 @@ const getCurrentISOWeek = () => {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 }
 
-// Default Metrics Blueprint for fallback/local execution
+// Student Hub: the page shows Zammad's reports (/api/v1/reports/config, generate, sets), which need
+// Elasticsearch and at least one report profile; without them it says why instead of showing
+// figures. Changes go through studenthubApi (with the CSRF token Zammad requires).
+
+// The metrics before Zammad's own list has loaded
 const DEFAULT_METRICS_CONFIG: Record<string, MetricConfig> = {
   count: {
     name: 'count',
@@ -190,7 +196,12 @@ const isGraphLoading = ref(false)
 const isTableLoading = ref(false)
 const isExporting = ref(false)
 const configError = ref('')
-const isDirectDbMode = ref(false)
+// The link to Report Profiles, for those who may open it (the same as its route).
+const canManageProfiles = computed(() =>
+  useSessionStore().hasPermission(['admin', 'admin.report_profile']),
+)
+// Zammad couldn't make the chart or the ticket list (shown above them).
+const dataError = ref('')
 const lastUpdatedTime = ref<Date>(new Date())
 
 // Profiles & Metrics
@@ -211,6 +222,21 @@ const selectedDay = ref<number>(currentDay)
 const downloadBackendSelected = ref<string>('')
 const tableTickets = ref<TicketRecord[]>([])
 const tableTotalCount = ref<number>(0)
+
+// Ticket state names by id for the table (the report gives ids only). Agents and admins may read
+// them; for others the table shows no state.
+const stateNames = ref<Record<number, string>>({})
+
+const fetchStateNames = async () => {
+  try {
+    const states = await studenthubApi<{ id: number; name: string }[]>('/api/v1/ticket_states')
+    stateNames.value = Object.fromEntries(states.map((state) => [state.id, state.name]))
+  } catch {
+    // no state names
+  }
+}
+
+const stateName = (stateId?: number) => (stateId ? stateNames.value[stateId] : undefined) ?? '-'
 
 // Graph raw data
 const graphData = ref<Record<string, number[]>>({})
@@ -417,12 +443,17 @@ const fetchTableData = async () => {
   isTableLoading.value = true
 
   try {
-    if (!isDirectDbMode.value) {
-      const profileSelectedMap: Record<string, boolean> = {
-        [selectedProfileId.value]: true,
-      }
+    const profileSelectedMap: Record<string, boolean> = {
+      [selectedProfileId.value]: true,
+    }
 
-      const payload = {
+    const json = await studenthubApi<{
+      count?: number
+      ticket_ids?: number[]
+      assets?: Record<string, Record<string, any>>
+    }>('/api/v1/reports/sets', {
+      method: 'POST',
+      body: {
         metric: selectedMetricKey.value,
         year: selectedYear.value,
         month: selectedMonth.value,
@@ -431,57 +462,33 @@ const fetchTableData = async () => {
         timeRange: selectedTimeRange.value,
         profiles: profileSelectedMap,
         downloadBackendSelected: downloadBackendSelected.value,
-      }
-
-      const res = await fetch('/api/v1/reports/sets', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (res.ok) {
-        const json = await res.json()
-        tableTotalCount.value = json.count || 0
-        const ticketsMap = json.assets?.Ticket || {}
-        const usersMap = json.assets?.User || {}
-        const statesMap = json.assets?.TicketState || {}
-
-        tableTickets.value = (json.ticket_ids || []).map((tid: number) => {
-          const t = ticketsMap[tid] || {}
-          const customer = usersMap[t.customer_id]
-          const customerName = customer
-            ? `${customer.firstname || ''} ${customer.lastname || ''}`.trim() || customer.login
-            : '-'
-          const stateObj = statesMap[t.state_id]
-
-          return {
-            id: t.id || tid,
-            number: t.number || String(tid),
-            title: t.title || __('Ticket #%s', tid),
-            customer: customerName,
-            state: stateObj?.name || t.state || 'open',
-            created_at: t.created_at || '',
-          }
-        })
-        return
-      }
-    }
-
-    // Direct Database fallback
-    const res = await fetch('/api/v1/reports/analytics?range=year', {
-      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      },
     })
-    if (res.ok) {
-      const json = await res.json()
-      tableTickets.value = json.recent_tickets || []
-      tableTotalCount.value = json.summary?.total_created || tableTickets.value.length
-    }
+
+    tableTotalCount.value = json.count || 0
+    const ticketsMap = json.assets?.Ticket || {}
+    const usersMap = json.assets?.User || {}
+
+    tableTickets.value = (json.ticket_ids || []).map((tid: number) => {
+      const t = ticketsMap[tid] || {}
+      const customer = usersMap[t.customer_id]
+      const customerName = customer
+        ? `${customer.firstname || ''} ${customer.lastname || ''}`.trim() || customer.login
+        : '-'
+
+      return {
+        id: t.id || tid,
+        number: t.number || String(tid),
+        title: t.title || __('Ticket #%s', tid),
+        customer: customerName,
+        stateId: t.state_id,
+        created_at: t.created_at || '',
+      }
+    })
   } catch (err: unknown) {
-    console.error('Failed to load drill-down report sets:', err)
+    tableTickets.value = []
+    tableTotalCount.value = 0
+    dataError.value = (err as Error).message
   } finally {
     isTableLoading.value = false
   }
@@ -494,12 +501,13 @@ const generateGraphData = async () => {
   isGraphLoading.value = true
 
   try {
-    if (!isDirectDbMode.value) {
-      const profileSelectedMap: Record<string, boolean> = {
-        [selectedProfileId.value]: true,
-      }
+    const profileSelectedMap: Record<string, boolean> = {
+      [selectedProfileId.value]: true,
+    }
 
-      const payload = {
+    const json = await studenthubApi<{ data?: Record<string, number[]> }>('/api/v1/reports/generate', {
+      method: 'POST',
+      body: {
         metric: selectedMetricKey.value,
         year: selectedYear.value,
         month: selectedMonth.value,
@@ -508,66 +516,17 @@ const generateGraphData = async () => {
         timeRange: selectedTimeRange.value,
         profiles: profileSelectedMap,
         backends: selectedBackends.value,
-      }
-
-      const res = await fetch('/api/v1/reports/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (res.ok) {
-        const json = await res.json()
-        graphData.value = json.data || {}
-        lastUpdatedTime.value = new Date()
-        saveSessionParams()
-        await fetchTableData()
-        return
-      }
-    }
-
-    // Direct Database Fallback: Generate real curve arrays from analytics
-    const res = await fetch(`/api/v1/reports/analytics?range=${selectedTimeRange.value === 'realtime' ? 'today' : selectedTimeRange.value}`, {
-      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      },
     })
 
-    if (res.ok) {
-      const json = await res.json()
-      const timeline = json.timeline || []
-      const ticksCount = xAxisTicks.value.length
-
-      const createdArr = Array.from({ length: ticksCount }, () => 0)
-      const closedArr = Array.from({ length: ticksCount }, () => 0)
-      const backlogArr = Array.from({ length: ticksCount }, () => 0)
-
-      timeline.forEach((pt: { created: number; closed: number }, idx: number) => {
-        if (idx < ticksCount) {
-          createdArr[idx] = pt.created || 0
-          closedArr[idx] = pt.closed || 0
-          backlogArr[idx] = Math.max(0, (pt.created || 0) - (pt.closed || 0))
-        }
-      })
-
-      graphData.value = {
-        'count::created': createdArr,
-        'count::closed': closedArr,
-        'count::backlog': backlogArr,
-        'create_channels::phone_in': createdArr.map((v) => Math.round(v * 0.3)),
-        'create_channels::email_in': createdArr.map((v) => Math.round(v * 0.5)),
-        'create_channels::web_in': createdArr.map((v) => Math.round(v * 0.2)),
-        'communication::email_in': createdArr.map((v) => Math.round(v * 0.6)),
-        'communication::email_out': closedArr.map((v) => Math.round(v * 0.7)),
-      }
-      lastUpdatedTime.value = new Date()
-      saveSessionParams()
-      await fetchTableData()
-    }
+    graphData.value = json.data || {}
+    dataError.value = ''
+    lastUpdatedTime.value = new Date()
+    saveSessionParams()
+    await fetchTableData()
   } catch (err: unknown) {
-    console.error('Failed to generate report graph:', err)
+    graphData.value = {}
+    dataError.value = (err as Error).message
   } finally {
     isGraphLoading.value = false
     if (pollTimer) clearTimeout(pollTimer)
@@ -624,38 +583,18 @@ const fetchConfig = async () => {
   configError.value = ''
 
   try {
-    const res = await fetch('/api/v1/reports/config', {
-      headers: {
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-    })
+    const data = await studenthubApi<{
+      error?: string
+      profiles?: ReportProfile[]
+      config?: { metric?: Record<string, MetricConfig> }
+    }>('/api/v1/reports/config')
 
-    const data = await res.json()
-
+    // Zammad's reason when it can't report: no Elasticsearch, or no report profiles.
     if (data.error) {
       configError.value = data.error
-      isDirectDbMode.value = true
-
-      // Fetch profiles directly from report_profiles endpoint
-      const pRes = await fetch('/api/v1/report_profiles', {
-        headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      })
-      if (pRes.ok) {
-        const pData = await pRes.json()
-        profiles.value = Array.isArray(pData) ? pData : [{ id: 1, name: __('Default Profile') }]
-      } else {
-        profiles.value = [{ id: 1, name: __('Default Profile') }]
-      }
-
-      metrics.value = DEFAULT_METRICS_CONFIG
-      selectedProfileId.value = profiles.value[0]?.id || 1
-      initializeBackendsForActiveMetric()
-      await generateGraphData()
       return
     }
 
-    isDirectDbMode.value = false
     profiles.value = data.profiles || []
     metrics.value = data.config?.metric || DEFAULT_METRICS_CONFIG
 
@@ -679,13 +618,7 @@ const fetchConfig = async () => {
     initializeBackendsForActiveMetric()
     await generateGraphData()
   } catch (err: unknown) {
-    console.error('Failed to load reporting config:', err)
-    isDirectDbMode.value = true
-    profiles.value = [{ id: 1, name: __('Default Profile') }]
-    metrics.value = DEFAULT_METRICS_CONFIG
-    selectedProfileId.value = 1
-    initializeBackendsForActiveMetric()
-    await generateGraphData()
+    configError.value = (err as Error).message
   } finally {
     isConfigLoading.value = false
   }
@@ -694,11 +627,6 @@ const fetchConfig = async () => {
 // Export native .xlsx spreadsheet
 const exportToExcel = () => {
   if (!selectedProfileId.value || !downloadBackendSelected.value) return
-
-  if (isDirectDbMode.value) {
-    window.open(`/api/v1/reports/export?range=${selectedTimeRange.value}`, '_blank')
-    return
-  }
 
   const query = new URLSearchParams({
     sheet: 'true',
@@ -868,6 +796,7 @@ const getStatusBadgeClass = (state: string) => {
 // Lifecycle Hooks
 onMounted(() => {
   loadSessionParams()
+  fetchStateNames()
   fetchConfig()
 })
 
@@ -880,7 +809,10 @@ watch([selectedYear, selectedMonth, selectedWeek, selectedDay], () => {
   generateGraphData()
 })
 
+// Another list chosen under the table. While the page or the chart loads, the chart fetches the
+// list itself afterwards.
 watch(downloadBackendSelected, () => {
+  if (isConfigLoading.value || isGraphLoading.value) return
   fetchTableData()
 })
 </script>
@@ -911,14 +843,10 @@ watch(downloadBackendSelected, () => {
                   {{ __('Reporting & Analytics') }}
                 </h1>
                 <span
-                  class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs"
-                  :class="
-                    isDirectDbMode
-                      ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
-                  "
+                  v-if="!configError"
+                  class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300"
                 >
-                  {{ isDirectDbMode ? __('Database Mode') : __('Live Sync') }}
+                  {{ $t('Live Sync') }}
                 </span>
               </div>
             </div>
@@ -970,7 +898,7 @@ watch(downloadBackendSelected, () => {
               @click="generateGraphData"
             >
               <CommonIcon
-                name="repeat"
+                name="arrow-repeat"
                 class="w-3.5 h-3.5"
                 :class="{ 'animate-spin': isGraphLoading || isConfigLoading }"
               />
@@ -999,7 +927,7 @@ watch(downloadBackendSelected, () => {
                   @click="selectProfile(profile.id)"
                 >
                   <CommonIcon
-                    :name="selectedProfileId === profile.id ? 'check-circle' : 'circle'"
+                    :name="selectedProfileId === profile.id ? 'radio-yes' : 'radio-no'"
                     class="w-3 h-3 text-current"
                   />
                   <span>{{ profile.name }}</span>
@@ -1027,7 +955,7 @@ watch(downloadBackendSelected, () => {
                       mKey === 'count'
                         ? 'all-tickets'
                         : mKey === 'create_channels'
-                          ? 'chat-dots'
+                          ? 'chat-left-text'
                           : 'envelope'
                     "
                     class="w-3.5 h-3.5"
@@ -1099,6 +1027,44 @@ watch(downloadBackendSelected, () => {
         </div>
       </div>
 
+      <!-- Student Hub: why there is nothing to show (Zammad's reason), instead of empty charts -->
+      <div
+        v-if="configError"
+        role="alert"
+        class="flex items-start gap-3 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-amber-300 dark:border-amber-800"
+      >
+        <CommonIcon name="exclamation-triangle" class="w-5 h-5 shrink-0 text-amber-500" decorative />
+        <div class="space-y-1 text-sm">
+          <p class="font-bold text-slate-900 dark:text-white">{{ $t(configError) }}</p>
+          <p v-if="configError.includes('Elasticsearch')" class="text-slate-600 dark:text-slate-300">
+            {{
+              $t(
+                'Reports are worked out by Elasticsearch, which this server does not have yet. Whoever looks after the server can set it up.',
+              )
+            }}
+          </p>
+          <p v-else-if="configError.includes('report profiles')" class="text-slate-600 dark:text-slate-300">
+            {{ $t('A report profile says which tickets a report counts.') }}
+            <RouterLink
+              v-if="canManageProfiles"
+              to="/manage/report_profiles"
+              class="font-semibold text-blue-700 hover:underline dark:text-blue-300"
+            >
+              {{ $t('Create one under Administration → Report Profiles.') }}
+            </RouterLink>
+          </p>
+        </div>
+      </div>
+
+      <p
+        v-else-if="dataError"
+        role="alert"
+        class="px-4 py-3 rounded-xl border border-rose-300 bg-rose-50 text-sm font-semibold text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200"
+      >
+        {{ $t('The report could not be loaded: %s', dataError) }}
+      </p>
+
+      <template v-if="!configError">
       <!-- 2. MAIN HERO STAGE (HERO VIEWPORT: STAT CARDS + SVG GRAPH SIDE-BY-SIDE) -->
       <div
         class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs"
@@ -1435,7 +1401,7 @@ watch(downloadBackendSelected, () => {
               @click="exportToExcel"
             >
               <CommonIcon name="download" class="w-3.5 h-3.5" />
-              <span>{{ __('Download %s record(s)', tableTotalCount) }}</span>
+              <span>{{ $t('Download %s record(s)', tableTotalCount) }}</span>
             </button>
           </div>
         </div>
@@ -1456,7 +1422,7 @@ watch(downloadBackendSelected, () => {
               <tr v-if="isTableLoading" class="text-center py-8 text-slate-400">
                 <td colspan="5" class="py-8">
                   <div class="flex items-center justify-center gap-2 text-xs font-bold">
-                    <CommonIcon name="repeat" class="w-4 h-4 animate-spin text-blue-500" />
+                    <CommonIcon name="arrow-repeat" class="w-4 h-4 animate-spin text-blue-500" />
                     <span>{{ __('Loading records...') }}</span>
                   </div>
                 </td>
@@ -1495,10 +1461,10 @@ watch(downloadBackendSelected, () => {
                 <td class="py-3.5 px-5">
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold shadow-2xs"
-                    :class="getStatusBadgeClass(t.state || '')"
+                    :class="getStatusBadgeClass(stateName(t.stateId))"
                   >
                     <span class="w-1.5 h-1.5 rounded-full bg-current ltr:mr-1.5 rtl:ml-1.5"></span>
-                    {{ t.state }}
+                    {{ stateName(t.stateId) }}
                   </span>
                 </td>
                 <td class="py-3.5 px-5 text-slate-500 whitespace-nowrap text-xs font-medium">
@@ -1509,6 +1475,7 @@ watch(downloadBackendSelected, () => {
           </table>
         </div>
       </div>
+      </template>
     </div>
   </LayoutContent>
 </template>

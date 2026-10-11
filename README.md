@@ -817,6 +817,10 @@ Departments with a **name**, the **locations** (campuses) they cover and one **e
 **Administration → Manage → Departments** (`/desktop/manage/departments`, permission `admin.departments`). What they
 are used for comes next.
 
+- **On / off:** the **Use departments** switch at the top of the page (setting `studenthub_departments`, off by
+  default). While it is on, students see **Talk to Student Support** next to Raise a New Ticket on their home page (for
+  now it opens the ticket wizard, like before). Departments can be set up while it is off.
+
 - **Locations** are values of the ticket's **Campus** field (`campus`, made by admins under **Objects**), read from the
   field each time, so a campus added there can be chosen at once. A campus later removed from the field stays on the
   department, marked **No longer a campus**, until someone takes it off; it can't be chosen anew.
@@ -824,9 +828,10 @@ are used for comes next.
 
 | File(s) | Purpose |
 |---|---|
-| `db/migrate/20261011100000_studenthub_departments.rb`, `lib/studenthub/departments.rb`, `app/models/studenthub_department.rb` | Table, permission, the campuses to choose from; the checks |
-| `app/controllers/studenthub_departments_controller.rb` | API (`/api/v1/studenthub/departments`, `…/:id`) |
-| `app/frontend/apps/desktop/pages/manage/views/Departments.vue` | Admin page: list, new / edit / delete |
+| `db/migrate/20261011100000_studenthub_departments.rb`, `db/migrate/20261011130000_studenthub_departments_switch.rb`, `lib/studenthub/departments.rb`, `app/models/studenthub_department.rb` | Table, permission, on/off setting, the campuses to choose from; the checks |
+| `app/controllers/studenthub_departments_controller.rb` | API (`/api/v1/studenthub/departments`, `…/:id`, `…/settings` for on/off) |
+| `app/frontend/apps/desktop/pages/manage/views/Departments.vue` | Admin page: on/off switch, list, new / edit / delete |
+| `app/frontend/apps/desktop/pages/ticket-overviews/components/TicketList.vue` | Students' home page: Talk to Student Support only while on |
 
 ---
 

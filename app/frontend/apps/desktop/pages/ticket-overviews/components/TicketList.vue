@@ -1031,8 +1031,10 @@ defineExpose({ tickets: readonly(tickets) })
                 <span class="text-base leading-none">→</span>
               </button>
 
-              <!-- Secondary: Frosted Glass / Translucent with Subtle Green Hover -->
+              <!-- Secondary: Frosted Glass / Translucent with Subtle Green Hover. Student Hub: only while
+                   Departments are on (Administration → Manage → Departments) -->
               <button
+                v-if="config.studenthub_departments"
                 type="button"
                 class="w-full sm:w-auto inline-flex cursor-pointer items-center justify-center rounded-xl border border-white/20 hover:border-emerald-400/50 bg-white/5 hover:bg-emerald-950/20 px-6 sm:px-8 py-3 text-sm sm:text-base font-medium text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 select-none"
                 @click="router.push({ name: 'TicketCreate', query: { mode: 'wizard' } })"

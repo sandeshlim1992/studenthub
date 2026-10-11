@@ -211,7 +211,8 @@ Never put passwords, tokens or keys in this file.
   yet checked in a browser (no admin login works in this container: admin@example.com is refused; agent@ and student@
   work)
 - Departments (admin section, 11 Oct): name, locations (values of the ticket's Campus field) and one email address;
-  what they do comes next (README → Departments)
+  on/off switch (off by default) that also shows students "Talk to Student Support" (still opens the ticket wizard);
+  what departments and that button do comes next (README → Departments)
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
   webhooks and LDAP switched off; fqdn = localhost:3000). Dump file is in git-ignored `tmp/`.
   Feedback Collection and Ticket Approvals are switched on there for testing (no channel can send);
@@ -285,8 +286,9 @@ Never put passwords, tokens or keys in this file.
       undid unsaved ticket field changes) fixed something; if so, find another way
 - [ ] Check Request forms in a browser as an admin: add a question, a heading and a note, publish, then raise a ticket
       under it as student@ and look at the Request details block and the saved answers
-- [ ] Run `bin/rails db:migrate` (the departments table and permission), then check Administration → Manage →
-      Departments in a browser: new, edit, delete, a taken name, a wrong email address
+- [ ] Run `bin/rails db:migrate` (the departments table, permission and on/off setting), then check Administration →
+      Manage → Departments in a browser: new, edit, delete, a taken name, a wrong email address (the on/off switch
+      and the student button were checked with headless Chrome on 11 Oct, also live on an open student page)
 - [ ] Check Branding → Sign-in page in a browser as an admin (the section itself; the sign-in page was checked with
       headless Chrome on 11 Oct): editing, the preview, Save, Use the default texts, a refused text
 - [ ] Check the new Details step in a browser as student@: the Your request card and its Change buttons, Subject at the

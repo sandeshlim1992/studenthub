@@ -22,6 +22,7 @@ RSpec.describe 'Student Hub departments', :aggregate_failures, type: :request do
       get '/api/v1/studenthub/departments', as: :json
 
       expect(response).to have_http_status(:ok)
+      expect(json_response['enabled']).to be(false)
       expect(json_response['departments']).to contain_exactly(
         include('name' => 'Registry', 'email' => 'registry@studenthub.example', 'locations' => ['LSST Wembley'], 'missing_locations' => [])
       )
@@ -48,6 +49,28 @@ RSpec.describe 'Student Hub departments', :aggregate_failures, type: :request do
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(json_response['error_human']).to eq('nope is not a valid email address.')
+    end
+  end
+
+  describe 'PUT /api/v1/studenthub/departments/settings' do
+    it 'switches departments on and off', authenticated_as: :admin do
+      put '/api/v1/studenthub/departments/settings', params: { enabled: true }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response).to eq('enabled' => true)
+      expect(Studenthub::Departments).to be_enabled
+
+      put '/api/v1/studenthub/departments/settings', params: { enabled: false }, as: :json
+
+      expect(json_response).to eq('enabled' => false)
+      expect(Studenthub::Departments).not_to be_enabled
+    end
+
+    it 'refuses agents', authenticated_as: :agent do
+      put '/api/v1/studenthub/departments/settings', params: { enabled: true }, as: :json
+
+      expect(response).to have_http_status(:forbidden)
+      expect(Studenthub::Departments).not_to be_enabled
     end
   end
 

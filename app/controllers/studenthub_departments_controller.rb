@@ -7,9 +7,16 @@ class StudenthubDepartmentsController < ApplicationController
   # GET /api/v1/studenthub/departments
   def index
     render json: {
+      enabled:     Studenthub::Departments.enabled?,
       departments: StudenthubDepartment.reorder(:name).map { |department| department_payload(department) },
       campuses:    Studenthub::Departments.campus_options,
     }
+  end
+
+  # PUT /api/v1/studenthub/departments/settings
+  def update_settings
+    Setting.set(Studenthub::Departments::SETTING, ActiveModel::Type::Boolean.new.cast(params[:enabled]) == true)
+    render json: { enabled: Studenthub::Departments.enabled? }
   end
 
   # POST /api/v1/studenthub/departments

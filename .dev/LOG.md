@@ -123,3 +123,5 @@ the current state is in `.dev/NOTES.md`.
   (`studenthub_login_panel`); the sign-in heading reads "Sign in to <Product Name>"
 - 2026-10-11: Sign-in page: "Welcome back" and "Use your work or school account."; person and lock icons in the
   Admin / Local Login fields
+- 2026-10-11: Departments: on/off switch (`studenthub_departments`, off by default) on the admin page; students see
+  "Talk to Student Support" only while it is on

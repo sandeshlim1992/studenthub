@@ -69,7 +69,7 @@ describe('Departments', () => {
 
   it('lists the departments with their campuses and email address', async () => {
     mockServer({
-      'GET /api/v1/studenthub/departments': () => ({ body: { departments: [registry], campuses } }),
+      'GET /api/v1/studenthub/departments': () => ({ body: { enabled: false, departments: [registry], campuses } }),
     })
 
     const view = renderPage()
@@ -81,7 +81,7 @@ describe('Departments', () => {
 
   it('makes a new department', async () => {
     const calls = mockServer({
-      'GET /api/v1/studenthub/departments': () => ({ body: { departments: [], campuses } }),
+      'GET /api/v1/studenthub/departments': () => ({ body: { enabled: false, departments: [], campuses } }),
       'POST /api/v1/studenthub/departments': (body) => ({
         status: 201,
         body: { ...body, id: 2, missing_locations: [] },
@@ -110,7 +110,7 @@ describe('Departments', () => {
 
   it('changes and deletes a department, and shows a campus the field dropped', async () => {
     const calls = mockServer({
-      'GET /api/v1/studenthub/departments': () => ({ body: { departments: [registry], campuses } }),
+      'GET /api/v1/studenthub/departments': () => ({ body: { enabled: false, departments: [registry], campuses } }),
       'PUT /api/v1/studenthub/departments/1': (body) => ({ body: { ...registry, ...body } }),
       'DELETE /api/v1/studenthub/departments/1': () => ({ body: {} }),
     })
@@ -131,5 +131,33 @@ describe('Departments', () => {
 
     expect(mockWaitForVariantConfirmation).toHaveBeenCalledWith('delete')
     expect(calls.some((call) => call.method === 'DELETE')).toBe(true)
+  })
+
+  it('switches departments on and off', async () => {
+    const calls = mockServer({
+      'GET /api/v1/studenthub/departments': () => ({
+        body: { enabled: false, departments: [], campuses },
+      }),
+      'PUT /api/v1/studenthub/departments/settings': (body) => ({ body: { enabled: body.enabled } }),
+    })
+
+    const view = renderPage()
+
+    const toggle = await view.findByRole('switch', { name: 'Use departments' })
+    expect(toggle).toHaveAttribute('aria-checked', 'false')
+    expect(toggle).toHaveAccessibleDescription(
+      'When on, students see Talk to Student Support on their home page.',
+    )
+
+    await view.events.click(toggle)
+
+    expect(calls.find((call) => call.method === 'PUT')?.body).toEqual({ enabled: true })
+    await vi.waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'true'))
+    expect(useNotifications().notifications.value.at(-1)?.message).toBe('Departments are on.')
+
+    await view.events.click(toggle)
+
+    await vi.waitFor(() => expect(toggle).toHaveAttribute('aria-checked', 'false'))
+    expect(useNotifications().notifications.value.at(-1)?.message).toBe('Departments are off.')
   })
 })

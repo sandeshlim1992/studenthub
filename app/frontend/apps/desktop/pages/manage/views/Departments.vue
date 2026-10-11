@@ -15,6 +15,8 @@ import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 // Student Hub: Departments (Studenthub::Departments). Each has a name, the campuses it covers
 // (from the ticket's Campus field, which admins manage under Objects) and one email address.
+// The on/off switch also shows or hides "Talk to Student Support" for students; departments can
+// be set up while it is off.
 
 interface Department {
   id: number
@@ -45,6 +47,7 @@ const breadcrumbItems = [
 const { notify } = useNotifications()
 const { waitForVariantConfirmation } = useConfirmation()
 
+const enabled = ref(false)
 const departments = ref<Department[]>([])
 const campuses = ref<Campus[]>([])
 const isLoaded = ref(false)
@@ -56,9 +59,12 @@ const editing = ref<{ saved: Department | null; draft: DepartmentDraft } | null>
 
 const load = async () => {
   try {
-    const data = await studenthubApi<{ departments: Department[]; campuses: Campus[] }>(
-      '/api/v1/studenthub/departments',
-    )
+    const data = await studenthubApi<{
+      enabled: boolean
+      departments: Department[]
+      campuses: Campus[]
+    }>('/api/v1/studenthub/departments')
+    enabled.value = data.enabled
     departments.value = data.departments
     campuses.value = data.campuses
     loadError.value = null
@@ -156,6 +162,30 @@ const save = () => {
   )
 }
 
+const toggleEnabled = async () => {
+  isBusy.value = true
+  try {
+    const data = await studenthubApi<{ enabled: boolean }>(
+      '/api/v1/studenthub/departments/settings',
+      { method: 'PUT', body: { enabled: !enabled.value } },
+    )
+    enabled.value = data.enabled
+    notify({
+      id: 'department-saved',
+      type: NotificationTypes.Success,
+      message: data.enabled ? __('Departments are on.') : __('Departments are off.'),
+    })
+  } catch (error) {
+    notify({
+      id: 'department-error',
+      type: NotificationTypes.Error,
+      message: (error as Error).message,
+    })
+  } finally {
+    isBusy.value = false
+  }
+}
+
 const remove = async () => {
   const saved = editing.value?.saved
   if (!saved || !(await waitForVariantConfirmation('delete'))) return
@@ -195,6 +225,40 @@ const labelClass = 'flex flex-col gap-1 text-sm font-semibold text-[var(--sh-ink
             {{ $t('New department') }}
           </CommonButton>
         </header>
+
+        <section
+          v-if="isLoaded && !loadError"
+          class="flex items-center justify-between gap-4 rounded-xl border border-[var(--sh-line)] bg-white px-4 py-3"
+        >
+          <div class="min-w-0">
+            <h2 id="departments-switch-label" class="font-semibold text-[var(--sh-ink)]">
+              {{ $t('Use departments') }}
+            </h2>
+            <p id="departments-switch-hint" class="text-sm text-[var(--sh-muted)]">
+              {{ $t('When on, students see Talk to Student Support on their home page.') }}
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-60"
+            :class="enabled ? 'bg-[var(--sh-app)]' : 'bg-slate-300'"
+            :aria-checked="enabled"
+            aria-labelledby="departments-switch-label"
+            aria-describedby="departments-switch-hint"
+            :disabled="isBusy"
+            @click="toggleEnabled"
+          >
+            <span
+              class="inline-block size-5 rounded-full bg-white shadow transition-transform"
+              :class="
+                enabled
+                  ? 'ltr:translate-x-5.5 rtl:-translate-x-5.5'
+                  : 'ltr:translate-x-0.5 rtl:-translate-x-0.5'
+              "
+            />
+          </button>
+        </section>
 
         <CommonAlert v-if="loadError" variant="danger">{{ loadError }}</CommonAlert>
         <p v-else-if="!isLoaded" class="text-sm text-[var(--sh-muted)]">{{ $t('Loading…') }}</p>

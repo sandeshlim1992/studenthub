@@ -19,26 +19,22 @@ class Service::StudenthubMembers::List < Service::Base
     user.roles.exists?(id: member_role_ids)
   end
 
-  def execute
-    users       = members
-    last_active = last_active_by_user_id(users.map(&:id))
-
-    online, offline = users.map { |user| row(user, last_active[user.id]) }.partition { |row| row[:online] }
-
-    online + offline.sort_by { |row| [row[:last_login] ? 0 : 1, -row[:last_login].to_i] }
-  end
-
-  private
-
-  def members
+  def self.members
     User.joins(:roles)
-      .where(roles: { id: self.class.member_role_ids }, active: true)
+      .where(roles: { id: member_role_ids }, active: true)
       .where.not(id: 1)
       .distinct
-      .reorder(:firstname, :lastname)
   end
 
-  def last_active_by_user_id(user_ids)
+  # How many members there are and how many of them are online, without building the list
+  # (the dashboard only shows the numbers).
+  def self.counts
+    ids = members.pluck(:id)
+
+    { online: last_active_by_user_id(ids).size, total: ids.size }
+  end
+
+  def self.last_active_by_user_id(user_ids)
     ids = user_ids.to_set
 
     ActiveRecord::SessionStore::Session.where(updated_at: ONLINE_WINDOW.ago..).each_with_object({}) do |session, result|
@@ -49,7 +45,45 @@ class Service::StudenthubMembers::List < Service::Base
     end
   end
 
-  def row(user, last_active_at)
+  def execute
+    users       = self.class.members.preload(:roles).reorder(:firstname, :lastname).to_a
+    last_active = self.class.last_active_by_user_id(users.map(&:id))
+    teams       = teams_by_user_id(users)
+
+    online, offline = users.map { |user| row(user, last_active[user.id], teams[user.id]) }.partition { |row| row[:online] }
+
+    online + offline.sort_by { |row| [row[:last_login] ? 0 : 1, -row[:last_login].to_i] }
+  end
+
+  private
+
+  # Each member's teams, looked up for all members at once: the active groups they can read,
+  # directly or through a role, and only for agents (as HasGroups#group_ids_access).
+  def teams_by_user_id(users)
+    agents   = users.select { |user| user.permissions?('ticket.agent') }
+    role_ids = agents.flat_map(&:role_ids).uniq
+
+    direct  = group_ids_by(UserGroup, :user_id, agents.map(&:id))
+    by_role = group_ids_by(RoleGroup, :role_id, role_ids)
+    names   = Group.where(id: (direct.values + by_role.values).flatten.uniq).to_h { |group| [group.id, group.name_last] }
+
+    agents.to_h do |user|
+      group_ids = direct.fetch(user.id, []) | user.role_ids.flat_map { |role_id| by_role.fetch(role_id, []) }
+      [user.id, group_ids.filter_map { |group_id| names[group_id] }.sort]
+    end
+  end
+
+  def group_ids_by(klass, key, ids)
+    return {} if ids.empty?
+
+    klass.joins(:group)
+      .where(key => ids, access: %w[read full], groups: { active: true })
+      .pluck(key, :group_id)
+      .group_by(&:first)
+      .transform_values { |pairs| pairs.map(&:last) }
+  end
+
+  def row(user, last_active_at, teams)
     {
       id:             user.id,
       firstname:      user.firstname,
@@ -57,7 +91,7 @@ class Service::StudenthubMembers::List < Service::Base
       name:           user.fullname,
       image:          user.image,
       role:           role_label(user),
-      teams:          user.groups_access('read').where(active: true).map(&:name_last).sort,
+      teams:          teams || [],
       online:         last_active_at.present?,
       last_active_at: last_active_at,
       last_login:     user.last_login,

@@ -151,9 +151,7 @@ class Service::StudenthubDashboard::Overview < Service::Base
   end
 
   def agents
-    members = Service::StudenthubMembers::List.execute
-
-    { online: members.count { |member| member[:online] }, total: members.size }
+    Service::StudenthubMembers::List.counts
   end
 
   def approvals

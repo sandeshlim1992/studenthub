@@ -8,8 +8,9 @@ import { useStudenthubApprovalViewer } from './useStudenthubApprovalViewer.ts'
 
 // Student Hub "Members": the agents and admins, who of them is online and when each last signed
 // in (GET /api/v1/studenthub/members). One list for the top bar button and the Members page,
-// refreshed every minute while either is shown. The refresh also keeps the viewer's own session
-// active, so staff with the new UI open count as online.
+// refreshed every minute while either is shown; parts shown at the same time share one request.
+// The refresh also keeps the viewer's own session active, so staff with the new UI open count as
+// online.
 
 export interface StudenthubMember {
   id: number
@@ -33,8 +34,9 @@ const hasError = ref(false)
 
 let viewers = 0
 let timer: ReturnType<typeof setInterval> | undefined
+let loading: Promise<void> | undefined
 
-const load = () =>
+const request = () =>
   // fetch can throw at once (tests), so start it inside the promise chain.
   Promise.resolve()
     .then(() =>
@@ -53,7 +55,13 @@ const load = () =>
     })
     .finally(() => {
       isLoaded.value = true
+      loading = undefined
     })
+
+const load = () => {
+  loading ??= request()
+  return loading
+}
 
 // Agents and admins; not managers without another staff role (they aren't members).
 export const useStudenthubMembersAccess = () => {

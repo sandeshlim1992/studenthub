@@ -131,3 +131,5 @@ the current state is in `.dev/NOTES.md`.
   page; the migration turned the four webhook triggers into assignments (they keep their tag action)
 - 2026-10-11: Sign-in page: the local login fields keep their whole focus glow, have no blue outline, stay white when
   the browser fills them in, and their icons take the application colour while typing
+- 2026-10-11: Faster dashboard: the Team overview counts online staff without building the Members list, the Members
+  list is fetched once for all parts shown together, and it looks up everyone's teams at once

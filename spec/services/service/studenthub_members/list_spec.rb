@@ -47,6 +47,44 @@ RSpec.describe Service::StudenthubMembers::List, aggregate_failures: true do
 
       expect(member(agent)[:teams]).to include('Service Desk Members Spec')
     end
+
+    it 'takes teams directly and through roles, readable and active ones only, the same as Zammad' do
+      team_role = create(:role, :agent, name: 'Members spec team role')
+      by_role   = create(:group, name: 'VLE Members Spec')
+      inactive  = create(:group, name: 'Old Members Spec', active: false)
+      team_role.group_ids_access_map = { by_role.id => 'read' }
+      agent = create(:agent, roles: [team_role], groups: [group])
+      agent.group_ids_access_map = { group.id => 'full', inactive.id => 'full', create(:group).id => 'change' }
+
+      expect(member(agent)[:teams]).to eq(agent.groups_access('read').where(active: true).map(&:name_last).sort)
+      expect(member(agent)[:teams]).to include('Service Desk Members Spec', 'VLE Members Spec')
+      expect(member(agent)[:teams]).not_to include('Old Members Spec')
+    end
+
+    it 'looks the teams up for all members at once' do
+      create_list(:agent, 2, groups: [group])
+      team_queries = lambda do
+        queries = []
+        callback = ->(*, payload) { queries << payload[:sql] if payload[:sql].match?(%r{FROM "(groups_users|roles_groups)"}) }
+        ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') { described_class.execute }
+        queries.size
+      end
+
+      before = team_queries.call
+      create_list(:agent, 4, groups: [group])
+
+      expect(team_queries.call).to eq(before)
+    end
+  end
+
+  describe '.counts' do
+    it 'gives the numbers of the list without building it' do
+      online = create(:agent)
+      create(:agent)
+      sign_in(online)
+
+      expect(described_class.counts).to eq(online: members.count { |row| row[:online] }, total: members.size)
+    end
   end
 
   describe 'online and last login' do

@@ -6,6 +6,7 @@ import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
+import { useApplicationStore } from '#shared/stores/application.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -15,18 +16,19 @@ import {
   actionFields,
   actionProblems,
   conditionFields,
-  conditionProblems,
-  conditionToRows,
-  isExpertCondition,
+  conditionStateProblems,
+  conditionToState,
+  emptyConditionState,
   performToRows,
-  rowsToCondition,
   rowsToPerform,
+  stateRows,
+  stateToCondition,
   type ActionRow,
   type AutomationOptions,
-  type ConditionRow,
+  type ConditionState,
 } from '../components/Automation/automation.ts'
 import AutomationActionEditor from '../components/Automation/AutomationActionEditor.vue'
-import AutomationConditionEditor from '../components/Automation/AutomationConditionEditor.vue'
+import AutomationConditions from '../components/Automation/AutomationConditions.vue'
 import AutomationTimeplanEditor from '../components/Automation/AutomationTimeplanEditor.vue'
 import { emptyTimeplan, normalizeTimeplan, timeplanProblems, type Timeplan } from '../components/Automation/timeplan.ts'
 
@@ -74,18 +76,16 @@ const active = ref(true)
 const disableNotification = ref(true)
 const object = ref('Ticket')
 const timeplan = ref<Timeplan>(emptyTimeplan())
-const conditionRows = ref<ConditionRow[]>([])
+const conditionState = ref<ConditionState>(emptyConditionState())
 const actionRows = ref<ActionRow[]>([])
-// Conditions in Zammad's expert mode aren't edited here; they are kept as they are.
-const expertCondition = ref<unknown>(null)
+
+const allowExpert = computed(() => Boolean(useApplicationStore().config.ticket_allow_expert_conditions))
 
 const conditionFieldList = computed(() => (options.value ? conditionFields(options.value) : []))
 const actionFieldList = computed(() => (options.value ? actionFields(options.value) : []))
 const isTicketJob = computed(() => object.value === 'Ticket')
 
-const condition = computed(() =>
-  expertCondition.value ?? rowsToCondition(conditionRows.value, conditionFieldList.value),
-)
+const condition = computed(() => stateToCondition(conditionState.value, conditionFieldList.value))
 
 const reset = () => {
   loadError.value = null
@@ -96,9 +96,8 @@ const reset = () => {
   disableNotification.value = true
   object.value = 'Ticket'
   timeplan.value = emptyTimeplan()
-  conditionRows.value = []
+  conditionState.value = emptyConditionState()
   actionRows.value = []
-  expertCondition.value = null
 }
 
 const load = async () => {
@@ -115,8 +114,7 @@ const load = async () => {
     disableNotification.value = job.disable_notification
     object.value = job.object
     timeplan.value = normalizeTimeplan(job.timeplan)
-    if (isExpertCondition(job.condition)) expertCondition.value = job.condition
-    else conditionRows.value = conditionToRows(job.condition, conditionFieldList.value)
+    conditionState.value = conditionToState(job.condition, conditionFieldList.value)
     actionRows.value = performToRows(job.perform, actionFieldList.value)
   } catch (error) {
     loadError.value = (error as Error).message
@@ -164,10 +162,10 @@ const checkProblems = () => {
   const found: string[] = []
   if (!name.value.trim()) found.push(__('Give the job a name.'))
   found.push(...timeplanProblems(timeplan.value))
-  if (!expertCondition.value && !conditionRows.value.length) {
+  if (!stateRows(conditionState.value).length) {
     found.push(__('Add at least one condition, so the job does not change every ticket.'))
   }
-  found.push(...conditionProblems(conditionRows.value, conditionFieldList.value))
+  found.push(...conditionStateProblems(conditionState.value, conditionFieldList.value))
   if (!actionRows.value.length) found.push(__('Add at least one action.'))
   found.push(...actionProblems(actionRows.value, actionFieldList.value))
   problems.value = found
@@ -250,16 +248,18 @@ const inputClass =
         <section aria-labelledby="job-which" class="flex flex-col gap-3 rounded-xl border border-[var(--sh-line)] bg-white p-5">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h2 id="job-which" class="text-sm font-extrabold tracking-wider text-slate-600 uppercase">
-              {{ $t('Which tickets (all conditions must match)') }}
+              {{ conditionState.group ? $t('Which tickets') : $t('Which tickets (all conditions must match)') }}
             </h2>
             <span v-if="matchCount !== null" class="text-sm font-semibold text-[var(--sh-app)]" role="status">
               {{ $t('%s tickets match now', matchCount) }}
             </span>
           </div>
-          <CommonAlert v-if="expertCondition" variant="info">
-            {{ $t('These conditions use the classic admin\'s expert mode. They are kept as they are; edit them there.') }}
-          </CommonAlert>
-          <AutomationConditionEditor v-else v-model="conditionRows" :fields="conditionFieldList" id-prefix="job-condition" />
+          <AutomationConditions
+            v-model="conditionState"
+            :fields="conditionFieldList"
+            id-prefix="job-condition"
+            :allow-expert="allowExpert"
+          />
         </section>
 
         <section aria-labelledby="job-what" class="flex flex-col gap-3 rounded-xl border border-[var(--sh-line)] bg-white p-5">

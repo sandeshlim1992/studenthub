@@ -5,6 +5,7 @@ import { computed } from 'vue'
 
 import { EMAIL_RECIPIENTS, emptyAction, type ActionField, type ActionRow } from './automation.ts'
 import AutomationChoicePicker from './AutomationChoicePicker.vue'
+import AutomationUserPicker from './AutomationUserPicker.vue'
 
 // What happens to each matching ticket. One row per action.
 
@@ -111,6 +112,27 @@ const areaClass =
           <p v-else-if="fieldOf(row.key)?.kind === 'delete'" class="pt-1.5 text-sm font-semibold text-red-700">
             {{ $t('Matching tickets are deleted for good, with all their messages.') }}
           </p>
+
+          <label v-else-if="fieldOf(row.key)?.kind === 'text'" :for="`${idPrefix}-text-${row.uid}`">
+            <span class="sr-only">{{ $t('Value') }}</span>
+            <input :id="`${idPrefix}-text-${row.uid}`" v-model="row.value" type="text" :class="[inputClass, 'w-full']" />
+          </label>
+
+          <div v-else-if="fieldOf(row.key)?.kind === 'customer'" class="flex flex-wrap items-start gap-2">
+            <label :for="`${idPrefix}-who-${row.uid}`">
+              <span class="sr-only">{{ $t('Who') }}</span>
+              <select :id="`${idPrefix}-who-${row.uid}`" v-model="row.preCondition" :class="inputClass">
+                <option value="current_user.id">{{ $t('the current user') }}</option>
+                <option value="specific">{{ $t('a specific person') }}</option>
+              </select>
+            </label>
+            <AutomationUserPicker
+              v-if="row.preCondition === 'specific'"
+              :id="`${idPrefix}-person-${row.uid}`"
+              v-model="row.value"
+              v-model:completion="row.completion"
+            />
+          </div>
 
           <label v-else :for="`${idPrefix}-value-${row.uid}`">
             <span class="sr-only">{{ $t('Value') }}</span>

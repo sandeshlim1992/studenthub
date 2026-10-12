@@ -1,9 +1,10 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# Student Hub: what the new UI's condition and action editors offer (Scheduler): states, priorities,
-# teams, agents, organisations, webhooks and the ticket's select fields with their options (tree
-# fields flattened, "Parent › Child"). Inactive records are included, marked, so existing jobs that
-# use them still show their names.
+# Student Hub: what the new UI's condition and action editors offer (Scheduler, Triggers, Macros,
+# SLAs, Report Profiles, Time Accounting): states, priorities, teams, agents, organisations, webhooks,
+# message senders and types, and the ticket's select fields with their options (tree fields
+# flattened, "Parent › Child"). Inactive records are included, marked, so existing records that use
+# them still show their names.
 class Service::StudenthubAutomation::Options < Service::Base
   SELECT_TYPES = %w[select multiselect tree_select multi_tree_select boolean].freeze
 
@@ -18,6 +19,8 @@ class Service::StudenthubAutomation::Options < Service::Base
       agents:            User.with_permissions('ticket.agent').where.not(id: 1).reorder(:firstname, :lastname).map { |user| { id: user.id, name: user.fullname, active: user.active } },
       organizations:     rows(Organization.reorder(:name)),
       webhooks:          rows(Webhook.reorder(:name)),
+      article_senders:   Ticket::Article::Sender.reorder(:id).map { |sender| { id: sender.id, name: sender.name, active: true } },
+      article_types:     rows(Ticket::Article::Type.reorder(:name)),
       ticket_attributes: ticket_attributes,
     }
   end

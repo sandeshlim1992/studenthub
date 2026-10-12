@@ -985,8 +985,10 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
 - **Scheduler** (`/manage/scheduler`): jobs with when they run (days, hours, minutes), conditions (state,
   priority, team, owner incl. unassigned, organisation, select fields such as Category and Campus, tags, title,
   and times such as "updated more than 2 days ago" or "escalation within the next hour") and actions (state,
-  priority, team, owner, select fields, tags, internal note, email, webhook, delete). The editor shows how many
-  tickets match now. Settings it doesn't know (e.g. expert-mode conditions, SMS) are kept as they are.
+  priority, team, owner, select fields, title, tags, internal note, email, webhook, delete). The editor shows how
+  many tickets match now. Expert mode (groups that match all, any or none, a field more than once) can be switched
+  on while Zammad's setting `ticket_allow_expert_conditions` allows it. Settings it doesn't know (e.g. SMS) are
+  kept as they are.
 - **Roles** (`/manage/roles`): permissions grouped as admin area, agent work, customers and profile
   settings, and team access per team (read, create, change, overview, full). Warns before an admin removes their own
   admin access. The Admin role's team access is still kept in step by the Teams views.
@@ -1012,10 +1014,15 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
   and password for Exchange on site, choose folders, map fields to user fields, a trial run, save, **Import now**.
   The stored password is never sent to the browser.
 
-- **Triggers, Macros, Templates, SLAs, Report Profiles, Time Accounting** (the selector): these pages edit only
-  some fields (state, priority, team, owner, …). Everything else in a record (emails, webhooks, tags, notes, other
-  conditions) is kept when it is saved and listed under "Kept as they are"; conditions in the classic expert mode
-  are left as they are. Change those parts in the classic admin (`/app`).
+- **Triggers, Macros, SLAs, Report Profiles, Time Accounting** (the selector): the same condition and action
+  editor as the Scheduler, expert mode included. Triggers also have Action (created, updated, merged), the message
+  (created, sender, type, internal), Customer is VIP and "has changed"; Action and the yes/no fields are saved as
+  one value, as Zammad compares them. Actions add Set title and Set customer (the current user or a person found by
+  name or email); triggers also call webhooks, macros don't, and only the Scheduler deletes tickets. Anything the
+  editor doesn't know (e.g. "has reached" of time-based triggers) shows as "kept as it is" and is saved unchanged.
+- **Templates**: the page edits title, state, priority, team and owner; the other fields of a template (message
+  text, Category, …) are kept when it is saved and listed under "Kept as they are". Change those in the classic
+  admin (`/app`).
 
 Still only in the classic admin: BETA UI and KB Answer Generation; the live chat console and the phone (CTI) log
 (both unused); setup for Clearbit (keep it off: it sends email addresses to a third party).
@@ -1027,14 +1034,14 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 | `app/frontend/apps/desktop/pages/knowledge-base/` | Knowledge Base page |
 | `app/frontend/apps/desktop/composables/useStudenthubKnowledgeBaseSearch.ts`, `components/Search/QuickSearch/StudenthubQuickSearchKnowledgeBase.vue` (in `QuickSearchResultList.vue`) | Answers in the quick search |
 | `app/services/service/studenthub_automation/options.rb`, `app/controllers/studenthub_automation_controller.rb` | Choices for conditions and actions (`GET /api/v1/studenthub/automation/options`) |
-| `pages/manage/components/Automation/`, `pages/manage/views/Scheduler.vue`, `SchedulerJob.vue` | Scheduler pages, condition / action / schedule editors |
+| `pages/manage/components/Automation/` (`automation.ts`, `AutomationConditions.vue` with `AutomationConditionEditor.vue` / `AutomationConditionGroup.vue` / `AutomationConditionRow.vue`, `AutomationActionEditor.vue`, `AutomationUserPicker.vue`), `pages/manage/views/Scheduler.vue`, `SchedulerJob.vue`; used by `Triggers.vue`, `Macros.vue`, `Slas.vue`, `ReportProfiles.vue`, `TimeAccounting.vue` | Condition (plain list or expert-mode groups) / action / schedule editors; the Scheduler pages |
 | `app/services/service/studenthub_roles/overview.rb`, `app/controllers/studenthub_roles_controller.rb`, `pages/manage/components/Roles/`, `views/Roles.vue`, `RoleEdit.vue` | Roles (`GET /api/v1/studenthub/roles`) |
 | `app/services/service/studenthub_ldap/options.rb`, `app/controllers/studenthub_ldap_controller.rb`, `pages/manage/components/Ldap/`, `views/Ldap.vue`, `LdapSource.vue` | LDAP (`GET/PUT /api/v1/studenthub/ldap`) |
 | `pages/ticket/components/TicketSidebar/plugins/studenthub-feedback.ts`, `…/TicketSidebarStudenthubFeedback/` | Customer feedback panel |
 | `pages/manage/views/PublicLinks.vue`; `CommonPublicLinks` in `Login.vue`, `PasswordReset.vue` | Public Links |
 | `app/services/service/studenthub_secure_email/`, `app/services/service/studenthub_exchange/`, `app/controllers/studenthub_integrations_controller.rb`, `lib/studenthub/exchange_return.rb`, `lib/studenthub/exchange_stored_password.rb`, `views/SecureEmail.vue`, `Exchange.vue`, `components/Exchange/` | S/MIME, PGP and Exchange (`GET/PUT /api/v1/studenthub/integrations/smime\|pgp\|exchange`) |
 | `app/services/service/studenthub_ticket_fields/`, `app/controllers/studenthub_ticket_fields_controller.rb`, `views/TicketStates.vue`, `TicketPriorities.vue`, `Tags.vue` | States and priorities with their tickets, the "new tags" setting |
-| `pages/manage/components/Automation/keptSettings.ts`, `AutomationKeptSettings.vue`; edits in `views/Triggers.vue`, `Macros.vue`, `Templates.vue`, `Slas.vue`, `ReportProfiles.vue`, `TimeAccounting.vue` | What those editors don't show, kept on save and listed |
+| `pages/manage/components/Automation/keptSettings.ts`, `AutomationKeptSettings.vue`; edits in `views/Templates.vue` | What the Templates editor doesn't show, kept on save and listed |
 
 ---
 

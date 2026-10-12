@@ -3,38 +3,44 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { useApplicationStore } from '#shared/stores/application.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
 import {
-  keepSettings,
-  noKeptSettings,
-  withKeptSettings,
-} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
+  actionFields,
+  actionProblems,
+  conditionFields,
+  conditionStateProblems,
+  conditionToState,
+  emptyConditionState,
+  performToRows,
+  rowsToPerform,
+  stateRows,
+  stateToCondition,
+  type ActionRow,
+  type AutomationOptions,
+  type ConditionState,
+} from '#desktop/pages/manage/components/Automation/automation.ts'
+import AutomationActionEditor from '#desktop/pages/manage/components/Automation/AutomationActionEditor.vue'
+import AutomationConditions from '#desktop/pages/manage/components/Automation/AutomationConditions.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface TriggerItem {
   id: number
   name: string
   activator?: string
   execution_condition_mode?: string
-  condition?: Record<string, { operator: string; value?: string[]; pre_condition?: string }>
-  perform?: Record<string, { value: string | number | string[]; operator?: string } | string | number | string[]>
+  condition?: unknown
+  perform?: unknown
   note?: string
   active: boolean
   updated_at?: string
   created_at?: string
 }
 
-interface MetaItem {
-  id: number
-  name: string
-}
-
 const router = useRouter()
 const triggers = ref<TriggerItem[]>([])
-const ticketStatesList = ref<MetaItem[]>([])
-const ticketPrioritiesList = ref<MetaItem[]>([])
-const groupsList = ref<MetaItem[]>([])
-const usersList = ref<{ id: number; fullname: string; login: string }[]>([])
 
 const isLoading = ref(true)
 const errorText = ref('')
@@ -46,17 +52,6 @@ const showDrawer = ref(false)
 const drawerTitle = ref('')
 const submitting = ref(false)
 
-interface ConditionRow {
-  field: string
-  operator: string
-  values: string[]
-}
-
-interface ActionRow {
-  field: string
-  value: string
-}
-
 const defaultFormState = () => ({
   id: null as number | null,
   name: '',
@@ -64,23 +59,20 @@ const defaultFormState = () => ({
   execution_condition_mode: 'selective',
   note: '',
   active: true,
-  conditions: [] as ConditionRow[],
-  actions: [] as ActionRow[],
 })
 
 const formState = ref(defaultFormState())
 
-// Student Hub: conditions and actions this editor doesn't show are kept and saved back
-// (keptSettings.ts); these are the keys it does show.
-const SHOWN_CONDITION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'article.action']
-const SHOWN_ACTION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'ticket.owner_id']
-const keptCondition = ref(noKeptSettings())
-const keptPerform = ref(noKeptSettings())
+// Student Hub: conditions and actions are edited with the shared editor (Automation/), which knows
+// a trigger's fields (the change that runs it, its message) and keeps what it doesn't know.
+const options = ref<AutomationOptions | null>(null)
+const conditionState = ref<ConditionState>(emptyConditionState())
+const actionRows = ref<ActionRow[]>([])
+const problems = ref<string[]>([])
 
-const keepFrom = (trig?: TriggerItem) => {
-  keptCondition.value = keepSettings(trig?.condition, SHOWN_CONDITION_KEYS)
-  keptPerform.value = keepSettings(trig?.perform, SHOWN_ACTION_KEYS)
-}
+const allowExpert = computed(() => Boolean(useApplicationStore().config.ticket_allow_expert_conditions))
+const conditionFieldList = computed(() => (options.value ? conditionFields(options.value, 'trigger') : []))
+const actionFieldList = computed(() => (options.value ? actionFields(options.value, 'trigger') : []))
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -106,94 +98,6 @@ const htmlToPlainText = (html: string) => {
     .replace(/<\/div>/gi, '\n')
   const doc = new DOMParser().parseFromString(withNewlines, 'text/html')
   return doc.body.textContent || ''
-}
-
-const buildConditionPayload = () => {
-  const payload: Record<string, { operator: string; value: string[] }> = {}
-  for (const cond of formState.value.conditions) {
-    let key = ''
-    if (cond.field === 'state') key = 'ticket.state_id'
-    else if (cond.field === 'priority') key = 'ticket.priority_id'
-    else if (cond.field === 'group') key = 'ticket.group_id'
-    else if (cond.field === 'action') key = 'article.action'
-    if (key && cond.values.length > 0) {
-      payload[key] = { operator: cond.operator, value: cond.values }
-    }
-  }
-  return payload
-}
-
-const parseConditionToRows = (condition?: Record<string, unknown>) => {
-  const rows: ConditionRow[] = []
-  if (!condition) return rows
-
-  for (const [key, rawVal] of Object.entries(condition)) {
-    let field = ''
-    if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-    else if (key === 'article.action') field = 'action'
-
-    if (!field) continue
-
-    let operator = 'is'
-    let values: string[] = []
-
-    if (typeof rawVal === 'object' && rawVal !== null) {
-      const obj = rawVal as { operator?: string; value?: unknown }
-      operator = obj.operator || 'is'
-      if (Array.isArray(obj.value)) {
-        values = obj.value.map(String)
-      } else if (obj.value) {
-        values = [String(obj.value)]
-      }
-    }
-
-    rows.push({ field, operator, values })
-  }
-  return rows
-}
-
-const buildPerformPayload = () => {
-  const perform: Record<string, { value: string }> = {}
-  for (const act of formState.value.actions) {
-    let key = ''
-    if (act.field === 'state') key = 'ticket.state_id'
-    else if (act.field === 'priority') key = 'ticket.priority_id'
-    else if (act.field === 'group') key = 'ticket.group_id'
-    else if (act.field === 'owner') key = 'ticket.owner_id'
-
-    if (key && act.value) {
-      perform[key] = { value: act.value }
-    }
-  }
-  return perform
-}
-
-const parsePerformToActions = (perform?: Record<string, unknown>) => {
-  const actions: ActionRow[] = []
-  if (!perform) return actions
-
-  for (const [key, rawVal] of Object.entries(perform)) {
-    let field = ''
-    if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-    else if (key === 'ticket.owner_id') field = 'owner'
-
-    if (!field) continue
-
-    let valStr = ''
-    if (typeof rawVal === 'object' && rawVal !== null && 'value' in rawVal) {
-      valStr = String((rawVal as { value: unknown }).value ?? '')
-    } else {
-      valStr = String(rawVal ?? '')
-    }
-
-    actions.push({ field, value: valStr })
-  }
-
-  return actions
 }
 
 const fetchTriggers = async () => {
@@ -226,20 +130,11 @@ const fetchTriggers = async () => {
   }
 }
 
-const fetchMetadata = async () => {
+const fetchOptions = async () => {
   try {
-    const [groupsRes, statesRes, prioritiesRes, usersRes] = await Promise.all([
-      fetch('/api/v1/groups', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/ticket_states', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/ticket_priorities', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/users?per_page=500', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-    ])
-    if (groupsRes.ok) groupsList.value = await groupsRes.json()
-    if (statesRes.ok) ticketStatesList.value = await statesRes.json()
-    if (prioritiesRes.ok) ticketPrioritiesList.value = await prioritiesRes.json()
-    if (usersRes.ok) usersList.value = await usersRes.json()
+    options.value = await studenthubApi<AutomationOptions>('/api/v1/studenthub/automation/options')
   } catch (e) {
-    console.error('Failed to fetch metadata:', e)
+    console.error('Failed to fetch the condition and action choices:', e)
   }
 }
 
@@ -253,64 +148,44 @@ const filteredTriggers = computed(() => {
   )
 })
 
-const handleNewTrigger = () => {
-  formState.value = defaultFormState()
-  formState.value.conditions = [{ field: 'state', operator: 'is', values: [] }]
-  formState.value.actions = [{ field: 'state', value: '' }]
-  keepFrom()
-  drawerTitle.value = __('New Trigger')
+const openDrawer = async (title: string, trig?: TriggerItem, copy = false) => {
+  if (!options.value) await fetchOptions()
+  formState.value = trig
+    ? {
+        id: copy ? null : trig.id,
+        name: copy ? __('%s (Copy)', trig.name || __('Trigger')) : trig.name || '',
+        activator: trig.activator || 'action',
+        execution_condition_mode: trig.execution_condition_mode || 'selective',
+        note: htmlToPlainText(trig.note || ''),
+        active: trig.active !== false,
+      }
+    : defaultFormState()
+  conditionState.value = trig ? conditionToState(trig.condition, conditionFieldList.value) : emptyConditionState()
+  actionRows.value = trig ? performToRows(trig.perform, actionFieldList.value) : []
+  problems.value = []
+  drawerTitle.value = title
   showDrawer.value = true
 }
 
-const handleEditTrigger = (trig: TriggerItem) => {
-  formState.value = {
-    id: trig.id,
-    name: trig.name || '',
-    activator: trig.activator || 'action',
-    execution_condition_mode: trig.execution_condition_mode || 'selective',
-    note: htmlToPlainText(trig.note || ''),
-    active: trig.active !== false,
-    conditions: parseConditionToRows(trig.condition as Record<string, unknown>),
-    actions: parsePerformToActions(trig.perform as Record<string, unknown>),
-  }
-  if (formState.value.conditions.length === 0) {
-    formState.value.conditions.push({ field: 'state', operator: 'is', values: [] })
-  }
-  if (formState.value.actions.length === 0) {
-    formState.value.actions.push({ field: 'state', value: '' })
-  }
-  keepFrom(trig)
-  drawerTitle.value = __('Edit Trigger')
-  showDrawer.value = true
-}
+const handleNewTrigger = () => openDrawer(__('New Trigger'))
 
-const handleCloneTrigger = (trig: TriggerItem) => {
-  formState.value = {
-    id: null,
-    name: __('%s (Copy)', trig.name || __('Trigger')),
-    activator: trig.activator || 'action',
-    execution_condition_mode: trig.execution_condition_mode || 'selective',
-    note: htmlToPlainText(trig.note || ''),
-    active: trig.active !== false,
-    conditions: parseConditionToRows(trig.condition as Record<string, unknown>),
-    actions: parsePerformToActions(trig.perform as Record<string, unknown>),
-  }
-  if (formState.value.conditions.length === 0) {
-    formState.value.conditions.push({ field: 'state', operator: 'is', values: [] })
-  }
-  if (formState.value.actions.length === 0) {
-    formState.value.actions.push({ field: 'state', value: '' })
-  }
-  keepFrom(trig)
-  drawerTitle.value = __('Clone Trigger')
-  showDrawer.value = true
+const handleEditTrigger = (trig: TriggerItem) => openDrawer(__('Edit Trigger'), trig)
+
+const handleCloneTrigger = (trig: TriggerItem) => openDrawer(__('Clone Trigger'), trig, true)
+
+const checkProblems = () => {
+  const found: string[] = []
+  if (!formState.value.name.trim()) found.push(__('Name is required.'))
+  if (!stateRows(conditionState.value).length) found.push(__('Add at least one condition.'))
+  found.push(...conditionStateProblems(conditionState.value, conditionFieldList.value))
+  if (!actionRows.value.length) found.push(__('Add at least one action.'))
+  found.push(...actionProblems(actionRows.value, actionFieldList.value))
+  problems.value = found
+  return found.length === 0
 }
 
 const saveTrigger = async () => {
-  if (!formState.value.name.trim()) {
-    alert(__('Name is required.'))
-    return
-  }
+  if (!checkProblems()) return
 
   submitting.value = true
   try {
@@ -320,8 +195,8 @@ const saveTrigger = async () => {
       execution_condition_mode: formState.value.execution_condition_mode,
       note: formState.value.note,
       active: formState.value.active,
-      condition: withKeptSettings(keptCondition.value, buildConditionPayload()),
-      perform: withKeptSettings(keptPerform.value, buildPerformPayload()),
+      condition: stateToCondition(conditionState.value, conditionFieldList.value),
+      perform: rowsToPerform(actionRows.value, actionFieldList.value),
     }
 
     const isEdit = formState.value.id !== null
@@ -344,7 +219,7 @@ const saveTrigger = async () => {
       fetchTriggers()
     } else {
       const data = await res.json()
-      alert(data.error || __('Failed to save trigger.'))
+      problems.value = [data.error_human || data.error || __('Failed to save trigger.')]
     }
   } catch (e) {
     console.error('Failed to save trigger:', e)
@@ -397,7 +272,7 @@ const toggleActiveState = async (trig: TriggerItem) => {
 
 onMounted(() => {
   fetchTriggers()
-  fetchMetadata()
+  fetchOptions()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -566,7 +441,7 @@ onMounted(() => {
       @click="showDrawer = false"
     >
       <div
-        class="w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
+        class="w-full max-w-3xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
         @click.stop
       >
         <!-- Header -->
@@ -644,258 +519,27 @@ onMounted(() => {
           </div>
 
           <!-- Conditions -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+          <section aria-labelledby="trigger-conditions-title">
+            <h3 id="trigger-conditions-title" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
               {{ __('Conditions for affected objects') }} <span class="text-red-500">*</span>
-            </label>
-            <div class="space-y-3">
-              <AutomationKeptSettings :settings="keptCondition" />
-              <template v-if="!keptCondition.expert">
-              <div
-                v-for="(cond, idx) in formState.conditions"
-                :key="idx"
-                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative"
-              >
-                <button
-                  @click="formState.conditions.splice(idx, 1)"
-                  class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                >
-                  <CommonIcon name="trash3" class="w-4 h-4" />
-                </button>
-                <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select
-                      v-model="cond.field"
-                      @change="cond.values = []"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="state">{{ __('State') }}</option>
-                      <option value="priority">{{ __('Priority') }}</option>
-                      <option value="group">{{ __('Group') }}</option>
-                      <option value="action">{{ __('Article Action') }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Operator') }}</label>
-                    <select
-                      v-model="cond.operator"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="is">{{ __('is') }}</option>
-                      <option value="is not">{{ __('is not') }}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Values -->
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</label>
-
-                  <!-- State -->
-                  <div v-if="cond.field === 'state'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="state in ticketStatesList"
-                      :key="state.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(state.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(state.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600"
-                      />
-                      <span>{{ state.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Priority -->
-                  <div v-else-if="cond.field === 'priority'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="prio in ticketPrioritiesList"
-                      :key="prio.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(prio.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(prio.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600"
-                      />
-                      <span>{{ prio.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Group -->
-                  <div v-else-if="cond.field === 'group'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="grp in groupsList"
-                      :key="grp.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(grp.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(grp.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600"
-                      />
-                      <span>{{ grp.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Article Action -->
-                  <div v-else-if="cond.field === 'action'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="act in ['email', 'phone', 'web', 'note']"
-                      :key="act"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(act) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="act"
-                        v-model="cond.values"
-                        class="rounded text-blue-600"
-                      />
-                      <span class="capitalize">{{ act }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                @click="formState.conditions.push({ field: 'state', operator: 'is', values: [] })"
-                class="w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1"
-              >
-                <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Condition') }}
-              </button>
-              </template>
-            </div>
-          </div>
+            </h3>
+            <p v-if="!options" class="text-sm text-slate-500">{{ __('Loading…') }}</p>
+            <AutomationConditions
+              v-else
+              v-model="conditionState"
+              :fields="conditionFieldList"
+              id-prefix="trigger-condition"
+              :allow-expert="allowExpert"
+            />
+          </section>
 
           <!-- Actions -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+          <section aria-labelledby="trigger-actions-title">
+            <h3 id="trigger-actions-title" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
               {{ __('Execute changes on objects') }}
-            </label>
-            <div class="space-y-3">
-              <AutomationKeptSettings :settings="keptPerform" />
-              <div
-                v-for="(act, idx) in formState.actions"
-                :key="idx"
-                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative"
-              >
-                <button
-                  @click="formState.actions.splice(idx, 1)"
-                  class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                >
-                  <CommonIcon name="trash3" class="w-4 h-4" />
-                </button>
-                <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select
-                      v-model="act.field"
-                      @change="act.value = ''"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="state">{{ __('State') }}</option>
-                      <option value="priority">{{ __('Priority') }}</option>
-                      <option value="group">{{ __('Group') }}</option>
-                      <option value="owner">{{ __('Owner') }}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Values Selection -->
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</label>
-
-                  <!-- State -->
-                  <div v-if="act.field === 'state'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="state in ticketStatesList"
-                      :key="state.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(state.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(state.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ state.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Priority -->
-                  <div v-else-if="act.field === 'priority'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="prio in ticketPrioritiesList"
-                      :key="prio.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(prio.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(prio.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ prio.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Group -->
-                  <div v-else-if="act.field === 'group'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="grp in groupsList"
-                      :key="grp.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(grp.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(grp.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ grp.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Owner -->
-                  <div v-else-if="act.field === 'owner'" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-                    <label
-                      v-for="user in usersList.slice(0, 40)"
-                      :key="user.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(user.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(user.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ user.fullname || user.login }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                @click="formState.actions.push({ field: 'state', value: '' })"
-                class="w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1"
-              >
-                <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Action') }}
-              </button>
-            </div>
-          </div>
+            </h3>
+            <AutomationActionEditor v-if="options" v-model="actionRows" :fields="actionFieldList" id-prefix="trigger-action" />
+          </section>
 
           <!-- Note -->
           <div>
@@ -930,6 +574,11 @@ onMounted(() => {
               ></span>
             </button>
           </div>
+          <CommonAlert v-if="problems.length" variant="danger" role="alert">
+            <ul class="list-disc ps-4">
+              <li v-for="problem in problems" :key="problem">{{ $t(problem) }}</li>
+            </ul>
+          </CommonAlert>
         </div>
 
         <!-- Footer -->

@@ -4,13 +4,20 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { useApplicationStore } from '#shared/stores/application.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
 import {
-  keepSettings,
-  noKeptSettings,
-  withKeptSettings,
-} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
+  conditionFields,
+  conditionStateProblems,
+  conditionToState,
+  emptyConditionState,
+  stateToCondition,
+  type AutomationOptions,
+  type ConditionState,
+} from '#desktop/pages/manage/components/Automation/automation.ts'
+import AutomationConditions from '#desktop/pages/manage/components/Automation/AutomationConditions.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface SettingRecord {
   id: number
@@ -26,18 +33,6 @@ interface ActivityTypeItem {
   active: boolean
   updated_at?: string
   created_at?: string
-}
-
-interface MetaItem {
-  id: number
-  name: string
-}
-
-interface ConditionRow {
-  field: string
-  operator: string
-  values: string[]
-  pre_condition?: string
 }
 
 interface ActivityLogRow {
@@ -62,22 +57,13 @@ const unitSetting = ref<string>('')
 const customUnitSetting = ref<string>('')
 const areActivityTypesEnabled = ref(false)
 const defaultActivityTypeId = ref<number | null>(null)
-const conditions = ref<ConditionRow[]>([])
+// Student Hub: the selector is edited with the shared editor (Automation/), which keeps what it
+// doesn't know. No conditions: the prompt is shown for every ticket.
+const options = ref<AutomationOptions | null>(null)
+const conditionState = ref<ConditionState>(emptyConditionState())
 
-// Student Hub: selector conditions this editor doesn't show are kept and saved back
-// (keptSettings.ts); these are the keys it does show.
-const SHOWN_CONDITION_KEYS = [
-  'ticket.state_id',
-  'ticket.priority_id',
-  'ticket.group_id',
-  'ticket.owner_id',
-  'ticket.customer_id',
-  'ticket.organization_id',
-]
-const keptCondition = ref(noKeptSettings())
-const hasKeptCondition = computed(
-  () => !!keptCondition.value.expert || Object.keys(keptCondition.value.kept).length > 0,
-)
+const allowExpert = computed(() => Boolean(useApplicationStore().config.ticket_allow_expert_conditions))
+const conditionFieldList = computed(() => (options.value ? conditionFields(options.value) : []))
 
 const isSavingSettings = ref(false)
 const settingsSuccessMessage = ref('')
@@ -110,10 +96,6 @@ const logsLoading = ref(false)
 const logsData = ref<ActivityLogRow[]>([])
 
 // Meta collections
-const ticketStatesList = ref<MetaItem[]>([])
-const ticketPrioritiesList = ref<MetaItem[]>([])
-const groupsList = ref<MetaItem[]>([])
-const usersList = ref<{ id: number; fullname: string; login: string }[]>([])
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -158,47 +140,18 @@ const formatDate = (dateStr?: string) => {
 // Settings Methods
 // -------------------------------------------------------------
 
-const parseConditionToRows = (condition?: Record<string, unknown>) => {
-  const rows: ConditionRow[] = []
-  if (!condition) return rows
-
-  for (const [key, rawVal] of Object.entries(condition)) {
-    let field = ''
-    if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-    else if (key === 'ticket.owner_id') field = 'owner'
-    else if (key === 'ticket.customer_id') field = 'customer'
-    else if (key === 'ticket.organization_id') field = 'organization'
-
-    if (!field) continue
-
-    let operator = 'is'
-    let values: string[] = []
-    let pre_condition: string | undefined
-
-    if (typeof rawVal === 'object' && rawVal !== null) {
-      const { operator: op = 'is', pre_condition: preCond, value } = rawVal as {
-        operator?: string
-        value?: unknown
-        pre_condition?: string
-      }
-      operator = op
-      pre_condition = preCond
-      if (Array.isArray(value)) {
-        values = value.map(String)
-      } else if (value !== undefined && value !== null) {
-        values = [String(value)]
-      }
-    }
-
-    rows.push({ field, operator, values, pre_condition })
+const fetchOptions = async () => {
+  try {
+    options.value = await studenthubApi<AutomationOptions>('/api/v1/studenthub/automation/options')
+  } catch (e) {
+    console.error('Failed to fetch the condition choices:', e)
   }
-  return rows
 }
 
 const fetchSettings = async () => {
   try {
+    // The selector is read with all fields known.
+    if (!options.value) await fetchOptions()
     const res = await fetch('/api/v1/settings', {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
     })
@@ -220,39 +173,12 @@ const fetchSettings = async () => {
       defaultActivityTypeId.value = defType ? Number(defType) : null
 
       // Selector condition
-      const rawSelector = map['time_accounting_selector']?.state_current?.value as { condition?: Record<string, unknown> } | undefined
-      if (rawSelector?.condition) {
-        conditions.value = parseConditionToRows(rawSelector.condition)
-      } else {
-        conditions.value = []
-      }
-      keptCondition.value = keepSettings(rawSelector?.condition, SHOWN_CONDITION_KEYS)
+      const rawSelector = map['time_accounting_selector']?.state_current?.value as { condition?: unknown } | undefined
+      conditionState.value = conditionToState(rawSelector?.condition, conditionFieldList.value)
     }
   } catch (e) {
     console.error('Failed to fetch settings:', e)
   }
-}
-
-const buildConditionPayload = () => {
-  const condPayload: Record<string, { operator: string; value?: string[]; pre_condition?: string }> = {}
-  for (const cond of conditions.value) {
-    let key = ''
-    if (cond.field === 'state') key = 'ticket.state_id'
-    else if (cond.field === 'priority') key = 'ticket.priority_id'
-    else if (cond.field === 'group') key = 'ticket.group_id'
-    else if (cond.field === 'owner') key = 'ticket.owner_id'
-    else if (cond.field === 'customer') key = 'ticket.customer_id'
-    else if (cond.field === 'organization') key = 'ticket.organization_id'
-
-    if (key) {
-      if (cond.pre_condition) {
-        condPayload[key] = { operator: cond.operator, pre_condition: cond.pre_condition }
-      } else if (cond.values && cond.values.length > 0) {
-        condPayload[key] = { operator: cond.operator, value: cond.values }
-      }
-    }
-  }
-  return { condition: withKeptSettings(keptCondition.value, condPayload) }
 }
 
 const updateSettingValue = async (name: string, value: unknown) => {
@@ -284,11 +210,14 @@ const toggleTimeAccountingMaster = async () => {
 }
 
 const saveSettings = async () => {
-  isSavingSettings.value = true
   settingsSuccessMessage.value = ''
-  settingsErrorMessage.value = ''
+  const found = conditionStateProblems(conditionState.value, conditionFieldList.value)
+  settingsErrorMessage.value = found.join(' ')
+  if (found.length) return
+
+  isSavingSettings.value = true
   try {
-    const selectorPayload = buildConditionPayload()
+    const selectorPayload = { condition: stateToCondition(conditionState.value, conditionFieldList.value) }
     const unit = unitSetting.value
     let customUnit = customUnitSetting.value
     if (unit !== 'custom') customUnit = ''
@@ -521,23 +450,6 @@ const downloadLogUrl = computed(() => {
   return `/api/v1/time_accounting/log/${activeLogCategory.value}/${selectedYear.value}/${selectedMonth.value}?download=true`
 })
 
-const fetchMetadata = async () => {
-  try {
-    const [statesRes, prioritiesRes, groupsRes, usersRes] = await Promise.all([
-      fetch('/api/v1/ticket_states', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/ticket_priorities', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/groups', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/users?per_page=500', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-    ])
-    if (statesRes.ok) ticketStatesList.value = await statesRes.json()
-    if (prioritiesRes.ok) ticketPrioritiesList.value = await prioritiesRes.json()
-    if (groupsRes.ok) groupsList.value = await groupsRes.json()
-    if (usersRes.ok) usersList.value = await usersRes.json()
-  } catch (e) {
-    console.error('Failed to fetch metadata:', e)
-  }
-}
-
 watch([selectedYear, selectedMonth, activeLogCategory], () => {
   if (activeTab.value === 'logs') {
     fetchLogs()
@@ -554,7 +466,6 @@ watch(activeTab, (tab) => {
 
 onMounted(() => {
   fetchSettings()
-  fetchMetadata()
   window.addEventListener('click', () => { activeTypeMenuId.value = null })
 })
 </script>
@@ -654,156 +565,25 @@ onMounted(() => {
         </div>
 
         <!-- Selector Conditions Card -->
-        <div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-          <div class="flex items-center justify-between mb-2">
-            <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Ticket Selector') }}</h2>
-            <button
-              v-if="!keptCondition.expert"
-              type="button"
-              class="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-              @click="conditions.push({ field: 'state', operator: 'is', values: [] })"
-            >
-              <CommonIcon name="plus" class="w-3.5 h-3.5" />
-              {{ __('Add Condition') }}
-            </button>
-          </div>
+        <section
+          aria-labelledby="time-accounting-selector-title"
+          class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm"
+        >
+          <h2 id="time-accounting-selector-title" class="text-base font-bold text-slate-900 dark:text-slate-100 mb-2">
+            {{ __('Ticket Selector') }}
+          </h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
             {{ __('Show time accounting prompt when agents update matching tickets. If no conditions are defined, the prompt is shown for all tickets.') }}
           </p>
-
-          <AutomationKeptSettings :settings="keptCondition" class="mb-3" />
-
-          <div v-if="conditions.length === 0 && !hasKeptCondition" class="p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center bg-slate-50 dark:bg-slate-800/30">
-            <p class="text-xs text-slate-500 mb-2">{{ __('Currently active for all tickets without restriction.') }}</p>
-            <button
-              type="button"
-              class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 cursor-pointer inline-flex items-center gap-1.5"
-              @click="conditions.push({ field: 'state', operator: 'is', values: [] })"
-            >
-              <CommonIcon name="plus" class="w-3.5 h-3.5 text-blue-500" />
-              {{ __('Restrict to Specific Tickets') }}
-            </button>
-          </div>
-
-          <div v-else-if="!keptCondition.expert" class="space-y-3">
-            <div
-              v-for="(cond, idx) in conditions"
-              :key="idx"
-              class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative"
-            >
-              <button
-                type="button"
-                class="absolute top-3 ltr:right-3 rtl:left-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                :title="__('Remove')"
-                @click="conditions.splice(idx, 1)"
-              >
-                <CommonIcon name="trash3" class="w-4 h-4" />
-              </button>
-
-              <div class="grid grid-cols-2 gap-3 mb-3 ltr:pr-8 rtl:pl-8">
-                <div>
-                  <label :for="`cond-field-${idx}`" class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                  <select
-                    :id="`cond-field-${idx}`"
-                    v-model="cond.field"
-                    class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    @change="() => { cond.values = []; delete cond.pre_condition }"
-                  >
-                    <option value="state">{{ __('State') }}</option>
-                    <option value="priority">{{ __('Priority') }}</option>
-                    <option value="group">{{ __('Group') }}</option>
-                    <option value="owner">{{ __('Owner') }}</option>
-                    <option value="customer">{{ __('Customer') }}</option>
-                    <option value="organization">{{ __('Organization') }}</option>
-                  </select>
-                </div>
-                <div>
-                  <label :for="`cond-operator-${idx}`" class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Operator') }}</label>
-                  <select
-                    :id="`cond-operator-${idx}`"
-                    v-model="cond.operator"
-                    class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="is">{{ __('is') }}</option>
-                    <option value="is not">{{ __('is not') }}</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Values -->
-              <div>
-                <span class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</span>
-                <!-- State -->
-                <div v-if="cond.field === 'state'" class="flex flex-wrap gap-1.5">
-                  <label
-                    v-for="state in ticketStatesList" :key="state.id"
-                    class="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                    :class="cond.values.includes(String(state.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                  >
-                    <input v-model="cond.values" type="checkbox" :value="String(state.id)" class="rounded text-blue-600 focus:ring-0" />
-                    <span>{{ state.name }}</span>
-                  </label>
-                </div>
-                <!-- Priority -->
-                <div v-else-if="cond.field === 'priority'" class="flex flex-wrap gap-1.5">
-                  <label
-                    v-for="prio in ticketPrioritiesList" :key="prio.id"
-                    class="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                    :class="cond.values.includes(String(prio.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                  >
-                    <input v-model="cond.values" type="checkbox" :value="String(prio.id)" class="rounded text-blue-600 focus:ring-0" />
-                    <span>{{ prio.name }}</span>
-                  </label>
-                </div>
-                <!-- Group -->
-                <div v-else-if="cond.field === 'group'" class="flex flex-wrap gap-1.5">
-                  <label
-                    v-for="grp in groupsList" :key="grp.id"
-                    class="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                    :class="cond.values.includes(String(grp.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                  >
-                    <input v-model="cond.values" type="checkbox" :value="String(grp.id)" class="rounded text-blue-600 focus:ring-0" />
-                    <span>{{ grp.name }}</span>
-                  </label>
-                </div>
-                <!-- Owner -->
-                <div v-else-if="cond.field === 'owner'" class="space-y-2">
-                  <label
-                    class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                    :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                  >
-                    <input type="radio" :checked="cond.pre_condition === 'current_user.id'" class="text-blue-600 focus:ring-0" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" />
-                    <span>{{ __('Current User') }}</span>
-                  </label>
-                  <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">
-                    <label
-                      v-for="user in usersList.slice(0, 30)" :key="user.id"
-                      class="flex items-center gap-1 px-2 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(user.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input v-model="cond.values" type="checkbox" :value="String(user.id)" class="rounded text-blue-600 focus:ring-0" @change="() => { if (cond.values.length > 0) delete cond.pre_condition }" />
-                      <span>{{ user.fullname || user.login }}</span>
-                    </label>
-                  </div>
-                </div>
-                <!-- Customer -->
-                <div v-else-if="cond.field === 'customer'">
-                  <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 font-medium' : 'border-slate-200 dark:border-slate-700'">
-                    <input type="radio" :checked="cond.pre_condition === 'current_user.id'" class="text-blue-600 focus:ring-0" @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }" />
-                    <span>{{ __('Current User') }}</span>
-                  </label>
-                </div>
-                <!-- Organization -->
-                <div v-else-if="cond.field === 'organization'">
-                  <label class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer" :class="cond.pre_condition === 'current_user.organization_id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 font-medium' : 'border-slate-200 dark:border-slate-700'">
-                    <input type="radio" :checked="cond.pre_condition === 'current_user.organization_id'" class="text-blue-600 focus:ring-0" @change="() => { cond.pre_condition = 'current_user.organization_id'; cond.values = [] }" />
-                    <span>{{ __("Current User's Organization") }}</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          <p v-if="!options" class="text-sm text-slate-500">{{ __('Loading…') }}</p>
+          <AutomationConditions
+            v-else
+            v-model="conditionState"
+            :fields="conditionFieldList"
+            id-prefix="time-accounting-condition"
+            :allow-expert="allowExpert"
+          />
+        </section>
 
         <!-- Unit Setting Card -->
         <div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">

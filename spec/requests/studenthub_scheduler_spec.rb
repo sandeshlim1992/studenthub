@@ -27,6 +27,8 @@ RSpec.describe 'Student Hub Scheduler (new UI)', aggregate_failures: true, authe
       expect(json_response['groups'].pluck('name')).to include('Users')
       expect(json_response['agents'].pluck('id')).to include(current_user.id)
       expect(json_response['webhooks'].pluck('name')).to include('Teams alert')
+      expect(json_response['article_senders'].pluck('name')).to eq(%w[Agent Customer System])
+      expect(json_response['article_types'].pluck('name')).to include('email', 'note', 'web')
 
       campus = json_response['ticket_attributes'].find { |attribute| attribute['name'] == 'sh_campus' }
       expect(campus).to include('display' => 'Campus', 'data_type' => 'tree_select')
@@ -41,6 +43,16 @@ RSpec.describe 'Student Hub Scheduler (new UI)', aggregate_failures: true, authe
         get '/api/v1/studenthub/automation/options', as: :json
 
         expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'with someone who may only change macros' do
+      let(:current_user) { create(:agent, roles: [create(:role, permission_names: ['admin.macro'])]) }
+
+      it 'gives the choices too' do
+        get '/api/v1/studenthub/automation/options', as: :json
+
+        expect(response).to have_http_status(:ok)
       end
     end
   end

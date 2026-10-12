@@ -168,10 +168,10 @@ Never put passwords, tokens or keys in this file.
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
 - Taxil's ticket wizard and ticket list call `/api/v1/ticket_wizard_metadata`, which doesn't exist (404)
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
-  phone (CTI) log (both unused), Clearbit's field mapping, Scheduler jobs on users or organisations and expert-mode
-  conditions, and whatever the simple editors (Triggers, Macros, Templates, SLAs, Report Profiles, Time Accounting)
-  don't show: they keep it on save since 12 Oct and list it, but it is edited at `/app` (README → Moved from the
-  classic UI lists what moved)
+  phone (CTI) log (both unused), Clearbit's field mapping, Scheduler jobs on users or organisations, the fields of a
+  template other than title, state, priority, team and owner (kept on save), and conditions or actions the shared
+  editor doesn't know, e.g. "has reached" of time-based triggers (kept on save) (README → Moved from the classic UI
+  lists what moved)
 - Home PC: the devcontainer runs the repo from `C:\dev` (9p mount), not `~/studenthub` → file reads ~150× slower
   than the Linux disk, classic UI pages take 20–60 s, Vite and Rails miss file changes (restart `bin/dev` after
   edits). The first page load after a restart takes minutes and the app may show "Loading failed" meanwhile
@@ -292,10 +292,11 @@ Never put passwords, tokens or keys in this file.
 - Checklist tab (12 Oct): "No checklist assigned to this ticket." when there is none, and Add <name> checklist when
   the ticket's sub-category has one. Not yet checked in a browser (puma here hung; restart `bin/dev`). The dev server
   had been running since before the checklist assignments (11 Oct), so web tickets got no checklist until a restart
-- Simple admin editors keep what they don't show (12 Oct): Triggers, Macros, Templates, SLAs, Report Profiles and the
-  Time Accounting selector used to save only their few fields, and Zammad replaced the whole set, deleting emails,
-  webhooks, tags, notes and other conditions. They now save those back and list them; expert-mode conditions are
-  left as they are. Not yet checked in a browser
+- Triggers, Macros, SLAs, Report Profiles and the Time Accounting selector use the Scheduler's condition and action
+  editor (12 Oct): trigger fields (Action, the message, Customer is VIP, "has changed"), expert-mode groups (also in
+  the Scheduler), Set title and Set customer. Templates still edit only some fields and keep the rest. Before, those
+  editors saved only their few fields and Zammad replaced the whole set (emails, webhooks, tags, notes and other
+  conditions were deleted). Not yet checked in a browser (no admin login works in this container)
 
 ## Next steps
 
@@ -308,8 +309,8 @@ Never put passwords, tokens or keys in this file.
       password-reset email, `/app` and a phone
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
 - [ ] Decide which review findings to fix, starting with the `/manage` saves
-- [ ] Rebuild the Triggers and Macros editors on the Scheduler's editor (`components/Automation/`: emails, webhooks,
-      tags, notes, select fields such as Sub-category), then Templates, SLAs, Report Profiles and Time Accounting
+- [ ] Templates editor: all the New ticket fields (message text, Category, …) instead of five; it keeps the rest
+      for now
 - [ ] Fix the committed database password
 - [ ] Feedback Collection go-live (README → Feedback Collection): pick the sending channel, give
       `it@studenthub.ac` Send As on `feedback@`, import `feedback_tokens.json`, remove the webhook action

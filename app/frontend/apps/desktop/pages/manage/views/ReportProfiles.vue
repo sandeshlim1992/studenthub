@@ -3,13 +3,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { useApplicationStore } from '#shared/stores/application.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
 import {
-  keepSettings,
-  noKeptSettings,
-  withKeptSettings,
-} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
+  conditionFields,
+  conditionStateProblems,
+  conditionToState,
+  emptyConditionState,
+  stateRows,
+  stateToCondition,
+  type AutomationOptions,
+  type ConditionState,
+} from '#desktop/pages/manage/components/Automation/automation.ts'
+import AutomationConditions from '#desktop/pages/manage/components/Automation/AutomationConditions.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface ReportProfileItem {
   id: number
@@ -45,13 +54,6 @@ interface PreviewTicket {
   created_at: string
 }
 
-interface ConditionRow {
-  field: string
-  operator: string
-  values: string[]
-  pre_condition?: string
-}
-
 const router = useRouter()
 const profiles = ref<ReportProfileItem[]>([])
 const rolesList = ref<RoleItem[]>([])
@@ -81,25 +83,18 @@ const defaultFormState = () => ({
   name: '',
   active: true,
   role_ids: [] as number[],
-  conditions: [] as ConditionRow[],
 })
 
 const formState = ref(defaultFormState())
 
-// Student Hub: conditions this editor doesn't show (Category, Campus, …) are kept, used for the
-// preview and saved back (keptSettings.ts); these are the keys it does show.
-const SHOWN_CONDITION_KEYS = [
-  'ticket.state_id',
-  'ticket.priority_id',
-  'ticket.group_id',
-  'ticket.owner_id',
-  'ticket.customer_id',
-  'ticket.organization_id',
-]
-const keptCondition = ref(noKeptSettings())
-const hasKeptCondition = computed(
-  () => !!keptCondition.value.expert || Object.keys(keptCondition.value.kept).length > 0,
-)
+// Student Hub: the filter is edited with the shared editor (Automation/), which keeps what it
+// doesn't know. No conditions: every ticket counts.
+const options = ref<AutomationOptions | null>(null)
+const conditionState = ref<ConditionState>(emptyConditionState())
+const problems = ref<string[]>([])
+
+const allowExpert = computed(() => Boolean(useApplicationStore().config.ticket_allow_expert_conditions))
+const conditionFieldList = computed(() => (options.value ? conditionFields(options.value) : []))
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -133,63 +128,6 @@ const formatDate = (dateStr?: string) => {
   } catch {
     return dateStr
   }
-}
-
-const buildConditionPayload = () => {
-  const payload: Record<string, { operator: string; value?: string[]; pre_condition?: string }> = {}
-  for (const cond of formState.value.conditions) {
-    let key = ''
-    if (cond.field === 'state') key = 'ticket.state_id'
-    else if (cond.field === 'priority') key = 'ticket.priority_id'
-    else if (cond.field === 'group') key = 'ticket.group_id'
-    else if (cond.field === 'owner') key = 'ticket.owner_id'
-    else if (cond.field === 'customer') key = 'ticket.customer_id'
-    else if (cond.field === 'organization') key = 'ticket.organization_id'
-
-    if (key) {
-      if (cond.pre_condition) {
-        payload[key] = { operator: cond.operator, pre_condition: cond.pre_condition }
-      } else if (cond.values && cond.values.length > 0) {
-        payload[key] = { operator: cond.operator, value: cond.values }
-      }
-    }
-  }
-  return payload
-}
-
-const parseConditionToRows = (condition?: Record<string, unknown>) => {
-  const rows: ConditionRow[] = []
-  if (!condition) return rows
-
-  for (const [key, rawVal] of Object.entries(condition)) {
-    let field = ''
-    if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-    else if (key === 'ticket.owner_id') field = 'owner'
-    else if (key === 'ticket.customer_id') field = 'customer'
-    else if (key === 'ticket.organization_id') field = 'organization'
-
-    if (!field) continue
-
-    let operator = 'is'
-    let values: string[] = []
-    let pre_condition: string | undefined
-
-    if (typeof rawVal === 'object' && rawVal !== null) {
-      const obj = rawVal as { operator?: string; value?: unknown; pre_condition?: string }
-      operator = obj.operator || 'is'
-      pre_condition = obj.pre_condition
-      if (Array.isArray(obj.value)) {
-        values = obj.value.map(String)
-      } else if (obj.value !== undefined && obj.value !== null) {
-        values = [String(obj.value)]
-      }
-    }
-
-    rows.push({ field, operator, values, pre_condition })
-  }
-  return rows
 }
 
 const getConditionSummary = (profile: ReportProfileItem) => {
@@ -246,7 +184,7 @@ const getConditionSummary = (profile: ReportProfileItem) => {
 }
 
 const fetchPreview = async () => {
-  if (formState.value.conditions.length === 0) {
+  if (!stateRows(conditionState.value).length) {
     previewTickets.value = []
     previewTotal.value = 0
     previewError.value = ''
@@ -263,7 +201,7 @@ const fetchPreview = async () => {
         'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': getCsrf(),
       },
-      body: JSON.stringify({ condition: withKeptSettings(keptCondition.value, buildConditionPayload()) }),
+      body: JSON.stringify({ condition: stateToCondition(conditionState.value, conditionFieldList.value) }),
     })
     if (res.ok) {
       const data = await res.json()
@@ -290,6 +228,14 @@ const fetchPreview = async () => {
     previewError.value = __('Could not load preview.')
   } finally {
     previewLoading.value = false
+  }
+}
+
+const fetchOptions = async () => {
+  try {
+    options.value = await studenthubApi<AutomationOptions>('/api/v1/studenthub/automation/options')
+  } catch (e) {
+    console.error('Failed to fetch the condition choices:', e)
   }
 }
 
@@ -354,50 +300,46 @@ const filteredProfiles = computed(() => {
   })
 })
 
-const handleNewProfile = () => {
-  formState.value = defaultFormState()
-  formState.value.role_ids = rolesList.value.filter((r) => r.name === 'Admin' || r.name === 'Agent').map((r) => r.id)
-  keptCondition.value = noKeptSettings()
+// Opening waits for the choices, so the profile is read with all fields known.
+const openDrawer = async (title: string, profile?: ReportProfileItem, copy = false) => {
+  if (!options.value) await fetchOptions()
+  if (profile) {
+    formState.value = {
+      id: copy ? null : profile.id,
+      name: copy ? `${__('Copy of')} ${profile.name}` : profile.name || '',
+      active: profile.active ?? true,
+      role_ids: [...(profile.role_ids || [])],
+    }
+  } else {
+    formState.value = defaultFormState()
+    formState.value.role_ids = rolesList.value.filter((r) => r.name === 'Admin' || r.name === 'Agent').map((r) => r.id)
+  }
+  conditionState.value = profile ? conditionToState(profile.condition, conditionFieldList.value) : emptyConditionState()
+  problems.value = []
   previewTickets.value = []
   previewTotal.value = 0
   previewError.value = ''
-  drawerTitle.value = __('New Report Profile')
+  drawerTitle.value = title
   showDrawer.value = true
+  if (profile) fetchPreview()
 }
 
-const handleEditProfile = (profile: ReportProfileItem) => {
-  formState.value = {
-    id: profile.id,
-    name: profile.name || '',
-    active: profile.active ?? true,
-    role_ids: [...(profile.role_ids || [])],
-    conditions: parseConditionToRows(profile.condition as Record<string, unknown>),
-  }
-  keptCondition.value = keepSettings(profile.condition, SHOWN_CONDITION_KEYS)
-  drawerTitle.value = __('Edit Report Profile')
-  showDrawer.value = true
-  fetchPreview()
-}
+const handleNewProfile = () => openDrawer(__('New Report Profile'))
 
-const handleCloneProfile = (profile: ReportProfileItem) => {
-  formState.value = {
-    id: null,
-    name: `${__('Copy of')} ${profile.name}`,
-    active: profile.active ?? true,
-    role_ids: [...(profile.role_ids || [])],
-    conditions: parseConditionToRows(profile.condition as Record<string, unknown>),
-  }
-  keptCondition.value = keepSettings(profile.condition, SHOWN_CONDITION_KEYS)
-  drawerTitle.value = __('Clone Report Profile')
-  showDrawer.value = true
-  fetchPreview()
+const handleEditProfile = (profile: ReportProfileItem) => openDrawer(__('Edit Report Profile'), profile)
+
+const handleCloneProfile = (profile: ReportProfileItem) => openDrawer(__('Clone Report Profile'), profile, true)
+
+const checkProblems = () => {
+  const found: string[] = []
+  if (!formState.value.name.trim()) found.push(__('Name is required.'))
+  found.push(...conditionStateProblems(conditionState.value, conditionFieldList.value))
+  problems.value = found
+  return found.length === 0
 }
 
 const saveProfile = async () => {
-  if (!formState.value.name.trim()) {
-    alert(__('Name is required.'))
-    return
-  }
+  if (!checkProblems()) return
 
   submitting.value = true
   try {
@@ -405,7 +347,7 @@ const saveProfile = async () => {
       name: formState.value.name.trim(),
       active: formState.value.active,
       role_ids: formState.value.role_ids,
-      condition: withKeptSettings(keptCondition.value, buildConditionPayload()),
+      condition: stateToCondition(conditionState.value, conditionFieldList.value),
     }
 
     const isEdit = formState.value.id !== null
@@ -428,7 +370,7 @@ const saveProfile = async () => {
       fetchProfiles()
     } else {
       const data = await res.json()
-      alert(data.error || __('Failed to save report profile.'))
+      problems.value = [data.error_human || data.error || __('Failed to save report profile.')]
     }
   } catch (e) {
     console.error('Failed to save report profile:', e)
@@ -493,6 +435,7 @@ const deselectAllRoles = () => {
 onMounted(() => {
   fetchProfiles()
   fetchMetadata()
+  fetchOptions()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -724,7 +667,7 @@ onMounted(() => {
       @click="showDrawer = false"
     >
       <div
-        class="w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
+        class="w-full max-w-3xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
         @click.stop
       >
         <!-- Drawer Header -->
@@ -824,207 +767,22 @@ onMounted(() => {
           </div>
 
           <!-- Conditions / Filter Builder -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                {{ __('Filter / Conditions') }}
-              </label>
-              <button
-                v-if="!keptCondition.expert"
-                type="button"
-                @click="formState.conditions.push({ field: 'state', operator: 'is', values: [] })"
-                class="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
-              >
-                <CommonIcon name="plus" class="w-3.5 h-3.5" />
-                {{ __('Add Condition') }}
-              </button>
-            </div>
+          <section aria-labelledby="profile-conditions-title">
+            <h3 id="profile-conditions-title" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+              {{ __('Filter / Conditions') }}
+            </h3>
             <p class="text-xs text-slate-400 mb-3">
               {{ __('Filter which tickets are included in reports when this profile is active. If empty, all tickets are included.') }}
             </p>
-
-            <AutomationKeptSettings :settings="keptCondition" class="mb-3" />
-
-            <div v-if="formState.conditions.length === 0 && !hasKeptCondition" class="p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center bg-slate-50 dark:bg-slate-800/30">
-              <p class="text-xs text-slate-500 mb-2">{{ __('No conditions defined. All tickets will be included in the report.') }}</p>
-              <button
-                type="button"
-                @click="formState.conditions.push({ field: 'state', operator: 'is', values: [] })"
-                class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 cursor-pointer inline-flex items-center gap-1.5"
-              >
-                <CommonIcon name="plus" class="w-3.5 h-3.5 text-blue-500" />
-                {{ __('Add First Condition') }}
-              </button>
-            </div>
-
-            <div v-else-if="!keptCondition.expert" class="space-y-3">
-              <div
-                v-for="(cond, idx) in formState.conditions"
-                :key="idx"
-                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative"
-              >
-                <button
-                  @click="formState.conditions.splice(idx, 1)"
-                  class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                  :title="__('Remove Condition')"
-                >
-                  <CommonIcon name="trash3" class="w-4 h-4" />
-                </button>
-
-                <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select
-                      v-model="cond.field"
-                      @change="() => { cond.values = []; delete cond.pre_condition }"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="state">{{ __('State') }}</option>
-                      <option value="priority">{{ __('Priority') }}</option>
-                      <option value="group">{{ __('Group') }}</option>
-                      <option value="owner">{{ __('Owner') }}</option>
-                      <option value="customer">{{ __('Customer') }}</option>
-                      <option value="organization">{{ __('Organization') }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Operator') }}</label>
-                    <select
-                      v-model="cond.operator"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="is">{{ __('is') }}</option>
-                      <option value="is not">{{ __('is not') }}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Values based on Field -->
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</label>
-
-                  <!-- State -->
-                  <div v-if="cond.field === 'state'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="state in ticketStatesList"
-                      :key="state.id"
-                      class="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(state.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(state.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600 focus:ring-0"
-                      />
-                      <span>{{ state.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Priority -->
-                  <div v-else-if="cond.field === 'priority'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="prio in ticketPrioritiesList"
-                      :key="prio.id"
-                      class="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(prio.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(prio.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600 focus:ring-0"
-                      />
-                      <span>{{ prio.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Group -->
-                  <div v-else-if="cond.field === 'group'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="grp in groupsList"
-                      :key="grp.id"
-                      class="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(grp.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(grp.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600 focus:ring-0"
-                      />
-                      <span>{{ grp.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Owner -->
-                  <div v-else-if="cond.field === 'owner'" class="space-y-2">
-                    <label
-                      class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :checked="cond.pre_condition === 'current_user.id'"
-                        @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }"
-                        class="text-blue-600 focus:ring-0"
-                      />
-                      <span>{{ __('Current User') }}</span>
-                    </label>
-                    <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1">
-                      <label
-                        v-for="user in usersList.slice(0, 30)"
-                        :key="user.id"
-                        class="flex items-center gap-1 px-2 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                        :class="cond.values.includes(String(user.id)) ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20' : 'border-slate-200 dark:border-slate-700'"
-                      >
-                        <input
-                          type="checkbox"
-                          :value="String(user.id)"
-                          v-model="cond.values"
-                          @change="() => { if (cond.values.length > 0) delete cond.pre_condition }"
-                          class="rounded text-blue-600 focus:ring-0"
-                        />
-                        <span>{{ user.fullname || user.login }}</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <!-- Customer -->
-                  <div v-else-if="cond.field === 'customer'">
-                    <label
-                      class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.pre_condition === 'current_user.id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :checked="cond.pre_condition === 'current_user.id'"
-                        @change="() => { cond.pre_condition = 'current_user.id'; cond.values = [] }"
-                        class="text-blue-600 focus:ring-0"
-                      />
-                      <span>{{ __('Current User') }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Organization -->
-                  <div v-else-if="cond.field === 'organization'">
-                    <label
-                      class="flex items-center gap-2 px-2.5 py-1.5 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.pre_condition === 'current_user.organization_id' ? 'border-blue-400 bg-blue-50 dark:bg-blue-950/20 text-blue-700 font-medium' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :checked="cond.pre_condition === 'current_user.organization_id'"
-                        @change="() => { cond.pre_condition = 'current_user.organization_id'; cond.values = [] }"
-                        class="text-blue-600 focus:ring-0"
-                      />
-                      <span>{{ __("Current User's Organization") }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            <p v-if="!options" class="text-sm text-slate-500">{{ __('Loading…') }}</p>
+            <AutomationConditions
+              v-else
+              v-model="conditionState"
+              :fields="conditionFieldList"
+              id-prefix="profile-condition"
+              :allow-expert="allowExpert"
+            />
+          </section>
 
           <!-- Preview Matching Tickets -->
           <div>
@@ -1050,7 +808,7 @@ onMounted(() => {
               <div v-else-if="previewError" class="py-6 text-center text-xs text-red-500 px-4">
                 {{ previewError }}
               </div>
-              <div v-else-if="formState.conditions.length === 0" class="py-6 text-center text-xs text-slate-400 dark:text-slate-500 px-4">
+              <div v-else-if="!stateRows(conditionState).length" class="py-6 text-center text-xs text-slate-400 dark:text-slate-500 px-4">
                 {{ __('Add conditions above and click Refresh to preview matching tickets.') }}
               </div>
               <div v-else>
@@ -1093,6 +851,11 @@ onMounted(() => {
             </div>
           </div>
 
+          <CommonAlert v-if="problems.length" variant="danger" role="alert">
+            <ul class="list-disc ps-4">
+              <li v-for="problem in problems" :key="problem">{{ $t(problem) }}</li>
+            </ul>
+          </CommonAlert>
         </div>
 
         <!-- Drawer Footer -->

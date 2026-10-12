@@ -3,13 +3,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { useApplicationStore } from '#shared/stores/application.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
 import {
-  keepSettings,
-  noKeptSettings,
-  withKeptSettings,
-} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
+  conditionFields,
+  conditionStateProblems,
+  conditionToState,
+  emptyConditionState,
+  stateRows,
+  stateToCondition,
+  type AutomationOptions,
+  type ConditionState,
+} from '#desktop/pages/manage/components/Automation/automation.ts'
+import AutomationConditions from '#desktop/pages/manage/components/Automation/AutomationConditions.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface SlaItem {
   id: number
@@ -52,12 +61,6 @@ const showDrawer = ref(false)
 const drawerTitle = ref('')
 const submitting = ref(false)
 
-interface ConditionRow {
-  field: string
-  operator: string
-  values: string[]
-}
-
 const defaultFormState = () => ({
   id: null as number | null,
   name: '',
@@ -65,15 +68,18 @@ const defaultFormState = () => ({
   first_response_time: '' as string | number,
   update_time: '' as string | number,
   solution_time: '' as string | number,
-  conditions: [] as ConditionRow[],
 })
 
 const formState = ref(defaultFormState())
 
-// Student Hub: conditions this editor doesn't show are kept and saved back (keptSettings.ts); these
-// are the keys it does show.
-const SHOWN_CONDITION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id']
-const keptCondition = ref(noKeptSettings())
+// Student Hub: the ticket selector is edited with the shared editor (Automation/), which keeps what
+// it doesn't know.
+const options = ref<AutomationOptions | null>(null)
+const conditionState = ref<ConditionState>(emptyConditionState())
+const problems = ref<string[]>([])
+
+const allowExpert = computed(() => Boolean(useApplicationStore().config.ticket_allow_expert_conditions))
+const conditionFieldList = computed(() => (options.value ? conditionFields(options.value) : []))
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -104,48 +110,6 @@ const formatMinutes = (minutes?: number | null) => {
   const remainingMins = minutes % 60
   if (remainingMins === 0) return `${hours}h`
   return `${hours}h ${remainingMins}m`
-}
-
-const buildConditionPayload = () => {
-  const payload: Record<string, { operator: string; value: string[] }> = {}
-  for (const cond of formState.value.conditions) {
-    let key = ''
-    if (cond.field === 'state') key = 'ticket.state_id'
-    else if (cond.field === 'priority') key = 'ticket.priority_id'
-    else if (cond.field === 'group') key = 'ticket.group_id'
-    if (key && cond.values.length > 0) {
-      payload[key] = { operator: cond.operator, value: cond.values }
-    }
-  }
-  return payload
-}
-
-const parseConditionToRows = (condition?: Record<string, unknown>) => {
-  const rows: ConditionRow[] = []
-  if (!condition) return rows
-
-  for (const [key, rawVal] of Object.entries(condition)) {
-    let field = ''
-    if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-
-    if (!field) continue
-
-    let operator = 'is'
-    let values: string[] = []
-
-    if (typeof rawVal === 'object' && rawVal !== null) {
-      const obj = rawVal as { operator?: string; value?: unknown }
-      operator = obj.operator || 'is'
-      if (Array.isArray(obj.value)) {
-        values = obj.value.map(String)
-      }
-    }
-
-    rows.push({ field, operator, values })
-  }
-  return rows
 }
 
 const fetchSlas = async () => {
@@ -195,59 +159,48 @@ const fetchMetadata = async () => {
   }
 }
 
+const fetchOptions = async () => {
+  try {
+    options.value = await studenthubApi<AutomationOptions>('/api/v1/studenthub/automation/options')
+  } catch (e) {
+    console.error('Failed to fetch the condition choices:', e)
+  }
+}
+
 const filteredSlas = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   if (!query) return slas.value
   return slas.value.filter((s) => s.name.toLowerCase().includes(query))
 })
 
-const handleNewSla = () => {
-  formState.value = defaultFormState()
-  const defaultCal = calendarsList.value.find((c) => c.default) || calendarsList.value[0]
-  if (defaultCal) {
-    formState.value.calendar_id = defaultCal.id
+// Opening waits for the choices, so the SLA is read with all fields known.
+const openDrawer = async (title: string, sla?: SlaItem, copy = false) => {
+  if (!options.value) await fetchOptions()
+  if (sla) {
+    formState.value = {
+      id: copy ? null : sla.id,
+      name: copy ? __('%s (Copy)', sla.name || __('SLA')) : sla.name || '',
+      calendar_id: sla.calendar_id || null,
+      first_response_time: sla.first_response_time || sla.response_time || '',
+      update_time: sla.update_time || '',
+      solution_time: sla.solution_time || '',
+    }
+  } else {
+    formState.value = defaultFormState()
+    const defaultCal = calendarsList.value.find((c) => c.default) || calendarsList.value[0]
+    if (defaultCal) formState.value.calendar_id = defaultCal.id
   }
-  formState.value.conditions = [{ field: 'state', operator: 'is', values: [] }]
-  keptCondition.value = noKeptSettings()
-  drawerTitle.value = __('New SLA')
+  conditionState.value = sla ? conditionToState(sla.condition, conditionFieldList.value) : emptyConditionState()
+  problems.value = []
+  drawerTitle.value = title
   showDrawer.value = true
 }
 
-const handleEditSla = (sla: SlaItem) => {
-  formState.value = {
-    id: sla.id,
-    name: sla.name || '',
-    calendar_id: sla.calendar_id || null,
-    first_response_time: sla.first_response_time || sla.response_time || '',
-    update_time: sla.update_time || '',
-    solution_time: sla.solution_time || '',
-    conditions: parseConditionToRows(sla.condition as Record<string, unknown>),
-  }
-  if (formState.value.conditions.length === 0) {
-    formState.value.conditions.push({ field: 'state', operator: 'is', values: [] })
-  }
-  keptCondition.value = keepSettings(sla.condition, SHOWN_CONDITION_KEYS)
-  drawerTitle.value = __('Edit SLA')
-  showDrawer.value = true
-}
+const handleNewSla = () => openDrawer(__('New SLA'))
 
-const handleCloneSla = (sla: SlaItem) => {
-  formState.value = {
-    id: null,
-    name: __('%s (Copy)', sla.name || __('SLA')),
-    calendar_id: sla.calendar_id || null,
-    first_response_time: sla.first_response_time || sla.response_time || '',
-    update_time: sla.update_time || '',
-    solution_time: sla.solution_time || '',
-    conditions: parseConditionToRows(sla.condition as Record<string, unknown>),
-  }
-  if (formState.value.conditions.length === 0) {
-    formState.value.conditions.push({ field: 'state', operator: 'is', values: [] })
-  }
-  keptCondition.value = keepSettings(sla.condition, SHOWN_CONDITION_KEYS)
-  drawerTitle.value = __('Clone SLA')
-  showDrawer.value = true
-}
+const handleEditSla = (sla: SlaItem) => openDrawer(__('Edit SLA'), sla)
+
+const handleCloneSla = (sla: SlaItem) => openDrawer(__('Clone SLA'), sla, true)
 
 const getSlaRuleSummary = (sla: SlaItem) => {
   if (!sla.condition || Object.keys(sla.condition).length === 0) return []
@@ -279,11 +232,17 @@ const getSlaRuleSummary = (sla: SlaItem) => {
   return rules
 }
 
+const checkProblems = () => {
+  const found: string[] = []
+  if (!formState.value.name.trim()) found.push(__('Name is required.'))
+  if (!stateRows(conditionState.value).length) found.push(__('Add at least one condition.'))
+  found.push(...conditionStateProblems(conditionState.value, conditionFieldList.value))
+  problems.value = found
+  return found.length === 0
+}
+
 const saveSla = async () => {
-  if (!formState.value.name.trim()) {
-    alert(__('Name is required.'))
-    return
-  }
+  if (!checkProblems()) return
 
   submitting.value = true
   try {
@@ -293,7 +252,7 @@ const saveSla = async () => {
       first_response_time: formState.value.first_response_time ? Number(formState.value.first_response_time) : null,
       update_time: formState.value.update_time ? Number(formState.value.update_time) : null,
       solution_time: formState.value.solution_time ? Number(formState.value.solution_time) : null,
-      condition: withKeptSettings(keptCondition.value, buildConditionPayload()),
+      condition: stateToCondition(conditionState.value, conditionFieldList.value),
     }
 
     const isEdit = formState.value.id !== null
@@ -316,7 +275,7 @@ const saveSla = async () => {
       fetchSlas()
     } else {
       const data = await res.json()
-      alert(data.error || __('Failed to save SLA.'))
+      problems.value = [data.error_human || data.error || __('Failed to save SLA.')]
     }
   } catch (e) {
     console.error('Failed to save SLA:', e)
@@ -350,6 +309,7 @@ const handleDeleteSla = async (id: number, name: string) => {
 onMounted(() => {
   fetchSlas()
   fetchMetadata()
+  fetchOptions()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -541,7 +501,7 @@ onMounted(() => {
       @click="showDrawer = false"
     >
       <div
-        class="w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
+        class="w-full max-w-3xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
         @click.stop
       >
         <!-- Header -->
@@ -582,118 +542,19 @@ onMounted(() => {
           </div>
 
           <!-- Ticket Selector Conditions -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+          <section aria-labelledby="sla-conditions-title">
+            <h3 id="sla-conditions-title" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
               {{ __('Ticket Selector') }} <span class="text-red-500">*</span>
-            </label>
-            <div class="space-y-3">
-              <AutomationKeptSettings :settings="keptCondition" />
-              <template v-if="!keptCondition.expert">
-              <div
-                v-for="(cond, idx) in formState.conditions"
-                :key="idx"
-                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative"
-              >
-                <button
-                  @click="formState.conditions.splice(idx, 1)"
-                  class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                >
-                  <CommonIcon name="trash3" class="w-4 h-4" />
-                </button>
-                <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select
-                      v-model="cond.field"
-                      @change="cond.values = []"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="state">{{ __('State') }}</option>
-                      <option value="priority">{{ __('Priority') }}</option>
-                      <option value="group">{{ __('Group') }}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Operator') }}</label>
-                    <select
-                      v-model="cond.operator"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="is">{{ __('is') }}</option>
-                      <option value="is not">{{ __('is not') }}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Values -->
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</label>
-
-                  <!-- State -->
-                  <div v-if="cond.field === 'state'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="state in ticketStatesList"
-                      :key="state.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(state.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(state.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600"
-                      />
-                      <span>{{ state.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Priority -->
-                  <div v-else-if="cond.field === 'priority'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="prio in ticketPrioritiesList"
-                      :key="prio.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(prio.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(prio.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600"
-                      />
-                      <span>{{ prio.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Group -->
-                  <div v-else-if="cond.field === 'group'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="grp in groupsList"
-                      :key="grp.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="cond.values.includes(String(grp.id)) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="checkbox"
-                        :value="String(grp.id)"
-                        v-model="cond.values"
-                        class="rounded text-blue-600"
-                      />
-                      <span>{{ grp.name }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                @click="formState.conditions.push({ field: 'state', operator: 'is', values: [] })"
-                class="w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1"
-              >
-                <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Rule') }}
-              </button>
-              </template>
-            </div>
-          </div>
+            </h3>
+            <p v-if="!options" class="text-sm text-slate-500">{{ __('Loading…') }}</p>
+            <AutomationConditions
+              v-else
+              v-model="conditionState"
+              :fields="conditionFieldList"
+              id-prefix="sla-condition"
+              :allow-expert="allowExpert"
+            />
+          </section>
 
           <!-- Calendar -->
           <div>
@@ -761,6 +622,11 @@ onMounted(() => {
               />
             </div>
           </div>
+          <CommonAlert v-if="problems.length" variant="danger" role="alert">
+            <ul class="list-disc ps-4">
+              <li v-for="problem in problems" :key="problem">{{ $t(problem) }}</li>
+            </ul>
+          </CommonAlert>
         </div>
 
         <!-- Footer -->

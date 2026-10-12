@@ -3,18 +3,23 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
 import {
-  keepSettings,
-  noKeptSettings,
-  withKeptSettings,
-} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
+  actionFields,
+  actionProblems,
+  performToRows,
+  rowsToPerform,
+  type ActionRow,
+  type AutomationOptions,
+} from '#desktop/pages/manage/components/Automation/automation.ts'
+import AutomationActionEditor from '#desktop/pages/manage/components/Automation/AutomationActionEditor.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface MacroItem {
   id: number
   name: string
-  perform?: Record<string, { value: string | number | string[]; operator?: string } | string | number | string[]>
+  perform?: unknown
   ux_flow_next_up?: string
   note?: string
   active: boolean
@@ -24,11 +29,6 @@ interface MacroItem {
 }
 
 interface GroupItem {
-  id: number
-  name: string
-}
-
-interface MetaItem {
   id: number
   name: string
 }
@@ -43,9 +43,6 @@ const UX_FLOW_OPTIONS = [
 const router = useRouter()
 const macros = ref<MacroItem[]>([])
 const groupsList = ref<GroupItem[]>([])
-const ticketStatesList = ref<MetaItem[]>([])
-const ticketPrioritiesList = ref<MetaItem[]>([])
-const usersList = ref<{ id: number; fullname: string; login: string }[]>([])
 
 const isLoading = ref(true)
 const errorText = ref('')
@@ -57,12 +54,6 @@ const showDrawer = ref(false)
 const drawerTitle = ref('')
 const submitting = ref(false)
 
-interface ActionRow {
-  field: string
-  value: string
-  values: string[]
-}
-
 const defaultFormState = () => ({
   id: null as number | null,
   name: '',
@@ -70,15 +61,17 @@ const defaultFormState = () => ({
   note: '',
   active: true,
   group_ids: [] as number[],
-  actions: [] as ActionRow[],
 })
 
 const formState = ref(defaultFormState())
 
-// Student Hub: actions this editor doesn't show (notes, tags, emails, …) are kept and saved back
-// (keptSettings.ts); these are the keys it does show.
-const SHOWN_ACTION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'ticket.owner_id']
-const keptPerform = ref(noKeptSettings())
+// Student Hub: actions are edited with the shared editor (Automation/), which keeps what it
+// doesn't know.
+const options = ref<AutomationOptions | null>(null)
+const actionRows = ref<ActionRow[]>([])
+const problems = ref<string[]>([])
+
+const actionFieldList = computed(() => (options.value ? actionFields(options.value, 'macro') : []))
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -113,65 +106,6 @@ const htmlToPlainText = (html: string) => {
   return doc.body.textContent || ''
 }
 
-const buildPerformPayload = () => {
-  const perform: Record<string, { value: string | number | string[]; operator?: string }> = {}
-  for (const act of formState.value.actions) {
-    let key = ''
-    if (act.field === 'state') key = 'ticket.state_id'
-    else if (act.field === 'priority') key = 'ticket.priority_id'
-    else if (act.field === 'group') key = 'ticket.group_id'
-    else if (act.field === 'owner') key = 'ticket.owner_id'
-
-    if (key) {
-      if (act.values.length > 0) {
-        perform[key] = { value: act.values.length === 1 ? act.values[0] : act.values, operator: 'is' }
-      } else if (act.value) {
-        perform[key] = { value: act.value, operator: 'is' }
-      }
-    }
-  }
-  return perform
-}
-
-const parsePerformToActions = (perform?: Record<string, unknown>) => {
-  const actions: ActionRow[] = []
-  if (!perform) return actions
-
-  for (const [key, rawVal] of Object.entries(perform)) {
-    let field = ''
-    if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-    else if (key === 'ticket.owner_id') field = 'owner'
-
-    if (!field) continue
-
-    let valStr = ''
-    let valArr: string[] = []
-
-    if (typeof rawVal === 'object' && rawVal !== null && 'value' in rawVal) {
-      const innerVal = (rawVal as { value: unknown }).value
-      if (Array.isArray(innerVal)) {
-        valArr = innerVal.map(String)
-      } else {
-        valStr = String(innerVal ?? '')
-      }
-    } else if (Array.isArray(rawVal)) {
-      valArr = rawVal.map(String)
-    } else {
-      valStr = String(rawVal ?? '')
-    }
-
-    actions.push({
-      field,
-      value: valStr,
-      values: valArr,
-    })
-  }
-
-  return actions
-}
-
 const fetchMacros = async () => {
   isLoading.value = true
   errorText.value = ''
@@ -202,20 +136,20 @@ const fetchMacros = async () => {
   }
 }
 
-const fetchMetadata = async () => {
+const fetchGroups = async () => {
   try {
-    const [groupsRes, statesRes, prioritiesRes, usersRes] = await Promise.all([
-      fetch('/api/v1/groups', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/ticket_states', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/ticket_priorities', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/users?per_page=500', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-    ])
-    if (groupsRes.ok) groupsList.value = await groupsRes.json()
-    if (statesRes.ok) ticketStatesList.value = await statesRes.json()
-    if (prioritiesRes.ok) ticketPrioritiesList.value = await prioritiesRes.json()
-    if (usersRes.ok) usersList.value = await usersRes.json()
+    const res = await fetch('/api/v1/groups', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+    if (res.ok) groupsList.value = await res.json()
   } catch (e) {
-    console.error('Failed to fetch metadata:', e)
+    console.error('Failed to fetch teams:', e)
+  }
+}
+
+const fetchOptions = async () => {
+  try {
+    options.value = await studenthubApi<AutomationOptions>('/api/v1/studenthub/automation/options')
+  } catch (e) {
+    console.error('Failed to fetch the action choices:', e)
   }
 }
 
@@ -229,37 +163,40 @@ const filteredMacros = computed(() => {
   )
 })
 
-const handleNewMacro = () => {
-  formState.value = defaultFormState()
-  formState.value.actions = [{ field: 'state', value: '', values: [] }]
-  keptPerform.value = noKeptSettings()
-  drawerTitle.value = __('New Macro')
+// Opening waits for the choices, so the macro is read with all fields known.
+const openDrawer = async (title: string, macro?: MacroItem, copy = false) => {
+  if (!options.value) await fetchOptions()
+  formState.value = macro
+    ? {
+        id: copy ? null : macro.id,
+        name: copy ? `${__('Clone')}: ${macro.name}` : macro.name || '',
+        ux_flow_next_up: macro.ux_flow_next_up || 'none',
+        note: htmlToPlainText(macro.note || ''),
+        active: macro.active !== false,
+        group_ids: macro.group_ids ? [...macro.group_ids] : [],
+      }
+    : defaultFormState()
+  actionRows.value = macro ? performToRows(macro.perform, actionFieldList.value) : []
+  problems.value = []
+  drawerTitle.value = title
   showDrawer.value = true
 }
 
-const handleEditMacro = (macro: MacroItem) => {
-  formState.value = {
-    id: macro.id,
-    name: macro.name || '',
-    ux_flow_next_up: macro.ux_flow_next_up || 'none',
-    note: htmlToPlainText(macro.note || ''),
-    active: macro.active !== false,
-    group_ids: macro.group_ids ? [...macro.group_ids] : [],
-    actions: parsePerformToActions(macro.perform as Record<string, unknown>),
-  }
-  if (formState.value.actions.length === 0) {
-    formState.value.actions.push({ field: 'state', value: '', values: [] })
-  }
-  keptPerform.value = keepSettings(macro.perform, SHOWN_ACTION_KEYS)
-  drawerTitle.value = __('Edit Macro')
-  showDrawer.value = true
+const handleNewMacro = () => openDrawer(__('New Macro'))
+
+const handleEditMacro = (macro: MacroItem) => openDrawer(__('Edit Macro'), macro)
+
+const checkProblems = () => {
+  const found: string[] = []
+  if (!formState.value.name.trim()) found.push(__('Name is required.'))
+  if (!actionRows.value.length) found.push(__('Add at least one action.'))
+  found.push(...actionProblems(actionRows.value, actionFieldList.value))
+  problems.value = found
+  return found.length === 0
 }
 
 const saveMacro = async () => {
-  if (!formState.value.name.trim()) {
-    alert(__('Name is required.'))
-    return
-  }
+  if (!checkProblems()) return
 
   submitting.value = true
   try {
@@ -269,7 +206,7 @@ const saveMacro = async () => {
       note: formState.value.note,
       active: formState.value.active,
       group_ids: formState.value.group_ids,
-      perform: withKeptSettings(keptPerform.value, buildPerformPayload()),
+      perform: rowsToPerform(actionRows.value, actionFieldList.value),
     }
 
     const isEdit = formState.value.id !== null
@@ -292,7 +229,7 @@ const saveMacro = async () => {
       fetchMacros()
     } else {
       const data = await res.json()
-      alert(data.error || __('Failed to save macro.'))
+      problems.value = [data.error_human || data.error || __('Failed to save macro.')]
     }
   } catch (e) {
     console.error('Failed to save macro:', e)
@@ -303,21 +240,7 @@ const saveMacro = async () => {
 
 const handleCloneMacro = (macro: MacroItem) => {
   closeActionMenu()
-  formState.value = {
-    id: null,
-    name: `${__('Clone')}: ${macro.name}`,
-    ux_flow_next_up: macro.ux_flow_next_up || 'none',
-    note: htmlToPlainText(macro.note || ''),
-    active: macro.active !== false,
-    group_ids: macro.group_ids ? [...macro.group_ids] : [],
-    actions: parsePerformToActions(macro.perform as Record<string, unknown>),
-  }
-  if (formState.value.actions.length === 0) {
-    formState.value.actions.push({ field: 'state', value: '', values: [] })
-  }
-  keptPerform.value = keepSettings(macro.perform, SHOWN_ACTION_KEYS)
-  drawerTitle.value = __('New Macro')
-  showDrawer.value = true
+  void openDrawer(__('New Macro'), macro, true)
 }
 
 const handleDeleteMacro = async (id: number, name: string) => {
@@ -365,7 +288,8 @@ const toggleActiveState = async (macro: MacroItem) => {
 
 onMounted(() => {
   fetchMacros()
-  fetchMetadata()
+  fetchGroups()
+  fetchOptions()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -549,7 +473,7 @@ onMounted(() => {
       @click="showDrawer = false"
     >
       <div
-        class="w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
+        class="w-full max-w-3xl bg-white dark:bg-slate-900 h-full shadow-2xl border-l border-slate-200 dark:border-slate-800 flex flex-col"
         @click.stop
       >
         <!-- Header -->
@@ -585,125 +509,13 @@ onMounted(() => {
           </div>
 
           <!-- Actions -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
+          <section aria-labelledby="macro-actions-title">
+            <h3 id="macro-actions-title" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
               {{ __('Actions') }}
-            </label>
-            <div class="space-y-3">
-              <AutomationKeptSettings :settings="keptPerform" />
-              <div
-                v-for="(act, idx) in formState.actions"
-                :key="idx"
-                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative"
-              >
-                <button
-                  @click="formState.actions.splice(idx, 1)"
-                  class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                >
-                  <CommonIcon name="trash3" class="w-4 h-4" />
-                </button>
-                <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select
-                      v-model="act.field"
-                      @change="act.value = ''; act.values = []"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="state">{{ __('State') }}</option>
-                      <option value="priority">{{ __('Priority') }}</option>
-                      <option value="group">{{ __('Group') }}</option>
-                      <option value="owner">{{ __('Owner') }}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Values Selection -->
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</label>
-
-                  <!-- State -->
-                  <div v-if="act.field === 'state'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="state in ticketStatesList"
-                      :key="state.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(state.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(state.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ state.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Priority -->
-                  <div v-else-if="act.field === 'priority'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="prio in ticketPrioritiesList"
-                      :key="prio.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(prio.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(prio.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ prio.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Group -->
-                  <div v-else-if="act.field === 'group'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="grp in groupsList"
-                      :key="grp.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(grp.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(grp.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ grp.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Owner -->
-                  <div v-else-if="act.field === 'owner'" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-                    <label
-                      v-for="user in usersList.slice(0, 40)"
-                      :key="user.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(user.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(user.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ user.fullname || user.login }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                @click="formState.actions.push({ field: 'state', value: '', values: [] })"
-                class="w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1"
-              >
-                <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Action') }}
-              </button>
-            </div>
-          </div>
+            </h3>
+            <p v-if="!options" class="text-sm text-slate-500">{{ __('Loading…') }}</p>
+            <AutomationActionEditor v-else v-model="actionRows" :fields="actionFieldList" id-prefix="macro-action" />
+          </section>
 
           <!-- Once completed -->
           <div>
@@ -779,6 +591,11 @@ onMounted(() => {
               ></span>
             </button>
           </div>
+          <CommonAlert v-if="problems.length" variant="danger" role="alert">
+            <ul class="list-disc ps-4">
+              <li v-for="problem in problems" :key="problem">{{ $t(problem) }}</li>
+            </ul>
+          </CommonAlert>
         </div>
 
         <!-- Footer -->

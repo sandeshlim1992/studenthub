@@ -5,13 +5,20 @@ import {
   actionProblems,
   conditionFields,
   conditionProblems,
+  conditionStateProblems,
   conditionToRows,
+  conditionToState,
   emptyAction,
   emptyCondition,
+  groupToRows,
   isExpertCondition,
+  newGroup,
   performToRows,
   rowsToCondition,
+  rowsToGroup,
   rowsToPerform,
+  stateRows,
+  stateToCondition,
   type AutomationOptions,
 } from '../automation.ts'
 
@@ -107,5 +114,107 @@ describe('automation conditions and actions', () => {
   it('recognises expert-mode conditions', () => {
     expect(isExpertCondition({ operator: 'AND', conditions: [] })).toBe(true)
     expect(isExpertCondition(condition)).toBe(false)
+  })
+})
+
+describe('trigger conditions, expert mode and the other actions', () => {
+  const triggerOptions: AutomationOptions = {
+    ...options,
+    article_senders: [
+      { id: 1, name: 'Agent', active: true },
+      { id: 2, name: 'Customer', active: true },
+    ],
+    article_types: [{ id: 11, name: 'web', active: true }],
+  }
+  const triggerFields = conditionFields(triggerOptions, 'trigger')
+  const triggerActions = actionFields(triggerOptions, 'trigger')
+  const macroActions = actionFields(triggerOptions, 'macro')
+
+  // Trigger 40 on the test data: "Ticket Closed: Email Notification sent to the Customer".
+  const closed = {
+    operator: 'AND',
+    conditions: [
+      { name: 'ticket.action', operator: 'is', value: 'update' },
+      { name: 'ticket.state_id', operator: 'has changed', value: [] },
+      { name: 'ticket.state_id', operator: 'is', value: ['4'] },
+      { name: 'ticket.owner_id', operator: 'is not', pre_condition: 'not_set', value: [] },
+      { name: 'ticket.tags', operator: 'contains one not', value: 'closed-notified, spam' },
+    ],
+  }
+
+  it('turns expert-mode conditions into groups and back without changes', () => {
+    const state = conditionToState(closed, triggerFields)
+
+    expect(state.group?.children).toHaveLength(5)
+    expect(stateRows(state).every((row) => row.raw === undefined)).toBe(true)
+    expect(stateToCondition(state, triggerFields)).toEqual(closed)
+
+    const nested = { operator: 'OR', conditions: [closed, { name: 'ticket.priority_id', operator: 'is', value: ['2'] }] }
+    expect(stateToCondition(conditionToState(nested, triggerFields), triggerFields)).toEqual(nested)
+  })
+
+  it('saves the change that runs a trigger as one word, not a list', () => {
+    const condition = {
+      'ticket.action': { operator: 'is', value: 'create' },
+      'article.action': { operator: 'is', value: 'create' },
+      'article.internal': { operator: 'is', value: false },
+      'customer.vip': { operator: 'is', value: true },
+      'article.sender_id': { operator: 'is', value: ['2'] },
+    }
+
+    expect(rowsToCondition(conditionToRows(condition, triggerFields), triggerFields)).toEqual(condition)
+  })
+
+  it('offers "has changed" in triggers only, without a value to choose', () => {
+    const owner = {
+      'ticket.owner_id': { operator: 'has changed', pre_condition: 'current_user.id', value: [] },
+    }
+    const rows = conditionToRows(owner, triggerFields)
+
+    expect(rows[0].raw).toBeUndefined()
+    expect(conditionProblems(rows, triggerFields)).toEqual([])
+    expect(rowsToCondition(rows, triggerFields)).toEqual(owner)
+
+    expect(conditionToRows(owner, fields)[0].raw).toEqual(owner['ticket.owner_id'])
+  })
+
+  it('switches expert mode off only while the groups fit a plain list', () => {
+    const repeated = conditionToState(closed, triggerFields).group!
+    expect(groupToRows(repeated)).toBeNull()
+
+    const rows = conditionToRows(condition, fields)
+    expect(groupToRows(rowsToGroup(rows))).toEqual(rows)
+    expect(groupToRows(newGroup('OR', rows))).toBeNull()
+
+    const empty = { rows: [], group: newGroup('AND', [newGroup('OR')]) }
+    expect(conditionStateProblems(empty, triggerFields)).toEqual(['Each group needs at least one condition.'])
+  })
+
+  it('sets a title and a customer', () => {
+    const perform = {
+      'ticket.title': { value: 'New starter' },
+      'ticket.customer_id': { pre_condition: 'current_user.id', value: '', value_completion: '' },
+    }
+    expect(rowsToPerform(performToRows(perform, triggerActions), triggerActions)).toEqual(perform)
+
+    const someone = {
+      'ticket.customer_id': { pre_condition: 'specific', value: '12', value_completion: 'Ann Lee <ann@example.com>' },
+    }
+    expect(rowsToPerform(performToRows(someone, macroActions), macroActions)).toEqual(someone)
+
+    const customer = emptyAction(triggerActions.find((field) => field.key === 'ticket.customer_id')!)
+    expect(actionProblems([{ ...customer, preCondition: 'specific' }], triggerActions)).toEqual([
+      'Set customer: choose a person.',
+    ])
+  })
+
+  it('offers webhooks and deleting where they belong', () => {
+    const keys = (list: { key: string }[]) => list.map((field) => field.key)
+
+    expect(keys(actions)).toContain('ticket.action')
+    expect(keys(triggerActions)).toContain('notification.webhook')
+    expect(keys(triggerActions)).not.toContain('ticket.action')
+    expect(keys(macroActions)).not.toContain('notification.webhook')
+    expect(keys(macroActions)).toContain('ticket.customer_id')
   })
 })

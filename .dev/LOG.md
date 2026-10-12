@@ -161,3 +161,7 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: Triggers, Macros, Templates, SLAs, Report Profiles and the Time Accounting selector keep what their
   editor doesn't show (emails, webhooks, tags, notes, other conditions) when saved, and list it; before, a save
   deleted it. Expert-mode conditions are left as they are
+- 2026-10-12: Triggers, Macros, SLAs, Report Profiles and the Time Accounting selector use the Scheduler's condition
+  and action editor: trigger fields (Action, the message, Customer is VIP, "has changed"), expert-mode AND/OR groups
+  (Scheduler too), Set title and Set customer; the choices API also gives message senders and types and is open to
+  admins of those areas

@@ -180,3 +180,9 @@ the current state is in `.dev/NOTES.md`.
   classes meant for them (session events, external-credential providers, sign-in providers, recent views' models,
   SMS drivers; an unknown SMS adapter is now a 422); `/manage/users` "switch to user" only follows addresses on
   this site
+- 2026-10-12: Security updates (Snyk Open Source): Rails 8.0.5 → 8.0.5.1, json 2.21.1 → 2.21.2, graphql 2.6.5 →
+  2.6.11 (patch versions only); the editor (all @tiptap packages) 3.27.4 → 3.30.5, with overrides in
+  `pnpm-workspace.yaml` so there is one copy of @tiptap/core and of prosemirror-model. GraphQL schema unchanged;
+  GraphQL specs and the editor's specs give the same results as before
+- 2026-10-12: `.dev/security-review.md`: every Snyk finding with its verdict (fixed / by design / false positive) and
+  the reason; `.dcignore` keeps `spec/`, `contrib/` and `.dev/` out of Snyk Code (test passwords made ~420 findings)

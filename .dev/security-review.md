@@ -1,0 +1,71 @@
+# Security review (Snyk)
+
+What Snyk reports for this repo, what was decided about each finding, and why. Update this file whenever a
+finding is fixed, accepted or ignored in Snyk, so the reason stays in the repo and not in someone's head.
+
+- **Tool:** Snyk VS Code extension (Open Source, Code Security, Infrastructure as Code)
+- **Reviewed:** 12 Oct 2026, on `develop` at `8bada37a44`
+- **Context:** no Zammad update is coming (`.dev/NOTES.md` → Decisions), so fixes go into Zammad's own files, marked
+  with a `Student Hub:` comment, and dependencies are updated here.
+- **Line numbers** are as of that scan; they move as the files change.
+
+Verdicts:
+
+- **Fixed:** changed in the code. Snyk may still show it, because it matches patterns and doesn't recognise the
+  check that was added.
+- **By design:** the code does what the feature needs; the risk Snyk describes is limited by permissions or
+  checks elsewhere.
+- **False positive:** the pattern Snyk matched isn't a risk here.
+
+## Code Security
+
+| File:line | Snyk says | Verdict | Why | Commit |
+|---|---|---|---|---|
+| `app/controllers/long_polling_controller.rb:36` | Code Injection | Fixed | The event name picks a class; `Sessions::Event.run` now only runs subclasses of `Sessions::Event::Base`, and each event checks its own permissions | `8bada37a44` |
+| `app/controllers/external_credentials_controller.rb:29`, `:37` | Unsafe Reflection | Fixed | `ExternalCredential.load_backend` now only returns the provider classes directly in `ExternalCredential::` (not `Base::ChannelXoauth2` or helpers) | `8bada37a44` |
+| `app/controllers/sessions_controller.rb:121` | Unsafe Reflection | Fixed | `Authorization.create_from_hash` now only builds subclasses of `Authorization::Provider`; the name comes from the sign-in provider's reply, not from typed input | `8bada37a44` |
+| `app/controllers/recent_view_controller.rb:69` | Unsafe Reflection | Fixed | `RecentView.access` resolved any top-level class name (e.g. `Logger`); now only `ApplicationModel` subclasses | `8bada37a44` |
+| `app/controllers/channels_sms_controller.rb:48` | Unsafe Reflection | Fixed | Test, create and update only accept the adapters of Zammad's three SMS drivers (`channels_config`), otherwise 422; admins only | `8bada37a44` |
+| `app/frontend/apps/desktop/pages/manage/views/Users.vue:300` | Open Redirect | Fixed | "Switch to user" only follows addresses on this site (starting with `/`, not `//`); Zammad sends an empty address, so it goes to `/` | `8bada37a44` |
+| `app/controllers/packages_controller.rb:20`, `:27`, `:38`, `:51` | Path Traversal | By design | Installing add-on packages is admin-only (`admin.package`) and installs code by purpose; `Package.allowed_file_path?` already refuses `..` and `%2e%2e`, and files are written under the app root | n/a |
+| `app/controllers/external_credentials_controller.rb:42` | Open Redirect | By design | Sends the browser to Microsoft / Google / Facebook to sign in; the address comes from the provider's settings. That redirect is how OAuth works | n/a |
+| `app/controllers/webhooks_controller.rb:10`, `:11` | Unsafe Reflection | False positive | The class name is the type of a ticket / article record from the database (`TriggerWebhookJob::RecordPayload::Ticket`), not user input | n/a |
+| `app/controllers/core_workflows_controller.rb:31` | Deserialization of Untrusted Data | False positive | `CoreWorkflow::Result` uses `Marshal.load(Marshal.dump(x))` to deep-copy data already in memory; nothing from outside is deserialised | n/a |
+| `app/views/knowledge_base/public/answers/show.html.erb:33` | Cross-site Scripting | False positive | A tag link built with `link_to` and a route helper: Rails escapes the text and the path segments | n/a |
+| `app/models/application_model/can_associations.rb:363`, `can_cleanup_param.rb:28` | Improperly Controlled Modification of Object Attributes | By design | Zammad's generic save code takes a hash of fields (`permit!`) and filters it in `param_cleanup`; changing it means rewriting Zammad's REST layer | n/a |
+| `app/frontend/apps/desktop/pages/manage/views/AiWritingAssistant.vue:344` | DOM-based XSS | False positive | Downloads a report from our own server through a `blob:` link with `download`; no page content is built from it | n/a |
+| `app/frontend/apps/desktop/pages/manage/views/SystemVersion.vue:56` | DOM-based XSS | False positive | Sets a hidden input's `value` to copy the version text; setting `value` can't run script | n/a |
+| `app/controllers/first_steps_controller.rb:210` | Use of Hardcoded Credentials (info) | False positive | Looks up the demo user by email address; no password or token | n/a |
+| `app/controllers/tests_controller.rb:12` | SQL Injection (info) | False positive | A template lookup (`lookup_context.exists?`), not a database query; the route doesn't exist in production (`config/routes/test.rb`) | n/a |
+| `app/frontend/apps/mobile/sw/sw.ts:9` | Insufficient postMessage Validation (info) | False positive | The service worker's message handler only activates a waiting update (`SKIP_WAITING`) | n/a |
+
+### Excluded from Code Security
+
+Listed in `.dcignore`, because they aren't part of the running app:
+
+| Folder | What Snyk found there |
+|---|---|
+| `spec/` | ~417 "hard-coded password / credential" findings: the test users' passwords (e.g. `test`), plus `spec/support/authenticated_as.rb:55` |
+| `contrib/` | `edit-icon-license-list.php:187` XSS: a developer script, not served |
+| `.dev/` | Developer tooling and notes |
+
+## Open Source (dependencies)
+
+| Package | Problem | Status |
+|---|---|---|
+| rails / activestorage 8.0.5 | Files or directories accessible to external parties | Fixed: 8.0.5.1 (12 Oct, in the commit that added this file) |
+| json 2.21.1 | Use after free | Fixed: 2.21.2 (12 Oct, in the commit that added this file) |
+| graphql 2.6.5 | Missing authorization | Fixed: 2.6.11 (12 Oct, in the commit that added this file) |
+| @tiptap/core 3.28.0 (editor) | ReDoS, prototype pollution | Fixed: all `@tiptap` packages 3.30.5, one copy of core and of prosemirror-model (overrides in `pnpm-workspace.yaml`) (12 Oct, in the commit that added this file) |
+| qs 6.15.3 | Resource exhaustion, uncaught exception | Open: 6.16.0 fixes |
+| ws 8.20.0, nanoid 3.3.12, tmp 0.2.5, esbuild 0.27.7, postcss 8.5.19, brace-expansion 5.0.5 | Various (resource exhaustion, directory traversal, insecure download, ReDoS) | Open: come in through other packages; need a refresh within their ranges or overrides in `pnpm-workspace.yaml` (the `resolutions` in `package.json` are ignored by pnpm 11) |
+| brace-expansion, degit, js-yaml, sprintf-js in `.dev/hygen/package.json` | Various | Accepted: a developer code generator, not part of the app |
+
+Infrastructure as Code: no findings.
+
+## Ignoring a finding in Snyk
+
+1. Make sure it has a row above with its verdict and reason.
+2. In VS Code, hover the finding, click the lightbulb and choose Snyk's "Ignore" option; Snyk adds its own
+   `deepcode ignore` comment to the line. Put the reason there in a few words.
+3. Note "ignored in Snyk" in the row's Why column.

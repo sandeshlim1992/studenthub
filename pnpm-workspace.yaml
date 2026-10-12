@@ -5,3 +5,11 @@ allowBuilds:
   unrs-resolver: true
   vue-demi: true
 verifyDepsBeforeRun: false
+# Student Hub: one copy of the editor core. @tiptap/vue-3 asks for the menu extensions at "this version or newer",
+# which pulls a newer core alongside ours; keep these at the version of the other @tiptap packages. The editor also
+# breaks with two copies of prosemirror-model, so all prosemirror packages share the one @tiptap/pm needs.
+overrides:
+  '@tiptap/core': 3.30.5
+  '@tiptap/extension-bubble-menu': 3.30.5
+  '@tiptap/extension-floating-menu': 3.30.5
+  prosemirror-model: 1.25.12

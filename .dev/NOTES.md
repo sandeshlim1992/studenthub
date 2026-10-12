@@ -150,7 +150,8 @@ Never put passwords, tokens or keys in this file.
   "Student Hub:" comment, and dependencies are patched here. Snyk (VS Code, Open Source + Code Security) is the
   checker; its Code findings in Zammad's files were reviewed on 12 Oct: class-name lookups tightened
   (`spec/models/studenthub_class_name_guards_spec.rb`), the rest are by design or false positives (packages already
-  refuse `..`, `Marshal` deep copies, OAuth redirects, Rails-escaped KB links, `permit!` with `param_cleanup`)
+  refuse `..`, `Marshal` deep copies, OAuth redirects, Rails-escaped KB links, `permit!` with `param_cleanup`). Every
+  finding, its verdict and the reason: `.dev/security-review.md` (keep it up to date when fixing or ignoring one)
 
 ## Known issues
 
@@ -222,8 +223,15 @@ Never put passwords, tokens or keys in this file.
 - Student ticket wizard fails silently when a required field (Group, Sub-Category) is empty
 - `knowledgeBaseBody.spec.ts` "gives images that were there their cid back…" fails in Vitest (jsdom has no
   `Blob.stream`), also on the code before the Knowledge Base panel
-- Zammad's `spec/graphql/gql/mutations/ticket/create_spec.rb`: 4 examples fail since Ticket Approvals added the
-  `approval_*` ticket fields (they show in `objectAttributeValues`)
+- 15 of Zammad's 1,382 `spec/graphql` examples fail since Student Hub added ticket fields (e.g. `approval_*`): the
+  ticket create (4) and update (7) mutations and the frontend attributes query (2) return the extra fields, and the
+  record loader's query counts (2) are higher. Same 15 before and after the 12 Oct gem updates
+- Backend specs share Redis with the dev server (`redis://redis:6379`), and some Zammad specs set the 5-minute
+  "restart required" key (`zammad_restart_required_timestamp`): while it is set, every `bin/dev` process stops itself
+  in a loop (12 Oct). Don't run specs while `bin/dev` runs (or wait 5 minutes, then restart it); fix: a separate
+  Redis database for tests
+- `package.json` → `resolutions` (loader-utils, postcss, stylelint-config-recommended) does nothing: pnpm 11 only reads
+  overrides from `pnpm-workspace.yaml`. postcss is still 8.5.19, which Snyk flags
 - Staff get Zammad's "New desktop BETA UI … not ready for production use" pop-up once per browser after signing in
   (`useBetaUiDisclaimer.ts`), although the new UI is now the main one at `/`; not decided yet whether to drop or
   reword it
@@ -314,6 +322,11 @@ Never put passwords, tokens or keys in this file.
       password-reset email, `/app` and a phone
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
 - [ ] Decide which review findings to fix, starting with the `/manage` saves
+- [ ] Remaining Snyk Open Source findings (JavaScript): qs (direct; 6.16.0 fixes), and ws, nanoid, tmp, esbuild,
+      postcss, brace-expansion through other packages (a refresh within their ranges, or overrides in
+      `pnpm-workspace.yaml`)
+- [ ] Check the reply box in a browser after the 12 Oct tiptap update (3.27.4 → 3.30.5): bold, links, lists,
+      tables, @mentions, pasted images
 - [ ] Templates editor: all the New ticket fields (message text, Category, …) instead of five; it keeps the rest
       for now
 - [ ] Fix the committed database password

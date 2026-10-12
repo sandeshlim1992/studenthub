@@ -39,7 +39,11 @@ class ExternalCredential < ApplicationModel
   end
 
   def self.load_backend(provider)
-    "ExternalCredential::#{provider.camelcase}".constantize
+    backend = "ExternalCredential::#{provider.camelcase}".constantize
+    # Student Hub: only the providers in ExternalCredential::, not a class found outside it.
+    raise NameError, "#{backend} is not an external credential provider" if !(backend.is_a?(Class) && backend.module_parent == ExternalCredential)
+
+    backend
   end
 
   private

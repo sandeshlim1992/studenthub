@@ -176,3 +176,7 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: `/manage/knowledge_base`: the Languages tab and Public Menu show the knowledge base's languages, links and
   titles (the page read Zammad's data under the wrong names, so they were always empty), and removing a saved menu
   link works (Zammad wants every saved link listed, removed ones marked to be destroyed)
+- 2026-10-12: Security (Snyk Code findings): names from requests that Zammad turns into classes only reach the
+  classes meant for them (session events, external-credential providers, sign-in providers, recent views' models,
+  SMS drivers; an unknown SMS adapter is now a 422); `/manage/users` "switch to user" only follows addresses on
+  this site

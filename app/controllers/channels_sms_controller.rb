@@ -44,6 +44,7 @@ class ChannelsSmsController < ApplicationController
   def test
     raise __("The required parameter 'options.adapter' is missing.") if params[:options][:adapter].blank?
 
+    ensure_known_adapter!
     driver = Channel.driver_class(params[:options][:adapter])
     resp   = driver.new.deliver(params[:options], test_options)
 
@@ -93,7 +94,16 @@ class ChannelsSmsController < ApplicationController
     raise __("The required parameter 'params' is missing.") if params[:options].blank?
     raise __("The required parameter 'options.adapter' is missing.") if params[:options][:adapter].blank?
 
+    ensure_known_adapter!
     params
+  end
+
+  # Student Hub: only Zammad's own SMS drivers (the ones listed by channels_config).
+  def ensure_known_adapter!
+    adapter = params[:options][:adapter]
+    return if channels_config.pluck(:adapter).include?(adapter)
+
+    raise Exceptions::UnprocessableContent, "The parameter 'options.adapter' has the invalid value '#{adapter}'!"
   end
 
   def channels_config

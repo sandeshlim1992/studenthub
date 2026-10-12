@@ -146,6 +146,11 @@ Never put passwords, tokens or keys in this file.
 - Approval tab (staff ticket screen) = design B ("timeline") of <https://claude.ai/artifact/JaKwPJH4KdCuDoxQDgqC4j>:
   a state chip, the form (open until something was sent, then behind "Send for approval again") and every request
   and decision newest first, the waiting step carrying Withdraw or Approve / Deny
+- No Zammad update is coming (decided 12 Oct): security fixes go straight into Zammad's files, marked with a
+  "Student Hub:" comment, and dependencies are patched here. Snyk (VS Code, Open Source + Code Security) is the
+  checker; its Code findings in Zammad's files were reviewed on 12 Oct: class-name lookups tightened
+  (`spec/models/studenthub_class_name_guards_spec.rb`), the rest are by design or false positives (packages already
+  refuse `..`, `Marshal` deep copies, OAuth redirects, Rails-escaped KB links, `permit!` with `param_cleanup`)
 
 ## Known issues
 
@@ -157,6 +162,8 @@ Never put passwords, tokens or keys in this file.
   (check production too)
 - `config/database/database.yml` has a leaked password → not yet fixed
 - Base is a July `develop` snapshot, not a stable Zammad release
+- Zammad's SMS driver specs (Twilio, MessageBird, Massenversand: 3 examples) fail in the container: they expect
+  errors from the real SMS services
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
   - 6 `/manage` pages send saves without the CSRF token → all rejected (Translations, Sessions,

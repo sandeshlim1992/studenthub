@@ -62,7 +62,11 @@ class Authorization < ApplicationModel
 
   def self.create_from_hash(hash, user = nil)
 
-    auth_provider = "#{PROVIDER_CLASS_PREFIX}#{hash['provider'].camelize}".constantize.new(hash, user)
+    provider_class = "#{PROVIDER_CLASS_PREFIX}#{hash['provider'].camelize}".constantize
+    # Student Hub: only sign-in providers, not any class the name resolves to.
+    raise NameError, "#{provider_class} is not a sign-in provider" if !(provider_class.is_a?(Class) && provider_class < Authorization::Provider)
+
+    auth_provider = provider_class.new(hash, user)
 
     # save/update avatar
     if hash['info'].present? && hash['info']['image'].present?

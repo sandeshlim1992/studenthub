@@ -295,7 +295,9 @@ const handleSwitchToUser = async (userId: number) => {
     })
     if (res.ok) {
       const data = await res.json()
-      window.location.href = data.location || '/'
+      // Only addresses on this site ("//host" would leave it).
+      const location = typeof data.location === 'string' ? data.location : ''
+      window.location.href = location.startsWith('/') && !location.startsWith('//') ? location : '/'
     }
   } catch (e) {
     console.error('Failed to switch user perspective:', e)

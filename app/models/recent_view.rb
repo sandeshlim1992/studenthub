@@ -79,9 +79,11 @@ class RecentView < ApplicationModel
   end
 
   def self.access(object, o_id, user)
-    record = object.to_s
-              .safe_constantize
-              .try(:lookup, id: o_id)
+    # Student Hub: only Zammad's own models, not any class the name resolves to.
+    klass = object.to_s.safe_constantize
+    return if !(klass.is_a?(Class) && klass < ApplicationModel)
+
+    record = klass.lookup(id: o_id)
 
     Pundit.policy(user, record).try(:show?)
   end

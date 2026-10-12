@@ -20,11 +20,17 @@ module Studenthub::ChecklistAssignments
     template if template&.active
   end
 
-  # Gives the ticket the checklist of its Category › Sub-category, unless it has one already.
-  def self.apply!(ticket)
+  # The checklist the ticket's Category › Sub-category gets, while the ticket has none. Also offered
+  # on the ticket's Checklist tab, for tickets that were there before the assignment.
+  def self.template_for_ticket(ticket)
     return if !Setting.get('checklist') || ticket.checklist_id.present?
 
-    template = template_for(field_value(ticket, CATEGORY_FIELD), field_value(ticket, SUB_CATEGORY_FIELD))
+    template_for(field_value(ticket, CATEGORY_FIELD), field_value(ticket, SUB_CATEGORY_FIELD))
+  end
+
+  # Gives the ticket the checklist of its Category › Sub-category, unless it has one already.
+  def self.apply!(ticket)
+    template = template_for_ticket(ticket)
     return if !template
 
     UserInfo.ensure_current_user_id { Checklist.create_from_template!(ticket, template) }

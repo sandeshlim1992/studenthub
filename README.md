@@ -871,7 +871,11 @@ tickets in** lists the pairs; the list of checklists shows them under each name.
 
 - **When:** a ticket created in one of those sub-categories gets the checklist at once, however it was raised (student
   wizard, staff New ticket, classic UI, API). A ticket moved there later gets it too, but only if it has no checklist
-  yet: a checklist is never replaced, so ticked items stay.
+  yet: a checklist is never replaced, so ticked items stay. The hook is loaded when Rails starts: restart Rails after
+  pulling or deploying it.
+- **Tickets already there:** a ticket that was in the sub-category before the assignment doesn't get it by itself. Its
+  **Checklist** tab says "No checklist assigned to this ticket." and offers **Add <name> checklist** (one click, from
+  the template); "Add empty checklist" and the templates stay below.
 - **Rules:** one checklist per sub-category (a ticket has one checklist); a checklist can cover many. Inactive
   checklists aren't added, and nothing is while checklists are switched off. The pair is used, not the sub-category
   alone ("Others" exists under several categories); the lists come from the same place as for Request forms. A pair
@@ -885,7 +889,8 @@ tickets in** lists the pairs; the list of checklists shows them under each name.
 |---|---|
 | `db/migrate/20261011140000_studenthub_checklist_assignments.rb`, `app/models/studenthub_checklist_assignment.rb`, `lib/studenthub/checklist_assignments.rb` | Table, the checks, adding the checklist to tickets (`TicketHook`, included by `config/initializers/studenthub_checklist_assignments.rb`) |
 | `lib/studenthub/checklist_assignments/webhook_triggers.rb` | The one-off conversion of the old triggers and webhooks |
-| `app/controllers/studenthub_checklist_assignments_controller.rb` | API (`/api/v1/studenthub/checklist_assignments`, `…/:checklist_template_id`) |
+| `app/controllers/studenthub_checklist_assignments_controller.rb` | API (`/api/v1/studenthub/checklist_assignments`, `…/:checklist_template_id`; agents: `…/ticket/:ticket_id`, the checklist a ticket's sub-category gets) |
+| `pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useStudenthubChecklistSuggestion.ts`, edits in `TicketSidebarChecklistContent.vue` | The ticket's Checklist tab: "No checklist assigned", Add <name> checklist |
 | `app/frontend/apps/desktop/pages/manage/components/Checklists/`, edits in `views/Checklists.vue` | The sub-category picker in the checklist drawer; Added to under each name |
 
 ---

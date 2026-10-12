@@ -21,6 +21,7 @@ import ChecklistTemplates from '#desktop/pages/ticket/components/TicketSidebar/T
 import TicketSidebarChecklistContentSkeleton from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/TicketSidebarChecklistContentSkeleton.vue'
 import type { AddNewChecklistInput } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/types.ts'
 import { useChecklistTemplates } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useChecklistTemplates.ts'
+import { useStudenthubChecklistSuggestion } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useStudenthubChecklistSuggestion.ts'
 import { useTicketChecklist } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useTicketChecklist.ts'
 import TicketSidebarContent from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarContent.vue'
 import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
@@ -44,6 +45,12 @@ const { ticket, ticketId, isTicketEditable } = useTicketInformation()
 const { ticketNumberWithTicketHook } = useTicketNumber(ticket)
 
 const { checklist, isLoadingChecklist } = useTicketChecklist(ticketId)
+
+// Student Hub: the checklist of the ticket's sub-category, offered while it has none.
+const { suggestion: checklistSuggestion } = useStudenthubChecklistSuggestion(
+  ticket,
+  computed(() => !isLoadingChecklist.value && !checklist.value),
+)
 
 const checklistTitle = computed(
   () => checklist.value?.name || i18n.t('%s Checklist', ticketNumberWithTicketHook.value),
@@ -421,8 +428,36 @@ const { isLoadingTemplates, checklistTemplatesMenuItems } =
           @update-title="updateTitle"
         />
         <template v-else-if="isTicketEditable">
+          <!-- Student Hub: say that there is none, and offer the sub-category's checklist -->
+          <CommonLabel>{{ $t('No checklist assigned to this ticket.') }}</CommonLabel>
+          <template v-if="checklistSuggestion">
+            <CommonLabel size="small">
+              {{
+                $t(
+                  'Tickets in %s › %s get the "%s" checklist.',
+                  checklistSuggestion.category,
+                  checklistSuggestion.subCategory,
+                  checklistSuggestion.name,
+                )
+              }}
+            </CommonLabel>
+            <CommonButton
+              variant="primary"
+              size="medium"
+              block
+              :disabled="isAddingNewChecklist"
+              @click="
+                createNewChecklist(
+                  { templateId: checklistSuggestion.templateId },
+                  { focusLastItem: false },
+                )
+              "
+            >
+              {{ $t('Add %s checklist', checklistSuggestion.name) }}
+            </CommonButton>
+          </template>
           <CommonButton
-            variant="primary"
+            :variant="checklistSuggestion ? 'secondary' : 'primary'"
             size="medium"
             block
             :disabled="isAddingNewChecklist"
@@ -437,7 +472,7 @@ const { isLoadingTemplates, checklistTemplatesMenuItems } =
           />
           <ChecklistEmptyTemplates v-else-if="!isLoadingTemplates" />
         </template>
-        <CommonLabel v-else>{{ $t('No checklist added to this ticket yet.') }}</CommonLabel>
+        <CommonLabel v-else>{{ $t('No checklist assigned to this ticket.') }}</CommonLabel>
       </div>
     </CommonLoader>
   </TicketSidebarContent>

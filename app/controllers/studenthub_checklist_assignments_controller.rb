@@ -26,6 +26,22 @@ class StudenthubChecklistAssignmentsController < ApplicationController
     }
   end
 
+  # GET /api/v1/studenthub/checklist_assignments/ticket/:ticket_id
+  # The checklist the ticket's Category › Sub-category gets while it has none, for the ticket's
+  # Checklist tab (agents who can see the ticket). Empty when there is none.
+  def for_ticket
+    ticket   = Ticket.find(params[:ticket_id]).tap { |record| authorize!(record, :show?) }
+    template = Studenthub::ChecklistAssignments.template_for_ticket(ticket)
+    return render json: {} if !template
+
+    render json: {
+      checklist_template_id: template.id,
+      name:                  template.name,
+      category:              ticket[Studenthub::ChecklistAssignments::CATEGORY_FIELD],
+      sub_category:          ticket[Studenthub::ChecklistAssignments::SUB_CATEGORY_FIELD],
+    }
+  end
+
   private
 
   def pairs_param

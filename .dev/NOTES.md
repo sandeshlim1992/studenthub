@@ -95,7 +95,8 @@ Never put passwords, tokens or keys in this file.
 - Checklists are added by Student Hub, not by triggers: admins pick Category › Sub-category pairs per checklist on
   the Checklists page; the server adds it when a ticket is created there or moved there without a checklist, never
   replacing one (README → Checklists added automatically). The four "Checklist : …" triggers keep only their
-  `checklist-checd` tag (other triggers react to it); their loopback webhooks are off (migration, 11 Oct)
+  `checklist-checd` tag (other triggers react to it); their loopback webhooks are off (migration, 11 Oct). Tickets
+  that were in the sub-category before get it from their Checklist tab (Add <name> checklist), not automatically
 - Classic features move to the new UI as pages that read through small Student Hub endpoints and save through
   Zammad's own REST API (its checks and permissions apply); settings a page doesn't know are kept as they are
 - Customer feedback is for admins only (`admin.feedback_collection`: sidebar panel in both UIs and the API); the
@@ -286,6 +287,9 @@ Never put passwords, tokens or keys in this file.
   a count chip and "N overdue" (loaded tickets only), Unassigned tinted with a dashed circle; quieter column headings
   in every ticket list. Columns stay as the overview's admin settings; the concept's filter chips, Columns button,
   two-line ticket cell and subtitle were left out on purpose. Not yet checked in a browser
+- Checklist tab (12 Oct): "No checklist assigned to this ticket." when there is none, and Add <name> checklist when
+  the ticket's sub-category has one. Not yet checked in a browser (puma here hung; restart `bin/dev`). The dev server
+  had been running since before the checklist assignments (11 Oct), so web tickets got no checklist until a restart
 
 ## Next steps
 

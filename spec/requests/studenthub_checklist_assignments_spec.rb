@@ -46,4 +46,48 @@ RSpec.describe 'Student Hub checklist assignments', :aggregate_failures, type: :
     assign(template, 'Onboarding')
     expect(response).to have_http_status(:forbidden)
   end
+
+  describe 'the checklist a ticket gets', current_user_id: 1, db_strategy: :reset do
+    let(:group)    { create(:group) }
+    let(:agent)    { create(:agent, groups: [group]) }
+    let(:outsider) { create(:agent) }
+    let(:customer) { create(:customer) }
+    let(:ticket)   { create(:ticket, group:, category2: 'People', subcategory: 'Onboarding') }
+
+    before do
+      ObjectManager::Attribute.migration_execute
+      ticket # raised before the checklist was assigned to its sub-category
+      Studenthub::ChecklistAssignments.replace!(template, [{ category: 'People', sub_category: 'Onboarding' }])
+    end
+
+    def suggestion_for(record)
+      get "/api/v1/studenthub/checklist_assignments/ticket/#{record.id}", as: :json
+    end
+
+    it 'names the checklist of a ticket without one', authenticated_as: :agent do
+      suggestion_for(ticket)
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response).to eq('checklist_template_id' => template.id, 'name' => 'Onboarding', 'category' => 'People', 'sub_category' => 'Onboarding')
+    end
+
+    it 'is empty once the ticket has a checklist, or in a sub-category without one', authenticated_as: :agent do
+      Studenthub::ChecklistAssignments.apply!(ticket)
+      suggestion_for(ticket)
+      expect(json_response).to eq({})
+
+      suggestion_for(create(:ticket, group:, category2: 'People', subcategory: 'ID card'))
+      expect(json_response).to eq({})
+    end
+
+    it 'refuses agents who cannot see the ticket', authenticated_as: :outsider do
+      suggestion_for(ticket)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it 'refuses customers', authenticated_as: :customer do
+      suggestion_for(ticket)
+      expect(response).to have_http_status(:forbidden)
+    end
+  end
 end

@@ -244,6 +244,9 @@ const renderChecklist = async () => {
   return result
 }
 
+// Student Hub: the checklist of the ticket's sub-category (useStudenthubChecklistSuggestion).
+const suggestionFetch = vi.fn()
+
 describe('TicketSidebarChecklist', () => {
   beforeAll(() => {
     const app = document.createElement('div')
@@ -253,12 +256,17 @@ describe('TicketSidebarChecklist', () => {
 
   afterAll(() => {
     document.body.innerHTML = ''
+    vi.unstubAllGlobals()
   })
 
   beforeEach(() => {
     ticket.value = createDummyTicket()
 
     mockApplicationConfig({ ticket_hook: 'TicketTitle#' })
+
+    suggestionFetch.mockReset()
+    suggestionFetch.mockResolvedValue({ ok: true, json: async () => ({}) })
+    vi.stubGlobal('fetch', suggestionFetch)
   })
 
   it('displays content in readonly mode if agent has no permissions', async () => {
@@ -277,7 +285,7 @@ describe('TicketSidebarChecklist', () => {
 
     expect(wrapper.getAllByIconName('checklist')).toHaveLength(2)
 
-    expect(await wrapper.findByText('No checklist added to this ticket yet.')).toBeInTheDocument()
+    expect(await wrapper.findByText('No checklist assigned to this ticket.')).toBeInTheDocument()
 
     expect(wrapper.queryByRole('button', { name: 'Add from a template' })).not.toBeInTheDocument()
   })
@@ -590,6 +598,72 @@ describe('TicketSidebarChecklist', () => {
         checklistId: convertToGraphQLId('Checklist', 1),
         checklistItemId: convertToGraphQLId('Checklist::Item', 1),
       })
+    })
+  })
+
+  describe('checklist of the sub-category', () => {
+    it("says there is none and offers the checklist of the ticket's sub-category", async () => {
+      suggestionFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          checklist_template_id: 5,
+          name: 'Onboarding',
+          category: 'People',
+          sub_category: 'Onboarding',
+        }),
+      })
+
+      mockTicketChecklistQuery({
+        ticketChecklist: null,
+      })
+
+      const wrapper = await renderChecklist()
+
+      expect(await wrapper.findByText('No checklist assigned to this ticket.')).toBeInTheDocument()
+      expect(
+        await wrapper.findByText('Tickets in People › Onboarding get the "Onboarding" checklist.'),
+      ).toBeInTheDocument()
+      expect(suggestionFetch).toHaveBeenCalledWith(
+        '/api/v1/studenthub/checklist_assignments/ticket/1',
+        expect.anything(),
+      )
+
+      await wrapper.events.click(wrapper.getByRole('button', { name: 'Add Onboarding checklist' }))
+
+      const calls = await waitForTicketChecklistAddMutationCalls()
+
+      expect(calls.at(-1)?.variables).toEqual({
+        createFirstItem: true,
+        templateId: convertToGraphQLId('ChecklistTemplate', 5),
+        ticketId: convertToGraphQLId('Ticket', 1),
+      })
+    })
+
+    it('only says there is none when the sub-category has no checklist', async () => {
+      mockTicketChecklistQuery({
+        ticketChecklist: null,
+      })
+
+      const wrapper = await renderChecklist()
+
+      expect(await wrapper.findByText('No checklist assigned to this ticket.')).toBeInTheDocument()
+      expect(wrapper.queryByText(/get the ".*" checklist/)).not.toBeInTheDocument()
+      expect(wrapper.getByRole('button', { name: 'Add empty checklist' })).toBeInTheDocument()
+    })
+
+    it('does not ask while the ticket has a checklist', async () => {
+      mockTicketChecklistQuery({
+        ticketChecklist: {
+          id: convertToGraphQLId('Checklist', 1),
+          name: 'Checklist title',
+          items: [],
+        },
+      })
+
+      const wrapper = await renderChecklist()
+
+      expect(await wrapper.findByText('Checklist title')).toBeInTheDocument()
+      expect(suggestionFetch).not.toHaveBeenCalled()
     })
   })
 

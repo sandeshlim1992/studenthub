@@ -155,3 +155,6 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: Ticket lists (concept 1 "Quiet table"): group headers with the agent's avatar, a count chip and
   "N overdue", the Unassigned group tinted with a dashed circle; quieter column headings (small capitals on a light
   rule); the overview list query also returns the owner's names and photo for the avatar
+- 2026-10-12: Checklist tab: "No checklist assigned to this ticket." when there is none, and "Add <name> checklist"
+  when the ticket's Category › Sub-category has one (tickets that were there before the assignment);
+  `GET /api/v1/studenthub/checklist_assignments/ticket/:ticket_id` for agents who can see the ticket

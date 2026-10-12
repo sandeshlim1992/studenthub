@@ -608,7 +608,7 @@ onMounted(() => {
                       @click="handleCloneOrganization(org)"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
-                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
+                      <CommonIcon name="files" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />
                       {{ __('Clone') }}
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>

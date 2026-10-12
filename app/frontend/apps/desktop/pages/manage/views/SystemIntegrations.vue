@@ -147,7 +147,7 @@ const integrationsList: IntegrationItem[] = [
     key: 'ldap',
     name: __('LDAP / Active Directory'),
     title: __('LDAP / Active Directory'),
-    icon: 'people',
+    icon: 'people-fill',
     category: 'directory',
     description: __(
       'Automated periodic synchronization of users, departments, and role assignments from Active Directory / OpenLDAP.',
@@ -883,7 +883,7 @@ onMounted(() => {
                 :title="__('Copy URL')"
                 @click="copyToClipboard(configModal.endpointUrl)"
               >
-                <CommonIcon name="copy" class="h-3.5 w-3.5" />
+                <CommonIcon name="files" class="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
@@ -959,7 +959,7 @@ onMounted(() => {
                     name="arrow-clockwise"
                     class="h-3.5 w-3.5 animate-spin"
                   />
-                  <CommonIcon v-else name="plug" class="h-3.5 w-3.5" />
+                  <CommonIcon v-else name="link" class="h-3.5 w-3.5" />
                   <span>{{ configModal.isVerifying ? __('Testing...') : __('Test Connection') }}</span>
                 </button>
               </div>

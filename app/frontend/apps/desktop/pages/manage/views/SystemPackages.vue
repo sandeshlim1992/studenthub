@@ -388,7 +388,7 @@ const saveToken = async () => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -408,7 +408,7 @@ const saveToken = async () => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -479,7 +479,7 @@ const saveToken = async () => {
             <div
               class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
             >
-              <CommonIcon name="box" class="h-6 w-6" />
+              <CommonIcon name="files" class="h-6 w-6" />
             </div>
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-200">
               {{ __('No packages installed') }}
@@ -724,7 +724,7 @@ const saveToken = async () => {
               :aria-label="__('Close')"
               @click="tokenModal.isOpen = false"
             >
-              <CommonIcon name="close" class="h-4 w-4" />
+              <CommonIcon name="x-lg" class="h-4 w-4" />
             </button>
           </div>
 

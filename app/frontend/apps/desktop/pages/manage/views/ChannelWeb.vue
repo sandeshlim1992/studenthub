@@ -72,7 +72,7 @@ const tabActionOptions = [
     title: __('Stay on tab'),
     badge: __('Default'),
     description: __('Keep current ticket tab open and active after performing an update or action.'),
-    icon: 'window',
+    icon: 'globe',
   },
   {
     key: 'closeTab',
@@ -93,7 +93,7 @@ const tabActionOptions = [
     title: __('Next in overview'),
     badge: __('Workflow'),
     description: __('Close current ticket tab and automatically navigate to the next ticket from the overview list.'),
-    icon: 'arrow-right-circle',
+    icon: 'arrow-right',
   },
 ]
 
@@ -458,7 +458,7 @@ onMounted(() => {
               : 'bg-amber-50/80 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-300'"
           >
             <CommonIcon
-              :name="customerTicketCreate ? 'check-circle' : 'exclamation-circle'"
+              :name="customerTicketCreate ? 'check2-circle' : 'exclamation-triangle'"
               class="w-4 h-4 shrink-0 mt-0.5"
             />
             <div>
@@ -546,7 +546,7 @@ onMounted(() => {
                     ? 'bg-blue-600 border-blue-600 text-white'
                     : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'"
                 >
-                  <CommonIcon v-if="isGroupSelected(group.id)" name="check" class="w-3 h-3" />
+                  <CommonIcon v-if="isGroupSelected(group.id)" name="check2" class="w-3 h-3" />
                 </div>
                 <div class="min-w-0">
                   <span class="text-xs font-semibold truncate block">{{ group.name }}</span>

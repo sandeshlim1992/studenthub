@@ -431,7 +431,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
       >
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
           <CommonIcon
-            name="alert-triangle"
+            name="exclamation-triangle"
             class="size-4 shrink-0 text-red-600 dark:text-red-400"
           />
           <span>{{ errorMessage }}</span>
@@ -442,7 +442,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="size-3.5" />
+          <CommonIcon name="x-lg" class="size-3.5" />
         </button>
       </div>
 
@@ -452,7 +452,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
       >
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
           <CommonIcon
-            name="check-circle"
+            name="check2-circle"
             class="size-4 shrink-0 text-green-600 dark:text-green-400"
           />
           <span>{{ successMessage }}</span>
@@ -463,7 +463,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="size-3.5" />
+          <CommonIcon name="x-lg" class="size-3.5" />
         </button>
       </div>
 
@@ -473,7 +473,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
         class="mb-6 flex items-start space-x-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 rtl:space-x-reverse dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300"
       >
         <CommonIcon
-          name="alert-triangle"
+          name="exclamation-triangle"
           class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400"
         />
         <div class="text-xs">
@@ -502,7 +502,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
         v-if="isLoading"
         class="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-12 text-slate-500 shadow-xs dark:border-slate-800 dark:bg-[#1e293b] dark:text-slate-400"
       >
-        <CommonIcon name="reload" class="mb-3 size-8 animate-spin text-teal-600" />
+        <CommonIcon name="arrow-clockwise" class="mb-3 size-8 animate-spin text-teal-600" />
         <p class="text-xs font-medium">{{ __('Loading AI agents...') }}</p>
       </div>
 
@@ -656,7 +656,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
                       "
                     >
                       <CommonIcon
-                        name="alert-circle"
+                        name="exclamation-triangle"
                         class="size-3 text-amber-500 ltr:mr-1 rtl:ml-1"
                       />
                       {{ __('Unused AI agent') }}
@@ -696,7 +696,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
                       :title="__('Edit agent')"
                       @click="openEditAgentModal(agent)"
                     >
-                      <CommonIcon name="edit" class="size-4" />
+                      <CommonIcon name="pencil" class="size-4" />
                     </button>
 
                     <!-- Delete -->
@@ -709,7 +709,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
                     >
                       <CommonIcon
                         v-if="isDeletingId === agent.id"
-                        name="reload"
+                        name="arrow-clockwise"
                         class="size-4 animate-spin text-red-600"
                       />
                       <CommonIcon v-else name="trash" class="size-4" />
@@ -748,7 +748,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
             :aria-label="__('Close dialog')"
             @click="isModalOpen = false"
           >
-            <CommonIcon name="close" class="size-4" />
+            <CommonIcon name="x-lg" class="size-4" />
           </button>
         </div>
 
@@ -1020,7 +1020,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
               >
                 <CommonIcon
                   v-if="isSaving"
-                  name="reload"
+                  name="arrow-clockwise"
                   class="size-3.5 animate-spin ltr:mr-1.5 rtl:ml-1.5"
                 />
                 {{ isEditing ? __('Save Changes') : __('Create Agent') }}
@@ -1052,7 +1052,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
             :aria-label="__('Close dialog')"
             @click="isLegalModalOpen = false"
           >
-            <CommonIcon name="close" class="size-4" />
+            <CommonIcon name="x-lg" class="size-4" />
           </button>
         </div>
 

@@ -207,7 +207,7 @@ const executeRestartFailedJobs = async () => {
                 <div
                   class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:bg-blue-400/20 dark:text-blue-400"
                 >
-                  <CommonIcon name="activity" class="h-4 w-4" />
+                  <CommonIcon name="speedometer2" class="h-4 w-4" />
                 </div>
                 <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">
                   {{ __('Monitoring') }}
@@ -260,7 +260,7 @@ const executeRestartFailedJobs = async () => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -280,7 +280,7 @@ const executeRestartFailedJobs = async () => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -305,7 +305,7 @@ const executeRestartFailedJobs = async () => {
                 "
               >
                 <CommonIcon
-                  :name="isHealthy ? 'checkmark-circle' : 'alert-triangle'"
+                  :name="isHealthy ? 'check2-circle' : 'exclamation-triangle'"
                   class="h-8 w-8"
                 />
               </div>
@@ -391,7 +391,7 @@ const executeRestartFailedJobs = async () => {
                 class="flex items-start py-2 text-sm text-slate-800 dark:text-slate-200"
               >
                 <CommonIcon
-                  name="close-circle"
+                  name="x-circle"
                   class="mt-0.5 h-4 w-4 shrink-0 text-red-500 ltr:mr-2 rtl:ml-2"
                 />
                 <span>{{ issue }}</span>
@@ -447,7 +447,7 @@ const executeRestartFailedJobs = async () => {
                   @click="copyToClipboard(healthData.token, 'token')"
                 >
                   <CommonIcon
-                    :name="copiedField === 'token' ? 'check2' : 'clipboard'"
+                    :name="copiedField === 'token' ? 'check2' : 'clipboard2'"
                     class="h-4 w-4"
                   />
                 </button>
@@ -512,7 +512,7 @@ const executeRestartFailedJobs = async () => {
                   @click="copyToClipboard(healthCheckUrl, 'url')"
                 >
                   <CommonIcon
-                    :name="copiedField === 'url' ? 'check2' : 'clipboard'"
+                    :name="copiedField === 'url' ? 'check2' : 'clipboard2'"
                     class="h-4 w-4"
                   />
                 </button>
@@ -528,7 +528,7 @@ const executeRestartFailedJobs = async () => {
               @click="copyToClipboard(curlCommand, 'curl')"
             >
               <CommonIcon
-                :name="copiedField === 'curl' ? 'check2' : 'clipboard'"
+                :name="copiedField === 'curl' ? 'check2' : 'clipboard2'"
                 class="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5"
               />
               {{ __('Copy curl Command') }}
@@ -552,7 +552,7 @@ const executeRestartFailedJobs = async () => {
             <div
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
             >
-              <CommonIcon name="alert-triangle" class="h-5 w-5" />
+              <CommonIcon name="exclamation-triangle" class="h-5 w-5" />
             </div>
             <div>
               <h3 class="text-base font-bold text-slate-900 dark:text-white">

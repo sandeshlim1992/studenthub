@@ -74,7 +74,7 @@ const recentItems = computed(() => {
         result.push({
           id: ticket.id,
           label: ticket.title ? `#${ticket.number} ${ticket.title}` : `#${ticket.number}`,
-          icon: 'ticket',
+          icon: 'all-tickets',
           link: `/tickets/${ticket.internalId}`,
         })
       }
@@ -85,7 +85,7 @@ const recentItems = computed(() => {
         result.push({
           id: u.id,
           label: u.fullname || __('User'),
-          icon: 'person',
+          icon: 'user',
           link: `/users/${u.internalId || u.id}`,
         })
       }
@@ -96,7 +96,7 @@ const recentItems = computed(() => {
         result.push({
           id: org.id,
           label: org.name || __('Organization'),
-          icon: 'building',
+          icon: 'buildings',
           link: `/organizations/${org.internalId || org.id}`,
         })
       }
@@ -114,7 +114,7 @@ const recentItems = computed(() => {
           result.push({
             id: ticket.id,
             label: ticket.title ? `#${ticket.number} ${ticket.title}` : `#${ticket.number}`,
-            icon: 'ticket',
+            icon: 'all-tickets',
             link: `/tickets/${ticket.internalId || ticket.id}`,
           })
         }

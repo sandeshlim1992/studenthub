@@ -487,7 +487,7 @@ const executeDeleteTranslation = async () => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -507,7 +507,7 @@ const executeDeleteTranslation = async () => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -716,7 +716,7 @@ const executeDeleteTranslation = async () => {
                       :aria-label="__('Edit translation %s', tr.source)"
                       @click="openEditModal(tr)"
                     >
-                      <CommonIcon name="pen" class="h-4 w-4" />
+                      <CommonIcon name="pencil" class="h-4 w-4" />
                     </button>
                     <!-- Reset button for synchronized translations -->
                     <button
@@ -727,7 +727,7 @@ const executeDeleteTranslation = async () => {
                       :aria-label="__('Reset translation %s', tr.source)"
                       @click="confirmResetTranslation(tr)"
                     >
-                      <CommonIcon name="reload" class="h-4 w-4" />
+                      <CommonIcon name="arrow-clockwise" class="h-4 w-4" />
                     </button>
                     <!-- Delete button for purely custom non-codebase translations -->
                     <button
@@ -776,7 +776,7 @@ const executeDeleteTranslation = async () => {
               :aria-label="__('Close')"
               @click="newModal.isOpen = false"
             >
-              <CommonIcon name="close" class="h-5 w-5" />
+              <CommonIcon name="x-lg" class="h-5 w-5" />
             </button>
           </div>
 
@@ -946,7 +946,7 @@ const executeDeleteTranslation = async () => {
               :aria-label="__('Close')"
               @click="editModal.isOpen = false"
             >
-              <CommonIcon name="close" class="h-5 w-5" />
+              <CommonIcon name="x-lg" class="h-5 w-5" />
             </button>
           </div>
 
@@ -1042,7 +1042,7 @@ const executeDeleteTranslation = async () => {
             <div
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
             >
-              <CommonIcon name="reload" class="h-5 w-5" />
+              <CommonIcon name="arrow-clockwise" class="h-5 w-5" />
             </div>
             <div>
               <h3 class="text-base font-bold text-slate-900 dark:text-white">

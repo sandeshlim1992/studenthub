@@ -472,7 +472,7 @@ const executeDeleteApp = async () => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -492,7 +492,7 @@ const executeDeleteApp = async () => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -584,7 +584,7 @@ const executeDeleteApp = async () => {
         class="mb-6 flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center"
       >
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
-          <CommonIcon name="apps" class="h-5 w-5 text-slate-600 dark:text-slate-300" />
+          <CommonIcon name="code-square" class="h-5 w-5 text-slate-600 dark:text-slate-300" />
           <h2 class="text-base font-bold text-slate-900 dark:text-white">
             {{ __('OAuth Applications') }}
             <span
@@ -627,7 +627,7 @@ const executeDeleteApp = async () => {
           <div
             class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400"
           >
-            <CommonIcon name="apps" class="h-6 w-6" />
+            <CommonIcon name="code-square" class="h-6 w-6" />
           </div>
           <h3 class="mb-1 text-base font-semibold text-slate-800 dark:text-slate-100">
             {{ __('No OAuth applications found') }}
@@ -704,7 +704,7 @@ const executeDeleteApp = async () => {
                       @click="copyToClipboard(app.uid, `uid-${app.id}`)"
                     >
                       <CommonIcon
-                        :name="copiedField === `uid-${app.id}` ? 'checkmark' : 'clipboard'"
+                        :name="copiedField === `uid-${app.id}` ? 'check2' : 'clipboard2'"
                         class="size-3.5"
                       />
                     </button>
@@ -752,7 +752,7 @@ const executeDeleteApp = async () => {
                       :aria-label="__('Edit %s', app.name)"
                       @click="openEditAppModal(app)"
                     >
-                      <CommonIcon name="pen" class="size-4" />
+                      <CommonIcon name="pencil" class="size-4" />
                     </button>
                     <button
                       type="button"
@@ -803,7 +803,7 @@ const executeDeleteApp = async () => {
               :aria-label="__('Close')"
               @click="appModal.isOpen = false"
             >
-              <CommonIcon name="close" class="size-5" />
+              <CommonIcon name="x-lg" class="size-5" />
             </button>
           </div>
 
@@ -815,7 +815,7 @@ const executeDeleteApp = async () => {
             <div
               class="flex items-center space-x-2 text-amber-800 rtl:space-x-reverse dark:text-amber-300"
             >
-              <CommonIcon name="alert-triangle" class="size-4 shrink-0" />
+              <CommonIcon name="exclamation-triangle" class="size-4 shrink-0" />
               <span class="font-semibold">
                 {{ __('Copy your secret now. It will not be shown in plain text again!') }}
               </span>
@@ -836,7 +836,7 @@ const executeDeleteApp = async () => {
                     @click="copyToClipboard(appModal.generatedApp.uid, 'new-uid')"
                   >
                     <CommonIcon
-                      :name="copiedField === 'new-uid' ? 'checkmark' : 'clipboard'"
+                      :name="copiedField === 'new-uid' ? 'check2' : 'clipboard2'"
                       class="size-3.5"
                     />
                   </button>
@@ -858,7 +858,7 @@ const executeDeleteApp = async () => {
                     @click="copyToClipboard(appModal.generatedApp.secret, 'new-secret')"
                   >
                     <CommonIcon
-                      :name="copiedField === 'new-secret' ? 'checkmark' : 'clipboard'"
+                      :name="copiedField === 'new-secret' ? 'check2' : 'clipboard2'"
                       class="size-3.5"
                     />
                   </button>
@@ -969,7 +969,7 @@ const executeDeleteApp = async () => {
               :aria-label="__('Close')"
               @click="credentialsModal.isOpen = false"
             >
-              <CommonIcon name="close" class="size-5" />
+              <CommonIcon name="x-lg" class="size-5" />
             </button>
           </div>
 
@@ -998,7 +998,7 @@ const executeDeleteApp = async () => {
                   @click="copyToClipboard(credentialsModal.app.uid, 'view-uid')"
                 >
                   <CommonIcon
-                    :name="copiedField === 'view-uid' ? 'checkmark' : 'clipboard'"
+                    :name="copiedField === 'view-uid' ? 'check2' : 'clipboard2'"
                     class="size-4"
                   />
                 </button>
@@ -1029,7 +1029,7 @@ const executeDeleteApp = async () => {
                   @click="copyToClipboard(credentialsModal.app.secret, 'view-secret')"
                 >
                   <CommonIcon
-                    :name="copiedField === 'view-secret' ? 'checkmark' : 'clipboard'"
+                    :name="copiedField === 'view-secret' ? 'check2' : 'clipboard2'"
                     class="size-4"
                   />
                 </button>
@@ -1078,7 +1078,7 @@ const executeDeleteApp = async () => {
               :aria-label="__('Close')"
               @click="tokenModal.isOpen = false"
             >
-              <CommonIcon name="close" class="size-5" />
+              <CommonIcon name="x-lg" class="size-5" />
             </button>
           </div>
 
@@ -1116,7 +1116,7 @@ const executeDeleteApp = async () => {
                   @click="copyToClipboard(tokenModal.generatedToken, 'app-token')"
                 >
                   <CommonIcon
-                    :name="copiedField === 'app-token' ? 'checkmark' : 'clipboard'"
+                    :name="copiedField === 'app-token' ? 'check2' : 'clipboard2'"
                     class="size-4"
                   />
                 </button>

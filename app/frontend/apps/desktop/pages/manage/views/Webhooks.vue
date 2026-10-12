@@ -516,7 +516,7 @@ onMounted(() => {
                       @click="() => { closeActionMenu(); handleCloneWebhook(wh) }"
                       class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                     >
-                      <CommonIcon name="copy" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
+                      <CommonIcon name="files" class="w-3.5 h-3.5 mr-2.5 text-slate-400" />{{ __('Clone') }}
                     </button>
                     <div class="border-t border-slate-100 dark:border-slate-700 my-1"></div>
                     <button
@@ -825,7 +825,7 @@ onMounted(() => {
             :disabled="payloadLoading"
             class="px-4 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <CommonIcon :name="copiedPayload ? 'check2' : 'copy'" class="w-3.5 h-3.5" />
+            <CommonIcon :name="copiedPayload ? 'check2' : 'files'" class="w-3.5 h-3.5" />
             {{ copiedPayload ? __('Copied!') : __('Copy JSON') }}
           </button>
           <button

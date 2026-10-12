@@ -983,7 +983,7 @@ onMounted(() => {
             :class="activeTab === 'style' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
             @click="activeTab = 'style'"
           >
-            <CommonIcon name="palette" class="w-4 h-4" />
+            <CommonIcon name="color" class="w-4 h-4" />
             {{ __('Theme & Branding') }}
           </button>
           <button
@@ -1723,7 +1723,7 @@ onMounted(() => {
                     :title="__('Move Up')"
                     @click="moveDrawerLinkRow(rIdx, 'up')"
                   >
-                    <CommonIcon name="arrow-up" class="w-3.5 h-3.5" />
+                    <CommonIcon name="arrow-up-short" class="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
@@ -1732,7 +1732,7 @@ onMounted(() => {
                     :title="__('Move Down')"
                     @click="moveDrawerLinkRow(rIdx, 'down')"
                   >
-                    <CommonIcon name="arrow-down" class="w-3.5 h-3.5" />
+                    <CommonIcon name="arrow-down-short" class="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
@@ -1959,7 +1959,7 @@ onMounted(() => {
               class="absolute top-3 ltr:right-3 rtl:left-3 px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded-md text-[11px] font-medium transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
               @click="copyToClipboard(activeSnippetTab === 'nginx' ? serverSnippets?.snippets?.nginx : serverSnippets?.snippets?.apache)"
             >
-              <CommonIcon name="copy" class="w-3 h-3" />
+              <CommonIcon name="files" class="w-3 h-3" />
               {{ __('Copy') }}
             </button>
             <pre class="p-4 bg-slate-900 text-slate-100 rounded-xl text-xs font-mono overflow-x-auto leading-relaxed max-h-72">{{ activeSnippetTab === 'nginx' ? (serverSnippets?.snippets?.nginx || __('No snippet available.')) : (serverSnippets?.snippets?.apache || __('No snippet available.')) }}</pre>

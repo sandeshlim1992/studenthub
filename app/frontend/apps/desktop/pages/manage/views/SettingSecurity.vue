@@ -1053,7 +1053,7 @@ onMounted(() => {
                 :title="__('Copy URL')"
                 @click="copyToClipboard(providerModal.callbackUrl)"
               >
-                <CommonIcon name="copy" class="w-3.5 h-3.5" />
+                <CommonIcon name="files" class="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

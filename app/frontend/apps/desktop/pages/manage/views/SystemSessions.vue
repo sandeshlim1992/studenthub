@@ -265,7 +265,7 @@ const executeTerminateSession = async () => {
               @click="fetchSessions(false)"
             >
               <CommonIcon
-                name="refresh"
+                name="arrow-clockwise"
                 class="h-4 w-4"
                 :class="{ 'animate-spin': isRefreshing }"
               />
@@ -289,7 +289,7 @@ const executeTerminateSession = async () => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -309,7 +309,7 @@ const executeTerminateSession = async () => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -376,7 +376,7 @@ const executeTerminateSession = async () => {
           <div
             class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
           >
-            <CommonIcon name="users" class="h-6 w-6" />
+            <CommonIcon name="people-fill" class="h-6 w-6" />
           </div>
           <h3 class="text-base font-semibold text-slate-800 dark:text-slate-200">
             {{ __('No active sessions found') }}

@@ -979,7 +979,7 @@ onMounted(() => {
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-xl shadow-2xl p-6 overflow-hidden">
           <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
             <h3 class="text-base font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <CommonIcon name="arrow-down-up" class="w-5 h-5 text-blue-500" />
+              <CommonIcon name="upload" class="w-5 h-5 text-blue-500" />
               {{ __('Import Users (CSV)') }}
             </h3>
             <button
@@ -1070,7 +1070,7 @@ onMounted(() => {
           <div v-else-if="importStage === 'preview'" class="py-5 space-y-4">
             <div class="p-4 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 rounded-xl text-xs text-slate-700 dark:text-slate-200 space-y-2">
               <div class="font-semibold text-sm text-blue-800 dark:text-blue-300 flex items-center gap-1.5">
-                <CommonIcon name="check-circle" class="w-4 h-4 text-emerald-500" />
+                <CommonIcon name="check2-circle" class="w-4 h-4 text-emerald-500" />
                 {{ __('The test run was successful.') }}
               </div>
               <p class="text-slate-600 dark:text-slate-300">
@@ -1102,7 +1102,7 @@ onMounted(() => {
           <div v-else-if="importStage === 'complete'" class="py-5 space-y-4">
             <div class="p-4 bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 rounded-xl text-xs text-slate-700 dark:text-slate-200 space-y-2">
               <div class="font-semibold text-sm text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                <CommonIcon name="check-circle" class="w-4 h-4 text-emerald-600" />
+                <CommonIcon name="check2-circle" class="w-4 h-4 text-emerald-600" />
                 {{ __('The import was successful.') }}
               </div>
               <p class="text-slate-600 dark:text-slate-300">

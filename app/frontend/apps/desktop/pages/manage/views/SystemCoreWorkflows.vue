@@ -641,7 +641,7 @@ const executeDeleteWorkflow = async () => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -661,7 +661,7 @@ const executeDeleteWorkflow = async () => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -912,7 +912,7 @@ const executeDeleteWorkflow = async () => {
                       :aria-label="__('Edit %s', wf.name)"
                       @click="openEditWorkflowModal(wf)"
                     >
-                      <CommonIcon name="pen" class="h-4 w-4" />
+                      <CommonIcon name="pencil" class="h-4 w-4" />
                     </button>
                     <button
                       type="button"
@@ -921,7 +921,7 @@ const executeDeleteWorkflow = async () => {
                       :aria-label="__('Duplicate %s', wf.name)"
                       @click="duplicateWorkflow(wf)"
                     >
-                      <CommonIcon name="copy" class="h-4 w-4" />
+                      <CommonIcon name="files" class="h-4 w-4" />
                     </button>
                     <button
                       type="button"
@@ -973,7 +973,7 @@ const executeDeleteWorkflow = async () => {
               :aria-label="__('Close')"
               @click="modalState.isOpen = false"
             >
-              <CommonIcon name="close" class="h-5 w-5" />
+              <CommonIcon name="x-lg" class="h-5 w-5" />
             </button>
           </div>
 

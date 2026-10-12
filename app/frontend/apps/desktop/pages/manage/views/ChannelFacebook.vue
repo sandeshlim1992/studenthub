@@ -424,12 +424,12 @@ onMounted(() => {
 
       <!-- Feedback Alerts -->
       <div v-if="successMessage" class="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="check-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
+        <CommonIcon name="check2-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
         <span>{{ successMessage }}</span>
       </div>
 
       <div v-if="errorMessage" class="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="alert-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
+        <CommonIcon name="exclamation-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
         <span>{{ errorMessage }}</span>
       </div>
 
@@ -459,14 +459,14 @@ onMounted(() => {
             class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center gap-2 mb-8"
             @click="openAppConfigModal"
           >
-            <CommonIcon name="settings" class="w-4 h-4" />
+            <CommonIcon name="gear" class="w-4 h-4" />
             {{ __('Connect Facebook App') }}
           </button>
 
           <!-- Guide Box -->
           <div class="text-left bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl p-5 space-y-4">
             <div class="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100">
-              <CommonIcon name="info" class="w-4 h-4 text-blue-500" />
+              <CommonIcon name="info-circle" class="w-4 h-4 text-blue-500" />
               {{ __('Meta for Developers Setup Guide') }}
             </div>
             <ol class="list-decimal list-inside text-xs text-slate-600 dark:text-slate-300 space-y-2.5">
@@ -702,7 +702,7 @@ onMounted(() => {
                   :aria-label="__('Toggle visibility')"
                   @click="isClientSecretVisible = !isClientSecretVisible"
                 >
-                  <CommonIcon :name="isClientSecretVisible ? 'eye-off' : 'eye'" class="w-4 h-4" />
+                  <CommonIcon :name="isClientSecretVisible ? 'eye-slash' : 'eye'" class="w-4 h-4" />
                 </button>
               </div>
             </div>

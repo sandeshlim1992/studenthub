@@ -433,8 +433,10 @@ const reclaimEditorFocus = (event: MouseEvent) => {
       />
     </div>
 
+    <!-- Student Hub: only once the editor exists (tiptap creates it after mounting), as the footer above -->
     <component
       :is="actionBarComponent"
+      v-if="editor"
       :class="{
         invisible: isInlineMode && !isEditing,
       }"

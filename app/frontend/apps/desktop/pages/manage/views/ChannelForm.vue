@@ -303,12 +303,12 @@ onMounted(() => {
 
       <!-- Feedback Alerts -->
       <div v-if="successMessage" class="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="check-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
+        <CommonIcon name="check2-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
         <span>{{ successMessage }}</span>
       </div>
 
       <div v-if="errorMessage" class="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="alert-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
+        <CommonIcon name="exclamation-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
         <span>{{ errorMessage }}</span>
       </div>
 
@@ -580,7 +580,7 @@ onMounted(() => {
                 </div>
 
                 <div v-if="captchaProvider" class="text-[10px] text-slate-400 flex items-center gap-1 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
-                  <CommonIcon name="check-circle" class="w-3 h-3 text-emerald-500" />
+                  <CommonIcon name="check2-circle" class="w-3 h-3 text-emerald-500" />
                   <span>{{ __('Protected by') }} {{ captchaProvider }}</span>
                 </div>
 
@@ -630,7 +630,7 @@ onMounted(() => {
                 class="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
                 @click="copySnippet"
               >
-                <CommonIcon name="clipboard" class="w-3.5 h-3.5" />
+                <CommonIcon name="clipboard2" class="w-3.5 h-3.5" />
                 {{ __('Copy Code') }}
               </button>
             </div>

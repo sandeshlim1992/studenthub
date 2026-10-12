@@ -1071,12 +1071,12 @@ onMounted(() => {
 
       <!-- Feedback Alerts -->
       <div v-if="successMessage" class="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="check-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
+        <CommonIcon name="check2-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
         <span>{{ successMessage }}</span>
       </div>
 
       <div v-if="errorMessage" class="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="alert-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
+        <CommonIcon name="exclamation-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
         <span>{{ errorMessage }}</span>
       </div>
 
@@ -1125,7 +1125,7 @@ onMounted(() => {
             :class="activeTab === 'signatures' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
             @click="activeTab = 'signatures'"
           >
-            <CommonIcon name="edit" class="w-3.5 h-3.5" />
+            <CommonIcon name="pencil" class="w-3.5 h-3.5" />
             {{ __('Signatures') }}
             <span
               v-if="signatures.length > 0"
@@ -1140,7 +1140,7 @@ onMounted(() => {
             :class="activeTab === 'settings' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
             @click="activeTab = 'settings'"
           >
-            <CommonIcon name="settings" class="w-3.5 h-3.5" />
+            <CommonIcon name="gear" class="w-3.5 h-3.5" />
             {{ __('Settings') }}
             <span v-if="hasUnsavedSettings" class="w-2 h-2 rounded-full bg-amber-500"></span>
           </button>
@@ -1167,14 +1167,14 @@ onMounted(() => {
               class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer inline-flex items-center gap-2 mb-8"
               @click="openAppConfigModal"
             >
-              <CommonIcon name="settings" class="w-4 h-4" />
+              <CommonIcon name="gear" class="w-4 h-4" />
               {{ __('Connect Google App') }}
             </button>
 
             <!-- Guide Box -->
             <div class="text-left bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-xl p-5 space-y-4">
               <div class="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100">
-                <CommonIcon name="info" class="w-4 h-4 text-blue-500" />
+                <CommonIcon name="info-circle" class="w-4 h-4 text-blue-500" />
                 {{ __('Setup Guide & Instructions') }}
               </div>
               <ol class="list-decimal list-inside text-xs text-slate-600 dark:text-slate-300 space-y-2.5">
@@ -1223,7 +1223,7 @@ onMounted(() => {
               class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 shadow-xs"
             >
               <div class="flex items-start gap-3">
-                <CommonIcon name="alert-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <CommonIcon name="exclamation-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div class="flex-1">
                   <h3 class="text-xs font-bold text-amber-900 dark:text-amber-200 mb-1">
                     {{ __('Notice: Unassigned email addresses, assign them to a channel or delete them.') }}
@@ -1296,7 +1296,7 @@ onMounted(() => {
                 class="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between"
               >
                 <div class="flex items-center gap-2">
-                  <CommonIcon name="alert-triangle" class="w-4 h-4 shrink-0 text-amber-600" />
+                  <CommonIcon name="exclamation-triangle" class="w-4 h-4 shrink-0 text-amber-600" />
                   <span>{{ __('The app configuration has changed since this channel was authenticated. Please click "Reauthenticate" to keep it working.') }}</span>
                 </div>
                 <button
@@ -1773,7 +1773,7 @@ onMounted(() => {
                   :aria-label="__('Toggle visibility')"
                   @click="isClientSecretVisible = !isClientSecretVisible"
                 >
-                  <CommonIcon :name="isClientSecretVisible ? 'eye-off' : 'eye'" class="w-4 h-4" />
+                  <CommonIcon :name="isClientSecretVisible ? 'eye-slash' : 'eye'" class="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -1808,7 +1808,7 @@ onMounted(() => {
               class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
             >
               {{ __('Online Documentation') }}
-              <CommonIcon name="external-link" class="w-3 h-3" />
+              <CommonIcon name="box-arrow-up-right" class="w-3 h-3" />
             </a>
             <div class="flex items-center gap-3">
               <button

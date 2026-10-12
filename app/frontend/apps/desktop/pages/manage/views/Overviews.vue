@@ -984,7 +984,7 @@ onUnmounted(() => {
               class="flex w-full items-center px-4 py-2.5 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
               @click="handleCloneOverview(actionMenuOverview)"
             >
-              <CommonIcon name="copy" class="w-3.5 h-3.5 text-slate-400 rtl:ml-2.5 ltr:mr-2.5" />
+              <CommonIcon name="files" class="w-3.5 h-3.5 text-slate-400 rtl:ml-2.5 ltr:mr-2.5" />
               {{ __('Clone') }}
             </button>
             <button

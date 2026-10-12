@@ -1203,7 +1203,7 @@ onMounted(() => {
           :class="activeTab === 'filters' ? 'border-blue-600 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'"
           @click="activeTab = 'filters'"
         >
-          <CommonIcon name="funnel" class="w-4 h-4" />
+          <CommonIcon name="filter" class="w-4 h-4" />
           {{ __('Filter') }}
           <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
             {{ postmasterFilters.length }}
@@ -1249,7 +1249,7 @@ onMounted(() => {
           <div class="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-slate-900/60 dark:to-slate-900/60 border border-blue-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-center gap-3.5">
               <span class="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs">
-                <CommonIcon name="bell" class="w-5 h-5" />
+                <CommonIcon name="envelope" class="w-5 h-5" />
               </span>
               <div>
                 <div class="flex items-center gap-2">
@@ -1354,7 +1354,7 @@ onMounted(() => {
                   <div>
                     <span class="text-slate-400 block mb-0.5">{{ __('Destination Group') }}</span>
                     <span class="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                      <CommonIcon name="people" class="w-3.5 h-3.5 text-blue-500" />
+                      <CommonIcon name="people-fill" class="w-3.5 h-3.5 text-blue-500" />
                       {{ getGroupName(channel.group_id) }}
                     </span>
                   </div>
@@ -1510,7 +1510,7 @@ onMounted(() => {
 
           <!-- Zero State Filters -->
           <div v-else class="p-8 text-center border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-800/20">
-            <CommonIcon name="funnel" class="w-10 h-10 text-slate-400 mx-auto mb-3" />
+            <CommonIcon name="filter" class="w-10 h-10 text-slate-400 mx-auto mb-3" />
             <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">{{ __('No postmaster filters defined') }}</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-sm mx-auto">
               {{ __('Create rules to classify and assign inbound emails automatically upon receipt.') }}

@@ -485,7 +485,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
       >
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
           <CommonIcon
-            name="alert-triangle"
+            name="exclamation-triangle"
             class="size-4 shrink-0 text-red-600 dark:text-red-400"
           />
           <span>{{ errorMessage }}</span>
@@ -496,7 +496,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="size-3.5" />
+          <CommonIcon name="x-lg" class="size-3.5" />
         </button>
       </div>
 
@@ -506,7 +506,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
       >
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
           <CommonIcon
-            name="check-circle"
+            name="check2-circle"
             class="size-4 shrink-0 text-green-600 dark:text-green-400"
           />
           <span>{{ successMessage }}</span>
@@ -517,7 +517,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="size-3.5" />
+          <CommonIcon name="x-lg" class="size-3.5" />
         </button>
       </div>
 
@@ -527,7 +527,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
         class="mb-6 flex items-start space-x-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 rtl:space-x-reverse dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300"
       >
         <CommonIcon
-          name="alert-triangle"
+          name="exclamation-triangle"
           class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400"
         />
         <div class="text-xs">
@@ -556,7 +556,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
         v-if="isLoading"
         class="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-12 text-slate-500 shadow-xs dark:border-slate-800 dark:bg-[#1e293b] dark:text-slate-400"
       >
-        <CommonIcon name="reload" class="mb-3 size-8 animate-spin text-indigo-600" />
+        <CommonIcon name="arrow-clockwise" class="mb-3 size-8 animate-spin text-indigo-600" />
         <p class="text-xs font-medium">{{ __('Loading writing assistant tools...') }}</p>
       </div>
 
@@ -673,7 +673,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
                       :title="__('Positive Feedback')"
                     >
                       <CommonIcon
-                        name="thumbs-up"
+                        name="hand-thumbs-up"
                         class="size-3.5 text-emerald-500 ltr:mr-1 rtl:ml-1"
                       />
                       {{ tool.analytics_stats.positive?.percent || 0 }}%
@@ -683,7 +683,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
                       :title="__('Negative Feedback')"
                     >
                       <CommonIcon
-                        name="thumbs-down"
+                        name="hand-thumbs-down"
                         class="size-3.5 text-rose-500 ltr:mr-1 rtl:ml-1"
                       />
                       {{ tool.analytics_stats.negative?.percent || 0 }}%
@@ -727,7 +727,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
                     >
                       <CommonIcon
                         v-if="isDownloadingId === tool.id"
-                        name="reload"
+                        name="arrow-clockwise"
                         class="size-4 animate-spin text-indigo-600"
                       />
                       <CommonIcon v-else name="download" class="size-4" />
@@ -743,10 +743,10 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
                     >
                       <CommonIcon
                         v-if="isResettingId === tool.id"
-                        name="reload"
+                        name="arrow-clockwise"
                         class="size-4 animate-spin text-amber-600"
                       />
-                      <CommonIcon v-else name="reload" class="size-4" />
+                      <CommonIcon v-else name="arrow-clockwise" class="size-4" />
                     </button>
 
                     <!-- Edit -->
@@ -756,7 +756,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
                       :title="__('Edit tool')"
                       @click="openEditToolModal(tool)"
                     >
-                      <CommonIcon name="edit" class="size-4" />
+                      <CommonIcon name="pencil" class="size-4" />
                     </button>
 
                     <!-- Delete -->
@@ -769,7 +769,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
                     >
                       <CommonIcon
                         v-if="isDeletingId === tool.id"
-                        name="reload"
+                        name="arrow-clockwise"
                         class="size-4 animate-spin text-red-600"
                       />
                       <CommonIcon v-else name="trash" class="size-4" />
@@ -808,7 +808,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
             :aria-label="__('Close dialog')"
             @click="isToolModalOpen = false"
           >
-            <CommonIcon name="close" class="size-4" />
+            <CommonIcon name="x-lg" class="size-4" />
           </button>
         </div>
 
@@ -923,7 +923,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
             >
               <CommonIcon
                 v-if="isSavingTool"
-                name="reload"
+                name="arrow-clockwise"
                 class="size-3.5 animate-spin ltr:mr-1.5 rtl:ml-1.5"
               />
               {{ isEditing ? __('Save Changes') : __('Create Tool') }}
@@ -954,7 +954,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
             :aria-label="__('Close dialog')"
             @click="isLegalModalOpen = false"
           >
-            <CommonIcon name="close" class="size-4" />
+            <CommonIcon name="x-lg" class="size-4" />
           </button>
         </div>
 

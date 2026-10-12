@@ -242,7 +242,7 @@ const isDatabaseStorage = computed(() => {
                   @click="copySnippet(cronCommand, 'cron')"
                 >
                   <CommonIcon
-                    :name="copiedKey === 'cron' ? 'check2' : 'clipboard'"
+                    :name="copiedKey === 'cron' ? 'check2' : 'clipboard2'"
                     class="h-3.5 w-3.5 ltr:mr-1 rtl:ml-1"
                   />
                   {{ copiedKey === 'cron' ? __('Copied!') : __('Copy') }}
@@ -285,7 +285,7 @@ const isDatabaseStorage = computed(() => {
                 @click="copySnippet(pgDumpCommand, 'pg')"
               >
                 <CommonIcon
-                  :name="copiedKey === 'pg' ? 'check2' : 'clipboard'"
+                  :name="copiedKey === 'pg' ? 'check2' : 'clipboard2'"
                   class="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5"
                 />
                 {{ copiedKey === 'pg' ? __('Copied!') : __('Copy Command') }}
@@ -321,7 +321,7 @@ const isDatabaseStorage = computed(() => {
                 @click="copySnippet(mySqlDumpCommand, 'mysql')"
               >
                 <CommonIcon
-                  :name="copiedKey === 'mysql' ? 'check2' : 'clipboard'"
+                  :name="copiedKey === 'mysql' ? 'check2' : 'clipboard2'"
                   class="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5"
                 />
                 {{ copiedKey === 'mysql' ? __('Copied!') : __('Copy Command') }}
@@ -335,7 +335,7 @@ const isDatabaseStorage = computed(() => {
           class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
         >
           <div class="mb-1 flex items-center space-x-2 rtl:space-x-reverse">
-            <CommonIcon name="shield-check" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <CommonIcon name="shield-lock" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <h2 class="text-base font-bold text-slate-900 dark:text-white">
               {{ __('Disaster Recovery & Restore Procedure') }}
             </h2>

@@ -18,7 +18,7 @@ interface ShortcutCategory {
 const categories: ShortcutCategory[] = [
   {
     title: __('Navigation'),
-    icon: 'compass',
+    icon: 'arrow-right',
     shortcuts: [
       { keys: ['D', 'H'], description: __('Go to Dashboard') },
       { keys: ['O'], description: __('Go to Overviews') },
@@ -35,7 +35,7 @@ const categories: ShortcutCategory[] = [
   },
   {
     title: __('Ticket Details'),
-    icon: 'ticket',
+    icon: 'all-tickets',
     shortcuts: [
       { keys: ['M', 'X'], description: __('Open Note composer') },
       { keys: ['G', 'R'], description: __('Reply to latest article') },

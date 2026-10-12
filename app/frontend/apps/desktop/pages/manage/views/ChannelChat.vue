@@ -419,7 +419,7 @@ onMounted(() => {
                     </span>
                   </div>
                   <span class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                    <CommonIcon name="people" class="w-3 h-3 text-blue-500" />
+                    <CommonIcon name="people-fill" class="w-3 h-3 text-blue-500" />
                     {{ __('Assigned Group:') }} {{ getGroupName(topic.group_id) }}
                   </span>
                 </div>
@@ -622,7 +622,7 @@ onMounted(() => {
                           :title="__('Collapse chat')"
                           @click="isChatExpanded = false"
                         >
-                          <CommonIcon name="dash" class="w-4 h-4" />
+                          <CommonIcon name="dash-circle" class="w-4 h-4" />
                         </button>
                       </div>
 
@@ -709,7 +709,7 @@ onMounted(() => {
                   class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-blue-600 hover:bg-blue-700 text-white cursor-pointer inline-flex items-center gap-1.5"
                   @click="copySnippet"
                 >
-                  <CommonIcon name="clipboard" class="w-3.5 h-3.5" />
+                  <CommonIcon name="clipboard2" class="w-3.5 h-3.5" />
                   <span>{{ __('Copy Code') }}</span>
                 </button>
               </div>

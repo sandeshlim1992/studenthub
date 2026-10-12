@@ -490,7 +490,7 @@ onMounted(() => {
         <div class="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-slate-900/60 dark:to-slate-900/60 border border-blue-200/80 dark:border-slate-800 rounded-2xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div class="flex items-center gap-3.5">
             <span class="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs">
-              <CommonIcon name="bell" class="w-5 h-5" />
+              <CommonIcon name="sms" class="w-5 h-5" />
             </span>
             <div>
               <div class="flex items-center gap-2">
@@ -595,7 +595,7 @@ onMounted(() => {
                     class="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1"
                     @click="copyToClipboard(getWebhookUrl(channel.options.webhook_token))"
                   >
-                    <CommonIcon name="clipboard" class="w-3.5 h-3.5" />
+                    <CommonIcon name="clipboard2" class="w-3.5 h-3.5" />
                     {{ __('Copy Webhook URL') }}
                   </button>
                 </div>

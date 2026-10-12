@@ -365,7 +365,7 @@ const categories = ref<Category[]>([
       },
       {
         name: __('System Report'),
-        icon: 'clipboard',
+        icon: 'clipboard2',
         target: '/manage/system/system_report',
         description: __('Export and review system diagnostics report.'),
       },
@@ -536,7 +536,7 @@ const handleBack = () => {
                 <div
                   class="-translate-y-1 text-slate-300 opacity-0 transition-all transition-colors duration-200 group-hover:text-blue-500 group-hover:opacity-100 ltr:translate-x-1 rtl:-translate-x-1 dark:text-[#475569] dark:group-hover:text-blue-400"
                 >
-                  <CommonIcon name="arrow-right-short" class="h-5 w-5" />
+                  <CommonIcon name="arrow-right" class="h-5 w-5" />
                 </div>
               </div>
 

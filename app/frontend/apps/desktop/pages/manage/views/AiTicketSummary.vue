@@ -443,7 +443,7 @@ onMounted(() => {
       >
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
           <CommonIcon
-            name="alert-triangle"
+            name="exclamation-triangle"
             class="size-4 shrink-0 text-red-600 dark:text-red-400"
           />
           <span>{{ errorMessage }}</span>
@@ -463,7 +463,7 @@ onMounted(() => {
         class="mb-6 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300"
       >
         <div class="flex items-center space-x-2 rtl:space-x-reverse">
-          <CommonIcon name="check" class="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <CommonIcon name="check2" class="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <span>{{ successMessage }}</span>
         </div>
         <button
@@ -482,7 +482,7 @@ onMounted(() => {
         class="mb-6 flex items-start space-x-3.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-800 shadow-2xs dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300"
       >
         <CommonIcon
-          name="alert-triangle"
+          name="exclamation-triangle"
           class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400"
         />
         <div class="space-y-1 text-xs">
@@ -559,7 +559,7 @@ onMounted(() => {
               </div>
               <div class="text-2xs mt-4 flex items-center justify-between text-slate-400">
                 <span>{{ __('Always active') }}</span>
-                <CommonIcon name="check" class="size-4 text-emerald-500" />
+                <CommonIcon name="check2" class="size-4 text-emerald-500" />
               </div>
             </div>
 
@@ -586,7 +586,7 @@ onMounted(() => {
               </div>
               <div class="text-2xs mt-4 flex items-center justify-between text-slate-400">
                 <span>{{ __('Always active') }}</span>
-                <CommonIcon name="check" class="size-4 text-emerald-500" />
+                <CommonIcon name="check2" class="size-4 text-emerald-500" />
               </div>
             </div>
 
@@ -785,7 +785,7 @@ onMounted(() => {
             v-if="selectorConditions.length === 0"
             class="rounded-xl border border-dashed border-slate-200 py-8 text-center dark:border-slate-700"
           >
-            <CommonIcon name="check" class="mx-auto size-6 text-emerald-500" />
+            <CommonIcon name="check2" class="mx-auto size-6 text-emerald-500" />
             <p class="mt-2 text-xs font-semibold text-slate-800 dark:text-slate-200">
               {{ __('Enabled for All Tickets') }}
             </p>
@@ -1062,7 +1062,7 @@ onMounted(() => {
               :aria-label="__('Close dialog')"
               @click="isLegalModalOpen = false"
             >
-              <CommonIcon name="close" class="size-5" />
+              <CommonIcon name="x-lg" class="size-5" />
             </button>
           </div>
 

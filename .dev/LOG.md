@@ -186,3 +186,7 @@ the current state is in `.dev/NOTES.md`.
   GraphQL specs and the editor's specs give the same results as before
 - 2026-10-12: `.dev/security-review.md`: every Snyk finding with its verdict (fixed / by design / false positive) and
   the reason; `.dcignore` keeps `spec/`, `contrib/` and `.dev/` out of Snyk Code (test passwords made ~420 findings)
+- 2026-10-12: `/manage` pages, avatar menu and keyboard shortcuts: 198 icon names that don't exist in Zammad's icon
+  set (Taxil's, e.g. `close`, `copy`, `clipboard`, `alert-triangle`, `edit`) replaced by existing ones (`x-lg`,
+  `files`, `clipboard2`, `exclamation-triangle`, `pencil`); they showed as blank spaces
+- 2026-10-12: Editor: the toolbar appears once tiptap has created the editor (no "Invalid prop: editor" warning)

@@ -442,12 +442,12 @@ onMounted(() => {
 
       <!-- Feedback Alerts -->
       <div v-if="successMessage" class="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="check-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
+        <CommonIcon name="check2-circle" class="w-4 h-4 shrink-0 text-emerald-500" />
         <span>{{ successMessage }}</span>
       </div>
 
       <div v-if="errorMessage" class="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2 shadow-xs">
-        <CommonIcon name="alert-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
+        <CommonIcon name="exclamation-triangle" class="w-4 h-4 shrink-0 text-rose-500" />
         <span>{{ errorMessage }}</span>
       </div>
 
@@ -799,7 +799,7 @@ onMounted(() => {
               class="text-xs text-blue-600 hover:underline inline-flex items-center gap-1"
             >
               {{ __('Documentation') }}
-              <CommonIcon name="external-link" class="w-3 h-3" />
+              <CommonIcon name="box-arrow-up-right" class="w-3 h-3" />
             </a>
 
             <div class="flex items-center gap-3">

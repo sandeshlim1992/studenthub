@@ -280,7 +280,7 @@ const sendBroadcastMessage = async () => {
           :aria-label="__('Dismiss')"
           @click="successMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -300,7 +300,7 @@ const sendBroadcastMessage = async () => {
           :aria-label="__('Dismiss')"
           @click="errorMessage = ''"
         >
-          <CommonIcon name="close" class="h-4 w-4" />
+          <CommonIcon name="x-lg" class="h-4 w-4" />
         </button>
       </div>
 
@@ -324,7 +324,7 @@ const sendBroadcastMessage = async () => {
                     : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                 "
               >
-                <CommonIcon :name="maintenanceMode ? 'alert-triangle' : 'wrench'" class="h-6 w-6" />
+                <CommonIcon :name="maintenanceMode ? 'exclamation-triangle' : 'wrench'" class="h-6 w-6" />
               </div>
               <div>
                 <div class="flex items-center space-x-2 rtl:space-x-reverse">
@@ -484,7 +484,7 @@ const sendBroadcastMessage = async () => {
               >
                 <div class="flex items-start space-x-1.5 rtl:space-x-reverse">
                   <CommonIcon
-                    name="alert-triangle"
+                    name="exclamation-triangle"
                     class="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
                   />
                   <span class="leading-relaxed font-medium">
@@ -613,7 +613,7 @@ const sendBroadcastMessage = async () => {
             <div
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
             >
-              <CommonIcon name="alert-triangle" class="h-5 w-5" />
+              <CommonIcon name="exclamation-triangle" class="h-5 w-5" />
             </div>
             <div>
               <h3 class="text-base font-bold text-slate-900 dark:text-white">

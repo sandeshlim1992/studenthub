@@ -13,9 +13,12 @@ module Gql::Mutations
     requires_enabled_setting 'checklist', error_message: __('The checklist feature is not active')
 
     def resolve(ticket:, create_first_item: false, template_id: nil)
-      checklist = if template_id
-                    template = Gql::ZammadSchema.verified_object_from_id(template_id, type: ::ChecklistTemplate)
+      template = Gql::ZammadSchema.verified_object_from_id(template_id, type: ::ChecklistTemplate) if template_id
 
+      # Student Hub: agents add only the checklist assigned to the ticket's sub-category (Studenthub::ChecklistRules).
+      raise Exceptions::Forbidden, __('Not authorized') if !Studenthub::ChecklistRules.may_add?(context.current_user, ticket, template)
+
+      checklist = if template
                     Checklist.create_from_template!(ticket, template)
                   elsif create_first_item
                     Checklist.create_fresh!(ticket)

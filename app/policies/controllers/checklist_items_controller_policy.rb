@@ -17,10 +17,13 @@ class Controllers::ChecklistItemsControllerPolicy < Controllers::ApplicationCont
       .show?
   end
 
+  # Student Hub: agents only tick; changing the text is for checklist admins (Studenthub::ChecklistRules).
   def update?
-    Checklist::ItemPolicy
-      .new(user, checklist_item)
-      .update?
+    policy = Checklist::ItemPolicy.new(user, checklist_item)
+    return false if !policy.update?
+    return true if !record.params.key?(:text) || record.params[:text] == checklist_item.text
+
+    policy.manage?
   end
 
   def destroy?

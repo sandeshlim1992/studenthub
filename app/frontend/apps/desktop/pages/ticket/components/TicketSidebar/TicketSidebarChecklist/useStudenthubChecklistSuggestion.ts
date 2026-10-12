@@ -14,6 +14,8 @@ export interface StudenthubChecklistSuggestion {
   name: string
   category: string
   subCategory: string
+  itemCount: number
+  firstItems: string[]
 }
 
 const CATEGORY_FIELD = 'category2'
@@ -39,6 +41,8 @@ export const loadStudenthubChecklistSuggestion = async (
     name: data.name,
     category: data.category,
     subCategory: data.sub_category,
+    itemCount: data.item_count ?? 0,
+    firstItems: data.first_items ?? [],
   }
 }
 
@@ -78,5 +82,12 @@ export const useStudenthubChecklistSuggestion = (
     { immediate: true },
   )
 
-  return { suggestion }
+  // The ticket's Category › Sub-category, for the tab's notes.
+  const categoryPath = computed(() =>
+    [fieldValue(CATEGORY_FIELD), fieldValue(SUB_CATEGORY_FIELD)]
+      .filter((value) => value !== undefined && value !== null && value !== '')
+      .join(' › '),
+  )
+
+  return { suggestion, categoryPath }
 }

@@ -5,7 +5,7 @@ require 'rails_helper'
 RSpec.describe 'Checklist', authenticated_as: :agent_1, current_user_id: 1, type: :request do
   let(:group_1)        { create(:group) }
   let(:group_2)        { create(:group) }
-  let(:agent_1)        { create(:agent, groups: [group_1]) }
+  let(:agent_1)        { create(:checklist_admin_agent, groups: [group_1]) }
   let(:ticket_1)       { create(:ticket, group: group_1) }
   let(:ticket_2)       { create(:ticket, group: group_2) }
   let(:ticket_1_empty) { create(:ticket, group: group_1) }

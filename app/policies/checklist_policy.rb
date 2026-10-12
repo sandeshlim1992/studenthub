@@ -5,12 +5,18 @@ class ChecklistPolicy < ApplicationPolicy
     check_prerequisites? && ticket_policy.agent_read_access?
   end
 
+  # Student Hub: ticking items (Studenthub::ChecklistRules).
   def update?
     check_prerequisites? && ticket_policy.agent_update_access?
   end
 
+  # Student Hub: everything else, checklist admins only.
+  def manage?
+    update? && Studenthub::ChecklistRules.manage?(user)
+  end
+
   def destroy?
-    check_prerequisites? && ticket_policy.agent_update_access?
+    manage?
   end
 
   private

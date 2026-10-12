@@ -18,6 +18,11 @@ export const TicketChecklistUpdatesDocument = gql`
         id
         text
         checked
+        updatedAt
+        updatedBy {
+          id
+          fullname
+        }
         ticketReference {
           ticket {
             ...referencingTicket

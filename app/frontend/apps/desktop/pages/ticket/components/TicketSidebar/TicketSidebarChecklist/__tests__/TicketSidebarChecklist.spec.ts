@@ -1,6 +1,5 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { waitFor } from '@testing-library/vue'
 import { computed, ref } from 'vue'
 
 import { type ExtendedRenderResult, renderComponent } from '#tests/support/components/index.ts'
@@ -11,8 +10,8 @@ import { nullableMock, waitForNextTick } from '#tests/support/utils.ts'
 
 import { createDummyTicket } from '#shared/entities/ticket-article/__tests__/mocks/ticket.ts'
 import {
+  EnumTicketStateColorCode,
   type ChecklistItem,
-  type ChecklistTemplate,
   type TicketChecklistUpdatesSubscription,
 } from '#shared/graphql/types.ts'
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
@@ -21,15 +20,8 @@ import '#tests/graphql/builders/mocks.ts'
 
 import { waitForTicketChecklistAddMutationCalls } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistAdd.mocks.ts'
 import { waitForTicketChecklistDeleteMutationCalls } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistDelete.mocks.ts'
-import { waitForTicketChecklistItemDeleteMutationCalls } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistItemDelete.mocks.ts'
-import {
-  mockTicketChecklistItemUpsertMutation,
-  waitForTicketChecklistItemUpsertMutationCalls,
-} from '#desktop/pages/ticket/graphql/mutations/ticketChecklistItemUpsert.mocks.ts'
-import { waitForTicketChecklistTitleUpdateMutationCalls } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistTitleUpdate.mocks.ts'
-import { mockChecklistTemplatesQuery } from '#desktop/pages/ticket/graphql/queries/checklistTemplates.mocks.ts'
+import { waitForTicketChecklistItemUpsertMutationCalls } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistItemUpsert.mocks.ts'
 import { mockTicketChecklistQuery } from '#desktop/pages/ticket/graphql/queries/ticketChecklist.mocks.ts'
-import { getChecklistTemplateUpdatesSubscriptionHandler } from '#desktop/pages/ticket/graphql/subscriptions/checklistTemplateUpdates.mocks.ts'
 import { getTicketChecklistUpdatesSubscriptionHandler } from '#desktop/pages/ticket/graphql/subscriptions/ticketChecklistUpdates.mocks.ts'
 import { TicketSidebarScreenType } from '#desktop/pages/ticket/types/sidebar.ts'
 
@@ -55,27 +47,6 @@ vi.mock('#shared/composables/useConfirmation.ts', () => ({
 }))
 
 mockRouterHooks()
-
-const templateMocks: Partial<ChecklistTemplate>[] = [
-  {
-    __typename: 'ChecklistTemplate',
-    id: convertToGraphQLId('Checklist::Item', 1),
-    name: 'Foo template',
-    active: true,
-  },
-  {
-    __typename: 'ChecklistTemplate',
-    id: convertToGraphQLId('Checklist::Item', 2),
-    name: 'Bar template',
-    active: true,
-  },
-  {
-    __typename: 'ChecklistTemplate',
-    id: convertToGraphQLId('Checklist::Item', 3),
-    name: 'Hu template',
-    active: true,
-  },
-]
 
 const checklistItemsMock: ChecklistItem[] = [
   nullableMock<ChecklistItem>({
@@ -151,24 +122,6 @@ const mockChecklistUpdateSubscription = async (
   )
 }
 
-const openMenuAndClickAction = async (
-  wrapper: ExtendedRenderResult,
-  action: string,
-  /**
-   * 0 is checklist menu
-   * 1 is checklist item menu
-   */
-  index = 1,
-) => {
-  await wrapper.events.click(
-    wrapper.getAllByRole('button', { name: 'Action menu button' }).at(index) as HTMLElement,
-  )
-
-  expect(await wrapper.findByRole('menu')).toBeInTheDocument()
-
-  await wrapper.events.click(wrapper.getByRole('button', { name: action }))
-}
-
 const verifyChecked = async (checkboxes: HTMLElement[], withSubscription = true) => {
   const upsertCalls = await waitForTicketChecklistItemUpsertMutationCalls()
 
@@ -200,27 +153,6 @@ const verifyChecked = async (checkboxes: HTMLElement[], withSubscription = true)
   expect(checkboxes[0]).toBeChecked()
 }
 
-const verifyTextUpdate = async (wrapper: ExtendedRenderResult, withSubscription = true) => {
-  if (withSubscription) {
-    await mockChecklistUpdateSubscription({
-      items: [
-        {
-          checked: false,
-          id: convertToGraphQLId('Checklist::Item', 1),
-          text: 'Checklist item A update',
-        },
-        {
-          checked: false,
-          id: convertToGraphQLId('Checklist::Item', 2),
-          text: 'Checklist item B',
-        },
-      ],
-    })
-  }
-
-  expect(await wrapper.findByText('Checklist item A update')).toBeInTheDocument()
-}
-
 const renderChecklist = async () => {
   const result = renderComponent(TicketSidebarChecklist, {
     props: {
@@ -247,6 +179,9 @@ const renderChecklist = async () => {
 // Student Hub: the checklist of the ticket's sub-category (useStudenthubChecklistSuggestion).
 const suggestionFetch = vi.fn()
 
+
+// Student Hub: the Checklist tab as steps (design B). Agents only tick and untick; checklists are made
+// and assigned by admins (Studenthub::ChecklistRules).
 describe('TicketSidebarChecklist', () => {
   beforeAll(() => {
     const app = document.createElement('div')
@@ -263,163 +198,57 @@ describe('TicketSidebarChecklist', () => {
     ticket.value = createDummyTicket()
 
     mockApplicationConfig({ ticket_hook: 'TicketTitle#' })
+    mockPermissions(['ticket.agent'])
 
     suggestionFetch.mockReset()
     suggestionFetch.mockResolvedValue({ ok: true, json: async () => ({}) })
     vi.stubGlobal('fetch', suggestionFetch)
   })
 
-  it('displays content in readonly mode if agent has no permissions', async () => {
-    mockTicketChecklistQuery({
-      ticketChecklist: null,
-    })
-
-    ticket.value = createDummyTicket({
-      defaultPolicy: {
-        agentReadAccess: true,
-        update: false,
-      },
-    })
-
-    const wrapper = await renderChecklist()
-
-    expect(wrapper.getAllByIconName('checklist')).toHaveLength(2)
-
-    expect(await wrapper.findByText('No checklist assigned to this ticket.')).toBeInTheDocument()
-
-    expect(wrapper.queryByRole('button', { name: 'Add from a template' })).not.toBeInTheDocument()
-  })
-
-  it('displays permission denied message for checklist item if agent has no permission on linked ticket', async () => {
-    mockTicketChecklistQuery({
-      ticketChecklist: {
-        name: 'Checklist title',
-        items: [
-          {
-            __typename: 'ChecklistItem',
-            id: convertToGraphQLId('Checklist::Item', 1),
-            text: 'Checklist item A',
-            checked: false,
-            ticketReference: {
-              ticket: null,
-            },
-          },
-        ],
-      },
-    })
-
-    ticket.value = createDummyTicket({
-      defaultPolicy: {
-        agentReadAccess: true,
-        update: false,
-      },
-    })
-
-    const wrapper = await renderChecklist()
-
-    expect(await wrapper.findByText('Access denied')).toBeInTheDocument()
-    expect(wrapper.getByIconName('x-lg')).toBeInTheDocument()
-  })
-
-  it('creates a empty checklist with a couple of items', async () => {
-    mockTicketChecklistQuery({
-      ticketChecklist: null,
-    })
-
-    const wrapper = await renderChecklist()
-
-    expect(wrapper.getByRole('heading', { name: 'Checklist', level: 2 })).toBeInTheDocument()
-
-    expect(wrapper.getAllByIconName('checklist')).toHaveLength(2)
-
-    expect(await wrapper.findByRole('button', { name: 'Add empty checklist' })).toBeInTheDocument()
-
-    await wrapper.events.click(wrapper.getByRole('button', { name: 'Add empty checklist' }))
-
-    await waitFor(() =>
-      expect(wrapper.getByRole('button', { name: 'Add empty checklist' })).not.toBeDisabled(),
-    )
-    const calls = await waitForTicketChecklistAddMutationCalls()
-
-    expect(calls.at(-1)?.variables).toEqual({
-      createFirstItem: true,
-      ticketId: convertToGraphQLId('Ticket', 1),
-    })
-  })
-
-  it('shows message if checklist is empty', async () => {
-    mockTicketChecklistQuery({
-      ticketChecklist: {
-        id: convertToGraphQLId('Checklist', 1),
-        name: 'Checklist title',
-        completed: true,
-        incomplete: 0,
-        items: nullableMock([]),
-      },
-    })
-    const wrapper = await renderChecklist()
-
-    expect(await wrapper.findByText('No checklist items yet')).toBeInTheDocument()
-  })
-
-  describe('actions', () => {
-    beforeEach(() => {
-      mockPermissions(['ticket.agent'])
-    })
-
-    it('update checklist title', async () => {
+  describe('steps', () => {
+    it('shows a state chip, the next step and who ticked the done ones', async () => {
       mockTicketChecklistQuery({
         ticketChecklist: {
+          id: convertToGraphQLId('Checklist', 1),
           name: 'Checklist title',
-          items: [],
+          incomplete: 2,
+          items: [
+            {
+              __typename: 'ChecklistItem',
+              id: convertToGraphQLId('Checklist::Item', 1),
+              text: 'Checklist item A',
+              checked: true,
+              updatedAt: new Date().toISOString(),
+              updatedBy: { __typename: 'User', id: convertToGraphQLId('User', 2), fullname: 'Sam Okafor' },
+              ticketReference: null,
+            },
+            ...checklistItemsMock.slice(1),
+            {
+              __typename: 'ChecklistItem',
+              id: convertToGraphQLId('Checklist::Item', 3),
+              text: 'Checklist item C',
+              checked: false,
+              ticketReference: null,
+            },
+          ],
         },
       })
 
       const wrapper = await renderChecklist()
 
-      expect(
-        await wrapper.findByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      ).toBeInTheDocument()
+      expect(await wrapper.findByText('In progress · 1 of 3')).toBeInTheDocument()
+      expect(wrapper.getByRole('heading', { level: 3, name: 'Checklist title' })).toBeInTheDocument()
+      expect(wrapper.getByText(/Sam Okafor/)).toBeInTheDocument()
 
-      await wrapper.events.click(
-        wrapper.getByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      )
+      const next = wrapper.getByTestId(`checklist-step-2`)
+      expect(next).toHaveTextContent('Next')
+      expect(next).toHaveTextContent('Checklist item B')
+      expect(wrapper.getAllByRole('button', { name: 'Mark done' })).toHaveLength(1)
 
-      expect(await wrapper.findByRole('textbox')).toBeInTheDocument()
-
-      await wrapper.events.type(await wrapper.findByRole('textbox'), ' update')
-
-      await wrapper.events.click(wrapper.getByRole('button', { name: 'Save changes' }))
-
-      const calls = await waitForTicketChecklistTitleUpdateMutationCalls()
-
-      expect(calls.at(-1)?.variables).toEqual({
-        checklistId: convertToGraphQLId('Checklist', 999), // Mock Error: Should be the checklist id of 1
-        title: 'Checklist title update',
-      })
-
-      // Subscription runs correctly, but somehow there is an identity problem with the id
-      // Subscription update runs but does not update the query with the new data
-
-      // await mockChecklistUpdateSubscription({
-      //   name: 'Checklist title update',
-      // })
-      //
-      // expect(
-      //   await wrapper.findByRole('heading', {
-      //     level: 3,
-      //     name: 'Checklist title update',
-      //   }),
-      // ).toBeInTheDocument()
+      expect(wrapper.getByText(/Set by your admins\./)).toBeInTheDocument()
     })
 
-    it('checks item through checkbox', async () => {
+    it('ticks a step through its checkbox', async () => {
       mockTicketChecklistQuery({
         ticketChecklist: {
           id: convertToGraphQLId('Checklist', 1),
@@ -427,23 +256,16 @@ describe('TicketSidebarChecklist', () => {
           items: checklistItemsMock,
         },
       })
+
       const wrapper = await renderChecklist()
 
-      expect(
-        await wrapper.findByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      ).toBeInTheDocument()
-
-      const checkboxes = wrapper.getAllByRole('checkbox')
-
+      const checkboxes = await wrapper.findAllByRole('checkbox')
       await wrapper.events.click(checkboxes[0])
 
       await verifyChecked(checkboxes)
     })
 
-    it('checks item through action menu', async () => {
+    it('ticks the next step with Mark done', async () => {
       mockTicketChecklistQuery({
         ticketChecklist: {
           id: convertToGraphQLId('Checklist', 1),
@@ -451,32 +273,36 @@ describe('TicketSidebarChecklist', () => {
           items: checklistItemsMock,
         },
       })
+
       const wrapper = await renderChecklist()
 
-      expect(
-        await wrapper.findByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      ).toBeInTheDocument()
+      await wrapper.events.click(await wrapper.findByRole('button', { name: 'Mark done' }))
 
-      mockTicketChecklistItemUpsertMutation({
-        ticketChecklistItemUpsert: {
-          checklistItem: {
-            id: convertToGraphQLId('Checklist::Item', 1),
-            checked: true,
-          },
-        },
-      })
-
-      const checkboxes = wrapper.getAllByRole('checkbox')
-
-      await openMenuAndClickAction(wrapper, 'Check item')
-
-      await verifyChecked(checkboxes, false)
+      await verifyChecked(wrapper.getAllByRole('checkbox'))
     })
 
-    it('removes entire checklist', async () => {
+    it('unticks a done step', async () => {
+      mockTicketChecklistQuery({
+        ticketChecklist: {
+          id: convertToGraphQLId('Checklist', 1),
+          name: 'Checklist title',
+          items: [{ ...checklistItemsMock[0], checked: true }, checklistItemsMock[1]],
+        },
+      })
+
+      const wrapper = await renderChecklist()
+
+      await wrapper.events.click((await wrapper.findAllByRole('checkbox'))[0])
+
+      const upsertCalls = await waitForTicketChecklistItemUpsertMutationCalls()
+      expect(upsertCalls.at(-1)?.variables).toEqual({
+        checklistId: convertToGraphQLId('Checklist', 1),
+        checklistItemId: convertToGraphQLId('Checklist::Item', 1),
+        input: { checked: false },
+      })
+    })
+
+    it('offers no way to add, edit, reorder or delete items', async () => {
       mockTicketChecklistQuery({
         ticketChecklist: {
           id: convertToGraphQLId('Checklist', 1),
@@ -484,125 +310,116 @@ describe('TicketSidebarChecklist', () => {
           items: checklistItemsMock,
         },
       })
+
       const wrapper = await renderChecklist()
 
-      expect(
-        await wrapper.findByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      ).toBeInTheDocument()
+      expect(await wrapper.findAllByRole('checkbox')).toHaveLength(2)
+      expect(wrapper.queryByRole('button', { name: 'Action menu button' })).not.toBeInTheDocument()
+      expect(wrapper.queryByRole('button', { name: 'Reorder' })).not.toBeInTheDocument()
+      expect(wrapper.queryByRole('button', { name: /Create a new checklist item/ })).not.toBeInTheDocument()
+      expect(wrapper.queryByRole('textbox')).not.toBeInTheDocument()
+    })
 
-      await openMenuAndClickAction(wrapper, 'Remove checklist', 0)
+    it('is read-only without permission to change the ticket', async () => {
+      mockTicketChecklistQuery({
+        ticketChecklist: {
+          id: convertToGraphQLId('Checklist', 1),
+          name: 'Checklist title',
+          items: checklistItemsMock,
+        },
+      })
+
+      ticket.value = createDummyTicket({ defaultPolicy: { agentReadAccess: true, update: false } })
+
+      const wrapper = await renderChecklist()
+
+      const checkboxes = await wrapper.findAllByRole('checkbox')
+      checkboxes.forEach((checkbox) => expect(checkbox).toBeDisabled())
+      expect(wrapper.queryByRole('button', { name: 'Mark done' })).not.toBeInTheDocument()
+      expect(wrapper.queryByText(/Tick steps as you go/)).not.toBeInTheDocument()
+    })
+
+    it('counts a linked ticket as done once it is closed', async () => {
+      mockTicketChecklistQuery({
+        ticketChecklist: {
+          id: convertToGraphQLId('Checklist', 1),
+          name: 'Checklist title',
+          incomplete: 0,
+          items: [
+            {
+              __typename: 'ChecklistItem',
+              id: convertToGraphQLId('Checklist::Item', 1),
+              text: '',
+              checked: false,
+              ticketReference: {
+                ticket: {
+                  __typename: 'Ticket',
+                  id: convertToGraphQLId('Ticket', 7),
+                  internalId: 7,
+                  number: '990012',
+                  title: 'Laptop for new starter',
+                  state: { __typename: 'TicketState', id: convertToGraphQLId('TicketState', 4), name: 'closed' },
+                  stateColorCode: EnumTicketStateColorCode.Closed,
+                },
+              },
+            },
+          ],
+        },
+      })
+
+      const wrapper = await renderChecklist()
+
+      expect(await wrapper.findByText('Done · 1 of 1')).toBeInTheDocument()
+      expect(wrapper.getByText('Linked ticket, closed')).toBeInTheDocument()
+      expect(wrapper.queryByRole('checkbox')).not.toBeInTheDocument()
+    })
+
+    it('shows access denied for a linked ticket the agent may not see', async () => {
+      mockTicketChecklistQuery({
+        ticketChecklist: {
+          name: 'Checklist title',
+          items: [
+            {
+              __typename: 'ChecklistItem',
+              id: convertToGraphQLId('Checklist::Item', 1),
+              text: 'Checklist item A',
+              checked: false,
+              ticketReference: { ticket: null },
+            },
+          ],
+        },
+      })
+
+      const wrapper = await renderChecklist()
+
+      expect(await wrapper.findByText('Access denied')).toBeInTheDocument()
+    })
+
+    it('lets checklist admins remove the checklist', async () => {
+      mockPermissions(['ticket.agent', 'admin.checklist'])
+
+      mockTicketChecklistQuery({
+        ticketChecklist: {
+          id: convertToGraphQLId('Checklist', 1),
+          name: 'Checklist title',
+          items: checklistItemsMock,
+        },
+      })
+
+      const wrapper = await renderChecklist()
+
+      await wrapper.events.click(await wrapper.findByRole('button', { name: 'Action menu button' }))
+      await wrapper.events.click(await wrapper.findByRole('button', { name: 'Remove checklist' }))
 
       const calls = await waitForTicketChecklistDeleteMutationCalls()
-
-      expect(calls.at(-1)?.variables).toEqual({
-        checklistId: convertToGraphQLId('Checklist', 1),
-      })
+      expect(calls.at(-1)?.variables).toEqual({ checklistId: convertToGraphQLId('Checklist', 1) })
 
       await mockChecklistUpdateSubscription(null)
-    })
-
-    it('renames checklist title by item click', async () => {
-      mockTicketChecklistQuery({
-        ticketChecklist: {
-          id: convertToGraphQLId('Checklist', 1),
-          name: 'Checklist title',
-          items: checklistItemsMock,
-        },
-      })
-
-      const wrapper = await renderChecklist()
-
-      expect(
-        await wrapper.findByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      ).toBeInTheDocument()
-
-      await wrapper.events.click(wrapper.getByText('Checklist item A'))
-
-      await wrapper.events.type(await wrapper.findByRole('textbox'), ' update{enter}')
-
-      const calls = await waitForTicketChecklistItemUpsertMutationCalls()
-
-      expect(calls.at(-1)?.variables).toEqual({
-        checklistId: convertToGraphQLId('Checklist', 1),
-        checklistItemId: convertToGraphQLId('Checklist::Item', 1),
-        input: {
-          text: 'Checklist item A update',
-        },
-      })
-
-      await verifyTextUpdate(wrapper)
-    })
-
-    it('renames checklist text by edit menu action', async () => {
-      mockTicketChecklistQuery({
-        ticketChecklist: {
-          id: convertToGraphQLId('Checklist', 1),
-          name: 'Checklist title',
-          items: checklistItemsMock,
-        },
-      })
-
-      const wrapper = await renderChecklist()
-
-      expect(
-        await wrapper.findByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      ).toBeInTheDocument()
-
-      await openMenuAndClickAction(wrapper, 'Edit item', 1)
-
-      mockTicketChecklistItemUpsertMutation({
-        ticketChecklistItemUpsert: {
-          checklistItem: {
-            id: convertToGraphQLId('Checklist::Item', 1),
-            text: 'Checklist item A update',
-          },
-        },
-      })
-
-      await wrapper.events.type(await wrapper.findByRole('textbox'), ' update{enter}')
-
-      await verifyTextUpdate(wrapper, false)
-    })
-
-    it('removes checklist item', async () => {
-      mockTicketChecklistQuery({
-        ticketChecklist: {
-          id: convertToGraphQLId('Checklist', 1),
-          name: 'Checklist title',
-          items: checklistItemsMock,
-        },
-      })
-      const wrapper = await renderChecklist()
-
-      expect(
-        await wrapper.findByRole('heading', {
-          level: 3,
-          name: 'Checklist title',
-        }),
-      ).toBeInTheDocument()
-
-      await openMenuAndClickAction(wrapper, 'Remove item')
-
-      const calls = await waitForTicketChecklistItemDeleteMutationCalls()
-
-      expect(calls.at(-1)?.variables).toEqual({
-        checklistId: convertToGraphQLId('Checklist', 1),
-        checklistItemId: convertToGraphQLId('Checklist::Item', 1),
-      })
     })
   })
 
   describe('checklist of the sub-category', () => {
-    it("says there is none and offers the checklist of the ticket's sub-category", async () => {
+    it("offers only the checklist of the ticket's sub-category", async () => {
       suggestionFetch.mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -610,45 +427,82 @@ describe('TicketSidebarChecklist', () => {
           name: 'Onboarding',
           category: 'People',
           sub_category: 'Onboarding',
+          item_count: 7,
+          first_items: ['Create network account', 'Assign licence', 'Issue laptop'],
         }),
       })
 
-      mockTicketChecklistQuery({
-        ticketChecklist: null,
-      })
+      mockTicketChecklistQuery({ ticketChecklist: null })
 
       const wrapper = await renderChecklist()
 
-      expect(await wrapper.findByText('No checklist assigned to this ticket.')).toBeInTheDocument()
-      expect(
-        await wrapper.findByText('Tickets in People › Onboarding get the "Onboarding" checklist.'),
-      ).toBeInTheDocument()
+      expect(await wrapper.findByText('This ticket has no checklist yet.')).toBeInTheDocument()
+      expect(wrapper.getByText('People › Onboarding')).toBeInTheDocument()
+      expect(wrapper.getByText('7 items')).toBeInTheDocument()
+      expect(wrapper.getByText('Issue laptop')).toBeInTheDocument()
+      expect(wrapper.getByText('and 4 more')).toBeInTheDocument()
       expect(suggestionFetch).toHaveBeenCalledWith(
         '/api/v1/studenthub/checklist_assignments/ticket/1',
         expect.anything(),
       )
 
-      await wrapper.events.click(wrapper.getByRole('button', { name: 'Add Onboarding checklist' }))
+      expect(wrapper.queryByRole('button', { name: 'Add empty checklist' })).not.toBeInTheDocument()
+      expect(wrapper.queryByRole('button', { name: 'Add from a template' })).not.toBeInTheDocument()
+
+      await wrapper.events.click(wrapper.getByRole('button', { name: 'Add this checklist' }))
 
       const calls = await waitForTicketChecklistAddMutationCalls()
-
       expect(calls.at(-1)?.variables).toEqual({
-        createFirstItem: true,
         templateId: convertToGraphQLId('ChecklistTemplate', 5),
         ticketId: convertToGraphQLId('Ticket', 1),
       })
     })
 
     it('only says there is none when the sub-category has no checklist', async () => {
-      mockTicketChecklistQuery({
-        ticketChecklist: null,
-      })
+      mockTicketChecklistQuery({ ticketChecklist: null })
 
       const wrapper = await renderChecklist()
 
       expect(await wrapper.findByText('No checklist assigned to this ticket.')).toBeInTheDocument()
-      expect(wrapper.queryByText(/get the ".*" checklist/)).not.toBeInTheDocument()
-      expect(wrapper.getByRole('button', { name: 'Add empty checklist' })).toBeInTheDocument()
+      expect(wrapper.queryByRole('button', { name: 'Add this checklist' })).not.toBeInTheDocument()
+      expect(wrapper.queryByRole('button', { name: 'Add empty checklist' })).not.toBeInTheDocument()
+    })
+
+    it('names the sub-category when it has no checklist', async () => {
+      ticket.value = createDummyTicket({
+        objectAttributeValues: [
+          { attribute: { name: 'category2' }, value: 'Software' },
+          { attribute: { name: 'subcategory' }, value: 'Outlook' },
+        ],
+      })
+
+      mockTicketChecklistQuery({ ticketChecklist: null })
+
+      const wrapper = await renderChecklist()
+
+      expect(await wrapper.findByText('No checklist for Software › Outlook.')).toBeInTheDocument()
+    })
+
+    it('does not offer it without permission to change the ticket', async () => {
+      suggestionFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          checklist_template_id: 5,
+          name: 'Onboarding',
+          category: 'People',
+          sub_category: 'Onboarding',
+          item_count: 1,
+          first_items: ['Create network account'],
+        }),
+      })
+
+      ticket.value = createDummyTicket({ defaultPolicy: { agentReadAccess: true, update: false } })
+      mockTicketChecklistQuery({ ticketChecklist: null })
+
+      const wrapper = await renderChecklist()
+
+      expect(await wrapper.findByText('This ticket has no checklist yet.')).toBeInTheDocument()
+      expect(wrapper.queryByRole('button', { name: 'Add this checklist' })).not.toBeInTheDocument()
     })
 
     it('does not ask while the ticket has a checklist', async () => {
@@ -663,109 +517,8 @@ describe('TicketSidebarChecklist', () => {
       const wrapper = await renderChecklist()
 
       expect(await wrapper.findByText('Checklist title')).toBeInTheDocument()
+      expect(wrapper.getByText('This checklist has no items.')).toBeInTheDocument()
       expect(suggestionFetch).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('checklist templates', () => {
-    it('applies template to ticket checklist', async () => {
-      mockTicketChecklistQuery({
-        ticketChecklist: null,
-      })
-
-      mockChecklistTemplatesQuery({ checklistTemplates: templateMocks })
-
-      const wrapper = await renderChecklist()
-
-      expect(await wrapper.findByText('Or choose a checklist template.')).toBeInTheDocument()
-
-      await wrapper.events.click(wrapper.getByRole('button', { name: 'Add from a template' }))
-
-      expect(await wrapper.findByRole('menu')).toBeInTheDocument()
-
-      await wrapper.events.click(wrapper.getByText('Foo template'))
-
-      const calls = await waitForTicketChecklistAddMutationCalls()
-
-      expect(calls.at(-1)?.variables).toEqual({
-        createFirstItem: true,
-        templateId: convertToGraphQLId('Checklist::Item', 1),
-        ticketId: convertToGraphQLId('Ticket', 1),
-      })
-
-      await mockChecklistUpdateSubscription({
-        items: [checklistItemsMock[1] as ChecklistItem],
-      })
-
-      expect(wrapper.queryByText('Checklist item A')).not.toBeInTheDocument()
-    })
-
-    it('hides template button if no templates are available', async () => {
-      mockPermissions(['admin'])
-
-      mockTicketChecklistQuery({
-        ticketChecklist: null,
-      })
-
-      mockChecklistTemplatesQuery({
-        checklistTemplates: [],
-      })
-
-      const wrapper = await renderChecklist()
-
-      expect(
-        await wrapper.findByRole('link', {
-          name: 'Create a new checklist template in the admin interface.',
-        }),
-      ).toBeInTheDocument()
-
-      expect(wrapper.queryByText('Or choose a checklist template.')).not.toBeInTheDocument()
-
-      expect(wrapper.queryByRole('button', { name: 'Add from a template' })).not.toBeInTheDocument()
-    })
-
-    it('updates templates if they got modified', async () => {
-      mockPermissions(['admin'])
-
-      mockTicketChecklistQuery({
-        ticketChecklist: null,
-      })
-
-      mockChecklistTemplatesQuery({ checklistTemplates: templateMocks })
-
-      const wrapper = await renderChecklist()
-
-      expect(
-        await wrapper.findByRole('button', { name: 'Add from a template' }),
-      ).toBeInTheDocument()
-
-      await wrapper.events.click(wrapper.getByRole('button', { name: 'Add from a template' }))
-
-      const menuItems = wrapper.getAllByRole('menuitem')
-
-      expect(menuItems).toHaveLength(3)
-
-      await getChecklistTemplateUpdatesSubscriptionHandler().trigger({
-        checklistTemplateUpdates: {
-          checklistTemplates: [templateMocks[0], templateMocks[1]],
-        },
-      })
-
-      expect(wrapper.getAllByRole('menuitem')).toHaveLength(2)
-
-      expect(
-        wrapper.getByRole('menuitem', {
-          name: templateMocks[0].name as string,
-        }),
-      ).toBeInTheDocument()
-      expect(
-        wrapper.getByRole('menuitem', {
-          name: templateMocks[1].name as string,
-        }),
-      ).toBeInTheDocument()
-
-      // Last item should not be focused
-      expect(wrapper.getAllByRole('menuitem').at(-1)).not.toHaveFocus()
     })
   })
 })

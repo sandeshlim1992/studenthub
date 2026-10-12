@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Gql::Mutations::Ticket::Checklist::ItemOrderUpdate, current_user_id: 1, type: :graphql do
   let(:group)     { create(:group) }
-  let(:agent)     { create(:agent, groups: [group]) }
+  let(:agent)     { create(:checklist_admin_agent, groups: [group]) }
   let(:ticket)    { create(:ticket, group: group) }
   let(:checklist) { create(:checklist, ticket: ticket) }
 
@@ -58,19 +58,19 @@ RSpec.describe Gql::Mutations::Ticket::Checklist::ItemOrderUpdate, current_user_
     end
 
     context 'without access to the ticket' do
-      let(:agent) { create(:agent) }
+      let(:agent) { create(:checklist_admin_agent) }
 
       it_behaves_like 'raising an error', Exceptions::Forbidden
     end
 
     context 'with ticket read permission' do
-      let(:agent) { create(:agent, groups: [group], group_names_access_map: { group.name => 'read' }) }
+      let(:agent) { create(:checklist_admin_agent, groups: [group], group_names_access_map: { group.name => 'read' }) }
 
       it_behaves_like 'raising an error', Exceptions::Forbidden
     end
 
     context 'with ticket read+change permissions' do
-      let(:agent) { create(:agent, groups: [group], group_names_access_map: { group.name => %w[read change] }) }
+      let(:agent) { create(:checklist_admin_agent, groups: [group], group_names_access_map: { group.name => %w[read change] }) }
 
       it_behaves_like 'updating the ticket checklist item order'
     end

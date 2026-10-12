@@ -912,7 +912,7 @@ export type TicketChecklistQueryVariables = Exact<{
 }>;
 
 
-export type TicketChecklistQuery = { ticketChecklist: { __typename: 'Checklist', id: string, name: string | null | undefined, completed: boolean, incomplete: number, items: Array<{ __typename: 'ChecklistItem', id: string, text: string, checked: boolean, ticketReference: { __typename: 'TicketReference', ticket: { __typename: 'Ticket', id: string, internalId: number, number: string, title: string, stateColorCode: Types.EnumTicketStateColorCode, state: { __typename: 'TicketState', id: string, name: string } } | null | undefined } | null | undefined }> } | null | undefined };
+export type TicketChecklistQuery = { ticketChecklist: { __typename: 'Checklist', id: string, name: string | null | undefined, completed: boolean, incomplete: number, items: Array<{ __typename: 'ChecklistItem', id: string, text: string, checked: boolean, updatedAt: string, updatedBy: { __typename: 'User', id: string, fullname: string | null | undefined } | null | undefined, ticketReference: { __typename: 'TicketReference', ticket: { __typename: 'Ticket', id: string, internalId: number, number: string, title: string, stateColorCode: Types.EnumTicketStateColorCode, state: { __typename: 'TicketState', id: string, name: string } } | null | undefined } | null | undefined }> } | null | undefined };
 
 export type TicketExternalReferencesIdoitObjectListQueryVariables = Exact<{
   ticketId?: string | number | null | undefined;
@@ -1020,7 +1020,7 @@ export type TicketChecklistUpdatesSubscriptionVariables = Exact<{
 }>;
 
 
-export type TicketChecklistUpdatesSubscription = { ticketChecklistUpdates: { __typename: 'TicketChecklistUpdatesPayload', removedTicketChecklist: boolean | null | undefined, ticketChecklist: { __typename: 'Checklist', id: string, name: string | null | undefined, completed: boolean, incomplete: number, items: Array<{ __typename: 'ChecklistItem', id: string, text: string, checked: boolean, ticketReference: { __typename: 'TicketReference', ticket: { __typename: 'Ticket', id: string, internalId: number, number: string, title: string, stateColorCode: Types.EnumTicketStateColorCode, state: { __typename: 'TicketState', id: string, name: string } } | null | undefined } | null | undefined }> } | null | undefined } };
+export type TicketChecklistUpdatesSubscription = { ticketChecklistUpdates: { __typename: 'TicketChecklistUpdatesPayload', removedTicketChecklist: boolean | null | undefined, ticketChecklist: { __typename: 'Checklist', id: string, name: string | null | undefined, completed: boolean, incomplete: number, items: Array<{ __typename: 'ChecklistItem', id: string, text: string, checked: boolean, updatedAt: string, updatedBy: { __typename: 'User', id: string, fullname: string | null | undefined } | null | undefined, ticketReference: { __typename: 'TicketReference', ticket: { __typename: 'Ticket', id: string, internalId: number, number: string, title: string, stateColorCode: Types.EnumTicketStateColorCode, state: { __typename: 'TicketState', id: string, name: string } } | null | undefined } | null | undefined }> } | null | undefined } };
 
 export type TicketOverviewOrderQueryVariables = Exact<{
   withTicketCount?: boolean | null | undefined;

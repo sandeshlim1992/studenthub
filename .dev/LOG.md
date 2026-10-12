@@ -192,3 +192,7 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: Editor: the toolbar appears once tiptap has created the editor (no "Invalid prop: editor" warning)
 - 2026-10-13: Tickets page: Zammad's row of view tabs above the list on small screens is gone; staff pick the view in
   the navigation panel on every screen size
+- 2026-10-13: Checklists: agents only tick and untick items (server-enforced for the new UI, classic UI and API;
+  `admin.checklist` keeps full control) and may add only the checklist assigned to the ticket's sub-category. The
+  Checklist tab is now design B: a state chip, the steps on a timeline with Next + Mark done, who ticked each and when;
+  with no checklist, only the assigned one is offered (with its first items)

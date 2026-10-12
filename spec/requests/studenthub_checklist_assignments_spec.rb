@@ -68,7 +68,8 @@ RSpec.describe 'Student Hub checklist assignments', :aggregate_failures, type: :
       suggestion_for(ticket)
 
       expect(response).to have_http_status(:ok)
-      expect(json_response).to eq('checklist_template_id' => template.id, 'name' => 'Onboarding', 'category' => 'People', 'sub_category' => 'Onboarding')
+      expect(json_response).to eq('checklist_template_id' => template.id, 'name' => 'Onboarding', 'category' => 'People', 'sub_category' => 'Onboarding',
+                                  'item_count' => 0, 'first_items' => [])
     end
 
     it 'is empty once the ticket has a checklist, or in a sub-category without one', authenticated_as: :agent do

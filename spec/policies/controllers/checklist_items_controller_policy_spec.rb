@@ -15,8 +15,33 @@ RSpec.describe Controllers::ChecklistItemsControllerPolicy, current_user_id: 1 d
   end
 
   context 'when checklists are enabled' do
+    # Student Hub: agents only tick items; adding, deleting and changing their text needs admin.checklist.
     context 'when user has agent access to ticket' do
       let(:user) { create(:agent, groups: [ticket.group]) }
+
+      context 'when checklist is given' do
+        let(:params) { { checklist_id: checklist.id } }
+
+        it { is_expected.to forbid_actions(:create, :create_bulk) }
+      end
+
+      context 'when checklist item is given' do
+        let(:item)   { create(:checklist_item, checklist:) }
+        let(:params) { { id: item.id, checked: true } }
+
+        it { is_expected.to permit_actions(:show, :update) }
+        it { is_expected.to forbid_actions(:destroy) }
+
+        context 'when the text is changed' do
+          let(:params) { { id: item.id, text: "#{item.text} changed" } }
+
+          it { is_expected.to forbid_actions(:update) }
+        end
+      end
+    end
+
+    context 'when user is a checklist admin with agent access to ticket' do
+      let(:user) { create(:checklist_admin_agent, groups: [ticket.group]) }
 
       context 'when checklist is given' do
         let(:params) { { checklist_id: checklist.id } }
@@ -31,7 +56,7 @@ RSpec.describe Controllers::ChecklistItemsControllerPolicy, current_user_id: 1 d
       end
 
       context 'when checklist item is given' do
-        let(:params) { { id: create(:checklist_item, checklist:).id } }
+        let(:params) { { id: create(:checklist_item, checklist:).id, text: 'Changed' } }
 
         it { is_expected.to permit_actions(:show, :update, :destroy) }
       end
@@ -83,7 +108,7 @@ RSpec.describe Controllers::ChecklistItemsControllerPolicy, current_user_id: 1 d
   end
 
   context 'when checklists are disabled' do
-    let(:user) { create(:agent, groups: [ticket.group]) }
+    let(:user)   { create(:agent, groups: [ticket.group]) }
     let(:params) { {} }
 
     it { is_expected.to forbid_all_actions }

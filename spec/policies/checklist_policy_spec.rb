@@ -25,10 +25,18 @@ describe ChecklistPolicy do
     it { is_expected.to permit_actions(:show) }
   end
 
+  # Student Hub: agents only tick items; managing the checklist needs admin.checklist.
   context 'when user has full access to the ticket' do
     let(:user) { create(:agent, groups: [ticket.group]) }
 
-    it { is_expected.to permit_actions(:show, :update, :destroy) }
+    it { is_expected.to permit_actions(:show, :update) }
+    it { is_expected.to forbid_actions(:manage, :destroy) }
+
+    context 'when the user is a checklist admin' do
+      let(:user) { create(:checklist_admin_agent, groups: [ticket.group]) }
+
+      it { is_expected.to permit_actions(:show, :update, :manage, :destroy) }
+    end
 
     context 'when checklist feature is disabled' do
       before do

@@ -1,14 +1,15 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 class Checklist::ItemPolicy < ApplicationPolicy
-  delegate :show?, :update?, to: :checklist_policy
+  delegate :show?, :update?, :manage?, to: :checklist_policy
 
+  # Student Hub: adding and deleting items is for checklist admins (Studenthub::ChecklistRules).
   def create?
-    checklist_policy.update?
+    checklist_policy.manage?
   end
 
   def destroy?
-    checklist_policy.update?
+    checklist_policy.manage?
   end
 
   private

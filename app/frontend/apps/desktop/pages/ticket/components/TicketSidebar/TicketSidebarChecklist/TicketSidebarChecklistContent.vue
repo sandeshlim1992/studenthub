@@ -1,8 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script lang="ts" setup>
-import { cloneDeep } from 'lodash-es'
-import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { computed, ref } from 'vue'
 
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
 import { handleUserErrors } from '#shared/errors/utils.ts'
@@ -10,17 +9,13 @@ import type { ChecklistItem, TicketChecklistItemInput } from '#shared/graphql/ty
 import { i18n } from '#shared/i18n/index.ts'
 import { getApolloClient } from '#shared/server/apollo/client.ts'
 import { MutationHandler } from '#shared/server/apollo/handler/index.ts'
+import { useSessionStore } from '#shared/stores/session.ts'
 import type { ObjectLike } from '#shared/types/utils.ts'
 
-import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonLoader from '#desktop/components/CommonLoader/CommonLoader.vue'
 import type { MenuItem } from '#desktop/components/CommonPopoverMenu/types.ts'
-import ChecklistEmptyTemplates from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/TicketSidebarChecklistContent/ChecklistEmptyTemplates.vue'
-import ChecklistItems from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/TicketSidebarChecklistContent/ChecklistItems.vue'
-import ChecklistTemplates from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/TicketSidebarChecklistContent/ChecklistTemplates.vue'
+import StudenthubChecklistSteps from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/TicketSidebarChecklistContent/StudenthubChecklistSteps.vue'
 import TicketSidebarChecklistContentSkeleton from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/TicketSidebarChecklistContentSkeleton.vue'
-import type { AddNewChecklistInput } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/types.ts'
-import { useChecklistTemplates } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useChecklistTemplates.ts'
 import { useStudenthubChecklistSuggestion } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useStudenthubChecklistSuggestion.ts'
 import { useTicketChecklist } from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useTicketChecklist.ts'
 import TicketSidebarContent from '#desktop/pages/ticket/components/TicketSidebar/TicketSidebarContent.vue'
@@ -28,26 +23,28 @@ import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicke
 import { useTicketNumber } from '#desktop/pages/ticket/composables/useTicketNumber.ts'
 import { useTicketChecklistAddMutation } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistAdd.api.ts'
 import { useTicketChecklistDeleteMutation } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistDelete.api.ts'
-import { useTicketChecklistItemDeleteMutation } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistItemDelete.api.ts'
-import { useTicketChecklistItemOrderUpdateMutation } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistItemOrderUpdate.api.ts'
 import { useTicketChecklistItemUpsertMutation } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistItemUpsert.api.ts'
-import { useTicketChecklistTitleUpdateMutation } from '#desktop/pages/ticket/graphql/mutations/ticketChecklistTitleUpdate.api.ts'
 import type { TicketSidebarContentProps } from '#desktop/pages/ticket/types/sidebar.ts'
+
+// Student Hub: design B of the Checklist tab board. Checklists are made and assigned by admins
+// (Studenthub::ChecklistRules, Studenthub::ChecklistAssignments): agents only tick and untick, and a
+// ticket without one is offered only the checklist of its Category › Sub-category. Checklist admins
+// can still remove a checklist; everything else is changed under Administration › Checklists.
 
 defineProps<TicketSidebarContentProps>()
 
 const persistentStates = defineModel<ObjectLike>({ required: true })
 
-const checklistItemsInstance = useTemplateRef('checklist-items')
-
 const { cache: apolloCache } = getApolloClient()
 const { ticket, ticketId, isTicketEditable } = useTicketInformation()
 const { ticketNumberWithTicketHook } = useTicketNumber(ticket)
+const { hasPermission } = useSessionStore()
+
+const canManage = computed(() => isTicketEditable.value && hasPermission('admin.checklist'))
 
 const { checklist, isLoadingChecklist } = useTicketChecklist(ticketId)
 
-// Student Hub: the checklist of the ticket's sub-category, offered while it has none.
-const { suggestion: checklistSuggestion } = useStudenthubChecklistSuggestion(
+const { suggestion: checklistSuggestion, categoryPath } = useStudenthubChecklistSuggestion(
   ticket,
   computed(() => !isLoadingChecklist.value && !checklist.value),
 )
@@ -56,27 +53,41 @@ const checklistTitle = computed(
   () => checklist.value?.name || i18n.t('%s Checklist', ticketNumberWithTicketHook.value),
 )
 
-const addNewChecklistMutation = new MutationHandler(useTicketChecklistAddMutation())
+const doneCount = computed(() => {
+  const total = checklist.value?.items.length ?? 0
+  return Math.max(total - (checklist.value?.incomplete ?? total), 0)
+})
 
-const createNewChecklist = async (
-  input?: Omit<AddNewChecklistInput, 'ticketId'>,
-  options = { focusLastItem: true },
-) => {
-  if (ticket.value?.id) {
-    return addNewChecklistMutation
-      .send({
-        ...input,
-        createFirstItem: true,
-        ticketId: ticket.value!.id,
-      })
-      .then(() => {
-        if (options.focusLastItem) nextTick(() => checklistItemsInstance.value?.focusNewItem())
-      })
-      .catch(handleUserErrors)
+const stateChip = computed(() => {
+  const total = checklist.value?.items.length ?? 0
+  const done = doneCount.value
+
+  if (total > 0 && done === total)
+    return {
+      label: i18n.t('Done · %s of %s', done, total),
+      classes: 'bg-[#dcfce7] text-[#14532d]',
+    }
+  if (done > 0)
+    return {
+      label: i18n.t('In progress · %s of %s', done, total),
+      classes: 'bg-[#fef3c7] text-[#78350f]',
+    }
+  return {
+    label: i18n.t('Not started · %s of %s', done, total),
+    classes: 'bg-[#eef0f3] text-[#3b4352] dark:bg-gray-500 dark:text-neutral-400',
   }
-}
+})
 
-const checklistTitleUpdateMutation = new MutationHandler(useTicketChecklistTitleUpdateMutation())
+const addNewChecklistMutation = new MutationHandler(useTicketChecklistAddMutation())
+const isAddingNewChecklist = addNewChecklistMutation.loading()
+
+const addSuggestedChecklist = () => {
+  if (!ticket.value?.id || !checklistSuggestion.value) return
+
+  addNewChecklistMutation
+    .send({ ticketId: ticket.value.id, templateId: checklistSuggestion.value.templateId })
+    .catch(handleUserErrors)
+}
 
 const checklistDeleteMutation = new MutationHandler(useTicketChecklistDeleteMutation())
 
@@ -93,79 +104,11 @@ const removeChecklist = async () => {
       .catch(handleUserErrors)
 }
 
-const updateTitle = async (title: string) => {
-  return checklistTitleUpdateMutation
-    .send({
-      title,
-      checklistId: checklist.value?.id as string,
-    })
-    .then(() => {})
-    .catch(handleUserErrors)
-}
-
-const itemAddMutation = new MutationHandler(
-  useTicketChecklistItemUpsertMutation({
-    update: (cache, { data }) => {
-      if (!data || !checklist.value) return
-
-      const { ticketChecklistItemUpsert } = data
-      if (!ticketChecklistItemUpsert?.checklistItem) return
-
-      const newIdPresent = checklist.value?.items.find((item) => {
-        return item.id === ticketChecklistItemUpsert.checklistItem?.id
-      })
-
-      if (newIdPresent) return
-
-      cache.modify({
-        id: cache.identify(checklist.value),
-        fields: {
-          items(currentItems, { toReference }) {
-            return [...currentItems, toReference(ticketChecklistItemUpsert.checklistItem!)]
-          },
-          complete(currentComplete) {
-            return currentComplete + 1
-          },
-          total(totalCount) {
-            return totalCount + 1
-          },
-          incomplete(incompleteCount) {
-            return incompleteCount + 1
-          },
-        },
-      })
-    },
-  }),
-  {
-    errorNotificationMessage: __('Failed to add new checklist item.'),
-  },
-)
-
-const itemOrderMutation = new MutationHandler(useTicketChecklistItemOrderUpdateMutation(), {
-  errorNotificationMessage: __('Failed to save checklist order.'),
-})
-
 const itemUpsertMutation = new MutationHandler(useTicketChecklistItemUpsertMutation(), {
   errorNotificationMessage: __('Failed to update checklist item.'),
 })
 
-const itemDeleteMutation = new MutationHandler(useTicketChecklistItemDeleteMutation(), {
-  errorNotificationMessage: __('Failed to delete checklist item.'),
-})
-
-const isUpdatingOrder = itemOrderMutation.loading()
-const isAddingNewItem = itemAddMutation.loading()
-const isAddingNewChecklist = addNewChecklistMutation.loading()
-const isUpdatingChecklistTitle = checklistTitleUpdateMutation.loading()
 const updatingItemIds = ref<Set<ID>>(new Set())
-
-const deleteUpdatingItemId = (id: ID) => {
-  updatingItemIds.value.delete(id)
-}
-
-const addUpdatingItemId = (id: ID) => {
-  updatingItemIds.value.add(id)
-}
 
 const modifyIncompleteItemCountCache = (increase: boolean) => {
   const currentCheckList = checklist.value!
@@ -255,41 +198,17 @@ const modifyCheckedCache = (item: ChecklistItem) => {
   }
 }
 
-const modifyItemsCache = (items: ChecklistItem[]) => {
-  const currentCheckList = checklist.value
-
-  const checklistId = apolloCache.identify(currentCheckList)
-
-  apolloCache.modify({
-    id: checklistId,
-    fields: {
-      items(_, { toReference }) {
-        // We need to transform it to a real reference, that we do not lose the connection.
-        // Side effect is that data updates on single items are not applied.
-        return items.map((item) => toReference(item, true))
-      },
-    },
+const updateItem = async (itemId: string, input: TicketChecklistItemInput) =>
+  itemUpsertMutation.send({
+    checklistId: checklist.value?.id as string,
+    checklistItemId: itemId,
+    input,
   })
-}
-
-const updateItem = async (itemId: string, input: TicketChecklistItemInput) => {
-  addUpdatingItemId(itemId)
-
-  return itemUpsertMutation
-    .send({
-      checklistId: checklist.value?.id as string,
-      checklistItemId: itemId,
-      input,
-    })
-    .finally(() => {
-      deleteUpdatingItemId(itemId)
-    })
-}
 
 const setItemCheckedState = async (item: ChecklistItem) => {
   const restoreCache = modifyCheckedCache(item)
 
-  addUpdatingItemId(item.id)
+  updatingItemIds.value.add(item.id)
 
   await updateItem(item.id, { checked: item.checked })
     .catch((error) => {
@@ -297,91 +216,11 @@ const setItemCheckedState = async (item: ChecklistItem) => {
       handleUserErrors(error)
     })
     .finally(() => {
-      deleteUpdatingItemId(item.id)
-    })
-}
-
-const addNewItem = async () =>
-  itemAddMutation
-    .send({
-      checklistId: checklist.value?.id as string,
-      input: {
-        text: '',
-        checked: false,
-      },
-    })
-    .then(() => {
-      checklistItemsInstance.value?.focusNewItem()
-    })
-    .catch(handleUserErrors)
-
-const editItem = async (item: ChecklistItem) => {
-  addUpdatingItemId(item.id)
-
-  return updateItem(item.id, { text: item.text })
-    .then(() => {})
-    .catch(handleUserErrors)
-    .finally(() => {
-      deleteUpdatingItemId(item.id)
-    })
-}
-
-const saveItemsOrder = (items: ChecklistItem[], stopReordering: () => void) => {
-  itemOrderMutation
-    .send({
-      checklistId: checklist.value?.id as string,
-      order: items.map((item) => item.id),
-    })
-    .then(() => {
-      // Modify the cache before leaving the reorder mode to prevent flickering (e.g. when the subscription is slow) and
-      // currently we have the list not in the return data.
-      // Here we need no restore because in catch situation we are not leaving the reordering mode.
-      modifyItemsCache(items)
-
-      stopReordering()
-    })
-    .catch(handleUserErrors)
-}
-
-const removeItem = async (item: ChecklistItem) => {
-  if (item.text?.length) {
-    const { waitForVariantConfirmation } = useConfirmation()
-
-    const confirmed = await waitForVariantConfirmation('delete')
-    if (!confirmed) return
-  }
-
-  const previousChecklistItems = cloneDeep(checklist.value?.items || [])
-  apolloCache.evict({ id: apolloCache.identify(item) })
-  apolloCache.gc()
-
-  const restoreCache = modifyIncompleteItemCountCache(false)
-
-  addUpdatingItemId(item.id)
-
-  return itemDeleteMutation
-    .send({
-      checklistId: checklist.value?.id as string,
-      checklistItemId: item.id,
-    })
-    .catch((error) => {
-      modifyItemsCache(previousChecklistItems as ChecklistItem[])
-      restoreCache()
-      return handleUserErrors(error)
-    })
-    .finally(() => {
-      deleteUpdatingItemId(item.id)
+      updatingItemIds.value.delete(item.id)
     })
 }
 
 const checklistActions: MenuItem[] = [
-  {
-    key: 'rename',
-    label: __('Rename checklist'),
-    icon: 'input-cursor-text',
-    onClick: () => checklistItemsInstance.value?.focusTitle(),
-    show: () => !!checklist.value,
-  },
   {
     key: 'remove',
     label: __('Remove checklist'),
@@ -391,15 +230,12 @@ const checklistActions: MenuItem[] = [
     show: () => !!checklist.value,
   },
 ]
-
-const { isLoadingTemplates, checklistTemplatesMenuItems } =
-  useChecklistTemplates(createNewChecklist)
 </script>
 
 <template>
   <TicketSidebarContent
     v-model="persistentStates.scrollPosition"
-    :actions="!isTicketEditable ? undefined : checklistActions"
+    :actions="canManage ? checklistActions : undefined"
     :title="sidebarPlugin.title"
     :icon="sidebarPlugin.icon"
   >
@@ -408,71 +244,114 @@ const { isLoadingTemplates, checklistTemplatesMenuItems } =
         <TicketSidebarChecklistContentSkeleton />
       </template>
 
-      <div class="flex flex-col gap-3">
-        <ChecklistItems
-          v-if="checklist"
-          ref="checklist-items"
-          :no-default-title="!!checklist.name"
-          :updating-item-ids="updatingItemIds"
-          :title="checklistTitle"
+      <div
+        v-if="checklist"
+        class="flex flex-col gap-3.5 text-sm text-[var(--sh-ink)] dark:text-white"
+        data-test-id="studenthubChecklist"
+      >
+        <div>
+          <span
+            class="inline-flex h-6 items-center rounded-full px-2.5 text-xs font-bold"
+            :class="stateChip.classes"
+            >{{ stateChip.label }}</span
+          >
+        </div>
+
+        <h3 class="m-0 text-[15px] font-semibold">{{ checklistTitle }}</h3>
+
+        <StudenthubChecklistSteps
+          v-if="checklist.items.length"
           :items="checklist.items"
           :read-only="!isTicketEditable"
-          :is-updating-order="isUpdatingOrder"
-          :is-editing-new-item="isAddingNewItem"
-          :is-updating-checklist-title="isUpdatingChecklistTitle"
-          @add-item="addNewItem"
-          @remove-item="removeItem"
+          :updating-item-ids="updatingItemIds"
           @set-item-checked="setItemCheckedState"
-          @edit-item="editItem"
-          @save-order="saveItemsOrder"
-          @update-title="updateTitle"
         />
-        <template v-else-if="isTicketEditable">
-          <!-- Student Hub: say that there is none, and offer the sub-category's checklist -->
-          <CommonLabel>{{ $t('No checklist assigned to this ticket.') }}</CommonLabel>
-          <template v-if="checklistSuggestion">
-            <CommonLabel size="small">
-              {{
-                $t(
-                  'Tickets in %s › %s get the "%s" checklist.',
-                  checklistSuggestion.category,
-                  checklistSuggestion.subCategory,
-                  checklistSuggestion.name,
-                )
-              }}
-            </CommonLabel>
-            <CommonButton
-              variant="primary"
-              size="medium"
-              block
-              :disabled="isAddingNewChecklist"
-              @click="
-                createNewChecklist(
-                  { templateId: checklistSuggestion.templateId },
-                  { focusLastItem: false },
-                )
-              "
-            >
-              {{ $t('Add %s checklist', checklistSuggestion.name) }}
-            </CommonButton>
-          </template>
-          <CommonButton
-            :variant="checklistSuggestion ? 'secondary' : 'primary'"
-            size="medium"
-            block
-            :disabled="isAddingNewChecklist"
-            @click="createNewChecklist()"
-          >
-            {{ $t('Add empty checklist') }}
-          </CommonButton>
+        <p v-else class="m-0 text-[var(--sh-muted)] dark:text-neutral-400">
+          {{ $t('This checklist has no items.') }}
+        </p>
 
-          <ChecklistTemplates
-            v-if="checklistTemplatesMenuItems && checklistTemplatesMenuItems?.length > 0"
-            :templates="checklistTemplatesMenuItems"
-          />
-          <ChecklistEmptyTemplates v-else-if="!isLoadingTemplates" />
+        <p class="m-0 text-xs leading-normal text-[var(--sh-muted)] dark:text-neutral-400">
+          {{ categoryPath ? $t('Set by your admins for %s.', categoryPath) : $t('Set by your admins.') }}
+          <template v-if="isTicketEditable">{{
+            $t('Tick steps as you go; a done step can be unticked.')
+          }}</template>
+        </p>
+      </div>
+
+      <div v-else class="flex flex-col gap-4 text-sm text-[var(--sh-ink)] dark:text-white">
+        <p
+          class="m-0 flex items-start gap-2.5 text-[13px] leading-normal text-[var(--sh-muted)] dark:text-neutral-400"
+        >
+          <CommonIcon name="checklist" size="xs" class="mt-0.5 shrink-0" decorative />
+          <span v-if="checklistSuggestion">{{ $t('This ticket has no checklist yet.') }}</span>
+          <span v-else-if="categoryPath">{{ $t('No checklist for %s.', categoryPath) }}</span>
+          <span v-else>{{ $t('No checklist assigned to this ticket.') }}</span>
+        </p>
+
+        <template v-if="checklistSuggestion && isTicketEditable">
+          <section
+            class="flex flex-col gap-3 rounded-[10px] border border-[var(--sh-app-border)] bg-white p-3.5 dark:border-gray-900 dark:bg-gray-500"
+            :aria-label="$t('Suggested checklist')"
+          >
+            <div class="flex flex-col gap-1">
+              <span
+                class="text-[11px] font-bold tracking-wider text-[var(--sh-app)] uppercase dark:text-white"
+                >{{ $t('Suggested for this sub-category') }}</span
+              >
+              <span class="text-xs text-[var(--sh-muted)] dark:text-neutral-400">
+                {{ checklistSuggestion.category }} › {{ checklistSuggestion.subCategory }}
+              </span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <p class="m-0 text-[15px] font-semibold">{{ checklistSuggestion.name }}</p>
+              <span class="text-xs text-[var(--sh-muted)] dark:text-neutral-400">
+                {{ $t('%s items', checklistSuggestion.itemCount) }}
+              </span>
+            </div>
+            <ul
+              v-if="checklistSuggestion.firstItems.length"
+              class="m-0 flex list-none flex-col gap-1.5 rounded-lg bg-[#f6f7f9] px-3 py-2.5 text-[13px] text-[#3b4352] dark:bg-gray-700 dark:text-neutral-400"
+            >
+              <li
+                v-for="(text, index) in checklistSuggestion.firstItems"
+                :key="index"
+                class="flex items-center gap-2"
+              >
+                <span
+                  class="h-3 w-3 shrink-0 rounded-[3px] border-[1.5px] border-[#9aa1ad]"
+                  aria-hidden="true"
+                />
+                {{ text }}
+              </li>
+              <li
+                v-if="checklistSuggestion.itemCount > checklistSuggestion.firstItems.length"
+                class="ps-5 text-xs text-[var(--sh-muted)] dark:text-neutral-400"
+              >
+                {{
+                  $t(
+                    'and %s more',
+                    checklistSuggestion.itemCount - checklistSuggestion.firstItems.length,
+                  )
+                }}
+              </li>
+            </ul>
+            <button
+              type="button"
+              class="h-10 rounded-md bg-[var(--sh-app)] text-sm font-semibold text-[var(--sh-on-app)] hover:bg-[var(--sh-app-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sh-app)] disabled:opacity-60"
+              :disabled="isAddingNewChecklist"
+              @click="addSuggestedChecklist"
+            >
+              {{ $t('Add this checklist') }}
+            </button>
+          </section>
+          <p class="m-0 text-xs leading-normal text-[var(--sh-muted)] dark:text-neutral-400">
+            {{
+              $t(
+                'New tickets in this sub-category get it automatically; this card shows on tickets that were here before.',
+              )
+            }}
+          </p>
         </template>
-        <CommonLabel v-else>{{ $t('No checklist assigned to this ticket.') }}</CommonLabel>
       </div>
     </CommonLoader>
   </TicketSidebarContent>

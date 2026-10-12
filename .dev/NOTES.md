@@ -96,7 +96,12 @@ Never put passwords, tokens or keys in this file.
   the Checklists page; the server adds it when a ticket is created there or moved there without a checklist, never
   replacing one (README → Checklists added automatically). The four "Checklist : …" triggers keep only their
   `checklist-checd` tag (other triggers react to it); their loopback webhooks are off (migration, 11 Oct). Tickets
-  that were in the sub-category before get it from their Checklist tab (Add <name> checklist), not automatically
+  that were in the sub-category before get it from their Checklist tab (Add this checklist), not automatically
+- Checklists are admin-made and admin-assigned (13 Oct): on a ticket agents only tick and untick; adding, editing,
+  reordering, deleting items, renaming, removing, empty checklists and templates need `admin.checklist`, enforced on the
+  server for the new UI, classic UI and API (`Studenthub::ChecklistRules`); agents may add only the checklist assigned
+  to the ticket's sub-category. Checklist tab = design B ("steps timeline") of
+  <https://claude.ai/artifact/W3yaJpnvhharThcMzzRrAW>
 - Classic features move to the new UI as pages that read through small Student Hub endpoints and save through
   Zammad's own REST API (its checks and permissions apply); settings a page doesn't know are kept as they are
 - Customer feedback is for admins only (`admin.feedback_collection`: sidebar panel in both UIs and the API); the
@@ -163,6 +168,8 @@ Never put passwords, tokens or keys in this file.
   (check production too)
 - `config/database/database.yml` has a leaked password → not yet fixed
 - Base is a July `develop` snapshot, not a stable Zammad release
+- No longer used by the Checklist tab (13 Oct), left in place: Zammad's `ChecklistItems.vue`, `ChecklistItem.vue`,
+  `ChecklistTemplates.vue`, `ChecklistEmptyTemplates.vue`, `useChecklistTemplates.ts` (their own specs still pass)
 - Zammad's SMS driver specs (Twilio, MessageBird, Massenversand: 3 examples) fail in the container: they expect
   errors from the real SMS services
 - Review of Taxil's work (30 Sep), not fixed yet:
@@ -305,9 +312,9 @@ Never put passwords, tokens or keys in this file.
   a count chip and "N overdue" (loaded tickets only), Unassigned tinted with a dashed circle; quieter column headings
   in every ticket list. Columns stay as the overview's admin settings; the concept's filter chips, Columns button,
   two-line ticket cell and subtitle were left out on purpose. Not yet checked in a browser
-- Checklist tab (12 Oct): "No checklist assigned to this ticket." when there is none, and Add <name> checklist when
-  the ticket's sub-category has one. Not yet checked in a browser (puma here hung; restart `bin/dev`). The dev server
-  had been running since before the checklist assignments (11 Oct), so web tickets got no checklist until a restart
+- Checklist tab redesign (design B, 13 Oct): steps timeline, state chip, Next + Mark done, who ticked; tick-only for
+  agents. Not yet checked in a browser (no dev ticket has a checklist; add one to a `[TEST]` ticket's sub-category).
+  The classic UI still shows its add / edit buttons for checklists; the server refuses them for agents
 - Triggers, Macros, SLAs, Report Profiles and the Time Accounting selector use the Scheduler's condition and action
   editor (12 Oct): trigger fields (Action, the message, Customer is VIP, "has changed"), expert-mode groups (also in
   the Scheduler), Set title and Set customer. Templates still edit only some fields and keep the rest. Before, those

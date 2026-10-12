@@ -11,6 +11,11 @@ module Gql::Mutations
     field :checklist_item, Gql::Types::Checklist::ItemType, null: false, description: 'Updated or created checklist item.'
 
     def resolve(checklist:, input:, checklist_item: nil)
+      # Student Hub: agents only tick; adding items and changing their text is for checklist admins.
+      if (!checklist_item || !Studenthub::ChecklistRules.tick_only?(input)) && !ChecklistPolicy.new(context.current_user, checklist).manage?
+        raise Exceptions::Forbidden, __('Not authorized')
+      end
+
       if checklist_item
         checklist_item.update!(**input)
       else

@@ -34,11 +34,15 @@ class StudenthubChecklistAssignmentsController < ApplicationController
     template = Studenthub::ChecklistAssignments.template_for_ticket(ticket)
     return render json: {} if !template
 
+    items = template.sorted_items.pluck(:text)
+
     render json: {
       checklist_template_id: template.id,
       name:                  template.name,
       category:              ticket[Studenthub::ChecklistAssignments::CATEGORY_FIELD],
       sub_category:          ticket[Studenthub::ChecklistAssignments::SUB_CATEGORY_FIELD],
+      item_count:            items.size,
+      first_items:           items.first(3),
     }
   end
 

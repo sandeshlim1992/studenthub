@@ -875,8 +875,18 @@ tickets in** lists the pairs; the list of checklists shows them under each name.
   yet: a checklist is never replaced, so ticked items stay. The hook is loaded when Rails starts: restart Rails after
   pulling or deploying it.
 - **Tickets already there:** a ticket that was in the sub-category before the assignment doesn't get it by itself. Its
-  **Checklist** tab says "No checklist assigned to this ticket." and offers **Add <name> checklist** (one click, from
-  the template); "Add empty checklist" and the templates stay below.
+  **Checklist** tab says "This ticket has no checklist yet." and offers that checklist (name, number of items, the
+  first three) with **Add this checklist**. A sub-category without one says "No checklist for <Category ›
+  Sub-category>."
+- **Agents only tick:** checklists are made and assigned by admins. On a ticket, agents tick and untick items, nothing
+  else: no adding, editing, reordering or deleting items, no renaming, no empty checklists or templates, and only the
+  checklist assigned to the ticket's sub-category can be added. The server enforces it for the new UI, the classic UI
+  and the API (`Studenthub::ChecklistRules`); users with `admin.checklist` keep full control (on a ticket, the new UI
+  only offers them **Remove checklist**). Changes to a checklist itself are made under Administration → Checklists.
+- **The Checklist tab** (design B of <https://claude.ai/artifact/W3yaJpnvhharThcMzzRrAW>): a state chip (Not started /
+  In progress / Done · n of m), the checklist's name, then the items as steps on a timeline. The next open step says
+  **Next** and has **Mark done**; done steps show who last changed them and when (the item's `updated_by`/`updated_at`,
+  so a later text change by an admin shows too). Linked tickets count as done once closed.
 - **Rules:** one checklist per sub-category (a ticket has one checklist); a checklist can cover many. Inactive
   checklists aren't added, and nothing is while checklists are switched off. The pair is used, not the sub-category
   alone ("Others" exists under several categories); the lists come from the same place as for Request forms. A pair
@@ -891,7 +901,8 @@ tickets in** lists the pairs; the list of checklists shows them under each name.
 | `db/migrate/20261011140000_studenthub_checklist_assignments.rb`, `app/models/studenthub_checklist_assignment.rb`, `lib/studenthub/checklist_assignments.rb` | Table, the checks, adding the checklist to tickets (`TicketHook`, included by `config/initializers/studenthub_checklist_assignments.rb`) |
 | `lib/studenthub/checklist_assignments/webhook_triggers.rb` | The one-off conversion of the old triggers and webhooks |
 | `app/controllers/studenthub_checklist_assignments_controller.rb` | API (`/api/v1/studenthub/checklist_assignments`, `…/:checklist_template_id`; agents: `…/ticket/:ticket_id`, the checklist a ticket's sub-category gets) |
-| `pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useStudenthubChecklistSuggestion.ts`, edits in `TicketSidebarChecklistContent.vue` | The ticket's Checklist tab: "No checklist assigned", Add <name> checklist |
+| `pages/ticket/components/TicketSidebar/TicketSidebarChecklist/useStudenthubChecklistSuggestion.ts`, `TicketSidebarChecklistContent.vue`, `TicketSidebarChecklistContent/StudenthubChecklistSteps.vue` | The ticket's Checklist tab: the steps, the state chip, Add this checklist |
+| `lib/studenthub/checklist_rules.rb`; edits in `app/policies/checklist_policy.rb`, `checklist/item_policy.rb`, `controllers/checklists_controller_policy.rb`, `controllers/checklist_items_controller_policy.rb` and `app/graphql/gql/mutations/ticket/checklist/{add,item_upsert,title_update,item_order_update,items_add}.rb` | Agents only tick; the rest needs `admin.checklist` (`spec/graphql/gql/studenthub_checklist_rules_spec.rb`; Zammad's checklist specs act as `:checklist_admin_agent`) |
 | `app/frontend/apps/desktop/pages/manage/components/Checklists/`, edits in `views/Checklists.vue` | The sub-category picker in the checklist drawer; Added to under each name |
 
 ---

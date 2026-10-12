@@ -173,3 +173,6 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: The student wizard, the students' ticket list and the managers' New ticket read their categories,
   sub-categories and campuses from the new `GET /api/v1/studenthub/ticket_wizard_metadata` (the route they called
   didn't exist); sub-categories per category follow the core workflows, as on the staff form
+- 2026-10-12: `/manage/knowledge_base`: the Languages tab and Public Menu show the knowledge base's languages, links and
+  titles (the page read Zammad's data under the wrong names, so they were always empty), and removing a saved menu
+  link works (Zammad wants every saved link listed, removed ones marked to be destroyed)

@@ -164,9 +164,6 @@ Never put passwords, tokens or keys in this file.
   - Theme switch and "Continue to mobile" removed; `/manage` messages show "%s"
     (login-page public links are back since 7 Oct)
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
-- `/manage/knowledge_base` reads the knowledge base's languages, menu items and translations under `KnowledgeBase::Locale`
-  etc., but Zammad's init sends `KnowledgeBaseLocale` etc. → the Languages tab and Public Menu are always empty
-  (Taxil's code; found 12 Oct, not fixed)
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
   phone (CTI) log (both unused), Clearbit's field mapping, Scheduler jobs on users or organisations, the fields of a
   template other than title, state, priority, team and owner (kept on save), and conditions or actions the shared

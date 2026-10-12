@@ -242,13 +242,14 @@ const fetchKnowledgeBase = async () => {
         kb.value = null
       }
 
-      const localeMap = data['KnowledgeBase::Locale'] || {}
+      // Zammad names the assets after the model without "::" (KnowledgeBase::Locale → KnowledgeBaseLocale).
+      const localeMap = data.KnowledgeBaseLocale || {}
       kbLocales.value = Object.values(localeMap)
 
-      const menuMap = data['KnowledgeBase::MenuItem'] || {}
+      const menuMap = data.KnowledgeBaseMenuItem || {}
       menuItems.value = Object.values(menuMap)
 
-      const transMap = data['KnowledgeBase::Translation'] || {}
+      const transMap = data.KnowledgeBaseTranslation || {}
       kbTranslations.value = Object.values(transMap)
     }
   } catch (e) {
@@ -588,7 +589,8 @@ const savePublicMenu = async () => {
   isSavingMenu.value = true
   try {
     const menuItemsSets = kbLocales.value.map((loc) => {
-      const items = (drawerMenuItemsByLocale.value[loc.id] || []).map((m, idx) => ({
+      const kept = drawerMenuItemsByLocale.value[loc.id] || []
+      const items = kept.map((m, idx) => ({
         id: m.id,
         title: m.title.trim(),
         url: m.url.trim(),
@@ -596,10 +598,14 @@ const savePublicMenu = async () => {
         position: idx,
         _destroy: false,
       }))
+      // Zammad wants every saved link of the menu listed: the removed ones go to be destroyed.
+      const removed = getLocaleMenuItems(loc.id, menuDrawerLocation.value)
+        .filter((m) => m.id && !kept.some((k) => k.id === m.id))
+        .map((m) => ({ id: m.id, _destroy: true }))
       return {
         kb_locale_id: loc.id,
         location: menuDrawerLocation.value,
-        menu_items: items,
+        menu_items: [...items, ...removed],
       }
     })
 

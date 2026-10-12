@@ -37,7 +37,10 @@ export const TicketsCachedByOverviewDocument = gql`
         }
         owner {
           id
+          firstname
+          lastname
           fullname
+          image
         }
         customer {
           id

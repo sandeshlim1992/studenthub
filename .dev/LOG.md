@@ -152,3 +152,6 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: Approval tab redesigned (design B): a state chip, a timeline of every request and decision (newest
   first) with Withdraw or Approve / Deny on the waiting step, "Send for approval again", white fields and buttons in
   the application colour; the approval API returns each request's team
+- 2026-10-12: Ticket lists (concept 1 "Quiet table"): group headers with the agent's avatar, a count chip and
+  "N overdue", the Unassigned group tinted with a dashed circle; quieter column headings (small capitals on a light
+  rule); the overview list query also returns the owner's names and photo for the avatar

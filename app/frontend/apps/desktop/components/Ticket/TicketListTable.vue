@@ -24,6 +24,7 @@ import { useListTable } from '../CommonTable/composables/useListTable.ts'
 
 import StudenthubCampusBadge from './StudenthubTicketCells/StudenthubCampusBadge.vue'
 import StudenthubTicketEscalation from './StudenthubTicketCells/StudenthubTicketEscalation.vue'
+import StudenthubTicketGroupHeader from './StudenthubTicketCells/StudenthubTicketGroupHeader.vue'
 import StudenthubTicketPriority from './StudenthubTicketCells/StudenthubTicketPriority.vue'
 import StudenthubTicketStateLabel from './StudenthubTicketCells/StudenthubTicketStateLabel.vue'
 import { useTicketBulkEdit } from './TicketBulkEditFlyout/useTicketBulkEdit.ts'
@@ -97,6 +98,12 @@ const escalationOf = (ticket: TicketByList, attribute: keyof TicketByList) =>
 
 const campusOf = (ticket: TicketByList) =>
   ticket.objectAttributeValues?.find((entry) => entry.attribute.name === 'campus')?.value
+
+// Student Hub: the tickets of one group, for its header (StudenthubTicketGroupHeader).
+const itemsById = computed(() => new Map(props.items.map((item) => [item.id, item])))
+
+const ticketsOf = (ids: string[]) =>
+  ids.map((id) => itemsById.value.get(id)).filter((ticket): ticket is TicketByList => !!ticket)
 
 // Matching the general ticket structure for the default layout column width
 const columnWidths = computed(() =>
@@ -295,6 +302,16 @@ const skeletonColumns = computed(() => columnWidths.value.length)
         </template>
         <template #column-cell-campus="{ item }">
           <StudenthubCampusBadge :value="campusOf(item as TicketByList)" />
+        </template>
+        <template #group-by-row="{ item, attribute, itemIds, count, complete, label }">
+          <StudenthubTicketGroupHeader
+            :item="item as TicketByList"
+            :attribute="attribute"
+            :tickets="ticketsOf(itemIds)"
+            :count="count"
+            :complete="complete"
+            :label="label"
+          />
         </template>
       </CommonAdvancedTable>
     </div>

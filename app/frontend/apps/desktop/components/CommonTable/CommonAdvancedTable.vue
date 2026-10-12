@@ -559,7 +559,11 @@ watch(
           :group-by-row-counts="groupByRowCounts"
           :remaining-items="remainingItems"
           :label="pinnedGroup?.matches(item) ? pinnedGroup.label : undefined"
-        />
+        >
+          <template v-if="$slots['group-by-row']" #default="groupProps">
+            <slot name="group-by-row" v-bind="groupProps" />
+          </template>
+        </TableRowGroupBy>
         <TableRow
           :item="item"
           :is-row-selected="!hasBulkAction && item.id === selectedRowId"

@@ -23,6 +23,8 @@ export interface Props {
 
 const props = defineProps<Props>()
 
+const groupItemIds = computed(() => props.groupByRowCounts?.[props.groupByValueIndex] ?? [])
+
 const groupByRowCount = computed(() => {
   return props.groupByRowCounts?.[props.groupByValueIndex].length
 })
@@ -38,20 +40,30 @@ const completedGroup = computed(() => {
   <tr class="group">
     <td :colspan="tableColumnLength">
       <CommonDivider class="mt-2 mb-1 group-first:mt-0" />
-      <div class="h-10 p-2.5">
-        <CommonLabel class="cursor-default truncate text-stone-200! dark:text-neutral-500!">
-          <template v-if="label">{{ $t(label) }}</template>
-          <ObjectAttributeContent
-            v-else
-            mode="table"
-            :attribute="attribute as unknown as ObjectAttribute"
-            :object="item"
-          />
-          <CommonBadge class="ms-0.5 leading-snug font-bold" rounded size="xs" variant="info">
-            {{ groupByRowCount }}{{ completedGroup ? '' : '+' }}
-          </CommonBadge>
-        </CommonLabel>
-      </div>
+      <!-- Student Hub: a list can draw its own group header (TicketListTable). -->
+      <slot
+        :item="item"
+        :attribute="attribute"
+        :item-ids="groupItemIds"
+        :count="groupByRowCount ?? 0"
+        :complete="completedGroup"
+        :label="label"
+      >
+        <div class="h-10 p-2.5">
+          <CommonLabel class="cursor-default truncate text-stone-200! dark:text-neutral-500!">
+            <template v-if="label">{{ $t(label) }}</template>
+            <ObjectAttributeContent
+              v-else
+              mode="table"
+              :attribute="attribute as unknown as ObjectAttribute"
+              :object="item"
+            />
+            <CommonBadge class="ms-0.5 leading-snug font-bold" rounded size="xs" variant="info">
+              {{ groupByRowCount }}{{ completedGroup ? '' : '+' }}
+            </CommonBadge>
+          </CommonLabel>
+        </div>
+      </slot>
     </td>
   </tr>
 </template>

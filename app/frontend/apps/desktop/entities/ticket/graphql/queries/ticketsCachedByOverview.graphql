@@ -37,7 +37,10 @@ query ticketsCachedByOverview(
         }
         owner {
           id
+          firstname
+          lastname
           fullname
+          image
         }
         customer {
           id

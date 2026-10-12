@@ -220,6 +220,10 @@ Never put passwords, tokens or keys in this file.
 - Staff get Zammad's "New desktop BETA UI … not ready for production use" pop-up once per browser after signing in
   (`useBetaUiDisclaimer.ts`), although the new UI is now the main one at `/`; not decided yet whether to drop or
   reword it
+- Three ticket-overviews specs (`studenthub-talk-to-student-support`, `ticket-overviews-empty-states`,
+  `ticket-overviews-polling`) sometimes fail when the whole `pages/ticket-overviews` folder runs together with the
+  table specs (route stays `TicketOverview`, polling times out); they pass on their own, with or without the 12 Oct
+  group header change
 
 ## In progress
 
@@ -278,6 +282,10 @@ Never put passwords, tokens or keys in this file.
 - Test server switched to this repo on 2 Oct (`develop` at `f8f9b99dc9`). The logo build fix is
   applied there by hand (uncommitted); nginx `/cable` + `/ws` now forward the Host header; old
   branding edits are in `git stash` and `~ticketadmi/server-branding/` (old `custom.css` in `disabled-live/`)
+- Ticket list group headers (12 Oct, concept 1 "Quiet table" from the ticket list design canvas): the agent's avatar,
+  a count chip and "N overdue" (loaded tickets only), Unassigned tinted with a dashed circle; quieter column headings
+  in every ticket list. Columns stay as the overview's admin settings; the concept's filter chips, Columns button,
+  two-line ticket cell and subtitle were left out on purpose. Not yet checked in a browser
 
 ## Next steps
 

@@ -1059,4 +1059,34 @@ describe('CommonAdvancedTable', () => {
 
     expect(wrapper.getByRole('row', { name: 'grouping11+' })).toBeInTheDocument()
   })
+
+  it('lets a list draw its own group header', async () => {
+    const items = [
+      createDummyTicket(),
+      createDummyTicket({ ticketId: '2', title: faker.word.sample() }),
+    ]
+
+    const wrapper = await renderTable(
+      {
+        headers: ['title', 'customer', 'owner', 'state'],
+        items,
+        totalItemsCount: 2,
+        maxItems: 30,
+        groupBy: 'customer',
+        caption: 'Table caption',
+      },
+      {
+        router: true,
+        form: true,
+        slots: {
+          'group-by-row': `<template #group-by-row="{ itemIds, count, complete }">
+            <span>Own header {{ count }} {{ itemIds.length }} {{ complete }}</span>
+          </template>`,
+        },
+      },
+    )
+
+    expect(wrapper.getByText('Own header 2 2 true')).toBeInTheDocument()
+    expect(wrapper.queryByRole('row', { name: 'Nicole Braun2' })).not.toBeInTheDocument()
+  })
 })

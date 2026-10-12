@@ -4,6 +4,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
+import {
+  keepSettings,
+  noKeptSettings,
+  withKeptSettings,
+} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
 
 interface ReportProfileItem {
   id: number
@@ -79,6 +85,21 @@ const defaultFormState = () => ({
 })
 
 const formState = ref(defaultFormState())
+
+// Student Hub: conditions this editor doesn't show (Category, Campus, …) are kept, used for the
+// preview and saved back (keptSettings.ts); these are the keys it does show.
+const SHOWN_CONDITION_KEYS = [
+  'ticket.state_id',
+  'ticket.priority_id',
+  'ticket.group_id',
+  'ticket.owner_id',
+  'ticket.customer_id',
+  'ticket.organization_id',
+]
+const keptCondition = ref(noKeptSettings())
+const hasKeptCondition = computed(
+  () => !!keptCondition.value.expert || Object.keys(keptCondition.value.kept).length > 0,
+)
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -242,7 +263,7 @@ const fetchPreview = async () => {
         'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': getCsrf(),
       },
-      body: JSON.stringify({ condition: buildConditionPayload() }),
+      body: JSON.stringify({ condition: withKeptSettings(keptCondition.value, buildConditionPayload()) }),
     })
     if (res.ok) {
       const data = await res.json()
@@ -336,6 +357,7 @@ const filteredProfiles = computed(() => {
 const handleNewProfile = () => {
   formState.value = defaultFormState()
   formState.value.role_ids = rolesList.value.filter((r) => r.name === 'Admin' || r.name === 'Agent').map((r) => r.id)
+  keptCondition.value = noKeptSettings()
   previewTickets.value = []
   previewTotal.value = 0
   previewError.value = ''
@@ -351,6 +373,7 @@ const handleEditProfile = (profile: ReportProfileItem) => {
     role_ids: [...(profile.role_ids || [])],
     conditions: parseConditionToRows(profile.condition as Record<string, unknown>),
   }
+  keptCondition.value = keepSettings(profile.condition, SHOWN_CONDITION_KEYS)
   drawerTitle.value = __('Edit Report Profile')
   showDrawer.value = true
   fetchPreview()
@@ -364,6 +387,7 @@ const handleCloneProfile = (profile: ReportProfileItem) => {
     role_ids: [...(profile.role_ids || [])],
     conditions: parseConditionToRows(profile.condition as Record<string, unknown>),
   }
+  keptCondition.value = keepSettings(profile.condition, SHOWN_CONDITION_KEYS)
   drawerTitle.value = __('Clone Report Profile')
   showDrawer.value = true
   fetchPreview()
@@ -381,7 +405,7 @@ const saveProfile = async () => {
       name: formState.value.name.trim(),
       active: formState.value.active,
       role_ids: formState.value.role_ids,
-      condition: buildConditionPayload(),
+      condition: withKeptSettings(keptCondition.value, buildConditionPayload()),
     }
 
     const isEdit = formState.value.id !== null
@@ -806,6 +830,7 @@ onMounted(() => {
                 {{ __('Filter / Conditions') }}
               </label>
               <button
+                v-if="!keptCondition.expert"
                 type="button"
                 @click="formState.conditions.push({ field: 'state', operator: 'is', values: [] })"
                 class="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
@@ -818,7 +843,9 @@ onMounted(() => {
               {{ __('Filter which tickets are included in reports when this profile is active. If empty, all tickets are included.') }}
             </p>
 
-            <div v-if="formState.conditions.length === 0" class="p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center bg-slate-50 dark:bg-slate-800/30">
+            <AutomationKeptSettings :settings="keptCondition" class="mb-3" />
+
+            <div v-if="formState.conditions.length === 0 && !hasKeptCondition" class="p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center bg-slate-50 dark:bg-slate-800/30">
               <p class="text-xs text-slate-500 mb-2">{{ __('No conditions defined. All tickets will be included in the report.') }}</p>
               <button
                 type="button"
@@ -830,7 +857,7 @@ onMounted(() => {
               </button>
             </div>
 
-            <div v-else class="space-y-3">
+            <div v-else-if="!keptCondition.expert" class="space-y-3">
               <div
                 v-for="(cond, idx) in formState.conditions"
                 :key="idx"

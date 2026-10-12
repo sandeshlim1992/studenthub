@@ -4,6 +4,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
+import {
+  keepSettings,
+  noKeptSettings,
+  withKeptSettings,
+} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
 
 interface TriggerItem {
   id: number
@@ -63,6 +69,18 @@ const defaultFormState = () => ({
 })
 
 const formState = ref(defaultFormState())
+
+// Student Hub: conditions and actions this editor doesn't show are kept and saved back
+// (keptSettings.ts); these are the keys it does show.
+const SHOWN_CONDITION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'article.action']
+const SHOWN_ACTION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'ticket.owner_id']
+const keptCondition = ref(noKeptSettings())
+const keptPerform = ref(noKeptSettings())
+
+const keepFrom = (trig?: TriggerItem) => {
+  keptCondition.value = keepSettings(trig?.condition, SHOWN_CONDITION_KEYS)
+  keptPerform.value = keepSettings(trig?.perform, SHOWN_ACTION_KEYS)
+}
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -239,6 +257,7 @@ const handleNewTrigger = () => {
   formState.value = defaultFormState()
   formState.value.conditions = [{ field: 'state', operator: 'is', values: [] }]
   formState.value.actions = [{ field: 'state', value: '' }]
+  keepFrom()
   drawerTitle.value = __('New Trigger')
   showDrawer.value = true
 }
@@ -260,6 +279,7 @@ const handleEditTrigger = (trig: TriggerItem) => {
   if (formState.value.actions.length === 0) {
     formState.value.actions.push({ field: 'state', value: '' })
   }
+  keepFrom(trig)
   drawerTitle.value = __('Edit Trigger')
   showDrawer.value = true
 }
@@ -281,6 +301,7 @@ const handleCloneTrigger = (trig: TriggerItem) => {
   if (formState.value.actions.length === 0) {
     formState.value.actions.push({ field: 'state', value: '' })
   }
+  keepFrom(trig)
   drawerTitle.value = __('Clone Trigger')
   showDrawer.value = true
 }
@@ -299,8 +320,8 @@ const saveTrigger = async () => {
       execution_condition_mode: formState.value.execution_condition_mode,
       note: formState.value.note,
       active: formState.value.active,
-      condition: buildConditionPayload(),
-      perform: buildPerformPayload(),
+      condition: withKeptSettings(keptCondition.value, buildConditionPayload()),
+      perform: withKeptSettings(keptPerform.value, buildPerformPayload()),
     }
 
     const isEdit = formState.value.id !== null
@@ -628,6 +649,8 @@ onMounted(() => {
               {{ __('Conditions for affected objects') }} <span class="text-red-500">*</span>
             </label>
             <div class="space-y-3">
+              <AutomationKeptSettings :settings="keptCondition" />
+              <template v-if="!keptCondition.expert">
               <div
                 v-for="(cond, idx) in formState.conditions"
                 :key="idx"
@@ -749,6 +772,7 @@ onMounted(() => {
               >
                 <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Condition') }}
               </button>
+              </template>
             </div>
           </div>
 
@@ -758,6 +782,7 @@ onMounted(() => {
               {{ __('Execute changes on objects') }}
             </label>
             <div class="space-y-3">
+              <AutomationKeptSettings :settings="keptPerform" />
               <div
                 v-for="(act, idx) in formState.actions"
                 :key="idx"

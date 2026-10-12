@@ -4,6 +4,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
+import {
+  keepSettings,
+  noKeptSettings,
+  withKeptSettings,
+} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
 
 interface SlaItem {
   id: number
@@ -63,6 +69,11 @@ const defaultFormState = () => ({
 })
 
 const formState = ref(defaultFormState())
+
+// Student Hub: conditions this editor doesn't show are kept and saved back (keptSettings.ts); these
+// are the keys it does show.
+const SHOWN_CONDITION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id']
+const keptCondition = ref(noKeptSettings())
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -197,6 +208,7 @@ const handleNewSla = () => {
     formState.value.calendar_id = defaultCal.id
   }
   formState.value.conditions = [{ field: 'state', operator: 'is', values: [] }]
+  keptCondition.value = noKeptSettings()
   drawerTitle.value = __('New SLA')
   showDrawer.value = true
 }
@@ -214,6 +226,7 @@ const handleEditSla = (sla: SlaItem) => {
   if (formState.value.conditions.length === 0) {
     formState.value.conditions.push({ field: 'state', operator: 'is', values: [] })
   }
+  keptCondition.value = keepSettings(sla.condition, SHOWN_CONDITION_KEYS)
   drawerTitle.value = __('Edit SLA')
   showDrawer.value = true
 }
@@ -231,6 +244,7 @@ const handleCloneSla = (sla: SlaItem) => {
   if (formState.value.conditions.length === 0) {
     formState.value.conditions.push({ field: 'state', operator: 'is', values: [] })
   }
+  keptCondition.value = keepSettings(sla.condition, SHOWN_CONDITION_KEYS)
   drawerTitle.value = __('Clone SLA')
   showDrawer.value = true
 }
@@ -279,7 +293,7 @@ const saveSla = async () => {
       first_response_time: formState.value.first_response_time ? Number(formState.value.first_response_time) : null,
       update_time: formState.value.update_time ? Number(formState.value.update_time) : null,
       solution_time: formState.value.solution_time ? Number(formState.value.solution_time) : null,
-      condition: buildConditionPayload(),
+      condition: withKeptSettings(keptCondition.value, buildConditionPayload()),
     }
 
     const isEdit = formState.value.id !== null
@@ -573,6 +587,8 @@ onMounted(() => {
               {{ __('Ticket Selector') }} <span class="text-red-500">*</span>
             </label>
             <div class="space-y-3">
+              <AutomationKeptSettings :settings="keptCondition" />
+              <template v-if="!keptCondition.expert">
               <div
                 v-for="(cond, idx) in formState.conditions"
                 :key="idx"
@@ -675,6 +691,7 @@ onMounted(() => {
               >
                 <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Rule') }}
               </button>
+              </template>
             </div>
           </div>
 

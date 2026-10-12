@@ -4,6 +4,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
+import {
+  keepSettings,
+  noKeptSettings,
+  withKeptSettings,
+} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
 
 interface MacroItem {
   id: number
@@ -68,6 +74,11 @@ const defaultFormState = () => ({
 })
 
 const formState = ref(defaultFormState())
+
+// Student Hub: actions this editor doesn't show (notes, tags, emails, …) are kept and saved back
+// (keptSettings.ts); these are the keys it does show.
+const SHOWN_ACTION_KEYS = ['ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'ticket.owner_id']
+const keptPerform = ref(noKeptSettings())
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -221,6 +232,7 @@ const filteredMacros = computed(() => {
 const handleNewMacro = () => {
   formState.value = defaultFormState()
   formState.value.actions = [{ field: 'state', value: '', values: [] }]
+  keptPerform.value = noKeptSettings()
   drawerTitle.value = __('New Macro')
   showDrawer.value = true
 }
@@ -238,6 +250,7 @@ const handleEditMacro = (macro: MacroItem) => {
   if (formState.value.actions.length === 0) {
     formState.value.actions.push({ field: 'state', value: '', values: [] })
   }
+  keptPerform.value = keepSettings(macro.perform, SHOWN_ACTION_KEYS)
   drawerTitle.value = __('Edit Macro')
   showDrawer.value = true
 }
@@ -256,7 +269,7 @@ const saveMacro = async () => {
       note: formState.value.note,
       active: formState.value.active,
       group_ids: formState.value.group_ids,
-      perform: buildPerformPayload(),
+      perform: withKeptSettings(keptPerform.value, buildPerformPayload()),
     }
 
     const isEdit = formState.value.id !== null
@@ -302,6 +315,7 @@ const handleCloneMacro = (macro: MacroItem) => {
   if (formState.value.actions.length === 0) {
     formState.value.actions.push({ field: 'state', value: '', values: [] })
   }
+  keptPerform.value = keepSettings(macro.perform, SHOWN_ACTION_KEYS)
   drawerTitle.value = __('New Macro')
   showDrawer.value = true
 }
@@ -576,6 +590,7 @@ onMounted(() => {
               {{ __('Actions') }}
             </label>
             <div class="space-y-3">
+              <AutomationKeptSettings :settings="keptPerform" />
               <div
                 v-for="(act, idx) in formState.actions"
                 :key="idx"

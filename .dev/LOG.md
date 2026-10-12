@@ -158,3 +158,6 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-12: Checklist tab: "No checklist assigned to this ticket." when there is none, and "Add <name> checklist"
   when the ticket's Category › Sub-category has one (tickets that were there before the assignment);
   `GET /api/v1/studenthub/checklist_assignments/ticket/:ticket_id` for agents who can see the ticket
+- 2026-10-12: Triggers, Macros, Templates, SLAs, Report Profiles and the Time Accounting selector keep what their
+  editor doesn't show (emails, webhooks, tags, notes, other conditions) when saved, and list it; before, a save
+  deleted it. Expert-mode conditions are left as they are

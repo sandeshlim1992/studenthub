@@ -4,6 +4,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
+import {
+  keepSettings,
+  noKeptSettings,
+  withKeptSettings,
+} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
 
 interface TemplateItem {
   id: number
@@ -50,6 +56,11 @@ const defaultFormState = () => ({
 })
 
 const formState = ref(defaultFormState())
+
+// Student Hub: fields this editor doesn't show (the message text, Category, …) are kept and saved
+// back (keptSettings.ts); these are the keys it does show.
+const SHOWN_OPTION_KEYS = ['ticket.title', 'ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'ticket.owner_id']
+const keptOptions = ref(noKeptSettings())
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -183,6 +194,7 @@ const filteredTemplates = computed(() => {
 const handleNewTemplate = () => {
   formState.value = defaultFormState()
   formState.value.actions = [{ field: 'title', value: '', textValue: '' }]
+  keptOptions.value = noKeptSettings()
   drawerTitle.value = __('New Template')
   showDrawer.value = true
 }
@@ -197,6 +209,7 @@ const handleEditTemplate = (tmpl: TemplateItem) => {
   if (formState.value.actions.length === 0) {
     formState.value.actions.push({ field: 'title', value: '', textValue: '' })
   }
+  keptOptions.value = keepSettings(tmpl.options, SHOWN_OPTION_KEYS)
   drawerTitle.value = __('Edit Template')
   showDrawer.value = true
 }
@@ -211,6 +224,7 @@ const handleCloneTemplate = (tmpl: TemplateItem) => {
   if (formState.value.actions.length === 0) {
     formState.value.actions.push({ field: 'title', value: '', textValue: '' })
   }
+  keptOptions.value = keepSettings(tmpl.options, SHOWN_OPTION_KEYS)
   drawerTitle.value = __('Clone Template')
   showDrawer.value = true
 }
@@ -250,7 +264,7 @@ const saveTemplate = async () => {
     const payload = {
       name: formState.value.name,
       active: formState.value.active,
-      options: buildOptionsPayload(),
+      options: withKeptSettings(keptOptions.value, buildOptionsPayload()),
     }
 
     const isEdit = formState.value.id !== null
@@ -546,6 +560,7 @@ onMounted(() => {
               {{ __('Actions') }}
             </label>
             <div class="space-y-3">
+              <AutomationKeptSettings :settings="keptOptions" />
               <div
                 v-for="(act, idx) in formState.actions"
                 :key="idx"

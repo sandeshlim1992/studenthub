@@ -5,6 +5,12 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
+import {
+  keepSettings,
+  noKeptSettings,
+  withKeptSettings,
+} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
 
 interface SettingRecord {
   id: number
@@ -57,6 +63,21 @@ const customUnitSetting = ref<string>('')
 const areActivityTypesEnabled = ref(false)
 const defaultActivityTypeId = ref<number | null>(null)
 const conditions = ref<ConditionRow[]>([])
+
+// Student Hub: selector conditions this editor doesn't show are kept and saved back
+// (keptSettings.ts); these are the keys it does show.
+const SHOWN_CONDITION_KEYS = [
+  'ticket.state_id',
+  'ticket.priority_id',
+  'ticket.group_id',
+  'ticket.owner_id',
+  'ticket.customer_id',
+  'ticket.organization_id',
+]
+const keptCondition = ref(noKeptSettings())
+const hasKeptCondition = computed(
+  () => !!keptCondition.value.expert || Object.keys(keptCondition.value.kept).length > 0,
+)
 
 const isSavingSettings = ref(false)
 const settingsSuccessMessage = ref('')
@@ -205,6 +226,7 @@ const fetchSettings = async () => {
       } else {
         conditions.value = []
       }
+      keptCondition.value = keepSettings(rawSelector?.condition, SHOWN_CONDITION_KEYS)
     }
   } catch (e) {
     console.error('Failed to fetch settings:', e)
@@ -230,7 +252,7 @@ const buildConditionPayload = () => {
       }
     }
   }
-  return { condition: condPayload }
+  return { condition: withKeptSettings(keptCondition.value, condPayload) }
 }
 
 const updateSettingValue = async (name: string, value: unknown) => {
@@ -636,6 +658,7 @@ onMounted(() => {
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-base font-bold text-slate-900 dark:text-slate-100">{{ __('Ticket Selector') }}</h2>
             <button
+              v-if="!keptCondition.expert"
               type="button"
               class="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
               @click="conditions.push({ field: 'state', operator: 'is', values: [] })"
@@ -648,7 +671,9 @@ onMounted(() => {
             {{ __('Show time accounting prompt when agents update matching tickets. If no conditions are defined, the prompt is shown for all tickets.') }}
           </p>
 
-          <div v-if="conditions.length === 0" class="p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center bg-slate-50 dark:bg-slate-800/30">
+          <AutomationKeptSettings :settings="keptCondition" class="mb-3" />
+
+          <div v-if="conditions.length === 0 && !hasKeptCondition" class="p-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-center bg-slate-50 dark:bg-slate-800/30">
             <p class="text-xs text-slate-500 mb-2">{{ __('Currently active for all tickets without restriction.') }}</p>
             <button
               type="button"
@@ -660,7 +685,7 @@ onMounted(() => {
             </button>
           </div>
 
-          <div v-else class="space-y-3">
+          <div v-else-if="!keptCondition.expert" class="space-y-3">
             <div
               v-for="(cond, idx) in conditions"
               :key="idx"

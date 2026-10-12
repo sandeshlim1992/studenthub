@@ -1012,6 +1012,11 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
   and password for Exchange on site, choose folders, map fields to user fields, a trial run, save, **Import now**.
   The stored password is never sent to the browser.
 
+- **Triggers, Macros, Templates, SLAs, Report Profiles, Time Accounting** (the selector): these pages edit only
+  some fields (state, priority, team, owner, …). Everything else in a record (emails, webhooks, tags, notes, other
+  conditions) is kept when it is saved and listed under "Kept as they are"; conditions in the classic expert mode
+  are left as they are. Change those parts in the classic admin (`/app`).
+
 Still only in the classic admin: BETA UI and KB Answer Generation; the live chat console and the phone (CTI) log
 (both unused); setup for Clearbit (keep it off: it sends email addresses to a third party).
 
@@ -1029,6 +1034,7 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 | `pages/manage/views/PublicLinks.vue`; `CommonPublicLinks` in `Login.vue`, `PasswordReset.vue` | Public Links |
 | `app/services/service/studenthub_secure_email/`, `app/services/service/studenthub_exchange/`, `app/controllers/studenthub_integrations_controller.rb`, `lib/studenthub/exchange_return.rb`, `lib/studenthub/exchange_stored_password.rb`, `views/SecureEmail.vue`, `Exchange.vue`, `components/Exchange/` | S/MIME, PGP and Exchange (`GET/PUT /api/v1/studenthub/integrations/smime\|pgp\|exchange`) |
 | `app/services/service/studenthub_ticket_fields/`, `app/controllers/studenthub_ticket_fields_controller.rb`, `views/TicketStates.vue`, `TicketPriorities.vue`, `Tags.vue` | States and priorities with their tickets, the "new tags" setting |
+| `pages/manage/components/Automation/keptSettings.ts`, `AutomationKeptSettings.vue`; edits in `views/Triggers.vue`, `Macros.vue`, `Templates.vue`, `Slas.vue`, `ReportProfiles.vue`, `TimeAccounting.vue` | What those editors don't show, kept on save and listed |
 
 ---
 

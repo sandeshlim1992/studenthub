@@ -159,14 +159,14 @@ Never put passwords, tokens or keys in this file.
 - Base is a July `develop` snapshot, not a stable Zammad release
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
-  - 8 `/manage` pages send saves without the CSRF token → all rejected (Translations, Sessions,
-    Packages, Core Workflows, Monitoring, Data Privacy, Maintenance, API)
-  - 10 `/manage` actions call API routes that don't exist (404), e.g. maintenance/API toggles,
-    MS Graph + Facebook channel edit, `/api/v1/locales`, branding logo preview
+  - 6 `/manage` pages send saves without the CSRF token → all rejected (Translations, Sessions,
+    Packages, Core Workflows, Monitoring, Data Privacy; Maintenance and API fixed 12 Oct)
   - Theme switch and "Continue to mobile" removed; `/manage` messages show "%s"
     (login-page public links are back since 7 Oct)
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
-- Taxil's ticket wizard and ticket list call `/api/v1/ticket_wizard_metadata`, which doesn't exist (404)
+- `/manage/knowledge_base` reads the knowledge base's languages, menu items and translations under `KnowledgeBase::Locale`
+  etc., but Zammad's init sends `KnowledgeBaseLocale` etc. → the Languages tab and Public Menu are always empty
+  (Taxil's code; found 12 Oct, not fixed)
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
   phone (CTI) log (both unused), Clearbit's field mapping, Scheduler jobs on users or organisations, the fields of a
   template other than title, state, priority, team and owner (kept on save), and conditions or actions the shared
@@ -259,7 +259,8 @@ Never put passwords, tokens or keys in this file.
   dev-only test users agent@, manager@ and <student@example.com> and `[TEST]` tickets #886839/#886840
 - Work PC container: headless Google Chrome + Chrome DevTools MCP (user-level; redo after a rebuild)
 - Home PC container: Debian's `chromium` (apt) for browser checks with playwright-core outside the repo (redo after a
-  rebuild); dev reached from Windows through VS Code's port forwarding (the `studenthub-port-relay` container is gone)
+  rebuild); dev reached from Windows through VS Code's port forwarding (the `studenthub-port-relay` container is gone).
+  Chrome DevTools MCP works here too (12 Oct), and `admin@example.com` signs in (only refused on the work PC)
 - New UI redesign from `studenthub-newUI`, merged into `develop` on 6 Oct (not yet deployed): colour setting, navigation
   panel, top bar,
   sign-in page, ticket lists (Teams views, Group by, colours), ticket screen, New ticket screen, manager
@@ -326,7 +327,9 @@ Never put passwords, tokens or keys in this file.
 - [ ] Decide: keep or change the Auto Select Priority triggers; delete `AgentTicketCreateCard.vue`
 - [ ] Test server: check the moved pages with real data, and the LDAP wizard against the real directory (trial run
       first; dev has no LDAP server)
-- [ ] Fix `ticket_wizard_metadata` (Taxil's code)
+- [ ] Check the Sub-Category core workflows on the test server: since 12 Oct the student wizard follows them like the
+      staff form, and in the home PC dev data "Sub-Category : Service request" (45) also offers VPN Access, Wi-Fi
+      Access, MS Office Suite and 7 more that Taxil's wizard had only under Software / Hardware
 - [ ] Reporting needs Elasticsearch on the servers: set it up on the test server and check production has it
 - [ ] Home PC (and the work PC if it's still on C:): move the repo to the Ubuntu file system
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser

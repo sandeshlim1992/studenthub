@@ -165,3 +165,11 @@ the current state is in `.dev/NOTES.md`.
   and action editor: trigger fields (Action, the message, Customer is VIP, "has changed"), expert-mode AND/OR groups
   (Scheduler too), Set title and Set customer; the choices API also gives message senders and types and is open to
   admins of those areas
+- 2026-10-12: `/manage`: 12 actions that called missing API routes now work: Maintenance (both switches, the login
+  message, the broadcast through Zammad's `message_send`), API (both access switches; the page's saves now send the
+  CSRF token, as Maintenance's do), Facebook page edit (POST), MS Graph inbound edit (probe, then verify) and group
+  change, the Knowledge Base and Branding language lists (new `GET /api/v1/studenthub/locales`), the Branding logo
+  preview and the Checklists on/off switch (settings saved by id)
+- 2026-10-12: The student wizard, the students' ticket list and the managers' New ticket read their categories,
+  sub-categories and campuses from the new `GET /api/v1/studenthub/ticket_wizard_metadata` (the route they called
+  didn't exist); sub-categories per category follow the core workflows, as on the staff form

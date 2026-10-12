@@ -342,7 +342,7 @@ onMounted(async () => {
   }
 
   try {
-    const res = await fetch('/api/v1/ticket_wizard_metadata', {
+    const res = await fetch('/api/v1/studenthub/ticket_wizard_metadata', {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     })
     if (res.ok) {

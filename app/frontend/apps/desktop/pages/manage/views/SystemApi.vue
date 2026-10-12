@@ -4,6 +4,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface ApplicationRecord {
@@ -96,6 +98,21 @@ const deleteModal = ref<{
   isDeleting: false,
 })
 
+// Zammad finds a setting by its id, not its name.
+const settingIds: Record<string, number> = {}
+
+const saveSetting = (name: string, value: unknown) =>
+  fetch(`/api/v1/settings/${settingIds[name]}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-Token': getCSRFToken() || '',
+    },
+    body: JSON.stringify({ state_current: { value } }),
+  })
+
 const fetchSettings = async () => {
   try {
     const res = await fetch('/api/v1/settings', {
@@ -106,6 +123,9 @@ const fetchSettings = async () => {
     })
     if (!res.ok) return
     const data: SettingRecord[] = await res.json()
+    data.forEach((s) => {
+      settingIds[s.name] = s.id
+    })
     const tokenSetting = data.find((s) => s.name === 'api_token_access')
     if (tokenSetting && tokenSetting.state_current?.value !== undefined) {
       tokenAccessEnabled.value = Boolean(tokenSetting.state_current.value)
@@ -162,15 +182,7 @@ const toggleTokenAccess = async () => {
   isUpdatingTokenAccess.value = true
   errorMessage.value = ''
   try {
-    const res = await fetch('/api/v1/settings/api_token_access', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify({ state_current: { value: newVal } }),
-    })
+    const res = await saveSetting('api_token_access', newVal)
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
     tokenAccessEnabled.value = newVal
     successMessage.value = newVal ? __('Token access enabled.') : __('Token access disabled.')
@@ -190,15 +202,7 @@ const togglePasswordAccess = async () => {
   isUpdatingPasswordAccess.value = true
   errorMessage.value = ''
   try {
-    const res = await fetch('/api/v1/settings/api_password_access', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify({ state_current: { value: newVal } }),
-    })
+    const res = await saveSetting('api_password_access', newVal)
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
     passwordAccessEnabled.value = newVal
     successMessage.value = newVal ? __('Password access enabled.') : __('Password access disabled.')
@@ -283,6 +287,7 @@ const saveApplication = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
       body: JSON.stringify({
         name: appModal.value.name.trim(),
@@ -344,6 +349,7 @@ const executeGenerateToken = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
       body: JSON.stringify({ id: tokenModal.value.app.id }),
     })
@@ -377,6 +383,7 @@ const executeDeleteApp = async () => {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
     })
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)

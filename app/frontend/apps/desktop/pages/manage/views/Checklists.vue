@@ -279,21 +279,25 @@ const saveChecklistTemplate = async () => {
 }
 
 const isChecklistFeatureEnabled = ref(true)
+// Zammad finds a setting by its id, not its name.
+const checklistSettingId = ref<number | null>(null)
 
 const fetchChecklistSetting = async () => {
   try {
-    const res = await fetch('/api/v1/settings/checklist', {
+    const res = await fetch('/api/v1/settings', {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
     })
     if (res.ok) {
-      const data = await res.json()
-      if (typeof data.value === 'boolean') {
-        isChecklistFeatureEnabled.value = data.value
-      } else if (data.state_current && typeof data.state_current.value === 'boolean') {
-        isChecklistFeatureEnabled.value = data.state_current.value
+      const data: { id: number; name: string; state_current?: { value?: unknown } }[] = await res.json()
+      const setting = data.find((s) => s.name === 'checklist')
+      if (setting) {
+        checklistSettingId.value = setting.id
+        if (typeof setting.state_current?.value === 'boolean') {
+          isChecklistFeatureEnabled.value = setting.state_current.value
+        }
       }
     }
   } catch (e) {
@@ -305,7 +309,7 @@ const toggleGlobalChecklistSetting = async () => {
   const nextVal = !isChecklistFeatureEnabled.value
   isChecklistFeatureEnabled.value = nextVal
   try {
-    const res = await fetch('/api/v1/settings/checklist', {
+    const res = await fetch(`/api/v1/settings/${checklistSettingId.value}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -313,7 +317,7 @@ const toggleGlobalChecklistSetting = async () => {
         'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': getCsrf(),
       },
-      body: JSON.stringify({ value: nextVal }),
+      body: JSON.stringify({ state_current: { value: nextVal } }),
     })
     if (!res.ok) {
       isChecklistFeatureEnabled.value = !nextVal

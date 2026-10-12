@@ -4,6 +4,8 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface SettingRecord {
@@ -44,6 +46,23 @@ const broadcastMessage = ref('')
 const broadcastReload = ref(false)
 const isBroadcasting = ref(false)
 
+// Zammad finds a setting by its id, not its name.
+const settingIds: Record<string, number> = {}
+
+const jsonHeaders = () => ({
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+  'X-Requested-With': 'XMLHttpRequest',
+  'X-CSRF-Token': getCSRFToken() || '',
+})
+
+const saveSetting = (name: string, value: unknown) =>
+  fetch(`/api/v1/settings/${settingIds[name]}`, {
+    method: 'PUT',
+    headers: jsonHeaders(),
+    body: JSON.stringify({ state_current: { value } }),
+  })
+
 const fetchSettings = async () => {
   isLoading.value = true
   errorMessage.value = ''
@@ -56,6 +75,9 @@ const fetchSettings = async () => {
     })
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
     const data: SettingRecord[] = await res.json()
+    data.forEach((s) => {
+      settingIds[s.name] = s.id
+    })
 
     const modeSetting = data.find((s) => s.name === 'maintenance_mode')
     if (modeSetting && modeSetting.state_current?.value !== undefined) {
@@ -91,15 +113,7 @@ const executeSetMode = async (value: boolean) => {
   isUpdatingMode.value = true
   errorMessage.value = ''
   try {
-    const res = await fetch('/api/v1/settings/maintenance_mode', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify({ state_current: { value } }),
-    })
+    const res = await saveSetting('maintenance_mode', value)
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
     maintenanceMode.value = value
     modeConfirmModalOpen.value = false
@@ -130,15 +144,7 @@ const toggleLoginMessageSetting = async () => {
   isUpdatingLogin.value = true
   errorMessage.value = ''
   try {
-    const res = await fetch('/api/v1/settings/maintenance_login', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify({ state_current: { value: newVal } }),
-    })
+    const res = await saveSetting('maintenance_login', newVal)
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
     maintenanceLogin.value = newVal
     successMessage.value = newVal
@@ -159,17 +165,7 @@ const saveLoginMessage = async () => {
   isSavingMessage.value = true
   errorMessage.value = ''
   try {
-    const res = await fetch('/api/v1/settings/maintenance_login_message', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
-      body: JSON.stringify({
-        state_current: { value: maintenanceLoginMessage.value },
-      }),
-    })
+    const res = await saveSetting('maintenance_login_message', maintenanceLoginMessage.value)
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
     successMessage.value = __('Login message updated successfully.')
     setTimeout(() => {
@@ -190,25 +186,24 @@ const sendBroadcastMessage = async () => {
   isBroadcasting.value = true
   errorMessage.value = ''
   try {
-    // Post broadcast alert
-    const res = await fetch('/api/v1/message/send', {
+    // Zammad's maintenance event, sent as the classic UI does without a websocket: it reaches
+    // the classic UI's sessions and the new UI's push messages.
+    const res = await fetch('/api/v1/message_send', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      },
+      headers: jsonHeaders(),
       body: JSON.stringify({
-        type: 'maintenance',
-        head: broadcastHead.value.trim() || __('Maintenance Notice'),
-        message: broadcastMessage.value.trim(),
-        reload: broadcastReload.value,
+        data: {
+          event: 'maintenance',
+          data: {
+            type: 'message',
+            head: broadcastHead.value.trim() || __('Maintenance Notice'),
+            message: broadcastMessage.value.trim(),
+            reload: broadcastReload.value,
+          },
+        },
       }),
-    }).catch(() => null)
-
-    if (res && !res.ok) {
-      // Soft failure fallback
-    }
+    })
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`)
 
     successMessage.value = __('Broadcast message sent to all active client sessions.')
     broadcastHead.value = ''

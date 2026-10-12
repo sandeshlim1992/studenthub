@@ -836,6 +836,7 @@ forms** (`/manage/request-forms`, permission `admin.request_forms`).
 | `app/controllers/studenthub_request_forms_controller.rb` | API (`/api/v1/studenthub/request_forms`, `…/:id/{publish,unpublish,discard}`, `…/applicable` for the wizard) |
 | `app/frontend/apps/desktop/pages/manage/views/RequestForms.vue`, `…/manage/components/RequestForms/` | Admin page: list, editor (with the question panel), preview |
 | `app/frontend/apps/desktop/components/StudenthubRequestForm/` (shown by `CustomerTicketCreateWizard.vue`; answers sent by `TicketCreateContent.vue`) | The form's part of the wizard's Details step (fields in a grid, headings, notes) and the Your request card, also used by the preview |
+| `app/controllers/studenthub_ticket_wizard_controller.rb`, `config/routes/studenthub_ticket_wizard.rb` | The wizard's categories, the sub-categories under each (from the core workflows, as on the staff form) and the campuses (`GET /api/v1/studenthub/ticket_wizard_metadata`); also read by the students' ticket list and the managers' New ticket |
 
 ---
 
@@ -1042,6 +1043,7 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 | `app/services/service/studenthub_secure_email/`, `app/services/service/studenthub_exchange/`, `app/controllers/studenthub_integrations_controller.rb`, `lib/studenthub/exchange_return.rb`, `lib/studenthub/exchange_stored_password.rb`, `views/SecureEmail.vue`, `Exchange.vue`, `components/Exchange/` | S/MIME, PGP and Exchange (`GET/PUT /api/v1/studenthub/integrations/smime\|pgp\|exchange`) |
 | `app/services/service/studenthub_ticket_fields/`, `app/controllers/studenthub_ticket_fields_controller.rb`, `views/TicketStates.vue`, `TicketPriorities.vue`, `Tags.vue` | States and priorities with their tickets, the "new tags" setting |
 | `pages/manage/components/Automation/keptSettings.ts`, `AutomationKeptSettings.vue`; edits in `views/Templates.vue` | What the Templates editor doesn't show, kept on save and listed |
+| `app/controllers/studenthub_locales_controller.rb`, `config/routes/studenthub_locales.rb` | The active languages with their ids for the Knowledge Base and Branding pages (`GET /api/v1/studenthub/locales`; Zammad has no REST list) |
 
 ---
 

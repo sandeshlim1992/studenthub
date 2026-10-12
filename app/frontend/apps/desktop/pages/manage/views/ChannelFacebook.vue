@@ -332,7 +332,7 @@ const saveAccountPages = async () => {
     }
 
     const res = await fetch(`/api/v1/channels_facebook/${editingChannel.value.id}`, {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

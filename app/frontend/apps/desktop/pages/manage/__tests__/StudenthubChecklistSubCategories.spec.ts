@@ -81,7 +81,7 @@ describe('Checklists page', () => {
 
         const replies: Record<string, unknown> = {
           'GET /api/v1/checklist_templates?expand=true': [template],
-          'GET /api/v1/settings/checklist': { value: true },
+          'GET /api/v1/settings': [{ id: 269, name: 'checklist', state_current: { value: true } }],
           'GET /api/v1/studenthub/checklist_assignments': data,
           'GET /api/v1/checklist_templates/3?full=true': {
             ...template,

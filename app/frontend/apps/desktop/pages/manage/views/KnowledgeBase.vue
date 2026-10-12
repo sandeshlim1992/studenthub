@@ -195,7 +195,7 @@ const fetchKnowledgeBase = async () => {
       fetch('/api/v1/knowledge_bases/manage/init', {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       }),
-      fetch('/api/v1/locales', {
+      fetch('/api/v1/studenthub/locales', {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       }),
       fetch('/api/v1/settings', {

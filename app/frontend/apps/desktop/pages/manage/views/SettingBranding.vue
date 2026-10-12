@@ -94,7 +94,7 @@ const fetchSettings = async () => {
       fetch('/api/v1/settings', {
         headers: { 'Accept': 'application/json' },
       }),
-      fetch('/api/v1/locales', {
+      fetch('/api/v1/studenthub/locales', {
         headers: { 'Accept': 'application/json' },
       }),
       fetch('/api/v1/calendars/timezones', {
@@ -131,7 +131,7 @@ const fetchSettings = async () => {
         userNameFormat.value = String(brandingSettings.user_name_format.state_current.value || 'first_last')
       }
       if (brandingSettings.product_logo?.state_current?.value) {
-        logoPreviewUrl.value = `/api/v1/system_asset/product_logo/${brandingSettings.product_logo.state_current.value}?${Date.now()}`
+        logoPreviewUrl.value = `/api/v1/system_assets/product_logo/${brandingSettings.product_logo.state_current.value}?${Date.now()}`
       }
     }
 

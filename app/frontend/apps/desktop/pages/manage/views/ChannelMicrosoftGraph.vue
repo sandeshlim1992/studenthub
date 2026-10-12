@@ -507,15 +507,29 @@ const saveInbound = async () => {
         shared_mailbox: inboundMailboxType.value === 'shared' ? inboundSharedMailbox.value.trim() : null,
       },
     }
+    const headers = {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-Token': getCsrf(),
+    }
 
-    const res = await fetch(`/api/v1/channels/admin/microsoft_graph/${editingChannel.value.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': getCsrf(),
-      },
+    // As in the classic UI: Zammad tries the mailbox first (nothing is saved), then verify saves.
+    const probeRes = await fetch(`/api/v1/channels/admin/microsoft_graph/inbound/${editingChannel.value.id}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    })
+
+    if (!probeRes.ok) {
+      const err = await probeRes.json()
+      showError(err.error_human || err.error || __('Failed to update inbound configuration.'))
+      return
+    }
+
+    const res = await fetch(`/api/v1/channels/admin/microsoft_graph/verify/${editingChannel.value.id}`, {
+      method: 'POST',
+      headers,
       body: JSON.stringify(payload),
     })
 
@@ -547,8 +561,8 @@ const saveChangeGroup = async () => {
   if (!changeGroupChannel.value) return
   isSaving.value = true
   try {
-    const res = await fetch(`/api/v1/channels/admin/microsoft_graph/${changeGroupChannel.value.id}`, {
-      method: 'PUT',
+    const res = await fetch(`/api/v1/channels/admin/microsoft_graph/group/${changeGroupChannel.value.id}`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

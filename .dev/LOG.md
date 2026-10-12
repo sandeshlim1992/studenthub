@@ -190,3 +190,5 @@ the current state is in `.dev/NOTES.md`.
   set (Taxil's, e.g. `close`, `copy`, `clipboard`, `alert-triangle`, `edit`) replaced by existing ones (`x-lg`,
   `files`, `clipboard2`, `exclamation-triangle`, `pencil`); they showed as blank spaces
 - 2026-10-12: Editor: the toolbar appears once tiptap has created the editor (no "Invalid prop: editor" warning)
+- 2026-10-13: Tickets page: Zammad's row of view tabs above the list on small screens is gone; staff pick the view in
+  the navigation panel on every screen size

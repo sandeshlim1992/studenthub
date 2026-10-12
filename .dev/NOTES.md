@@ -240,7 +240,8 @@ Never put passwords, tokens or keys in this file.
 - Three ticket-overviews specs (`studenthub-talk-to-student-support`, `ticket-overviews-empty-states`,
   `ticket-overviews-polling`) sometimes fail when the whole `pages/ticket-overviews` folder runs together with the
   table specs (route stays `TicketOverview`, polling times out); they pass on their own, with or without the 12 Oct
-  group header change
+  group header change. On the home PC (13 Oct) one test each in the first two fails even on its own, also on the code
+  of 12 Oct: opening New ticket takes longer than `waitFor`'s 1 s; with a 10 s timeout they pass
 
 ## In progress
 

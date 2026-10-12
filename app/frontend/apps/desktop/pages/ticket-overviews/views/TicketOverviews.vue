@@ -8,7 +8,6 @@ import { useSessionStore } from '#shared/stores/session.ts'
 import hasPermission from '#shared/utils/hasPermission.ts'
 
 import CommonEmptyMessage from '#desktop/components/CommonEmptyMessage/CommonEmptyMessage.vue'
-import type { NavigationTab } from '#desktop/components/CommonTabs/types.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import { useStudenthubTopBarCrumbsWhileShown } from '#desktop/components/layout/StudenthubTopBar/useStudenthubTopBarCrumbs.ts'
 import DragAndDropBulkWrapper from '#desktop/components/Ticket/DragAndDropBulk/DragAndDropBulkWrapper.vue'
@@ -75,21 +74,9 @@ defineOptions({
   },
 })
 
-const { overviews, overviewsByLink, overviewsTicketCountById } = useTicketOverviews()
+const { overviewsByLink, overviewsTicketCountById } = useTicketOverviews()
 
 const currentOverview = computed(() => overviewsByLink.value[props.overviewLink || ''])
-
-const overviewsTabs = computed<NavigationTab[]>(() =>
-  overviews.value?.map((item) => ({
-    label: item.name,
-    key: item.id,
-    default: item.link === props.overviewLink,
-    count: overviewsTicketCountById.value[item.id],
-    link: item.link,
-  })),
-)
-
-const activeTab = computed(() => currentOverview.value?.id || '')
 
 const currentOverviewCount = computed(
   () => overviewsTicketCountById.value[currentOverview.value?.id],
@@ -132,14 +119,12 @@ useStudenthubTopBarCrumbsWhileShown(topBarCrumbs)
 </script>
 
 <template>
-  <!-- Student Hub: staff pick the view in the navigation panel (StudenthubNavTicketViews); on small
-       screens the tabs above the list stay. -->
+  <!-- Student Hub: staff pick the view in the navigation panel (StudenthubNavTicketViews) on every
+       screen size; Zammad's tabs of views above the list on small screens are gone. -->
   <div class="h-full">
     <LayoutContent
       class="relative"
-      :active-tab="activeTab"
       :breadcrumb-items="isCustomer ? undefined : currentOverview ? breadcrumbItems : undefined"
-      :tabs="isCustomer ? undefined : overviewsTabs"
       no-scrollable
       :no-padding="isCustomer"
       :content-padding="!isCustomer"

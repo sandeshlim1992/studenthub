@@ -7,6 +7,8 @@ import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
 import { waitForNextTick } from '#tests/support/utils.ts'
 
+import { useSessionStore } from '#shared/stores/session.ts'
+
 import LayoutPage from '#desktop/components/layout/LayoutPage.vue'
 
 import '#tests/graphql/builders/mocks.ts'
@@ -38,6 +40,10 @@ vi.mock(
 )
 
 describe('LayoutPage', () => {
+  beforeEach(() => {
+    mockUserCurrent()
+  })
+
   afterEach(() => {
     localStorage.clear()
   })
@@ -102,6 +108,42 @@ describe('LayoutPage', () => {
 
     // The test router is shared; the next tests start on the home page.
     await wrapper.router.push('/')
+  })
+
+  it('closes every page, kept-alive ones too, as soon as signing out clears the user', async () => {
+    const unmounted = vi.fn()
+    const page = (name: string) => ({
+      name,
+      template: '<div />',
+      unmounted: () => unmounted(name),
+    })
+    const wrapper = renderComponent(LayoutPage, {
+      router: true,
+      form: true,
+    })
+
+    // The test router is shared (its routes come from the first test), so add the pages here.
+    wrapper.router.addRoute({
+      path: '/kept-alive',
+      name: 'KeptAlive',
+      component: page('KeptAlive'),
+    })
+    wrapper.router.addRoute({ path: '/current', name: 'Current', component: page('Current') })
+
+    await wrapper.router.push('/kept-alive')
+    await wrapper.router.push('/current')
+    expect(wrapper.getByRole('navigation', { name: 'Navigation' })).toBeInTheDocument()
+
+    useSessionStore().resetCurrentSession()
+    await waitForNextTick()
+
+    expect(wrapper.queryByRole('navigation', { name: 'Navigation' })).not.toBeInTheDocument()
+    expect(unmounted).toHaveBeenCalledWith('KeptAlive')
+    expect(unmounted).toHaveBeenCalledWith('Current')
+
+    await wrapper.router.push('/')
+    wrapper.router.removeRoute('KeptAlive')
+    wrapper.router.removeRoute('Current')
   })
 
   describe('Feature: Beta UI Switch', () => {

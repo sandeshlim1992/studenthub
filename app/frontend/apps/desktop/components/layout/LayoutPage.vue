@@ -103,8 +103,13 @@ const showCustomerSidebar = computed(() => {
 </script>
 
 <template>
+  <!-- Student Hub: nothing while no one is signed in (signing out). Every page closes at once, the
+       tabs kept alive in the background too; they would otherwise react to the missing user and
+       ask the server again after the session is gone. -->
+  <template v-if="!user" />
+
   <!-- CUSTOMER REDESIGNED PORTAL WRAPPER -->
-  <div v-if="isCustomer" class="flex h-full w-full flex-col overflow-hidden bg-[#f8fafc]">
+  <div v-else-if="isCustomer" class="flex h-full w-full flex-col overflow-hidden bg-[#f8fafc]">
     <!-- Persistent Customer Top Bar with Brand Logo & Profile Dropdown -->
     <CustomerHeader />
 

@@ -196,3 +196,7 @@ the current state is in `.dev/NOTES.md`.
   `admin.checklist` keeps full control) and may add only the checklist assigned to the ticket's sub-category. The
   Checklist tab is now design B: a state chip, the steps on a timeline with Next + Mark done, who ticked each and when;
   with no checklist, only the assigned one is offered (with its first items)
+- 2026-10-13: Signing out no longer throws errors in the console (Teleport target, `emitsOptions`, 403s for customer
+  feedback and the Dashboard, "Authentication required" for the ticket list): the signed-in layout shows nothing
+  while no one is signed in, so every page, the tabs kept alive in the background too, closes before it can ask the
+  server again

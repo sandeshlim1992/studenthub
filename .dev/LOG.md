@@ -218,3 +218,5 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-13: Security review of Student Hub's server code, three fixes: old `/desktop/…` links can no longer send
   people to another site (`/desktop/%2Fevil.example`); the Exchange password mask no longer sends the stored password
   to a changed server or user; assigning sites to managers needs full `admin` (was `admin.ticket_approval`)
+- 2026-10-13: New rule in `CLAUDE.md`: a security review of the changes before every commit, findings recorded in
+  `.dev/security-review.md`

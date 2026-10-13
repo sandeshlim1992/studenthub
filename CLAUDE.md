@@ -14,5 +14,9 @@ Read these when the task needs them (they are not loaded automatically, to keep 
   or known issues, remove fixed ones, and update "In progress" and "Next steps".
   Add a line for the change to `.dev/LOG.md`. Include both in the same commit.
   Never put secrets in either.
+- Before committing, run a security review of the changes (the `security-review` skill;
+  a review by hand when it can't run) and tell the user what it found. Fix real problems,
+  or let the user decide, before committing. Record findings and their verdicts in
+  `.dev/security-review.md`.
 - Branch is `develop`; merge commits only, never squash or rebase.
 - Ignore Zammad's GitLab/`glab`/MR/cherry-pick workflow; this repo uses GitHub only.

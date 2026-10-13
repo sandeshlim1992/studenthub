@@ -25,9 +25,10 @@ module Studenthub::NewUiAtRoot
     SERVER_PATHS.include?(segment) || segment.start_with?('tests')
   end
 
-  # /desktop/tickets/1?x=1 → /tickets/1?x=1
+  # /desktop/tickets/1?x=1 → /tickets/1?x=1. Leading slashes and backslashes are dropped: Rails
+  # decodes /desktop/%2Fevil.example to the path "/evil.example", and //evil.example is another site.
   def self.without_desktop(path, query_string)
-    target = "/#{path}"
+    target = "/#{path.to_s.sub(%r{\A[/\\]+}, '')}"
     query_string.present? ? "#{target}?#{query_string}" : target
   end
 

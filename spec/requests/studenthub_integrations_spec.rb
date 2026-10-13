@@ -100,14 +100,57 @@ RSpec.describe 'Student Hub S/MIME, PGP and Exchange (new UI)', aggregate_failur
       expect(json_response.to_json).not_to include('top-secret', 'token-xyz')
     end
 
-    it 'uses the stored password when the page sends the mask back' do
-      Setting.set('exchange_config', { 'password' => 'secret' })
-      allow(Sequencer).to receive(:process).and_return({ folders: { 'AAMk1' => 'Contacts' } })
+    it 'refuses to keep the stored password when the mask comes back with another server' do
+      Setting.set('exchange_config', { 'auth_type' => 'basic', 'endpoint' => 'https://mail.example.ac.uk/EWS/Exchange.asmx', 'user' => 'zammad@example.ac.uk', 'password' => 'secret' })
+      Setting.set('exchange_integration', false)
 
-      post '/api/v1/integration/exchange/folders', params: { auth_type: 'basic', endpoint: 'https://mail.example.ac.uk/EWS/Exchange.asmx', user: 'zammad@example.ac.uk', password: '**********' }, as: :json
+      put '/api/v1/studenthub/integrations/exchange', params: {
+        enabled: true,
+        config:  { auth_type: 'basic', endpoint: 'https://evil.example/EWS/Exchange.asmx', user: 'zammad@example.ac.uk', password: '**********' },
+      }, as: :json
 
-      expect(json_response).to include('result' => 'ok', 'folders' => { 'AAMk1' => 'Contacts' })
-      expect(Sequencer).to have_received(:process).with('Import::Exchange::AvailableFolders', parameters: { ews_config: hash_including(password: 'secret') })
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(json_response['error']).to include('enter the password again')
+      expect(Setting.get('exchange_config')).to include('endpoint' => 'https://mail.example.ac.uk/EWS/Exchange.asmx', 'password' => 'secret')
+      expect(Setting.get('exchange_integration')).to be(false)
+    end
+
+    it 'saves a new server with a new password' do
+      Setting.set('exchange_config', { 'auth_type' => 'basic', 'endpoint' => 'https://mail.example.ac.uk/EWS/Exchange.asmx', 'user' => 'zammad@example.ac.uk', 'password' => 'secret' })
+
+      put '/api/v1/studenthub/integrations/exchange', params: {
+        config: { endpoint: 'https://mail2.example.ac.uk/EWS/Exchange.asmx', password: 'new-secret' },
+      }, as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(Setting.get('exchange_config')).to include('endpoint' => 'https://mail2.example.ac.uk/EWS/Exchange.asmx', 'user' => 'zammad@example.ac.uk', 'password' => 'new-secret')
+    end
+
+    context 'when loading folders' do
+      before do
+        Setting.set('exchange_config', { 'auth_type' => 'basic', 'endpoint' => 'https://mail.example.ac.uk/EWS/Exchange.asmx', 'user' => 'zammad@example.ac.uk', 'password' => 'secret' })
+        allow(Sequencer).to receive(:process).and_return({ folders: { 'AAMk1' => 'Contacts' } })
+      end
+
+      it 'uses the stored password when the page sends the mask back' do
+        post '/api/v1/integration/exchange/folders', params: { auth_type: 'basic', endpoint: 'https://mail.example.ac.uk/EWS/Exchange.asmx', user: 'zammad@example.ac.uk', password: '**********' }, as: :json
+
+        expect(json_response).to include('result' => 'ok', 'folders' => { 'AAMk1' => 'Contacts' })
+        expect(Sequencer).to have_received(:process).with('Import::Exchange::AvailableFolders', parameters: { ews_config: hash_including(password: 'secret') })
+      end
+
+      it 'does not send the stored password to another server or for another user' do
+        [
+          { endpoint: 'https://evil.example/EWS/Exchange.asmx', user: 'zammad@example.ac.uk' },
+          { endpoint: 'https://mail.example.ac.uk/EWS/Exchange.asmx', user: 'someone@example.ac.uk' },
+        ].each do |target|
+          post '/api/v1/integration/exchange/folders', params: { auth_type: 'basic', password: '**********', **target }, as: :json
+
+          expect(json_response).to include('result' => 'failed')
+          expect(json_response['message']).to include('enter the password again')
+        end
+        expect(Sequencer).not_to have_received(:process)
+      end
     end
 
     it 'sends the admin back to the new UI after the Microsoft sign-in' do

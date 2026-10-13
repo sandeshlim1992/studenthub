@@ -160,6 +160,9 @@ Never put passwords, tokens or keys in this file.
   (`spec/models/studenthub_class_name_guards_spec.rb`), the rest are by design or false positives (packages already
   refuse `..`, `Marshal` deep copies, OAuth redirects, Rails-escaped KB links, `permit!` with `param_cleanup`). Every
   finding, its verdict and the reason: `.dev/security-review.md` (keep it up to date when fixing or ignoring one)
+- Student Hub's own server code was reviewed by hand on 13 Oct (`.dev/security-review.md` → Manual review); the
+  Claude Security plugin's scan can't run here (needs Claude Code workflows). Since then, assigning sites to
+  managers needs full `admin`, and the Exchange password mask only works with the stored server and user
 
 ## Known issues
 

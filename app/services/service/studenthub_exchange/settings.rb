@@ -5,7 +5,7 @@
 # and saving on/off and the import settings. The wizard's steps use Zammad's own API
 # (/api/v1/integration/exchange/..., /api/v1/external_credentials/...).
 class Service::StudenthubExchange::Settings < Service::Base
-  PASSWORD_MASK = '**********'.freeze
+  PASSWORD_MASK = Studenthub::ExchangeStoredPassword::PASSWORD_MASK
   CONFIG_KEYS   = %w[auth_type endpoint user password disable_ssl_verify folders attributes].freeze
 
   attr_reader :changes
@@ -37,15 +37,21 @@ class Service::StudenthubExchange::Settings < Service::Base
     }
   end
 
+  # The config is checked first, so a refused password leaves the on/off switch as it is too.
   def apply(changes)
     changes = changes.to_h.with_indifferent_access
+    config  = new_config(changes[:config]) if changes.key?(:config)
+
     Setting.set('exchange_integration', ActiveModel::Type::Boolean.new.cast(changes[:enabled]) == true) if changes.key?(:enabled)
-    return if !changes.key?(:config)
+    Setting.set('exchange_config', config) if config
+  end
 
+  # The stored import settings with the page's changes; the mask keeps the stored password while
+  # the server address and user name stay the same (Studenthub::ExchangeStoredPassword).
+  def new_config(changes)
     stored = Setting.get('exchange_config').to_h.with_indifferent_access
-    config = changes[:config].to_h.with_indifferent_access.slice(*CONFIG_KEYS)
-    config[:password] = stored[:password] if config[:password] == PASSWORD_MASK
-
-    Setting.set('exchange_config', stored.merge(config).to_hash)
+    config = stored.merge(changes.to_h.with_indifferent_access.slice(*CONFIG_KEYS))
+    config[:password] = Studenthub::ExchangeStoredPassword.password_for(config, stored) if config.key?(:password)
+    config.to_hash
   end
 end

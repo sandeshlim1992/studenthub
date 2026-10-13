@@ -38,6 +38,17 @@ RSpec.describe 'Student Hub new UI at /', :aggregate_failures, type: :request do
     expect(response).to have_http_status(:found)
   end
 
+  it 'keeps old /desktop links on this server, also with an encoded slash or backslash' do
+    get '/desktop/%2Fevil.example'
+    expect(response).to redirect_to('/evil.example')
+
+    get '/desktop/%2F%2Fevil.example/x'
+    expect(response).to redirect_to('/evil.example/x')
+
+    get '/desktop/%5Cevil.example'
+    expect(response).to redirect_to('/evil.example')
+  end
+
   it 'sends /desktop itself to the home address' do
     get '/desktop'
 
@@ -63,6 +74,14 @@ RSpec.describe 'Student Hub new UI at /', :aggregate_failures, type: :request do
       expect(described_class.local_path('//evil.example')).to eq('/')
       expect(described_class.local_path('/\\evil.example')).to eq('/')
       expect(described_class.local_path('https://evil.example')).to eq('/')
+    end
+
+    it 'keeps old /desktop links on this server' do
+      expect(described_class.without_desktop('tickets/1', 'article=2')).to eq('/tickets/1?article=2')
+      expect(described_class.without_desktop(nil, '')).to eq('/')
+      expect(described_class.without_desktop('/evil.example', '')).to eq('/evil.example')
+      expect(described_class.without_desktop('//evil.example', '')).to eq('/evil.example')
+      expect(described_class.without_desktop('\\evil.example', '')).to eq('/evil.example')
     end
 
     it 'knows a sign-in started from the classic UI' do

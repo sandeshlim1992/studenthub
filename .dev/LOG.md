@@ -215,3 +215,6 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-13: Bell notifications whose ticket was deleted no longer fail the whole list on sign-in ("Couldn't find
   Ticket"); they show as "You can no longer see the ticket." (`OnlineNotification#related_object` returns nil for a
   deleted object). Removed the 68 such notifications from the work PC dev DB (from the browser tests and the test server copy)
+- 2026-10-13: Security review of Student Hub's server code, three fixes: old `/desktop/…` links can no longer send
+  people to another site (`/desktop/%2Fevil.example`); the Exchange password mask no longer sends the stored password
+  to a changed server or user; assigning sites to managers needs full `admin` (was `admin.ticket_approval`)

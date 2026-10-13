@@ -39,6 +39,21 @@ RSpec.describe 'Student Hub manager sites', :aggregate_failures, type: :request 
 
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    context 'with only the Ticket Approvals admin permission' do
+      let(:approvals_admin) do
+        create_manager.tap do |user|
+          user.roles << create(:role, permission_names: ['admin.ticket_approval'])
+        end
+      end
+
+      it 'refuses, so a manager cannot give themselves every site', authenticated_as: :approvals_admin do
+        put "/api/v1/studenthub/manager_sites/#{approvals_admin.id}", params: { organization_ids: [site.id] }, as: :json
+
+        expect(response).to have_http_status(:forbidden)
+        expect(Studenthub::ManagerSites.organization_ids_for(approvals_admin)).to be_empty
+      end
+    end
   end
 
   describe 'GET /api/v1/studenthub/manager_sites/stats' do

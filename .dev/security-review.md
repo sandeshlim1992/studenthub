@@ -49,6 +49,21 @@ Listed in `.dcignore`, because they aren't part of the running app:
 | `contrib/` | `edit-icon-license-list.php:187` XSS: a developer script, not served |
 | `.dev/` | Developer tooling and notes |
 
+## Manual review of Student Hub's server code (13 Oct)
+
+A review with Claude Code of the code Student Hub added on the server: the `/api/v1/studenthub` endpoints, their
+policies, services and models, `lib/studenthub`, Ticket Approvals, Feedback Collection (including the public
+`/feedback/:token` page), the checklist rules and `script/studenthub/deploy.sh`. The Claude Security plugin's scan
+needs Claude Code workflows, which this account doesn't have, so it wasn't used. The rest was found sound: ticket
+access checks, approval rules, per-user overview caches, request form escaping, the checklist "agents only tick"
+rule, feedback tokens (stored hashed, one use) and how the deploy script runs commands.
+
+| File | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| `lib/studenthub/new_ui_at_root.rb` (`without_desktop`) | Open redirect: `/desktop/%2Fevil.example` went to `https://evil.example` (Rails decodes `%2F`; nginx passes it on) | Fixed | Leading slashes and backslashes are dropped, so the target is always a path on this site; `%5C` no longer gives a 500 | the commit that added this section |
+| `lib/studenthub/exchange_stored_password.rb`, `app/services/service/studenthub_exchange/settings.rb` | The password mask was swapped for the stored Exchange password whatever server or user was named, so someone with only `admin.integration.exchange` could send it to their own server | Fixed | The mask stands for the stored password only with the stored server address and user name; otherwise the password must be typed again | the commit that added this section |
+| `app/policies/controllers/studenthub_manager_sites_controller_policy.rb` | `admin.ticket_approval` could assign sites, which gives managers read access to all of a site's tickets; a manager with it could give themselves every site | Fixed | Assigning sites needs full `admin`; the card is hidden on the Ticket Approvals page for everyone else | the commit that added this section |
+
 ## Open Source (dependencies)
 
 | Package | Problem | Status |

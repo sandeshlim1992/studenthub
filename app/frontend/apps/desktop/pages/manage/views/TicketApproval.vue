@@ -1,10 +1,11 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+import { useSessionStore } from '#shared/stores/session.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import StudenthubManagerSitesCard from '#desktop/pages/manage/components/TicketApproval/StudenthubManagerSitesCard.vue'
@@ -20,6 +21,10 @@ interface ApprovalSettings {
 }
 
 const router = useRouter()
+const { hasPermission } = useSessionStore()
+
+// Sites give managers read access to an organisation's tickets, so only full admins assign them.
+const canAssignSites = computed(() => hasPermission('admin'))
 
 const breadcrumbItems = [
   { label: __('Administration'), to: '/manage' },
@@ -187,7 +192,7 @@ onMounted(load)
           </ul>
         </section>
 
-        <StudenthubManagerSitesCard />
+        <StudenthubManagerSitesCard v-if="canAssignSites" />
 
         <section class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
           <h2 class="mb-1 text-sm font-bold">{{ $t('Where tickets wait') }}</h2>

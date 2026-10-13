@@ -183,12 +183,10 @@ const bodyError = computed(() => {
 })
 
 // Student Hub: no Description is asked for while a request form applies.
-const isDetailsValid = computed(() => {
-  return (
+const isDetailsValid = computed(() => (
     wizardData.value.title.trim().length >= 5 &&
     (Boolean(requestForm.value) || wizardData.value.body.trim().length >= 10)
-  )
-})
+  ))
 
 // ─── LOAD OBJECTMANAGER DATA ────────────────────────────────────────────────
 // Same store/query used by the agent-side ticket form.
@@ -360,7 +358,7 @@ onMounted(async () => {
         }
       }
     }
-  } catch (err) {
+  } catch {
     // Graceful fallback to ObjectManager store
   }
 })
@@ -598,8 +596,7 @@ const filteredSubCategories = computed(() => {
 const campusSearch = ref('')
 const campusInstitution = ref<string>('all')
 
-const filteredCampuses = computed(() => {
-  return campusTiles.value.filter((c) => {
+const filteredCampuses = computed(() => campusTiles.value.filter((c) => {
     const matchesInst =
       campusInstitution.value === 'all' || c.institution === campusInstitution.value
     if (!matchesInst) return false
@@ -610,8 +607,7 @@ const filteredCampuses = computed(() => {
       c.location.toLowerCase().includes(q) ||
       c.desc.toLowerCase().includes(q)
     )
-  })
-})
+  }))
 
 // Category display name
 const currentCategoryLabel = computed(() => {
@@ -696,9 +692,7 @@ const titlePlaceholder = computed(() => {
 })
 
 // Description placeholder
-const descriptionPlaceholder = computed(() => {
-  return __('Describe your issue in short and simple...')
-})
+const descriptionPlaceholder = computed(() => __('Describe your issue in short and simple...'))
 
 
 // Auto-advance timer reference & step navigation

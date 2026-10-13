@@ -307,9 +307,7 @@ const fetchSettings = async () => {
   }
 }
 
-const isIntegrationEnabled = (item: IntegrationItem) => {
-  return !!allSettings.value[item.switchSetting]?.state_current?.value
-}
+const isIntegrationEnabled = (item: IntegrationItem) => !!allSettings.value[item.switchSetting]?.state_current?.value
 
 const toggleIntegration = async (item: IntegrationItem) => {
   const current = isIntegrationEnabled(item)

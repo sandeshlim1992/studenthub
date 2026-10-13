@@ -27,9 +27,7 @@ const formattedJson = computed(() => {
   return JSON.stringify(reportData.value, null, 2)
 })
 
-const filteredDescriptions = computed(() => {
-  return [...descriptions.value].sort()
-})
+const filteredDescriptions = computed(() => [...descriptions.value].sort())
 
 const fetchReport = async () => {
   isLoading.value = true

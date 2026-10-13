@@ -166,9 +166,9 @@ const providers = computed<ProviderDefinition[]>(() => [
   },
 ])
 
-const currentProviderDef = computed(() => {
-  return providers.value.find((p) => p.key === formState.value.provider) || providers.value[1]
-})
+const currentProviderDef = computed(
+  () => providers.value.find((p) => p.key === formState.value.provider) || providers.value[1],
+)
 
 const showToast = (message: string, isError = false) => {
   if (isError) {

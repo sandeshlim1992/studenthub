@@ -52,9 +52,7 @@ const healthCheckUrl = computed(() => {
   return `${origin}/api/v1/monitoring/health_check?token=${token}`
 })
 
-const curlCommand = computed(() => {
-  return `curl -s "${healthCheckUrl.value}"`
-})
+const curlCommand = computed(() => `curl -s "${healthCheckUrl.value}"`)
 
 const isHealthy = computed(() => {
   if (healthData.value.healthy === false) return false

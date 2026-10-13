@@ -221,17 +221,13 @@ const fetchData = async () => {
   }
 }
 
-const pendingChanges = computed(() => {
-  return allAttributes.value.filter(
+const pendingChanges = computed(() => allAttributes.value.filter(
     (attr) => attr.to_create || attr.to_delete || attr.to_migrate || attr.to_config,
-  )
-})
+  ))
 
-const currentAttributes = computed(() => {
-  return allAttributes.value
+const currentAttributes = computed(() => allAttributes.value
     .filter((attr) => (attr.object || 'Ticket') === currentObject.value)
-    .sort((a, b) => a.position - b.position)
-})
+    .sort((a, b) => a.position - b.position))
 
 const searchQuery = ref('')
 const filteredAttributes = computed(() => {

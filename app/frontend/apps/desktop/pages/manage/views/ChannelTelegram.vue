@@ -254,8 +254,7 @@ const deleteChannel = async (channel: TelegramChannel) => {
   }
 }
 
-const getBotDisplayName = (channel: TelegramChannel) => {
-  return (
+const getBotDisplayName = (channel: TelegramChannel) => (
     channel.options?.user?.first_name ||
     channel.options?.bot?.first_name ||
     channel.options?.user?.username ||
@@ -263,7 +262,6 @@ const getBotDisplayName = (channel: TelegramChannel) => {
     channel.options?.username ||
     `Telegram Bot #${channel.id}`
   )
-}
 
 const getBotUsername = (channel: TelegramChannel) => {
   const u = channel.options?.user?.username || channel.options?.bot?.username || channel.options?.username

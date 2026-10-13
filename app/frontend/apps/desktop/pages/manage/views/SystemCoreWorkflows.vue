@@ -175,8 +175,7 @@ onMounted(() => {
   void fetchWorkflows()
 })
 
-const filteredWorkflows = computed(() => {
-  return workflows.value.filter((wf) => {
+const filteredWorkflows = computed(() => workflows.value.filter((wf) => {
     if (selectedObjectFilter.value !== 'all' && wf.object !== selectedObjectFilter.value) {
       return false
     }
@@ -193,8 +192,7 @@ const filteredWorkflows = computed(() => {
       if (!matchName && !matchObj) return false
     }
     return true
-  })
-})
+  }))
 
 const getScreensDisplay = (wf: CoreWorkflowRecord): string[] => {
   const screens = wf.preferences?.screen || []
@@ -212,9 +210,7 @@ const getConditionsCount = (wf: CoreWorkflowRecord): number => {
   return cSaved + cSelected
 }
 
-const getActionsCount = (wf: CoreWorkflowRecord): number => {
-  return Object.keys(wf.perform || {}).length
-}
+const getActionsCount = (wf: CoreWorkflowRecord): number => Object.keys(wf.perform || {}).length
 
 const toggleWorkflowActive = async (wf: CoreWorkflowRecord) => {
   const newActive = !wf.active

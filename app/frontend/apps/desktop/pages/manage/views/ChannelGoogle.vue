@@ -206,17 +206,11 @@ const showError = (msg: string) => {
   successMessage.value = ''
 }
 
-const isAppConfigured = computed(() => {
-  return Boolean(externalCredential.value?.credentials?.client_id)
-})
+const isAppConfigured = computed(() => Boolean(externalCredential.value?.credentials?.client_id))
 
-const hasUnsavedSettings = computed(() => {
-  return JSON.stringify(formSettings.value) !== JSON.stringify(initialFormSettings.value)
-})
+const hasUnsavedSettings = computed(() => JSON.stringify(formSettings.value) !== JSON.stringify(initialFormSettings.value))
 
-const availableEmailAddressesForGroup = computed(() => {
-  return emailAddresses.value.filter((e) => e.active)
-})
+const availableEmailAddressesForGroup = computed(() => emailAddresses.value.filter((e) => e.active))
 
 // Copy Helper
 const copyToClipboard = async (text: string) => {
@@ -314,9 +308,7 @@ const loadAllData = async () => {
       })
       settingsMap.value = map
 
-      const cur = (key: string, fallback: unknown) => {
-        return map[key]?.state_current?.value ?? map[key]?.state_initial?.value ?? fallback
-      }
+      const cur = (key: string, fallback: unknown) => map[key]?.state_current?.value ?? map[key]?.state_initial?.value ?? fallback
 
       formSettings.value = {
         ticket_subject_size: Number(cur('ticket_subject_size', 110)),

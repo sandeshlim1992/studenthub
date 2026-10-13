@@ -289,7 +289,7 @@ const ticketNumberPreview = computed(() => {
   let counter = '1'
   const minSize = Math.max(1, incrementMinSize.value - systemId.length - (incrementChecksum.value ? 1 : 0))
   if (minSize > 1) {
-    counter = '0'.repeat(minSize - 1) + '1'
+    counter = `${'0'.repeat(minSize - 1)}1`
   }
   let num = `${hook}${systemId}${counter}`
   if (incrementChecksum.value) num += '9'

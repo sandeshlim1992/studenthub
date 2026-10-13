@@ -453,15 +453,11 @@ const breadcrumbItems = computed(() => {
   return [{ label: __('Administration') }]
 })
 
-const pageTitle = computed(() => {
-  return isSystemSection.value ? __('System') : __('Administration')
-})
+const pageTitle = computed(() => isSystemSection.value ? __('System') : __('Administration'))
 
-const pageDescription = computed(() => {
-  return isSystemSection.value
+const pageDescription = computed(() => isSystemSection.value
     ? __('Manage system integrations, object schemas, workflows, monitoring, and diagnostics.')
-    : __('Manage and configure all settings of your helpdesk application.')
-})
+    : __('Manage and configure all settings of your helpdesk application.'))
 
 const handleBack = () => {
   if (isSystemSection.value) {

@@ -216,7 +216,12 @@ Never put passwords, tokens or keys in this file.
   "View team" from the Dashboard). Keep the patch when merging Zammad updates unless they fixed it
 - Running all of `pages/ticket` and `pages/ticket-overviews` at once, about 15 tests fail under load, nearly all by
   timing out at 5 s (e.g. the a11y, history and merge specs); every spec there passes when run on its own, except
-  `ticket-detail-view-hint-note` (3) and `ticket-detail-view-live-users` (5), which fail on their own too (13 Oct)
+  `ticket-detail-view-hint-note` (3) and `ticket-detail-view-live-users` (5), which fail on their own too (13 Oct).
+  `studenthub-talk-to-student-support` ("opens the ticket wizard") and `ticket-detail-view-studenthub-queue` fail now
+  and then even on their own (timing; seen on 14 Oct on the code before and after the lint tidy)
+- `spec/lib/studenthub/checklist_assignments/webhook_triggers_spec.rb` fails (4 examples, also on its own): it adds
+  the `subcategory` ticket field without its database column, so Zammad refuses the trigger's condition ("Invalid
+  object selector conditions"). The migration code it tests is fine; the spec needs fixing
 - The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs);
   Student Hub doesn't use the mobile app. `continue-to-mobile.spec.ts` (2) fails since Taxil removed that menu entry
 - The student New ticket wizard (Taxil's `CustomerTicketCreateWizard.vue`, the default for students) has no tests;
@@ -227,7 +232,11 @@ Never put passwords, tokens or keys in this file.
 - Request forms edit one line of Zammad's `useTicketCreate.ts` (the answers go with the first message): expect a
   conflict there when merging Zammad
 - `eslint --fix` on whole folders rewrites other people's files: Zammad's translatable-string autofix wraps object
-  keys in `__()`, which broke the wizard's category tables once (10 Oct, restored). Only fix files you changed
+  keys in `__()`, which broke the wizard's category tables once (10 Oct, restored). Only fix files you changed.
+  Not behaviour-safe either: `vue/attributes-order` (the order of `v-model`, handlers and `v-bind` objects decides
+  which runs first and which wins), `import/order` (CSS and side-effect imports) and `zammad-tailwind-ltr`. Turning a
+  rule off with `--rule … off` while fixing makes ESLint delete that rule's `eslint-disable` comments as unused.
+  The 14 Oct tidy used only `arrow-body-style`, `prefer-template` and the copyright header
 - Taxil's wizard writes its own "Category: … / Campus: …" lines into the description, under the Request details
   block (to tidy with request forms step 4)
 - Queue: Mine / Unassigned only filter the tickets loaded so far (30 per page)

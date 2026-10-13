@@ -1,3 +1,5 @@
+<!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
+
 <script setup lang="ts">
 import { useApolloClient } from '@vue/apollo-composable'
 import { computed, onMounted, ref, watch } from 'vue'
@@ -349,7 +351,7 @@ const handleDeleteUser = async (userId: number, login: string) => {
       fetchUsers()
     } else {
       const data = await res.json()
-      if (confirm((data.error || __('Failed to delete user.')) + '\n\n' + __('Would you like to open Data Privacy deletion to safely process this user?'))) {
+      if (confirm(`${data.error || __('Failed to delete user.')}\n\n${__('Would you like to open Data Privacy deletion to safely process this user?')}`)) {
         router.push(`/manage/system/data_privacy?userId=${userId}`)
       }
     }

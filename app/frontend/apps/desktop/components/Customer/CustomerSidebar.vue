@@ -13,13 +13,9 @@ const { tickets, loading } = useCustomerTickets()
 
 const searchQuery = ref('')
 
-const currentTicketInternalId = computed(() => {
-  return String(route.params.internalId || '')
-})
+const currentTicketInternalId = computed(() => String(route.params.internalId || ''))
 
-const isCreateView = computed(() => {
-  return route.name === 'TicketCreate' || route.path.startsWith('/tickets/create')
-})
+const isCreateView = computed(() => route.name === 'TicketCreate' || route.path.startsWith('/tickets/create'))
 
 const sidebarFilterTabs = [
   'All',

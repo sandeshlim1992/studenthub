@@ -225,3 +225,6 @@ the current state is in `.dev/NOTES.md`.
   customer-only roles on every server (`Studenthub::CustomerRoles`), run here
 - 2026-10-14: Deleted 22 frontend files nothing in the app used (1,140 lines): Taxil's `AgentTicketCreateCard.vue`
   and 21 unused `components/ui` parts (badge, card, dialog, dropdown menu, input, select, tabs); `Button.vue` stays
+- 2026-10-14: Lint tidy of 27 Student Hub frontend files, no behaviour change: arrow functions that only return a
+  value made short, string joins as template strings, missing copyright headers, two imports with file extensions
+  (`Button.vue`), an unused `catch` variable. Same 115 old type errors before and after; Vitest specs as before

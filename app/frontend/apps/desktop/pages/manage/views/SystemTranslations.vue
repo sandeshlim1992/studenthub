@@ -168,8 +168,8 @@ onMounted(async () => {
   await fetchCustomizedTranslations()
 })
 
-const filteredTranslations = computed(() => {
-  return customizedTranslations.value.filter((tr) => {
+const filteredTranslations = computed(() =>
+  customizedTranslations.value.filter((tr) => {
     if (
       selectedLocaleFilter.value !== 'all' &&
       tr.locale.toLowerCase() !== selectedLocaleFilter.value.toLowerCase()
@@ -184,8 +184,8 @@ const filteredTranslations = computed(() => {
       if (!matchSource && !matchTarget && !matchInitial) return false
     }
     return true
-  })
-})
+  }),
+)
 
 const loadSuggestions = async () => {
   newModal.value.isLoadingSuggestions = true

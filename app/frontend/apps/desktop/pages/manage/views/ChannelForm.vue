@@ -90,21 +90,13 @@ const showError = (msg: string) => {
 }
 
 // Dynamic Captcha requirements
-const captchaNeedsSiteKey = computed(() => {
-  return ['altcha', 'turnstile', 'hcaptcha', 'friendly_captcha', 'recaptcha'].includes(captchaProvider.value)
-})
+const captchaNeedsSiteKey = computed(() => ['altcha', 'turnstile', 'hcaptcha', 'friendly_captcha', 'recaptcha'].includes(captchaProvider.value))
 
-const captchaNeedsSecret = computed(() => {
-  return ['altcha', 'turnstile', 'hcaptcha', 'friendly_captcha', 'recaptcha'].includes(captchaProvider.value)
-})
+const captchaNeedsSecret = computed(() => ['altcha', 'turnstile', 'hcaptcha', 'friendly_captcha', 'recaptcha'].includes(captchaProvider.value))
 
-const captchaIsEnterprise = computed(() => {
-  return captchaProvider.value === 'recaptcha_enterprise'
-})
+const captchaIsEnterprise = computed(() => captchaProvider.value === 'recaptcha_enterprise')
 
-const captchaNeedsScore = computed(() => {
-  return ['recaptcha', 'recaptcha_enterprise'].includes(captchaProvider.value)
-})
+const captchaNeedsScore = computed(() => ['recaptcha', 'recaptcha_enterprise'].includes(captchaProvider.value))
 
 // Generated Embed Snippet
 const generatedEmbedSnippet = computed(() => {
@@ -186,9 +178,7 @@ const loadData = async () => {
       })
       settingsMap.value = map
 
-      const cur = (key: string, fallback: unknown) => {
-        return map[key]?.state_current?.value ?? map[key]?.state_initial?.value ?? fallback
-      }
+      const cur = (key: string, fallback: unknown) => map[key]?.state_current?.value ?? map[key]?.state_initial?.value ?? fallback
 
       isFormEnabled.value = Boolean(cur('form_ticket_create', false))
       selectedGroupId.value = Number(cur('form_ticket_create_group_id', groups.value[0]?.id || 1))

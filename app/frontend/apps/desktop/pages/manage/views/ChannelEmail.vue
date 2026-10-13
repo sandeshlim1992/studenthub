@@ -227,9 +227,7 @@ const showError = (msg: string) => {
   successMessage.value = ''
 }
 
-const hasUnsavedSettings = computed(() => {
-  return JSON.stringify(formSettings.value) !== JSON.stringify(initialFormSettings.value)
-})
+const hasUnsavedSettings = computed(() => JSON.stringify(formSettings.value) !== JSON.stringify(initialFormSettings.value))
 
 // Load All Data
 const loadAllData = async () => {
@@ -334,9 +332,7 @@ const getGroupName = (groupId?: number) => {
 }
 
 // Linked Email Address Helper
-const getChannelAddresses = (channelId: number) => {
-  return emailAddresses.value.filter((a) => a.channel_id === channelId)
-}
+const getChannelAddresses = (channelId: number) => emailAddresses.value.filter((a) => a.channel_id === channelId)
 
 // Account Enable / Disable
 const toggleChannelActive = async (channel: ChannelAccount) => {

@@ -163,9 +163,7 @@ const guaranteedTitle = computed(() => {
   return __('Knowledge Base')
 })
 
-const primaryKbLocale = computed(() => {
-  return kbLocales.value.find((l) => l.primary) || kbLocales.value[0]
-})
+const primaryKbLocale = computed(() => kbLocales.value.find((l) => l.primary) || kbLocales.value[0])
 
 const getLocaleName = (systemLocaleId: number) => {
   const loc = systemLocales.value.find((l) => l.id === systemLocaleId)
@@ -520,11 +518,9 @@ const confirmDeleteLanguage = async () => {
 // Actions: Public Menu (Multi-Locale)
 // -------------------------------------------------------------
 
-const getLocaleMenuItems = (kbLocaleId: number, location: 'header' | 'footer') => {
-  return menuItems.value.filter(
+const getLocaleMenuItems = (kbLocaleId: number, location: 'header' | 'footer') => menuItems.value.filter(
     (m) => m.kb_locale_id === kbLocaleId && m.location === location && !m._destroy,
   )
-}
 
 const openPublicMenuDrawer = (location: 'header' | 'footer') => {
   menuDrawerLocation.value = location
@@ -654,13 +650,11 @@ const openEditVideoDrawer = (server: VideoServer, index: number) => {
   showVideoDrawer.value = true
 }
 
-const normalizeHost = (val: string) => {
-  return val
+const normalizeHost = (val: string) => val
     .trim()
     .toLowerCase()
     .replace(/^https?:\/\//, '')
     .replace(/\/.*$/, '')
-}
 
 const syncVideoServers = async (servers: VideoServer[]) => {
   if (!videoServerSettingId.value) return

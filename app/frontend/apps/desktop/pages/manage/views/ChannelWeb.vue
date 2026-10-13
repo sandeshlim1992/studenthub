@@ -117,9 +117,7 @@ const filteredGroups = computed(() => {
   return groups.value.filter((g) => g.name.toLowerCase().includes(query))
 })
 
-const isGroupSelected = (groupId: number) => {
-  return selectedGroupIds.value.includes(groupId)
-}
+const isGroupSelected = (groupId: number) => selectedGroupIds.value.includes(groupId)
 
 const toggleGroup = (groupId: number) => {
   if (isGroupSelected(groupId)) {

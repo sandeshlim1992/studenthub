@@ -80,9 +80,7 @@ const copySnippet = async (text: string, key: string) => {
   }
 }
 
-const isDatabaseStorage = computed(() => {
-  return storageMechanism.value.toLowerCase().includes('database')
-})
+const isDatabaseStorage = computed(() => storageMechanism.value.toLowerCase().includes('database'))
 </script>
 
 <template>

@@ -99,9 +99,7 @@ const showError = (msg: string) => {
   successMessage.value = ''
 }
 
-const isAppConfigured = computed(() => {
-  return Boolean(externalCredential.value?.credentials?.client_id)
-})
+const isAppConfigured = computed(() => Boolean(externalCredential.value?.credentials?.client_id))
 
 const copyToClipboard = async (text: string) => {
   try {

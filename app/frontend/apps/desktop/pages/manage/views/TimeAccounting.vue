@@ -447,9 +447,7 @@ const fetchLogs = async () => {
   }
 }
 
-const downloadLogUrl = computed(() => {
-  return `/api/v1/time_accounting/log/${activeLogCategory.value}/${selectedYear.value}/${selectedMonth.value}?download=true`
-})
+const downloadLogUrl = computed(() => `/api/v1/time_accounting/log/${activeLogCategory.value}/${selectedYear.value}/${selectedMonth.value}?download=true`)
 
 watch([selectedYear, selectedMonth, activeLogCategory], () => {
   if (activeTab.value === 'logs') {

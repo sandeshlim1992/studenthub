@@ -206,8 +206,7 @@ const formatFollowUp = (group: GroupItem) => {
 const getGroupDepth = (name: string) => (name ? name.split('::').length - 1 : 0)
 
 // Parent group options (excluding current group, its descendants, and depth >= 9)
-const parentGroupOptions = computed(() => {
-  return groups.value.filter((g) => {
+const parentGroupOptions = computed(() => groups.value.filter((g) => {
     if (getGroupDepth(g.name) >= 9) return false
 
     if (drawerMode.value === 'create' || !drawerGroupId.value) return true
@@ -215,9 +214,8 @@ const parentGroupOptions = computed(() => {
     const currentGroup = groups.value.find((item) => item.id === drawerGroupId.value)
     if (!currentGroup) return true
 
-    return g.id !== currentGroup.id && !g.name.startsWith(currentGroup.name + '::')
-  })
-})
+    return g.id !== currentGroup.id && !g.name.startsWith(`${currentGroup.name}::`)
+  }))
 
 // Open drawer for group creation
 const handleNewGroup = () => {

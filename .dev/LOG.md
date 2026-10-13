@@ -204,3 +204,6 @@ the current state is in `.dev/NOTES.md`.
   follows, answers and closes a ticket over the web while staff answer through the API, can't see others' tickets,
   the Dashboard or Administration, and signs out without errors. They caught the dev Customer role having
   `admin.request_forms` (removed)
+- 2026-10-13: Admin pages send Zammad's current security token with their saves (`getCSRFToken()`): Core Workflows
+  and Monitoring sent none (always refused), about 40 others the one from page load (refused after signing out and
+  in again without a reload)

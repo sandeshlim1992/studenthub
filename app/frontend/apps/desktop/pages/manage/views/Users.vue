@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import { useApolloClient } from '@vue/apollo-composable'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useApolloClient } from '@vue/apollo-composable'
-import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { useUserEdit } from '#desktop/entities/user/composables/useUserEdit.ts'
-import { useUserCreate } from '#desktop/entities/user/composables/useUserCreate.ts'
+
 import { UserDocument } from '#shared/entities/user/graphql/queries/user.api.ts'
-import { useApplicationStore } from '#shared/stores/application.ts'
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+import { useApplicationStore } from '#shared/stores/application.ts'
+
+import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import { useUserCreate } from '#desktop/entities/user/composables/useUserCreate.ts'
+import { useUserEdit } from '#desktop/entities/user/composables/useUserEdit.ts'
 
 interface UserItem {
   id: number
@@ -98,7 +101,7 @@ const breadcrumbItems = [
   { label: __('Users') }
 ]
 
-const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+const getCsrf = () => getCSRFToken() || ''
 
 // Toggle actions menu dropdown
 const toggleActionMenu = (userId: number, event: Event) => {

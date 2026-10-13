@@ -4,6 +4,8 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface HealthCheckData {
@@ -143,6 +145,7 @@ const executeResetToken = async () => {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
     })
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)
@@ -169,6 +172,7 @@ const executeRestartFailedJobs = async () => {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
     })
     if (!res.ok) throw new Error(`HTTP error ${res.status}`)

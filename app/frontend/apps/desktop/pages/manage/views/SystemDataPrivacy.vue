@@ -4,6 +4,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface UserAsset {
@@ -86,10 +88,7 @@ const newModal = ref<{
   isSubmitting: false,
 })
 
-const getCsrf = () => {
-  const meta = document.querySelector('meta[name="csrf-token"]')
-  return meta ? meta.getAttribute('content') || '' : ''
-}
+const getCsrf = () => getCSRFToken() || ''
 
 const fetchTasks = async () => {
   isLoading.value = true

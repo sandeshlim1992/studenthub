@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useLocaleStore } from '#shared/stores/locale.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -243,10 +244,7 @@ const selectSuggestion = (s: SuggestionItem) => {
   }
 }
 
-const getCsrf = () => {
-  const meta = document.querySelector('meta[name="csrf-token"]')
-  return meta ? meta.getAttribute('content') || '' : ''
-}
+const getCsrf = () => getCSRFToken() || ''
 
 const saveNewTranslation = async () => {
   const { source, target, locale } = newModal.value

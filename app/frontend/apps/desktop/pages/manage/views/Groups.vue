@@ -3,6 +3,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface GroupItem {
@@ -391,7 +393,7 @@ const saveGroup = async () => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        'X-CSRF-Token': getCSRFToken() || ''
       },
       body: JSON.stringify(payload)
     })
@@ -421,7 +423,7 @@ const handleDeleteGroup = async (groupId: number, name: string) => {
       headers: {
         'Accept': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        'X-CSRF-Token': getCSRFToken() || ''
       }
     })
     if (res.ok) {

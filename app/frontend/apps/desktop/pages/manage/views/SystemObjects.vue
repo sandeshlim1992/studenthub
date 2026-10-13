@@ -4,6 +4,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface ObjectAttribute {
@@ -80,7 +82,6 @@ const successMessage = ref('')
 const errorMessage = ref('')
 const isMigrating = ref(false)
 const isDiscarding = ref(false)
-const csrfToken = ref('')
 
 const getDefaultScreensForObject = (obj: string): ScreensConfig => {
   if (obj === 'Ticket') {
@@ -174,11 +175,7 @@ const attributeModal = ref<AttributeModalState>({
   isSaving: false,
 })
 
-const getCsrf = () => {
-  if (csrfToken.value) return csrfToken.value
-  const meta = document.querySelector('meta[name="csrf-token"]')
-  return meta ? meta.getAttribute('content') || '' : ''
-}
+const getCsrf = () => getCSRFToken() || ''
 
 const showSuccess = (msg: string) => {
   successMessage.value = msg
@@ -202,11 +199,6 @@ const fetchData = async () => {
       fetch('/api/v1/object_manager_attributes_list', { headers: { Accept: 'application/json' } }),
       fetch('/api/v1/object_manager_attributes', { headers: { Accept: 'application/json' } }),
     ])
-
-    const token = listRes.headers.get('csrf-token') || attrsRes.headers.get('csrf-token')
-    if (token) {
-      csrfToken.value = token
-    }
 
     if (listRes.ok) {
       const listData = await listRes.json()

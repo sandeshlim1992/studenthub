@@ -4,6 +4,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface WorkflowConditionItem {
@@ -225,6 +227,7 @@ const toggleWorkflowActive = async (wf: CoreWorkflowRecord) => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
       body: JSON.stringify({ active: newActive }),
     })
@@ -509,6 +512,7 @@ const saveWorkflow = async () => {
         'Content-Type': 'application/json',
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
       body: JSON.stringify(payload),
     })
@@ -551,6 +555,7 @@ const executeDeleteWorkflow = async () => {
       headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRF-Token': getCSRFToken() || '',
       },
     })
     if (!response.ok) {

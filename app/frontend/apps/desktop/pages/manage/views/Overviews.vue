@@ -4,6 +4,8 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface OverviewItem {
@@ -169,7 +171,7 @@ const previewError = ref('')
 // Preserved conditions that aren't represented in standard editor rows
 const rawExtraConditions = ref<Record<string, unknown>>({})
 
-const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+const getCsrf = () => getCSRFToken() || ''
 
 const defaultFormState = () => ({
   id: null as number | null,

@@ -4,6 +4,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface PackageRecord {
@@ -144,10 +146,7 @@ const onFileChange = (e: Event) => {
   }
 }
 
-const getCsrf = () => {
-  const meta = document.querySelector('meta[name="csrf-token"]')
-  return meta ? meta.getAttribute('content') || '' : ''
-}
+const getCsrf = () => getCSRFToken() || ''
 
 const uploadPackage = async () => {
   if (!selectedFile.value) return

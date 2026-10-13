@@ -177,10 +177,11 @@ Never put passwords, tokens or keys in this file.
   errors from the real SMS services
 - The first sign-in in a fresh browser can fail with "Security token verification failed"; the page reloads and the
   second try works (seen in headless Chrome, 13 Oct; the browser tests retry once)
+- Dev server: after Rails (puma) restarts, a browser tab that reconnects at once (the live connection `/cable` plus
+  several GraphQL requests together) can leave every request hanging (seen four times on 13 Oct). Fix: kill puma
+  (`forego` starts it again), wait until it answers, then open the app
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
-  - 6 `/manage` pages send saves without the CSRF token → all rejected (Translations, Sessions,
-    Packages, Core Workflows, Monitoring, Data Privacy; Maintenance and API fixed 12 Oct)
   - Theme switch and "Continue to mobile" removed; `/manage` messages show "%s"
     (login-page public links are back since 7 Oct)
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
@@ -338,7 +339,7 @@ Never put passwords, tokens or keys in this file.
       check `/` signed out and in, an old `/desktop/…` link, a `/#ticket/zoom/<id>` email link, Microsoft sign-in, a
       password-reset email, `/app` and a phone
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
-- [ ] Decide which review findings to fix, starting with the `/manage` saves
+- [ ] Decide which review findings to fix (the `/manage` saves are fixed, 13 Oct)
 - [ ] Remaining Snyk Open Source findings (JavaScript): qs (direct; 6.16.0 fixes), and ws, nanoid, tmp, esbuild,
       postcss, brace-expansion through other packages (a refresh within their ranges, or overrides in
       `pnpm-workspace.yaml`)

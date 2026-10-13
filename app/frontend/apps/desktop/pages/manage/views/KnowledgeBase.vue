@@ -4,6 +4,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface KnowledgeBaseRecord {
@@ -144,7 +146,7 @@ const breadcrumbItems = [
   { label: __('Knowledge Base') },
 ]
 
-const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+const getCsrf = () => getCSRFToken() || ''
 
 // -------------------------------------------------------------
 // Computeds

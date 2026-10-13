@@ -3,6 +3,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
 import {
@@ -67,7 +69,7 @@ const breadcrumbItems = [
   { label: __('Templates') },
 ]
 
-const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+const getCsrf = () => getCSRFToken() || ''
 
 const toggleActionMenu = (id: number, event: Event) => {
   event.stopPropagation()

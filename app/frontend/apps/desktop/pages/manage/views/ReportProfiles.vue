@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -101,7 +102,7 @@ const breadcrumbItems = [
   { label: __('Report Profiles') },
 ]
 
-const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+const getCsrf = () => getCSRFToken() || ''
 
 const toggleActionMenu = (id: number, event: Event) => {
   event.stopPropagation()

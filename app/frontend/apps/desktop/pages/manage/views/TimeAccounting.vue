@@ -4,6 +4,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -109,7 +110,7 @@ const monthNames = [
 
 const yearsRange = computed(() => [currentYear - 2, currentYear - 1, currentYear])
 
-const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+const getCsrf = () => getCSRFToken() || ''
 
 const formatTimeUnit = (val?: number | null) => {
   if (val === undefined || val === null) return '0'

@@ -4,6 +4,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 interface SettingRecord {
@@ -266,10 +268,7 @@ const configModal = ref<ConfigModalState>({
   isSaving: false,
 })
 
-const getCsrf = () => {
-  const meta = document.querySelector('meta[name="csrf-token"]')
-  return meta ? meta.getAttribute('content') || '' : ''
-}
+const getCsrf = () => getCSRFToken() || ''
 
 const showSuccess = (msg: string) => {
   successMessage.value = msg

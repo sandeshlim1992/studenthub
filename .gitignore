@@ -138,3 +138,10 @@ schema.graphql
 /.agents/skills
 /.claude/skills
 /.claude/settings.local.json
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+# Student Hub browser tests (e2e/): local logins, the saved sign-in and results
+/e2e/.env
+/e2e/.auth/
+/e2e/test-results/
+/e2e/playwright-report/

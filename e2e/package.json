@@ -1,0 +1,15 @@
+{
+  "name": "studenthub-e2e",
+  "private": true,
+  "description": "Student Hub browser tests (Playwright) against a running app; kept apart from the app's own packages",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.4"
+  },
+  "packageManager": "pnpm@11.11.0"
+}

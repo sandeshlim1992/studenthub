@@ -200,3 +200,7 @@ the current state is in `.dev/NOTES.md`.
   feedback and the Dashboard, "Authentication required" for the ticket list): the signed-in layout shows nothing
   while no one is signed in, so every page, the tabs kept alive in the background too, closes before it can ask the
   server again
+- 2026-10-13: Browser tests with Playwright in `e2e/` (own packages, Chrome from the container): a student raises,
+  follows, answers and closes a ticket over the web while staff answer through the API, can't see others' tickets,
+  the Dashboard or Administration, and signs out without errors. They caught the dev Customer role having
+  `admin.request_forms` (removed)

@@ -20,6 +20,9 @@ Never put passwords, tokens or keys in this file.
 - Prefer new files over editing Zammad's originals (fewer upstream merge conflicts)
 - Don't edit `.github/workflows/` or Zammad's `.claude/CLAUDE.md`
 - Use Node 24 (ignore `.mise.toml`)
+- Browser tests: Playwright in `e2e/` with its own `package.json` and lock file (not the app's), Chrome from the
+  container; staff answer through the REST API with web messages; logins only in git-ignored `e2e/.env`
+  (README → Browser tests)
 - AI agents propose changes and wait for approval before editing code (rule in CLAUDE.md)
 - `auto_wizard.json` is dev-only: removed from the repo, never on test/production servers
 - Test server pulls from this repo (read-only deploy key), not from Taxil's
@@ -172,6 +175,8 @@ Never put passwords, tokens or keys in this file.
   `ChecklistTemplates.vue`, `ChecklistEmptyTemplates.vue`, `useChecklistTemplates.ts` (their own specs still pass)
 - Zammad's SMS driver specs (Twilio, MessageBird, Massenversand: 3 examples) fail in the container: they expect
   errors from the real SMS services
+- The first sign-in in a fresh browser can fail with "Security token verification failed"; the page reloads and the
+  second try works (seen in headless Chrome, 13 Oct; the browser tests retry once)
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
   - 6 `/manage` pages send saves without the CSRF token → all rejected (Translations, Sessions,
@@ -255,8 +260,7 @@ Never put passwords, tokens or keys in this file.
 - Request forms rework (design doc above): steps 1–3 built on 10 Oct (headings and notes, Request details block, the
   form's own questions), step 4 too (Subject at the top of the form, no Description while a form applies). Next:
   step 5 the agents' Request details panel on New ticket, step 6 file uploads and conditions. The admin editor is not
-  yet checked in a browser (no admin login works in this container: admin@example.com is refused; agent@ and student@
-  work)
+  yet checked in a browser (`admin@example.com` signs in with the dev password since 13 Oct)
 - Ticket sidebar's Subscribers panel is called Contributors and has no "Subscribe me" toggle (11 Oct): people get on
   the list only through @mentions and can't take themselves off in the new UI (the classic UI still can). It sits
   right below the SLA card; the Accounted time section is gone from the sidebar (time accounting itself still works).
@@ -272,7 +276,7 @@ Never put passwords, tokens or keys in this file.
   on/off switch (off by default) that also shows students "Talk to Student Support" (still opens the ticket wizard);
   what departments and that button do comes next (README → Departments)
 - Reporting redesign (design A, 12 Oct): replaces Taxil's page. Not yet checked in a browser: in this container only
-  `admin@example.com` may open Reporting, and no admin login works here
+  `admin@example.com` may open Reporting (it signs in with the dev password since 13 Oct)
 - Approval tab redesign (design B, 12 Oct): checked in headless Chromium as agent@ on #886840 (approved) and a ticket
   without requests; the waiting states (Withdraw, Approve / Deny) only in tests, as the dev data has no waiting request
 - Work PC dev DB holds a restore of the test server (3 Oct dump; real student data; email channels,
@@ -319,10 +323,13 @@ Never put passwords, tokens or keys in this file.
   editor (12 Oct): trigger fields (Action, the message, Customer is VIP, "has changed"), expert-mode groups (also in
   the Scheduler), Set title and Set customer. Templates still edit only some fields and keep the rest. Before, those
   editors saved only their few fields and Zammad replaced the whole set (emails, webhooks, tags, notes and other
-  conditions were deleted). Not yet checked in a browser (no admin login works in this container)
+  conditions were deleted). Not yet checked in a browser (`admin@example.com` signs in since 13 Oct)
 
 ## Next steps
 
+- [ ] Test and production servers: check the Customer role has no `admin.*` permission. The dev database's had
+      `admin.request_forms` (added by hand on 10 Oct), so every student could open Administration; removed on 13 Oct
+      after the browser test caught it
 - [ ] Set up the same environment on the home PC (check data-protection rules before copying real data)
 - [ ] Test server: stash the hand-applied logo fix, install the deploy script, run the first scripted deploy
 - [ ] Rehearse the first production deploy on a fresh clone of the production VM, then do it

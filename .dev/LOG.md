@@ -212,3 +212,6 @@ the current state is in `.dev/NOTES.md`.
   They caught two bugs, fixed: leaving a ticket before its edit form had loaded mounted the form in the hidden tab
   (Teleport warnings, form parts not placed; the form's Teleports now wait while the tab is hidden), and closing a
   ticket could write an empty tab list into Apollo's cache ("Missing field 'userCurrentTaskbarItemList'")
+- 2026-10-13: Bell notifications whose ticket was deleted no longer fail the whole list on sign-in ("Couldn't find
+  Ticket"); they show as "You can no longer see the ticket." (`OnlineNotification#related_object` returns nil for a
+  deleted object). Removed the 68 such notifications from the work PC dev DB (from the browser tests and the test server copy)

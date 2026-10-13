@@ -34,11 +34,13 @@ add a new online notification for this user
 
 =end
 
+  # Student Hub: nil once the object is deleted (find raised), so the notification shows as one the
+  # user can no longer see instead of failing the whole notification list.
   def related_object
     ObjectLookup
       .by_id(object_lookup_id)
       &.safe_constantize
-      &.find(o_id)
+      &.find_by(id: o_id)
   end
 
   def self.add(data)

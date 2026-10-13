@@ -180,6 +180,10 @@ Never put passwords, tokens or keys in this file.
 - Dev server: after Rails (puma) restarts, a browser tab that reconnects at once (the live connection `/cable` plus
   several GraphQL requests together) can leave every request hanging (seen four times on 13 Oct). Fix: kill puma
   (`forego` starts it again), wait until it answers, then open the app
+- A bell notification can outlive its ticket: Zammad's notification job can write it just as the ticket is deleted
+  (the browser tests' cleanup did twice, 13 Oct). It shows as "You can no longer see the ticket." (it failed the
+  whole bell list in the new UI until 13 Oct); Zammad removes read ones after 8 hours, unread ones after 9 months.
+  The test server copy had 50 unread ones from 7 March for staff (removed from the work PC dev DB only)
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
   - Theme switch and "Continue to mobile" removed; `/manage` messages show "%s"

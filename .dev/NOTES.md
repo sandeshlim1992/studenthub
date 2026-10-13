@@ -214,7 +214,6 @@ Never put passwords, tokens or keys in this file.
 - Patched a Zammad bug in `TicketList.vue` (onActivated): coming back to the kept-alive Tickets page with another
   view refetched the old one at the same time, so the tickets query went out without an overview (error on
   "View team" from the Dashboard). Keep the patch when merging Zammad updates unless they fixed it
-- Taxil's `AgentTicketCreateCard.vue` is unused
 - Running all of `pages/ticket` and `pages/ticket-overviews` at once, about 15 tests fail under load, nearly all by
   timing out at 5 s (e.g. the a11y, history and merge specs); every spec there passes when run on its own, except
   `ticket-detail-view-hint-note` (3) and `ticket-detail-view-live-users` (5), which fail on their own too (13 Oct)
@@ -415,3 +414,5 @@ Never put passwords, tokens or keys in this file.
       Download Excel and Live
 - [ ] Check the Approval tab while a request waits: Withdraw as the agent who asked (and its confirmation), Comment
       and Approve / Deny as the manager, the "Waiting · …" chip, dark mode
+- [ ] `lucide-vue-next` is no longer imported anywhere (its only users, unused `components/ui` parts, were deleted
+      on 14 Oct): remove it from `package.json`

@@ -223,3 +223,5 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-13: ZAP baseline scan of the dev app as an agent (results in `.dev/security-review.md`). It found this dev
   database's Customer role still had `admin.request_forms`; a migration now takes `admin.*` permissions off
   customer-only roles on every server (`Studenthub::CustomerRoles`), run here
+- 2026-10-14: Deleted 22 frontend files nothing in the app used (1,140 lines): Taxil's `AgentTicketCreateCard.vue`
+  and 21 unused `components/ui` parts (badge, card, dialog, dropdown menu, input, select, tabs); `Button.vue` stays

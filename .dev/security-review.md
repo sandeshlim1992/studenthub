@@ -64,6 +64,22 @@ rule, feedback tokens (stored hashed, one use) and how the deploy script runs co
 | `lib/studenthub/exchange_stored_password.rb`, `app/services/service/studenthub_exchange/settings.rb` | The password mask was swapped for the stored Exchange password whatever server or user was named, so someone with only `admin.integration.exchange` could send it to their own server | Fixed | The mask stands for the stored password only with the stored server address and user name; otherwise the password must be typed again | the commit that added this section |
 | `app/policies/controllers/studenthub_manager_sites_controller_policy.rb` | `admin.ticket_approval` could assign sites, which gives managers read access to all of a site's tickets; a manager with it could give themselves every site | Fixed | Assigning sites needs full `admin`; the card is hidden on the Ticket Approvals page for everyone else | the commit that added this section |
 
+## ZAP baseline (13 Oct)
+
+OWASP ZAP (Docker image `ghcr.io/zaproxy/zaproxy:stable`, Automation Framework) against the dev app at
+`http://localhost:3000`, signed in as the dev agent through a temporary API token (deleted afterwards). Passive only:
+about 50 requested pages and endpoints (the agent's own and 22 it must be refused), a 5-minute crawl from `/` (188
+URLs) with form submission and sign-out off, so no data changed. To reach the dev server, the ZAP container shares
+the devcontainer's network (`docker run --network container:<devcontainer id>`).
+
+| Where | ZAP / check says | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Customer role (database) | `GET /api/v1/studenthub/request_forms` answered the agent with 200; every other admin endpoint was refused | Fixed | The dev database's Customer role still had `admin.request_forms`, so every student could manage request forms. The 20261013120000 migration takes `admin.*` off customer-only roles on every server | the commit that added this section |
+| Pages (`/`, `/login`, `/ticket/…`, `/feedback/…`) | Content Security Policy header not set (Medium) | By design (dev) | In development Zammad sends the policy as report-only (`config/initializers/content_security_policy.rb`); production enforces it. Production allows `unsafe-eval` in scripts, Zammad's own setting | n/a |
+| `/api/v1/*` | Cross-domain misconfiguration, `Access-Control-Allow-Origin: *` (Medium) | By design | Zammad's own API header (`ApplicationController::SetsHeaders`); without `Allow-Credentials` other sites can't read responses for signed-in users | n/a |
+| `/api/v1/signshow`, `/app`, `/help/…` | Unix timestamps in responses (Low) | False positive | Build and setting timestamps, nothing sensitive | n/a |
+| `/favicon.ico`, `/apple-touch-icon.png` | `X-Content-Type-Options` missing (Low) | By design (dev) | Rails serves these files in development; nginx serves them in production | n/a |
+
 ## Open Source (dependencies)
 
 | Package | Problem | Status |

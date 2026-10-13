@@ -220,3 +220,6 @@ the current state is in `.dev/NOTES.md`.
   to a changed server or user; assigning sites to managers needs full `admin` (was `admin.ticket_approval`)
 - 2026-10-13: New rule in `CLAUDE.md`: a security review of the changes before every commit, findings recorded in
   `.dev/security-review.md`
+- 2026-10-13: ZAP baseline scan of the dev app as an agent (results in `.dev/security-review.md`). It found this dev
+  database's Customer role still had `admin.request_forms`; a migration now takes `admin.*` permissions off
+  customer-only roles on every server (`Studenthub::CustomerRoles`), run here

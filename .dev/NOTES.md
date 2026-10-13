@@ -163,6 +163,9 @@ Never put passwords, tokens or keys in this file.
 - Student Hub's own server code was reviewed by hand on 13 Oct (`.dev/security-review.md` → Manual review); the
   Claude Security plugin's scan can't run here (needs Claude Code workflows). Since then, assigning sites to
   managers needs full `admin`, and the Exchange password mask only works with the stored server and user
+- Roles for customers only never carry `admin.*` permissions (decided 13 Oct): the 20261013120000 migration takes
+  them off on every server (`Studenthub::CustomerRoles`). A ZAP scan on 13 Oct found one dev database's Customer
+  role still had `admin.request_forms` (`.dev/security-review.md` → ZAP baseline, with how the scan was run)
 
 ## Known issues
 
@@ -336,9 +339,9 @@ Never put passwords, tokens or keys in this file.
 
 ## Next steps
 
-- [ ] Test and production servers: check the Customer role has no `admin.*` permission. The dev database's had
-      `admin.request_forms` (added by hand on 10 Oct), so every student could open Administration; removed on 13 Oct
-      after the browser test caught it
+- [ ] Test and production servers: the next deploy runs the 20261013120000 migration, which takes `admin.*`
+      permissions off customer-only roles; check its output ("Customer: removed …") to see whether students had any.
+      Other dev databases get it with `bin/rails db:migrate`
 - [ ] Set up the same environment on the home PC (check data-protection rules before copying real data)
 - [ ] Test server: stash the hand-applied logo fix, install the deploy script, run the first scripted deploy
 - [ ] Rehearse the first production deploy on a fresh clone of the production VM, then do it

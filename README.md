@@ -239,12 +239,21 @@ bin/dev                                              # starts Rails, Vite, webso
 End-to-end tests in a real browser against the running app (`bin/dev`), kept in `e2e/` with their own packages so
 the app's `package.json` and lock file stay untouched. They use the Google Chrome in the dev container.
 
-**What they cover (the student, all over the web, no email):** the student lands on their own ticket list; raises a
-ticket with a file on the form; sees Your request, Progress and Files and downloads the file; gets a staff reply
-(live, with "Waiting for you") but never the internal note; replies, which hands the ticket back to staff; closes it
-with "I no longer need help". A student can't open another student's ticket, the staff Dashboard or Administration;
-the home page fits a phone; signing out leaves no errors. Every page is checked for console errors and warnings and
-for failed requests.
+**What they cover (all over the web, no email):**
+
+- **Student** (`student-journey.spec.ts`): lands on their own ticket list; raises a ticket with a file on the form;
+  sees Your request, Progress and Files and downloads the file; gets a staff reply (live, with "Waiting for you") but
+  never the internal note; replies, which hands the ticket back to staff; closes it with "I no longer need help". A
+  student can't open another student's ticket, the staff Dashboard or Administration; the home page fits a phone;
+  signing out leaves no errors.
+- **Agent** (`agent-journey.spec.ts`): a student's ticket, moved by staff to the agent's team, is found in the team
+  view and opened beside the queue (Ticket, Student and Checklist panels); the agent replies over the web (the
+  student gets it), adds an internal note (the student doesn't), assigns it to themselves and sets "4. Awaiting user
+  Response" with Update, sees the student's answer arrive live and closes the ticket. The Dashboard briefing shows
+  without Admin and Reports; another team's ticket, Administration and Reports are refused; Members loads; leaving a
+  ticket for the ticket list and signing out leave no errors.
+
+Every page is checked for console errors and warnings and for failed requests.
 
 **Setup (once):**
 
@@ -255,19 +264,21 @@ cp .env.example .env              # then fill in the passwords; .env is git-igno
 ```
 
 **Run:** `pnpm test` in `e2e/` (`pnpm test:headed` to watch, `pnpm report` for the HTML report with traces and
-screenshots of failures). Each run creates one `[TEST] Playwright student journey …` ticket for the student and
-deletes it at the end.
+screenshots of failures; `pnpm test --project=agent` for one role). Each run creates one `[TEST] Playwright …`
+ticket per role for the student and deletes it at the end.
 
-**Needs:** the test student (`student@example.com`) and staff who can see new student tickets (the "Unassigned
-Tickets" team) and delete tickets, so an admin (`admin@example.com`); staff answer through the REST API with web
-messages. The category, sub-category, campus and state names at the top of the spec come from the Student Hub data.
+**Needs:** the test student (`student@example.com`), an agent of the Service Desk team who isn't an admin
+(`agent@example.com`), and staff who can see new student tickets (the "Unassigned Tickets" team) and delete tickets,
+so an admin (`admin@example.com`); staff and, in the agent tests, the student work through the REST API with web
+messages. The team, category, sub-category, campus and state names at the top of each spec come from the Student Hub
+data.
 
 | File(s) | Purpose |
 |---|---|
 | `e2e/playwright.config.ts`, `e2e/package.json`, `e2e/tsconfig.json` | Playwright setup (Chrome, one worker, traces on failure) |
-| `e2e/tests/auth.setup.ts` | Signs the student in once; the tests reuse the sign-in |
-| `e2e/tests/student-journey.spec.ts` | The student tests |
-| `e2e/tests/support/` | Logins from `.env`, sign-in, the staff API and the error collector |
+| `e2e/tests/auth.setup.ts` | Signs the student and the agent in once; their tests reuse the sign-in |
+| `e2e/tests/student-journey.spec.ts`, `e2e/tests/agent-journey.spec.ts` | The student and agent tests |
+| `e2e/tests/support/` | Logins from `.env`, sign-in, the staff and student APIs and the error collector |
 | `e2e/.env.example` | Which logins to put in `e2e/.env` |
 
 ---

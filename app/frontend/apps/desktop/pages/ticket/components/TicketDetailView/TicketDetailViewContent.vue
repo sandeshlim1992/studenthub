@@ -17,6 +17,8 @@ import {
   ref,
   effectScope,
   onUnmounted,
+  onActivated,
+  onDeactivated,
 } from 'vue'
 
 import {
@@ -393,6 +395,18 @@ const formArticleReplyLocation = computed(() => {
   return '#wrapper-form-ticket-edit'
 })
 
+// Student Hub: while this ticket's tab is in the background its page isn't in the document, so the
+// edit form's parts stay in place instead of being teleported (their targets can't be found then,
+// e.g. when the form arrives after leaving the ticket); they move when the tab is shown again.
+const isTabShown = ref(true)
+onActivated(() => {
+  isTabShown.value = true
+})
+onDeactivated(() => {
+  isTabShown.value = false
+})
+const isFormTeleportDisabled = computed(() => !isTabShown.value)
+
 const hiddenFormGroups = computed(() => {
   if (newTicketArticlePresent.value) return
 
@@ -419,6 +433,7 @@ provideTicketInformation({
 const ticketEditSchemaData = reactive({
   formEditAttributeLocation,
   formArticleReplyLocation,
+  isFormTeleportDisabled,
   securityIntegration,
   isTicketCustomer,
   newTicketArticlePresent,
@@ -442,6 +457,7 @@ const ticketEditSchema = [
     component: 'Teleport',
     props: {
       to: '$formEditAttributeLocation',
+      disabled: '$isFormTeleportDisabled',
     },
     children: [
       {
@@ -466,6 +482,7 @@ const ticketEditSchema = [
     },
     props: {
       to: '$formArticleReplyLocation',
+      disabled: '$isFormTeleportDisabled',
     },
     children: [
       {

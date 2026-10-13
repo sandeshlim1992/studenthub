@@ -206,7 +206,8 @@ Never put passwords, tokens or keys in this file.
   "View team" from the Dashboard). Keep the patch when merging Zammad updates unless they fixed it
 - Taxil's `AgentTicketCreateCard.vue` is unused
 - Running all of `pages/ticket` and `pages/ticket-overviews` at once, about 15 tests fail under load, nearly all by
-  timing out at 5 s (e.g. the a11y, history and merge specs); every spec there passes when run on its own
+  timing out at 5 s (e.g. the a11y, history and merge specs); every spec there passes when run on its own, except
+  `ticket-detail-view-hint-note` (3) and `ticket-detail-view-live-users` (5), which fail on their own too (13 Oct)
 - The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs);
   Student Hub doesn't use the mobile app. `continue-to-mobile.spec.ts` (2) fails since Taxil removed that menu entry
 - The student New ticket wizard (Taxil's `CustomerTicketCreateWizard.vue`, the default for students) has no tests;

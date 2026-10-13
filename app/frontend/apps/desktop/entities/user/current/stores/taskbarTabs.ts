@@ -225,7 +225,12 @@ export const useUserCurrentTaskbarTabsStore = defineStore('userCurrentTaskbarTab
       if (!updates.addItem && !updates.updateItem && !updates.removeItem)
         return null as unknown as UserCurrentTaskbarItemListQuery
 
-      if (!previous.userCurrentTaskbarItemList || updates.updateItem) return previous
+      // Student Hub: nothing to update while the list isn't in the cache; returning the empty result
+      // would write it as the list ("Missing field 'userCurrentTaskbarItemList'").
+      if (!previous.userCurrentTaskbarItemList)
+        return null as unknown as UserCurrentTaskbarItemListQuery
+
+      if (updates.updateItem) return previous
 
       const previousTaskbarTabList = previous.userCurrentTaskbarItemList
 

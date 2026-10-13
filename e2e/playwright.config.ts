@@ -2,7 +2,7 @@
 
 import { defineConfig } from '@playwright/test'
 
-import { BASE_URL, STUDENT_STATE } from './tests/support/env.ts'
+import { AGENT_STATE, BASE_URL, STUDENT_STATE } from './tests/support/env.ts'
 
 export default defineConfig({
   testDir: './tests',
@@ -29,6 +29,12 @@ export default defineConfig({
       dependencies: ['setup'],
       testMatch: /student-.*\.spec\.ts/,
       use: { storageState: STUDENT_STATE },
+    },
+    {
+      name: 'agent',
+      dependencies: ['setup'],
+      testMatch: /agent-.*\.spec\.ts/,
+      use: { storageState: AGENT_STATE },
     },
   ],
 })

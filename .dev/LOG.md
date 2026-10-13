@@ -207,3 +207,8 @@ the current state is in `.dev/NOTES.md`.
 - 2026-10-13: Admin pages send Zammad's current security token with their saves (`getCSRFToken()`): Core Workflows
   and Monitoring sent none (always refused), about 40 others the one from page load (refused after signing out and
   in again without a reload)
+- 2026-10-13: Browser tests for agents (`e2e/tests/agent-journey.spec.ts`): team view, queue, web reply, internal
+  note, Assign to me + status + Update, the student's answer live, Close, what an agent can't open, signing out.
+  They caught two bugs, fixed: leaving a ticket before its edit form had loaded mounted the form in the hidden tab
+  (Teleport warnings, form parts not placed; the form's Teleports now wait while the tab is hidden), and closing a
+  ticket could write an empty tab list into Apollo's cache ("Missing field 'userCurrentTaskbarItemList'")

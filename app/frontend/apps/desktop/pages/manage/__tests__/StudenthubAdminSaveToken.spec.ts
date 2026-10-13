@@ -28,8 +28,11 @@ const mockServer = (routes: Record<string, () => unknown>) => {
     vi.fn(async (url: string, init: RequestInit = {}) => {
       const method = init.method ?? 'GET'
       calls.push({ method, url, token: new Headers(init.headers).get('X-CSRF-Token') })
-      const handler = routes[`${method} ${url}`]
-      return new Response(JSON.stringify(handler ? handler() : []), { status: handler ? 200 : 404 })
+      const route = `${method} ${url}`
+      const known = route in routes
+      return new Response(JSON.stringify(known ? routes[route]() : []), {
+        status: known ? 200 : 404,
+      })
     }),
   )
   return calls

@@ -9,8 +9,9 @@ if (existsSync(envFile)) process.loadEnvFile(envFile)
 
 export const BASE_URL = process.env.STUDENTHUB_BASE_URL || 'http://localhost:3000'
 
-// The student's saved sign-in (cookies), written by auth.setup.ts; git-ignored.
+// The saved sign-ins (cookies), written by auth.setup.ts; git-ignored.
 export const STUDENT_STATE = path.join(__dirname, '../../.auth/student.json')
+export const AGENT_STATE = path.join(__dirname, '../../.auth/agent.json')
 
 export interface Account {
   login: string
@@ -28,6 +29,11 @@ const password = (variable: string) => {
 export const studentAccount = (): Account => ({
   login: process.env.STUDENTHUB_STUDENT_LOGIN || 'student@example.com',
   password: password('STUDENTHUB_STUDENT_PASSWORD'),
+})
+
+export const agentAccount = (): Account => ({
+  login: process.env.STUDENTHUB_AGENT_LOGIN || 'agent@example.com',
+  password: password('STUDENTHUB_AGENT_PASSWORD'),
 })
 
 export const staffAccount = (): Account => ({

@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 import CommonPopover from '#desktop/components/CommonPopover/CommonPopover.vue'
@@ -18,7 +18,7 @@ const userDisplayName = computed(() => {
   if (user.value?.firstname && user.value?.lastname) {
     return `${user.value.firstname} ${user.value.lastname}`
   }
-  return user.value?.firstname || user.value?.login || 'Student'
+  return user.value?.firstname || 'Student'
 })
 
 const userInitial = computed(() => {
@@ -26,9 +26,12 @@ const userInitial = computed(() => {
   return name.charAt(0).toUpperCase()
 })
 
-const userMenuPopover = useTemplateRef<InstanceType<typeof CommonPopover>>('userMenuPopover')
-const userMenuPopoverTarget = useTemplateRef<HTMLElement>('userMenuPopoverTarget')
-const { toggle: toggleUserMenu, isOpen: isUserMenuOpen } = usePopover(userMenuPopover)
+const {
+  popover: userMenuPopover,
+  popoverTarget: userMenuPopoverTarget,
+  toggle: toggleUserMenu,
+  isOpen: isUserMenuOpen,
+} = usePopover()
 
 const onProfileSettings = () => {
   userMenuPopover.value?.closePopover()

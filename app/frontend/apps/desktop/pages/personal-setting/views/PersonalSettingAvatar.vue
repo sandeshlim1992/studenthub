@@ -55,7 +55,8 @@ const userDisplayName = computed(() => {
   if (user.value?.firstname && user.value?.lastname) {
     return `${user.value.firstname} ${user.value.lastname}`
   }
-  return user.value?.firstname || user.value?.login || 'Student'
+  // Student Hub: the signed-in user is loaded without a login, so there's no falling back to it.
+  return user.value?.firstname || 'Student'
 })
 
 const userInitial = computed(() => {

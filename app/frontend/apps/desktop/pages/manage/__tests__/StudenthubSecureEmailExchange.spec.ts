@@ -40,7 +40,11 @@ const routes = [
   { path: '/manage/system/integrations/exchange', name: 'ManageExchange', component: { template: '<div />' } },
 ]
 
-const render = async (component: typeof Exchange, props: Record<string, unknown> = {}, path = '/') => {
+const render = async (
+  component: typeof Exchange | typeof SecureEmail,
+  props: Record<string, unknown> = {},
+  path = '/',
+) => {
   const view = renderComponent(component, {
     props,
     router: true,

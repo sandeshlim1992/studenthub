@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import { onActivated, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
@@ -21,6 +22,7 @@ const breadcrumbItems = [
   { label: __('LDAP') },
 ]
 
+const router = useRouter()
 const { notify } = useNotifications()
 const { waitForVariantConfirmation } = useConfirmation()
 
@@ -106,7 +108,7 @@ const resultLine = (job: LdapJob) => {
           size="medium"
           prefix-icon="plus"
           class="bg-app! text-on-app! hover:bg-app-hover!"
-          @click="$router.push('/manage/system/integrations/ldap/new')"
+          @click="router.push('/manage/system/integrations/ldap/new')"
         >
           {{ $t('Add LDAP server') }}
         </CommonButton>

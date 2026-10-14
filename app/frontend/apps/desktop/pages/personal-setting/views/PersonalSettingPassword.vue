@@ -169,8 +169,9 @@ const { tabs, activeTab } = usePersonalSettingTabs()
                 {{ $t('Connected') }}
               </span>
             </div>
+            <!-- Student Hub: no falling back to the login (the signed-in user has none loaded). -->
             <p class="text-xs text-slate-400 mt-0.5 truncate max-w-xs sm:max-w-md">
-              {{ user?.email || user?.login || 'Student Account' }}
+              {{ user?.email || 'Student Account' }}
               <span class="text-slate-300 mx-1">·</span>
               <span class="text-slate-400">LSST · FSB · UKBC</span>
             </p>

@@ -9,7 +9,7 @@ import Templates from '../views/Templates.vue'
 // Student Hub: the Templates editor keeps what it doesn't show (keptSettings.ts), so opening a
 // template and saving it never deletes its message text or other fields.
 
-const mockServer = (routes: Record<string, () => unknown>) => {
+const mockServer = (routes: Partial<Record<string, () => unknown>>) => {
   const calls: { method: string; url: string; body?: Record<string, unknown> }[] = []
   vi.stubGlobal(
     'fetch',

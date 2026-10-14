@@ -8,9 +8,16 @@ import { onBeforeRouteLeave, useRouter, useRoute } from 'vue-router'
 import { NotificationTypes } from '#shared/components/CommonNotifications/types.ts'
 import { useNotifications } from '#shared/components/CommonNotifications/useNotifications.ts'
 import { EXTENSION_NAME as TEXT_TOOL_EXTENSION_NAME } from '#shared/components/Form/fields/FieldEditor/extensions/AiAssistantTextTools.ts'
-import type { FieldFileContext } from '#shared/components/Form/fields/FieldFile/types.ts'
+import type {
+  FieldFileContext,
+  FileUploaded,
+} from '#shared/components/Form/fields/FieldFile/types.ts'
 import Form from '#shared/components/Form/Form.vue'
-import type { FormSchemaField, FormSubmitData } from '#shared/components/Form/types.ts'
+import type {
+  FormSchemaField,
+  FormSchemaNode,
+  FormSubmitData,
+} from '#shared/components/Form/types.ts'
 import { useForm } from '#shared/components/Form/useForm.ts'
 import { getNodeByName } from '#shared/components/Form/utils.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
@@ -411,7 +418,10 @@ const handleWizardSubmit = async (data: WizardData) => {
     }
 
     // 4. Handle attachments if any
-    let uploadedFiles: File[] | undefined
+    // Student Hub: the submit sends only each file's name and type (convertFilesToAttachmentInput),
+    // so the browser's files can stand in for uploaded ones.
+    const attachedFiles = data.attachments as unknown as FileUploaded[]
+    let uploadedFiles: FileUploaded[] | undefined
     if (data.attachments && data.attachments.length > 0 && formId) {
       const attachmentsNode = getNodeByName(formId, 'attachments')
       if (attachmentsNode?.context && 'uploadFiles' in attachmentsNode.context) {
@@ -419,7 +429,7 @@ const handleWizardSubmit = async (data: WizardData) => {
           await (attachmentsNode.context as unknown as FieldFileContext).uploadFiles(
             data.attachments,
           )
-          uploadedFiles = (attachmentsNode.value as File[]) || data.attachments
+          uploadedFiles = (attachmentsNode.value as FileUploaded[] | undefined) || attachedFiles
         } catch (uploadErr) {
           console.warn('Could not upload files via form node', uploadErr)
         }
@@ -457,12 +467,13 @@ const handleWizardSubmit = async (data: WizardData) => {
     } as unknown as FormSubmitData<TicketFormData>
 
     if (customerId) {
-      formPayload.customer_id = customerId as string | number
+      // Student Hub: a GraphQL ID, as useTicketCreate expects; TicketFormData types it as a number.
+      formPayload.customer_id = customerId as number
     }
     if (uploadedFiles) {
       formPayload.attachments = uploadedFiles
     } else if (data.attachments && data.attachments.length > 0) {
-      formPayload.attachments = data.attachments
+      formPayload.attachments = attachedFiles
     }
 
     // 7. Directly invoke submitCreateTicket to execute creation
@@ -1119,8 +1130,14 @@ const managerSchema = [
   },
 ]
 
+// Student Hub: some layout nodes render a component without children, which FormSchemaNode doesn't
+// allow for (Zammad's layout nodes always have children).
 const formSchema = defineFormSchema(
-  isManagerCreate ? managerSchema : isTicketCustomer.value ? customerSchema : defaultSchema,
+  (isManagerCreate
+    ? managerSchema
+    : isTicketCustomer.value
+      ? customerSchema
+      : defaultSchema) as FormSchemaNode[],
 )
 
 const securityIntegration = computed<boolean>(
@@ -1260,6 +1277,8 @@ const cancelCreate = async () => {
 // the fields, it doesn't move focus).
 const focusFirstInvalidField = () => {
   window.setTimeout(() => {
+    if (!formNodeId.value) return
+
     const field = document
       .getElementById(formNodeId.value)
       ?.querySelector<HTMLElement>(

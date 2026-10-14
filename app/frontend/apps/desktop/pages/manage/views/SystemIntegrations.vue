@@ -265,6 +265,13 @@ const configModal = ref<ConfigModalState>({
   endpointUrl: '',
   token: '',
   apiKey: '',
+  url: '',
+  verifySsl: true,
+  isVerifying: false,
+  verifyStatus: null,
+  autoCreateOrg: false,
+  sharedOrg: false,
+  signSystemNotifications: false,
   customConfigJson: '',
   isSaving: false,
 })
@@ -812,7 +819,7 @@ onMounted(() => {
             <button
               type="button"
               class="cursor-pointer rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-              @click="item.configRoute ? $router.push(item.configRoute) : openConfigModal(item)"
+              @click="item.configRoute ? router.push(item.configRoute) : openConfigModal(item)"
             >
               {{ __('Configure') }}
             </button>

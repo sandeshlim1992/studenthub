@@ -116,3 +116,11 @@ No server code changed, so no full review.
 | `.claude/settings.json` | Claude may stage files and run the type check, ESLint and oxfmt without asking | Accepted | Local commands that change nothing outside the working copy; commits and pushes still need the user | `chore(claude): …` |
 | 20 `/manage` views | Names admins typed (workflows, triggers, users' email addresses) now go into messages and labels | No problem | Shown as text only (`{{ }}`, `aria-label`, `confirm()`); none goes through `v-html` or Zammad's HTML notifications | `fix(manage): admin messages …` |
 | `SystemDataPrivacy.vue`, `ChannelForm.vue`, `AvatarMenu.vue` | User search, embed code and tab links work again | No problem | The search term is URL-encoded and the server's permission check is unchanged; the embed code is shown as text in a `<pre>`; menu links use the ticket's internal id | `fix(manage): Data Privacy …` |
+
+## Check of the type fixes before committing (14 Oct)
+
+`git diff HEAD` for the commit that took the type check from 31 errors to 0: frontend only, no server code.
+
+| File | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| 14 frontend files (admin pages, profile settings, New ticket, message actions, `Form.vue`, three specs) | Type fixes could drop a check | No problem | No permission check, validation or error handling was removed; the only new code is guards (an icon shown only when there is one, no form lookup without an id). New ticket still sends the same customer and attachments | the commit that added this section |

@@ -15,7 +15,8 @@ Never put passwords, tokens or keys in this file.
 
 ## Tests that already fail
 
-- Type check: `pnpm lint:ts` has 31 old errors (14 Oct); count them with `pnpm lint:ts 2>&1 | grep -c 'error TS'`
+- Type check: `pnpm lint:ts` has 0 errors (since 14 Oct), so any new error is new code's; count them with
+  `pnpm lint:ts 2>&1 | grep -c 'error TS'`
 - Zammad's SMS driver specs (Twilio, MessageBird, Massenversand: 3 examples) fail in the container: they expect
   errors from the real SMS services
 - Running all of `pages/ticket` and `pages/ticket-overviews` at once, about 15 tests fail under load, nearly all by
@@ -32,6 +33,10 @@ Never put passwords, tokens or keys in this file.
 - 9 more of Zammad's layout specs fail since the redesign (seen 14 Oct, the same with and without that day's avatar
   menu fix): `LayoutPage` "expands search…", `LayoutPublicPage` "renders title and logo", `LayoutSidebar` "supports
   end position", `LeftSidebarFooterMenu` (2, the avatar) and `LeftSidebarHeader` (4)
+- 28 of Zammad's personal settings specs fail, also when only those files run, the same before and after the 14 Oct
+  type fixes: appearance (3), language (2), BETA UI feedback program (5), token access (1), avatar a11y (1) and
+  two-factor authentication (16). Run with many other specs, a few more time out (e.g. `StudenthubScheduler` "says
+  what is missing", `ticket-create-user` "does not allow agent to toggle customer role"); they pass on their own
 - Vitest's module cache (`node_modules/.experimental-vitest-cache`) keeps old `import.meta.glob` results: after adding a
   page (`routes.ts`) or a plugin, tests still see the old list (e.g. the rail without KB, Members, Reporting). Delete the
   folder; it is rebuilt
@@ -61,6 +66,8 @@ Never put passwords, tokens or keys in this file.
   `ChecklistTemplates.vue`, `ChecklistEmptyTemplates.vue`, `useChecklistTemplates.ts` (their own specs still pass)
 - The first sign-in in a fresh browser can fail with "Security token verification failed"; the page reloads and the
   second try works (seen in headless Chrome, 13 Oct; the browser tests retry once)
+- Browser tests: the sign-in setup can fail while the "New desktop BETA UI" notice closes (twice on 14 Oct, right
+  after many files had changed; the next run passed)
 - Dev server: after Rails (puma) restarts, a browser tab that reconnects at once (the live connection `/cable` plus
   several GraphQL requests together) can leave every request hanging (seen four times on 13 Oct). Fix: kill puma
   (`forego` starts it again), wait until it answers, then open the app
@@ -72,7 +79,8 @@ Never put passwords, tokens or keys in this file.
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
   - Theme switch removed (login-page public links are back since 7 Oct); "Continue to mobile" stays removed for
     now (14 Oct)
-  - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
+  - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit, 0 since 14 Oct; Zammad unit tests that fail: see Tests
+    that already fail
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
   phone (CTI) log (both unused), Clearbit's field mapping, Scheduler jobs on users or organisations, the fields of a
   template other than title, state, priority, team and owner (kept on save), and conditions or actions the shared

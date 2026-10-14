@@ -40,6 +40,22 @@ interface ScreensConfig {
   }
 }
 
+// The data_option fields the edit dialog reads (Zammad keeps those of the attribute's data type).
+interface AttributeDataOption {
+  options?: unknown
+  default?: unknown
+  type?: string
+  maxlength?: number
+  linktemplate?: string
+  rows?: number
+  min?: number
+  max?: number
+  future?: boolean
+  past?: boolean
+  diff?: number | null
+  translate?: boolean
+}
+
 interface AttributeModalState {
   isOpen: boolean
   isEditing: boolean
@@ -174,6 +190,14 @@ const attributeModal = ref<AttributeModalState>({
   optionsList: [{ key: '', value: '' }],
   screens: getDefaultScreensForObject('Ticket'),
   isSaving: false,
+})
+
+// A textarea attribute's default is text; the textarea's v-model only takes text.
+const defaultText = computed({
+  get: () => attributeModal.value.defaultVal as string,
+  set: (value: string) => {
+    attributeModal.value.defaultVal = value
+  },
 })
 
 const getCsrf = () => getCSRFToken() || ''
@@ -351,7 +375,9 @@ const openEditAttributeModal = (attr: ObjectAttribute) => {
     const rawDataOpt = (attrRecord.data_option_new as Record<string, unknown> | undefined)?.options
       ? (attrRecord.data_option_new as Record<string, unknown>)
       : (attr.data_option as Record<string, unknown> | undefined)
-    const dataOpt = rawDataOpt && typeof rawDataOpt === 'object' ? rawDataOpt : {}
+    const dataOpt = (
+      rawDataOpt && typeof rawDataOpt === 'object' ? rawDataOpt : {}
+    ) as AttributeDataOption
 
     if (dataOpt.options) {
       if (Array.isArray(dataOpt.options)) {
@@ -1051,7 +1077,7 @@ onMounted(() => {
               </label>
               <textarea
                 id="attr-default-textarea"
-                v-model="attributeModal.defaultVal"
+                v-model="defaultText"
                 rows="3"
                 class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
               />

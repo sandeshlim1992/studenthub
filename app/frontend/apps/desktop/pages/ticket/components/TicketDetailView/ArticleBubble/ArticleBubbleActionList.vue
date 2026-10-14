@@ -183,6 +183,7 @@ const actions = computed(() => {
       class="flex items-center gap-0.5 rounded-full border border-slate-200/90 bg-white/95 p-0.5 shadow-xs backdrop-blur-md transition-all duration-200 hover:border-slate-300 hover:shadow-md dark:border-neutral-700/90 dark:bg-neutral-800/95 dark:hover:border-neutral-600"
       :class="position === 'right' ? 'order-last' : 'order-first'"
     >
+      <!-- Student Hub: an action's icon is optional, so it shows only when there is one. -->
       <template v-for="action in actions.quickActions" :key="action.key">
         <CommonLink
           v-if="action.link"
@@ -192,7 +193,7 @@ const actions = computed(() => {
           :aria-label="$t(action.label)"
           class="flex h-7 w-7 items-center justify-center rounded-full text-slate-500 transition-all hover:bg-slate-100 hover:text-blue-600 active:scale-95 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-blue-400"
         >
-          <CommonIcon :name="action.icon" size="tiny" />
+          <CommonIcon v-if="action.icon" :name="action.icon" size="tiny" />
         </CommonLink>
         <button
           v-else
@@ -204,7 +205,7 @@ const actions = computed(() => {
           :class="getActionColorClass(action)"
           @click="action.onClick"
         >
-          <CommonIcon :name="action.icon" size="tiny" />
+          <CommonIcon v-if="action.icon" :name="action.icon" size="tiny" />
         </button>
       </template>
 

@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import { computed, onActivated, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
 
@@ -20,6 +21,7 @@ const breadcrumbItems = [
   { label: __('Roles') },
 ]
 
+const router = useRouter()
 const { notify } = useNotifications()
 
 const overview = ref<RolesOverview | null>(null)
@@ -82,7 +84,7 @@ const toggleActive = async (role: RoleRow) => {
           size="medium"
           prefix-icon="plus"
           class="bg-app! text-on-app! hover:bg-app-hover!"
-          @click="$router.push('/manage/roles/new')"
+          @click="router.push('/manage/roles/new')"
         >
           {{ $t('New role') }}
         </CommonButton>

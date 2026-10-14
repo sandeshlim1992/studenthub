@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import { computed, onActivated, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
@@ -33,6 +34,7 @@ const breadcrumbItems = [
   { label: __('Scheduler') },
 ]
 
+const router = useRouter()
 const { notify } = useNotifications()
 const { waitForVariantConfirmation } = useConfirmation()
 
@@ -109,7 +111,7 @@ const remove = async (job: Job) => {
           size="medium"
           prefix-icon="plus"
           class="bg-app! text-on-app! hover:bg-app-hover!"
-          @click="$router.push('/manage/scheduler/new')"
+          @click="router.push('/manage/scheduler/new')"
         >
           {{ $t('New job') }}
         </CommonButton>
@@ -175,7 +177,7 @@ const remove = async (job: Job) => {
                     size="small"
                     icon="files"
                     :aria-label="$t('Copy %s', job.name)"
-                    @click="$router.push({ path: '/manage/scheduler/new', query: { copy: job.id } })"
+                    @click="router.push({ path: '/manage/scheduler/new', query: { copy: job.id } })"
                   />
                   <CommonButton
                     variant="remove"

@@ -15,7 +15,7 @@ import Triggers from '../views/Triggers.vue'
 // shared condition and action editor (Automation/). Opening a record and saving it sends it back as
 // it was, including trigger fields (Action, message), expert-mode groups and select fields.
 
-const mockServer = (routes: Record<string, () => unknown>) => {
+const mockServer = (routes: Partial<Record<string, () => unknown>>) => {
   const calls: { method: string; url: string; body?: Record<string, unknown> }[] = []
   vi.stubGlobal(
     'fetch',

@@ -1211,8 +1211,10 @@ const buildStaticSchema = () => {
       } else if ('screen' in node && !('name' in node)) {
         const resolvedFields = getFormFieldsFromScreen(node.screen, node.object)
         const formKitFields: ResolveFormKitSchemaNode[] = []
+        // Student Hub: kept here, as the callback below no longer sees node narrowed to a screen.
+        const screenObject = node.object
         resolvedFields.forEach((screenField) => {
-          const fieldKey = `${node.object}:${screenField.name}`
+          const fieldKey = `${screenObject}:${screenField.name}`
           if (seenScreenFields.has(fieldKey)) {
             return
           }

@@ -88,6 +88,8 @@ const newModal = ref<{
   isSubmitting: false,
 })
 
+let userSearchDebounce: ReturnType<typeof setTimeout> | null = null
+
 const getCsrf = () => getCSRFToken() || ''
 
 const fetchTasks = async () => {

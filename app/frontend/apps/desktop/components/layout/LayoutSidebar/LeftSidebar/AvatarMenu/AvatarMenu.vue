@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { computed, toRef } from 'vue'
 
 import CommonUserAvatar from '#shared/components/CommonUserAvatar/CommonUserAvatar.vue'
+import { EnumTaskbarEntity } from '#shared/graphql/types.ts'
 import QueryHandler from '#shared/server/apollo/handler/QueryHandler.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
@@ -107,7 +108,8 @@ const recentItems = computed(() => {
   if (result.length < 5 && Array.isArray(taskbarTabList?.value)) {
     for (const tab of taskbarTabList.value) {
       if (result.length >= 5) break
-      if (tab.type === 'Ticket' && tab.entity) {
+      // Student Hub: ticket tabs are TicketZoom ('Ticket' matched none, so none were added).
+      if (tab.type === EnumTaskbarEntity.TicketZoom && tab.entity) {
         const ticket = tab.entity as any
         if (!seenIds.has(ticket.id)) {
           seenIds.add(ticket.id)

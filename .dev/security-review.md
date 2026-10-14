@@ -104,3 +104,15 @@ the devcontainer's network (`docker run --network container:<devcontainer id>`).
 | `/api/v1/*` | Cross-domain misconfiguration, `Access-Control-Allow-Origin: *` (Medium) | By design | Zammad's own API header (`ApplicationController::SetsHeaders`); without `Allow-Credentials` other sites can't read responses for signed-in users | n/a |
 | `/api/v1/signshow`, `/app`, `/help/…` | Unix timestamps in responses (Low) | False positive | Build and setting timestamps, nothing sensitive | n/a |
 | `/favicon.ico`, `/apple-touch-icon.png` | `X-Content-Type-Options` missing (Low) | By design (dev) | Rails serves these files in development; nginx serves them in production | n/a |
+
+## Check of the 14 Oct changes before committing
+
+`git diff HEAD` before the four commits of 14 Oct (Claude settings, database sample, admin messages, three admin fixes).
+No server code changed, so no full review.
+
+| File | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| `config/database/database.yml` | Zammad's default Postgres user and password were committed (also in Taxil's public repo) | Fixed in the repo | Back to Zammad's commented-out sample; the servers still need checking (NOTES → Next steps) | `fix(security): database sample …` |
+| `.claude/settings.json` | Claude may stage files and run the type check, ESLint and oxfmt without asking | Accepted | Local commands that change nothing outside the working copy; commits and pushes still need the user | `chore(claude): …` |
+| 20 `/manage` views | Names admins typed (workflows, triggers, users' email addresses) now go into messages and labels | No problem | Shown as text only (`{{ }}`, `aria-label`, `confirm()`); none goes through `v-html` or Zammad's HTML notifications | `fix(manage): admin messages …` |
+| `SystemDataPrivacy.vue`, `ChannelForm.vue`, `AvatarMenu.vue` | User search, embed code and tab links work again | No problem | The search term is URL-encoded and the server's permission check is unchanged; the embed code is shown as text in a `<pre>`; menu links use the ticket's internal id | `fix(manage): Data Privacy …` |

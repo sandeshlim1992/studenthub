@@ -15,7 +15,7 @@ Never put passwords, tokens or keys in this file.
 
 ## Tests that already fail
 
-- Type check: `pnpm lint:ts` has 40 old errors (14 Oct); count them with `pnpm lint:ts 2>&1 | grep -c 'error TS'`
+- Type check: `pnpm lint:ts` has 31 old errors (14 Oct); count them with `pnpm lint:ts 2>&1 | grep -c 'error TS'`
 - Zammad's SMS driver specs (Twilio, MessageBird, Massenversand: 3 examples) fail in the container: they expect
   errors from the real SMS services
 - Running all of `pages/ticket` and `pages/ticket-overviews` at once, about 15 tests fail under load, nearly all by
@@ -29,6 +29,9 @@ Never put passwords, tokens or keys in this file.
 - The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs);
   Student Hub doesn't use the mobile app. `continue-to-mobile.spec.ts` (2) fails since Taxil removed that menu entry
 - Zammad's drawer specs (`left-sidebar.spec.ts` width handling ×6) fail by design since design C
+- 9 more of Zammad's layout specs fail since the redesign (seen 14 Oct, the same with and without that day's avatar
+  menu fix): `LayoutPage` "expands search…", `LayoutPublicPage` "renders title and logo", `LayoutSidebar` "supports
+  end position", `LeftSidebarFooterMenu` (2, the avatar) and `LeftSidebarHeader` (4)
 - Vitest's module cache (`node_modules/.experimental-vitest-cache`) keeps old `import.meta.glob` results: after adding a
   page (`routes.ts`) or a plugin, tests still see the old list (e.g. the rail without KB, Members, Reporting). Delete the
   folder; it is rebuilt

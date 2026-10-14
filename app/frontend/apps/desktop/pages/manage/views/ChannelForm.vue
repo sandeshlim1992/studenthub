@@ -103,6 +103,9 @@ const generatedEmbedSnippet = computed(() => {
   const host = window.location.origin
   const quote = (str: string) => str.replace(/'/g, "\\'")
 
+  // In two halves: the closing tag written out would end this component's script block.
+  const closingScript = '<' + '/script>'
+
   const agreementParam = agreementSupport.value
     ? `,\n    agreementSupport: true,\n    agreementMessage: '${quote(agreementMessage.value)}'`
     : ''

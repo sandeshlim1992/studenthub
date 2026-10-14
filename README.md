@@ -1108,11 +1108,11 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 
 ## Known issues and to-do
 
-- [ ] **Database password committed.** `config/database/database.yml` contains a real-looking
-      Postgres username and password (it was published in Taxil's public repo). Change that
-      password on any server that uses it, restore the file to Zammad's commented-out
-      sample, and keep real credentials in `config/database.yml` (git-ignored) or
-      environment variables.
+- [ ] **Database password committed.** `config/database/database.yml` held Zammad's default
+      Postgres username and password (also published in Taxil's public repo). The file is back to
+      Zammad's commented-out sample (14 Oct); still to do: change that password on any server
+      that uses it. Real credentials stay in `config/database.yml` (git-ignored) or environment
+      variables.
 - [ ] **Not on a supported release.** The base is a mid-July `develop` snapshot. Consider
       moving the 6 Student Hub commits onto the `7.2.0` tag or the `stable` branch before
       going live.

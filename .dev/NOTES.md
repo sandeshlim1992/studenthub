@@ -53,7 +53,6 @@ Never put passwords, tokens or keys in this file.
   "Elasticsearch needs to be configured!" (Zammad's reports need it)
 - Test server: `/etc/zammad/zammad.env` is world-readable and holds the M365 client secret
   (check production too)
-- `config/database/database.yml` has a leaked password → not yet fixed
 - Base is a July `develop` snapshot, not a stable Zammad release
 - No longer used by the Checklist tab (13 Oct), left in place: Zammad's `ChecklistItems.vue`, `ChecklistItem.vue`,
   `ChecklistTemplates.vue`, `ChecklistEmptyTemplates.vue`, `useChecklistTemplates.ts` (their own specs still pass)
@@ -211,7 +210,8 @@ Never put passwords, tokens or keys in this file.
       tables, @mentions, pasted images
 - [ ] Templates editor: all the New ticket fields (message text, Category, …) instead of five; it keeps the rest
       for now
-- [ ] Fix the committed database password
+- [ ] Test and production servers: check that Postgres doesn't use Zammad's default password (Taxil committed it in
+      `config/database/database.yml` and his public repo; the sample is back to Zammad's, 14 Oct); change it if it does
 - [ ] Feedback Collection go-live (README → Feedback Collection): pick the sending channel, give
       `it@studenthub.ac` Send As on `feedback@`, import `feedback_tokens.json`, remove the webhook action
       from trigger 40 and job 10, add the nginx redirect, delete the PHP files

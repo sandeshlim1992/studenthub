@@ -1,6 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import type { Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 import type { Account } from './env.ts'
 
@@ -29,20 +29,20 @@ export const signIn = async (page: Page, account: Account) => {
     await page.getByRole('textbox', { name: 'Password' }).fill(account.password)
     await page.getByRole('button', { name: 'Sign in' }).click()
 
-    const outcome = await Promise.race([
-      page
-        .waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 20_000 })
-        .then(() => 'signed-in' as const)
-        .catch(() => 'timeout' as const),
-      page
-        .getByText('Security token verification failed')
-        .waitFor({ timeout: 20_000 })
-        .then(() => 'token-failed' as const)
-        .catch(() => 'timeout' as const),
-    ])
+    // Checked without waiting, so no wait outlives the sign-in: a leftover one ran the BETA notice
+    // handler at the same time as the test's next step, which then hung.
+    const tokenFailed = page.getByText('Security token verification failed')
+    let outcome: 'signed-in' | 'token-failed' | undefined
+    await expect(async () => {
+      if (!new URL(page.url()).pathname.startsWith('/login')) outcome = 'signed-in'
+      else if (await tokenFailed.isVisible()) outcome = 'token-failed'
+      expect(outcome).toBeDefined()
+    })
+      .toPass({ timeout: 20_000 })
+      .catch(() => undefined)
 
     if (outcome === 'signed-in') return
-    if (outcome === 'timeout') break
+    if (!outcome) break
 
     await page.reload()
   }

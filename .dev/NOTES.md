@@ -66,11 +66,11 @@ Never put passwords, tokens or keys in this file.
   `ChecklistTemplates.vue`, `ChecklistEmptyTemplates.vue`, `useChecklistTemplates.ts` (their own specs still pass)
 - The first sign-in in a fresh browser can fail with "Security token verification failed"; the page reloads and the
   second try works (seen in headless Chrome, 13 Oct; the browser tests retry once)
-- Browser tests: the sign-in setup can fail while the "New desktop BETA UI" notice closes (twice on 14 Oct, right
-  after many files had changed; the next run passed)
 - Dev server: after Rails (puma) restarts, a browser tab that reconnects at once (the live connection `/cable` plus
   several GraphQL requests together) can leave every request hanging (seen four times on 13 Oct). Fix: kill puma
-  (`forego` starts it again), wait until it answers, then open the app
+  (`forego` starts it again), wait until it answers, then open the app. Also without a restart, when the browser tests
+  sign in and out many times (`--repeat-each=5`, 14 Oct): a request waited about 60 s in Rails before any app code
+  ran, until the test's browser closed (most likely development code reloading waiting for a live connection)
 - A bell notification can outlive its ticket: Zammad's notification job can write it just as the ticket is deleted
   (the browser tests' cleanup did twice, 13 Oct). It shows as "You can no longer see the ticket." (it failed the
   whole bell list in the new UI until 13 Oct); Zammad removes read ones after 8 hours, unread ones after 9 months.

@@ -520,7 +520,7 @@ onMounted(() => {
       </div>
 
       <!-- Tab Navigation -->
-      <div class="flex items-center gap-2 border-b border-slate-200 dark:border-[#1e293b] mb-6 overflow-x-auto">
+      <div class="flex items-center gap-2 border-b border-slate-200 dark:border-stone-500 mb-6 overflow-x-auto">
         <button
           type="button"
           class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap"
@@ -573,14 +573,14 @@ onMounted(() => {
 
       <!-- Loading skeleton -->
       <div v-if="isLoading" class="space-y-6">
-        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
-        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
+        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
+        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
       </div>
 
       <div v-else>
         <!-- TAB 1: Base -->
         <div v-if="activeTab === 'base'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Ticket Hook & Subject Matching') }}</h2>
 
             <!-- Ticket Hook -->
@@ -596,7 +596,7 @@ onMounted(() => {
                   id="setting-ticket-hook"
                   v-model="ticketHook"
                   type="text"
-                  class="w-64 px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-64 px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
                 <button
                   type="button"
@@ -621,7 +621,7 @@ onMounted(() => {
                 <select
                   id="setting-ticket-hook-pos"
                   v-model="ticketHookPosition"
-                  class="w-64 px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-64 px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                 >
                   <option value="right">{{ __('Right - e.g. "Order Help [Ticket#1001]"') }}</option>
                   <option value="left">{{ __('Left - e.g. "[Ticket#1001] Order Help"') }}</option>
@@ -650,7 +650,7 @@ onMounted(() => {
                 <select
                   id="setting-last-contact"
                   v-model="ticketLastContactBehaviour"
-                  class="max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                 >
                   <option value="check_if_agent_already_replied">
                     {{ __('Use start time of last customer thread (which may consist of multiple articles).') }}
@@ -690,7 +690,7 @@ onMounted(() => {
 
         <!-- TAB 2: Number Format -->
         <div v-if="activeTab === 'number'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Ticket Number Generator') }}</h2>
 
             <!-- Live Ticket Number Preview Box -->
@@ -712,7 +712,7 @@ onMounted(() => {
               <select
                 id="setting-ticket-number-format"
                 v-model="ticketNumberFormat"
-                class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
               >
                 <option value="Ticket::Number::Increment">{{ __('Increment (SystemID.Counter)') }}</option>
                 <option value="Ticket::Number::Date">{{ __('Date (Year.Month.Day.SystemID.Counter)') }}</option>
@@ -734,7 +734,7 @@ onMounted(() => {
                   type="number"
                   min="1"
                   max="20"
-                  class="w-24 px-3 py-1.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 text-center"
+                  class="w-24 px-3 py-1.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 text-center"
                 />
               </div>
 
@@ -785,7 +785,7 @@ onMounted(() => {
 
         <!-- TAB 3: Auto Assignment -->
         <div v-if="activeTab === 'auto_assignment'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <div class="flex items-center justify-between">
               <div>
                 <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Auto Assignment') }}</h2>
@@ -816,7 +816,7 @@ onMounted(() => {
                   :key="st.id"
                   type="button"
                   class="px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer"
-                  :class="autoAssignmentConditionStates.includes(st.id) ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-slate-50 dark:bg-[#1e293b] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
+                  :class="autoAssignmentConditionStates.includes(st.id) ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-slate-50 dark:bg-stone-500 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
                   @click="toggleConditionState(st.id)"
                 >
                   <CommonIcon v-if="autoAssignmentConditionStates.includes(st.id)" name="check2" class="w-3 h-3 inline ltr:mr-1 rtl:ml-1" />
@@ -876,7 +876,7 @@ onMounted(() => {
 
         <!-- TAB 4: Language Detection -->
         <div v-if="activeTab === 'language_detection'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Article Language Detection') }}</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400">
               {{ __('Detect the language of inbound ticket articles automatically to route tickets or trigger language-specific automated workflows.') }}
@@ -886,7 +886,7 @@ onMounted(() => {
               <select
                 id="setting-language-detection"
                 v-model="languageDetection"
-                class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
               >
                 <option value="">{{ __('- Disabled -') }}</option>
                 <option value="cld">{{ __('Compact Language Detector (CLD)') }}</option>
@@ -905,7 +905,7 @@ onMounted(() => {
 
         <!-- TAB 5: Notifications Matrix -->
         <div v-if="activeTab === 'notifications'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Agent Default Notifications Matrix') }}</h2>
@@ -935,7 +935,7 @@ onMounted(() => {
             <!-- Matrix Table -->
             <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
               <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                <thead class="bg-slate-50 dark:bg-[#1e293b]/70 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                <thead class="bg-slate-50 dark:bg-stone-500/70 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                   <tr>
                     <th class="px-4 py-3">{{ __('Event') }}</th>
                     <th class="px-4 py-3 text-center">{{ __('Owned by me') }}</th>
@@ -1015,7 +1015,7 @@ onMounted(() => {
 
         <!-- TAB 6: Duplicate Detection -->
         <div v-if="activeTab === 'duplicate_detection'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <div class="flex items-center justify-between">
               <div>
                 <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Duplicate Detection') }}</h2>
@@ -1044,7 +1044,7 @@ onMounted(() => {
                   :key="attr.value"
                   type="button"
                   class="px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer"
-                  :class="duplicateDetectionAttributes.includes(attr.value) ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-slate-50 dark:bg-[#1e293b] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
+                  :class="duplicateDetectionAttributes.includes(attr.value) ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-slate-50 dark:bg-stone-500 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
                   @click="toggleDuplicateAttribute(attr.value)"
                 >
                   <CommonIcon v-if="duplicateDetectionAttributes.includes(attr.value)" name="check2" class="w-3 h-3 inline ltr:mr-1 rtl:ml-1" />
@@ -1063,7 +1063,7 @@ onMounted(() => {
                   id="setting-duplicate-title"
                   v-model="duplicateDetectionTitle"
                   type="text"
-                  class="w-full max-w-md px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-full max-w-md px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
               </div>
 
@@ -1075,7 +1075,7 @@ onMounted(() => {
                   id="setting-duplicate-body"
                   v-model="duplicateDetectionBody"
                   rows="3"
-                  class="w-full max-w-lg px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-full max-w-lg px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
               </div>
             </div>
@@ -1089,7 +1089,7 @@ onMounted(() => {
                   :key="role.id"
                   type="button"
                   class="px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors cursor-pointer"
-                  :class="duplicateDetectionRoleIds.includes(role.id) ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-slate-50 dark:bg-[#1e293b] border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
+                  :class="duplicateDetectionRoleIds.includes(role.id) ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-slate-50 dark:bg-stone-500 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'"
                   @click="toggleDuplicateRole(role.id)"
                 >
                   <CommonIcon v-if="duplicateDetectionRoleIds.includes(role.id)" name="check2" class="w-3 h-3 inline ltr:mr-1 rtl:ml-1" />
@@ -1107,7 +1107,7 @@ onMounted(() => {
                 <select
                   id="setting-duplicate-scope"
                   v-model="duplicateDetectionSearch"
-                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                 >
                   <option value="all">{{ __('All Tickets') }}</option>
                   <option value="open">{{ __('Open Tickets Only') }}</option>

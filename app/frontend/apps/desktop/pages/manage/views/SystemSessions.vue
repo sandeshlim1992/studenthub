@@ -316,7 +316,7 @@ const executeTerminateSession = async () => {
       <!-- Overview Stats Cards -->
       <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <span
             class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
@@ -329,7 +329,7 @@ const executeTerminateSession = async () => {
         </div>
 
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <span
             class="text-xs font-semibold tracking-wider text-slate-500 uppercase dark:text-slate-400"
@@ -344,7 +344,7 @@ const executeTerminateSession = async () => {
 
       <!-- Search filter -->
       <div
-        class="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <div class="relative w-full max-w-sm">
           <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
@@ -363,7 +363,7 @@ const executeTerminateSession = async () => {
 
       <!-- Sessions Table -->
       <div
-        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <div v-if="isLoading" class="p-12 text-center">
           <CommonIcon name="loading" class="mx-auto h-8 w-8 animate-spin text-blue-600" />
@@ -486,7 +486,7 @@ const executeTerminateSession = async () => {
         :aria-label="__('Terminate Session Confirmation')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-center space-x-3 rtl:space-x-reverse">
             <div

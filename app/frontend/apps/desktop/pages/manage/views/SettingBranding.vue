@@ -350,15 +350,15 @@ onMounted(() => {
 
       <!-- Loading skeleton -->
       <div v-if="isLoading" class="space-y-6">
-        <div class="h-44 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
-        <div class="h-32 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
-        <div class="h-32 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
+        <div class="h-44 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
+        <div class="h-32 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
+        <div class="h-32 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
       </div>
 
       <!-- Settings Cards -->
       <div v-else class="space-y-6">
         <!-- 1. Logo Management -->
-        <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs">
+        <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs">
           <div class="flex items-start justify-between gap-4 mb-4">
             <div>
               <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -380,7 +380,7 @@ onMounted(() => {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             <!-- Logo Preview Container -->
-            <div class="flex flex-col items-center justify-center p-8 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-[#1e293b]/40 min-h-[160px]">
+            <div class="flex flex-col items-center justify-center p-8 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-stone-500/40 min-h-[160px]">
               <div v-if="logoPreviewUrl" class="flex flex-col items-center gap-3">
                 <img
                   :src="logoPreviewUrl"
@@ -402,7 +402,7 @@ onMounted(() => {
               <div>
                 <label
                   for="logo-file-input"
-                  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#1e293b] text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs cursor-pointer transition-colors"
+                  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-stone-500 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-xs cursor-pointer transition-colors"
                 >
                   <CommonIcon name="upload" class="w-4 h-4 text-slate-500" />
                   <span>{{ __('Select Image...') }}</span>
@@ -484,7 +484,7 @@ onMounted(() => {
                       type="text"
                       disabled
                       value="agent@example.com"
-                      class="w-full px-3 py-2 bg-slate-100 dark:bg-[#1e293b] border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 dark:text-slate-400"
+                      class="w-full px-3 py-2 bg-slate-100 dark:bg-stone-500 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 dark:text-slate-400"
                     />
                   </div>
                   <div>
@@ -495,7 +495,7 @@ onMounted(() => {
                       type="password"
                       disabled
                       value="••••••••••••"
-                      class="w-full px-3 py-2 bg-slate-100 dark:bg-[#1e293b] border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 dark:text-slate-400"
+                      class="w-full px-3 py-2 bg-slate-100 dark:bg-stone-500 border border-slate-300 dark:border-slate-700 rounded-lg text-xs text-slate-500 dark:text-slate-400"
                     />
                   </div>
                   <div class="flex items-center gap-2">
@@ -525,7 +525,7 @@ onMounted(() => {
         <StudenthubTicketListSetting />
 
         <!-- 2. Product Identity (Product Name & Organization) -->
-        <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+        <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
           <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
             {{ __('Identity') }}
           </h2>
@@ -545,7 +545,7 @@ onMounted(() => {
                 id="setting-product-name"
                 v-model="productName"
                 type="text"
-                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
               />
               <button
                 type="button"
@@ -572,7 +572,7 @@ onMounted(() => {
                 id="setting-organization"
                 v-model="organization"
                 type="text"
-                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
               />
               <button
                 type="button"
@@ -587,7 +587,7 @@ onMounted(() => {
         </div>
 
         <!-- 3. Regional Settings (Locale & Timezone) -->
-        <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+        <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
           <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
             {{ __('Regional & Timezone') }}
           </h2>
@@ -604,7 +604,7 @@ onMounted(() => {
               <select
                 id="setting-default-locale"
                 v-model="defaultLocale"
-                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
               >
                 <option v-for="l in localesList" :key="l.locale" :value="l.locale">
                   {{ l.name }} ({{ l.locale }})
@@ -633,7 +633,7 @@ onMounted(() => {
               <select
                 id="setting-default-timezone"
                 v-model="defaultTimezone"
-                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
               >
                 <option v-for="tz in timezonesList" :key="tz.value" :value="tz.value">
                   {{ tz.name }}
@@ -652,7 +652,7 @@ onMounted(() => {
         </div>
 
         <!-- 4. Formatting Standards (Pretty Date & User Name Format) -->
-        <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+        <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
           <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
             {{ __('Formatting') }}
           </h2>
@@ -669,7 +669,7 @@ onMounted(() => {
               <select
                 id="setting-pretty-date"
                 v-model="prettyDateFormat"
-                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
               >
                 <option v-for="opt in prettyDateOptions" :key="opt.value" :value="opt.value">
                   {{ opt.label }}
@@ -698,7 +698,7 @@ onMounted(() => {
               <select
                 id="setting-user-name-format"
                 v-model="userNameFormat"
-                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                class="flex-1 max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
               >
                 <option v-for="opt in userNameFormatOptions" :key="opt.value" :value="opt.value">
                   {{ opt.label }}

@@ -377,7 +377,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
         <div class="flex items-start space-x-3 rtl:space-x-reverse">
           <button
             type="button"
-            class="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-[#1e293b] dark:text-slate-300 dark:hover:bg-slate-800"
+            class="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-stone-500 dark:text-slate-300 dark:hover:bg-slate-800"
             :aria-label="__('Back to Management Overview')"
             @click="router.push('/manage')"
           >
@@ -413,7 +413,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
         <div class="flex shrink-0 items-center space-x-3 rtl:space-x-reverse">
           <button
             type="button"
-            class="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-[#1e293b] dark:text-slate-200 dark:hover:bg-slate-800"
+            class="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-stone-500 dark:text-slate-200 dark:hover:bg-slate-800"
             :aria-label="__('Legal Information')"
             @click="isLegalModalOpen = true"
           >
@@ -502,7 +502,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
       <!-- Loading State -->
       <div
         v-if="isLoading"
-        class="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-12 text-slate-500 shadow-xs dark:border-slate-800 dark:bg-[#1e293b] dark:text-slate-400"
+        class="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-12 text-slate-500 shadow-xs dark:border-slate-800 dark:bg-stone-500 dark:text-slate-400"
       >
         <CommonIcon name="arrow-clockwise" class="mb-3 size-8 animate-spin text-teal-600" />
         <p class="text-xs font-medium">{{ __('Loading AI agents...') }}</p>
@@ -511,7 +511,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
       <!-- Main Agents Table Card -->
       <div
         v-else
-        class="rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <!-- Table Toolbar -->
         <div
@@ -528,7 +528,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
               v-model="searchQuery"
               type="text"
               :aria-label="__('Search AI agents')"
-              class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:bg-white focus:outline-hidden ltr:pr-3 ltr:pl-9 rtl:pr-9 rtl:pl-3 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:bg-[#1e293b]"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-xs text-slate-800 placeholder-slate-400 focus:border-teal-500 focus:bg-white focus:outline-hidden ltr:pr-3 ltr:pl-9 rtl:pr-9 rtl:pl-3 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:bg-stone-500"
               :placeholder="__('Search AI agents...')"
             />
           </div>
@@ -731,7 +731,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
       class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-xs"
     >
       <div
-        class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-[#1e293b]"
+        class="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-stone-500"
       >
         <div class="mb-5 flex items-center justify-between">
           <div class="flex items-center space-x-2.5 rtl:space-x-reverse">
@@ -1039,7 +1039,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
       class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-xs"
     >
       <div
-        class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-[#1e293b]"
+        class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-stone-500"
       >
         <div class="mb-4 flex items-center justify-between">
           <div class="flex items-center space-x-2 rtl:space-x-reverse">

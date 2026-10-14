@@ -142,7 +142,7 @@ const isDatabaseStorage = computed(() => storageMechanism.value.toLowerCase().in
       <div class="space-y-6">
         <!-- Storage & Strategy Overview Card -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-start space-x-4 rtl:space-x-reverse">
@@ -180,7 +180,7 @@ const isDatabaseStorage = computed(() => storageMechanism.value.toLowerCase().in
 
         <!-- Automated Backup Script Guide -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-1 flex items-center space-x-2 rtl:space-x-reverse">
             <CommonIcon name="gear" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -257,7 +257,7 @@ const isDatabaseStorage = computed(() => storageMechanism.value.toLowerCase().in
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <!-- PostgreSQL Command -->
           <div
-            class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+            class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
           >
             <div>
               <span
@@ -293,7 +293,7 @@ const isDatabaseStorage = computed(() => storageMechanism.value.toLowerCase().in
 
           <!-- MySQL Command -->
           <div
-            class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+            class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
           >
             <div>
               <span
@@ -330,7 +330,7 @@ const isDatabaseStorage = computed(() => storageMechanism.value.toLowerCase().in
 
         <!-- Disaster Recovery & Restore Checklist -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-1 flex items-center space-x-2 rtl:space-x-reverse">
             <CommonIcon name="shield-lock" class="h-5 w-5 text-blue-600 dark:text-blue-400" />

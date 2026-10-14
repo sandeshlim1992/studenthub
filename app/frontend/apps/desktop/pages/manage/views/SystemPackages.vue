@@ -415,7 +415,7 @@ const saveToken = async () => {
       <div class="space-y-6">
         <!-- Upload Package Card -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-1 flex items-center space-x-2 rtl:space-x-reverse">
             <CommonIcon name="download" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -458,7 +458,7 @@ const saveToken = async () => {
 
         <!-- Installed Packages Table -->
         <div
-          class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="border-b border-slate-200 bg-slate-50/80 px-6 py-4 dark:border-slate-800 dark:bg-slate-800/60"
@@ -594,7 +594,7 @@ const saveToken = async () => {
         <!-- Available from Repository -->
         <div
           v-if="availableToInstall.length > 0"
-          class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="border-b border-slate-200 bg-slate-50/80 px-6 py-4 dark:border-slate-800 dark:bg-slate-800/60"
@@ -652,7 +652,7 @@ const saveToken = async () => {
         :aria-label="__('Uninstall Package Confirmation')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-center space-x-3 rtl:space-x-reverse">
             <div
@@ -710,7 +710,7 @@ const saveToken = async () => {
         :aria-label="__('Package Repository API Token')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800"

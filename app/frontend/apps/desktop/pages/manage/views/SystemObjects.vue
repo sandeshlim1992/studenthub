@@ -719,7 +719,7 @@ onMounted(() => {
         <div class="flex shrink-0 items-center gap-2.5 self-end sm:self-center">
           <button
             type="button"
-            class="cursor-pointer rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-[#1e293b] dark:text-slate-300 dark:hover:bg-slate-800"
+            class="cursor-pointer rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-700 dark:bg-stone-500 dark:text-slate-300 dark:hover:bg-slate-800"
             :disabled="isDiscarding || isMigrating"
             @click="discardChanges"
           >
@@ -743,7 +743,7 @@ onMounted(() => {
 
       <!-- Object Tabs & Search & New Button -->
       <div
-        class="mb-6 flex flex-col items-stretch justify-between gap-4 border-b border-slate-200 pb-3 sm:flex-row sm:items-center dark:border-[#1e293b]"
+        class="mb-6 flex flex-col items-stretch justify-between gap-4 border-b border-slate-200 pb-3 sm:flex-row sm:items-center dark:border-stone-500"
       >
         <div class="flex items-center gap-2 overflow-x-auto">
           <button
@@ -788,19 +788,19 @@ onMounted(() => {
 
       <!-- Loading skeleton -->
       <div v-if="isLoading" class="space-y-4">
-        <div class="h-12 animate-pulse rounded-xl bg-slate-100 dark:bg-[#1e293b]" />
-        <div class="h-12 animate-pulse rounded-xl bg-slate-100 dark:bg-[#1e293b]" />
-        <div class="h-12 animate-pulse rounded-xl bg-slate-100 dark:bg-[#1e293b]" />
+        <div class="h-12 animate-pulse rounded-xl bg-slate-100 dark:bg-stone-500" />
+        <div class="h-12 animate-pulse rounded-xl bg-slate-100 dark:bg-stone-500" />
+        <div class="h-12 animate-pulse rounded-xl bg-slate-100 dark:bg-stone-500" />
       </div>
 
       <!-- Attributes Table -->
       <div
         v-else
-        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-[#1e293b] dark:bg-[#0f172a]/40"
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-stone-500 dark:bg-[#0f172a]/40"
       >
         <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
           <thead
-            class="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold tracking-wider text-slate-500 uppercase dark:border-slate-800 dark:bg-[#1e293b]/70"
+            class="border-b border-slate-200 bg-slate-50 text-[11px] font-semibold tracking-wider text-slate-500 uppercase dark:border-slate-800 dark:bg-stone-500/70"
           >
             <tr>
               <th class="px-5 py-3.5">{{ __('Display Name') }}</th>
@@ -921,7 +921,7 @@ onMounted(() => {
       @click="attributeModal.isOpen = false"
     >
       <div
-        class="max-h-[92vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl dark:border-[#1e293b] dark:bg-[#0f172a]"
+        class="max-h-[92vh] w-full max-w-2xl space-y-5 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-7 shadow-2xl dark:border-stone-500 dark:bg-[#0f172a]"
         @click.stop
       >
         <div class="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
@@ -956,7 +956,7 @@ onMounted(() => {
               type="text"
               placeholder="e.g. order_number"
               :disabled="attributeModal.isEditing"
-              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 font-mono text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden disabled:opacity-60 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 font-mono text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden disabled:opacity-60 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
             />
           </div>
 
@@ -973,7 +973,7 @@ onMounted(() => {
               v-model="attributeModal.display"
               type="text"
               placeholder="e.g. Order Number"
-              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
             />
           </div>
 
@@ -988,7 +988,7 @@ onMounted(() => {
             <select
               id="attr-active"
               v-model="attributeModal.active"
-              class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
             >
               <option :value="true">{{ __('active') }}</option>
               <option :value="false">{{ __('inactive') }}</option>
@@ -1007,7 +1007,7 @@ onMounted(() => {
               id="attr-data-type"
               v-model="attributeModal.dataType"
               :disabled="attributeModal.isEditing"
-              class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden disabled:opacity-60 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden disabled:opacity-60 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
             >
               <option v-for="opt in formatOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
@@ -1026,7 +1026,7 @@ onMounted(() => {
                 id="attr-default-input"
                 v-model="attributeModal.defaultVal"
                 type="text"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
             <div class="space-y-1.5">
@@ -1036,7 +1036,7 @@ onMounted(() => {
               <select
                 id="attr-input-type"
                 v-model="attributeModal.inputType"
-                class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               >
                 <option value="text">{{ __('Text') }}</option>
                 <option value="tel">{{ __('Phone') }}</option>
@@ -1052,7 +1052,7 @@ onMounted(() => {
                 id="attr-input-maxlength"
                 v-model.number="attributeModal.maxlength"
                 type="number"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
             <div v-if="attributeModal.inputType !== 'url'" class="space-y-1.5">
@@ -1064,7 +1064,7 @@ onMounted(() => {
                 v-model="attributeModal.linktemplate"
                 type="text"
                 placeholder="https://example.com/?q=#{object.attribute_name} - use ticket, user or organization as object"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
           </template>
@@ -1079,7 +1079,7 @@ onMounted(() => {
                 id="attr-default-textarea"
                 v-model="defaultText"
                 rows="3"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -1091,7 +1091,7 @@ onMounted(() => {
                   id="attr-textarea-maxlength"
                   v-model.number="attributeModal.maxlength"
                   type="number"
-                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
                 />
               </div>
               <div class="space-y-1.5">
@@ -1102,7 +1102,7 @@ onMounted(() => {
                   id="attr-textarea-rows"
                   v-model.number="attributeModal.rows"
                   type="number"
-                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
                 />
               </div>
             </div>
@@ -1117,7 +1117,7 @@ onMounted(() => {
               <select
                 id="attr-default-boolean"
                 v-model="attributeModal.defaultVal"
-                class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full cursor-pointer rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               >
                 <option :value="false">{{ __('No') }}</option>
                 <option :value="true">{{ __('Yes') }}</option>
@@ -1135,7 +1135,7 @@ onMounted(() => {
                 id="attr-default-integer"
                 v-model.number="attributeModal.defaultVal"
                 type="number"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -1147,7 +1147,7 @@ onMounted(() => {
                   id="attr-min-integer"
                   v-model.number="attributeModal.min"
                   type="number"
-                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
                 />
               </div>
               <div class="space-y-1.5">
@@ -1158,7 +1158,7 @@ onMounted(() => {
                   id="attr-max-integer"
                   v-model.number="attributeModal.max"
                   type="number"
-                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                  class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
                 />
               </div>
             </div>
@@ -1197,7 +1197,7 @@ onMounted(() => {
                 v-model="attributeModal.defaultVal"
                 type="text"
                 placeholder="e.g. opt_1"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
 
@@ -1229,13 +1229,13 @@ onMounted(() => {
                   v-model="row.key"
                   type="text"
                   :placeholder="__('Key / Stored Value')"
-                  class="w-1/2 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                  class="w-1/2 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 font-mono text-xs text-slate-900 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
                 />
                 <input
                   v-model="row.value"
                   type="text"
                   :placeholder="__('Display Label')"
-                  class="w-1/2 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-900 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                  class="w-1/2 rounded-lg border border-slate-300 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-900 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
                 />
                 <button
                   type="button"
@@ -1330,7 +1330,7 @@ onMounted(() => {
               id="attr-position"
               v-model.number="attributeModal.position"
               type="number"
-              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+              class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
             />
           </div>
         </div>

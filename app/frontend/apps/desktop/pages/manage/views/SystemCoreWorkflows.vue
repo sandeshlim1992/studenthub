@@ -678,7 +678,7 @@ const executeDeleteWorkflow = async () => {
             type="search"
             :placeholder="__('Search for workflows...')"
             :aria-label="__('Search workflows')"
-            class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-hidden ltr:pr-4 ltr:pl-9 rtl:pr-9 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-hidden ltr:pr-4 ltr:pl-9 rtl:pr-9 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
           />
           <div class="absolute top-1/2 -translate-y-1/2 text-slate-400 ltr:left-3 rtl:right-3">
             <CommonIcon name="search" class="h-3.5 w-3.5" />
@@ -731,7 +731,7 @@ const executeDeleteWorkflow = async () => {
 
       <!-- Workflows Table -->
       <div
-        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <div v-if="isLoading" class="p-12 text-center">
           <div
@@ -951,7 +951,7 @@ const executeDeleteWorkflow = async () => {
         :aria-label="modalState.isEditing ? __('Edit Workflow') : __('New Workflow')"
       >
         <div
-          class="relative w-full max-w-3xl rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="relative w-full max-w-3xl rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <!-- Modal Header -->
           <div
@@ -1516,7 +1516,7 @@ const executeDeleteWorkflow = async () => {
         :aria-label="__('Confirm Deletion')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-center space-x-3 rtl:space-x-reverse">
             <div

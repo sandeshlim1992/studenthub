@@ -134,7 +134,7 @@ onMounted(() => {
         <div class="flex items-center gap-2.5">
           <button
             type="button"
-            class="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-[#1e293b] dark:text-slate-200 dark:hover:bg-slate-800"
+            class="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 dark:border-slate-700 dark:bg-stone-500 dark:text-slate-200 dark:hover:bg-slate-800"
             :disabled="isLoading"
             :aria-label="__('Refresh Report')"
             @click="fetchReport"
@@ -235,7 +235,7 @@ onMounted(() => {
       <div v-else class="space-y-6">
         <!-- Card 1: Report Contents Checklist -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-4 border-b border-slate-100 pb-3 dark:border-slate-800">
             <h2 class="text-base font-bold text-slate-900 dark:text-white">
@@ -260,7 +260,7 @@ onMounted(() => {
 
         <!-- Card 2: JSON Code Preview -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="mb-4 flex flex-col gap-2 border-b border-slate-100 pb-3 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800"
@@ -303,7 +303,7 @@ onMounted(() => {
             class="relative overflow-hidden rounded-xl border border-slate-800 bg-[#0f172a] shadow-inner"
           >
             <div
-              class="text-2xs flex items-center justify-between border-b border-slate-800 bg-[#1e293b] px-4 py-2 text-slate-400"
+              class="text-2xs flex items-center justify-between border-b border-slate-800 bg-stone-500 px-4 py-2 text-slate-400"
             >
               <span>system_report.json</span>
               <span>{{

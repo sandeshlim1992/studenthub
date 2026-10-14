@@ -311,7 +311,7 @@ const sendBroadcastMessage = async () => {
           :class="
             maintenanceMode
               ? 'border-amber-300 bg-amber-50/50 dark:border-amber-800/50 dark:bg-amber-950/20'
-              : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-[#1e293b]'
+              : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-stone-500'
           "
         >
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -379,7 +379,7 @@ const sendBroadcastMessage = async () => {
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <!-- Message Configuration Card -->
           <div
-            class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+            class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
           >
             <div class="space-y-4">
               <div class="flex items-center justify-between">
@@ -466,7 +466,7 @@ const sendBroadcastMessage = async () => {
             </div>
 
             <div
-              class="mx-auto max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-[#1e293b]"
+              class="mx-auto max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-md dark:border-slate-700 dark:bg-stone-500"
             >
               <!-- Logo mock -->
               <div class="mb-4 text-center">
@@ -509,7 +509,7 @@ const sendBroadcastMessage = async () => {
 
         <!-- Broadcast Live Alert Message Form -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-1 flex items-center space-x-2 rtl:space-x-reverse">
             <CommonIcon name="send" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -607,7 +607,7 @@ const sendBroadcastMessage = async () => {
         :aria-label="__('Confirm Maintenance Mode')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-center space-x-3 rtl:space-x-reverse">
             <div

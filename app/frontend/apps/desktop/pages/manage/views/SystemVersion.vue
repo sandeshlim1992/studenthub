@@ -129,7 +129,7 @@ const copyVersionToClipboard = async () => {
 
       <!-- Version Hero Card -->
       <div
-        class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <div v-if="isLoading" class="p-8 text-center">
           <div
@@ -199,7 +199,7 @@ const copyVersionToClipboard = async () => {
       <!-- Runtime Platform & Stack Details -->
       <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-3">
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <span class="text-xs font-semibold text-slate-400 uppercase">
             {{ __('Core Framework') }}
@@ -211,7 +211,7 @@ const copyVersionToClipboard = async () => {
         </div>
 
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <span class="text-xs font-semibold text-slate-400 uppercase">
             {{ __('User Interface') }}
@@ -223,7 +223,7 @@ const copyVersionToClipboard = async () => {
         </div>
 
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <span class="text-xs font-semibold text-slate-400 uppercase">
             {{ __('Realtime Transport') }}
@@ -239,7 +239,7 @@ const copyVersionToClipboard = async () => {
 
       <!-- Helpful Links & Community Resources -->
       <div
-        class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <h3 class="mb-4 text-sm font-bold text-slate-900 dark:text-white">
           {{ __('Official Resources & Support') }}

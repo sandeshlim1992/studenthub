@@ -496,7 +496,7 @@ const handleBack = () => {
             type="text"
             :aria-label="__('Search administration modules...')"
             :placeholder="__('Search administration modules...')"
-            class="w-full rounded-xl border border-slate-300 bg-slate-100 py-2.5 text-sm text-slate-900 transition-all duration-150 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-hidden ltr:pr-4 ltr:pl-10 rtl:pr-10 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-[#94a3b8] dark:placeholder:text-[#475569] dark:focus:bg-[#1e2d45]"
+            class="w-full rounded-xl border border-slate-300 bg-slate-100 py-2.5 text-sm text-slate-900 transition-all duration-150 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-hidden ltr:pr-4 ltr:pl-10 rtl:pr-10 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-[#94a3b8] dark:placeholder:text-[#475569] dark:focus:bg-[#1e2d45]"
           />
           <div
             class="absolute top-1/2 -translate-y-1/2 text-slate-400 ltr:left-3.5 rtl:right-3.5 dark:text-[#475569]"
@@ -519,13 +519,13 @@ const handleBack = () => {
               v-for="item in category.items"
               :key="item.name"
               type="button"
-              class="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/30 hover:bg-slate-50 hover:shadow-lg hover:shadow-blue-500/5 dark:border-[#1e293b] dark:bg-[#0f172a]/40 dark:hover:bg-[#1e293b]/50"
+              class="group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/30 hover:bg-slate-50 hover:shadow-lg hover:shadow-blue-500/5 dark:border-stone-500 dark:bg-[#0f172a]/40 dark:hover:bg-stone-500/50"
               @click="handleRedirect(item.target)"
             >
               <!-- Card icon & header -->
               <div class="mb-2 flex items-start justify-between">
                 <div
-                  class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600 dark:bg-[#1e293b]/80 dark:text-[#60a5fa] dark:group-hover:bg-[#1e3a5f]/40 group-hover:dark:text-blue-400"
+                  class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors group-hover:bg-blue-50 group-hover:text-blue-600 dark:bg-stone-500/80 dark:text-[#60a5fa] dark:group-hover:bg-[#1e3a5f]/40 group-hover:dark:text-blue-400"
                 >
                   <CommonIcon :name="item.icon" class="h-5 w-5" />
                 </div>
@@ -553,7 +553,7 @@ const handleBack = () => {
       <!-- Empty state -->
       <div v-else class="flex flex-col items-center justify-center py-16 text-center">
         <div
-          class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-[#1e293b] dark:text-slate-500"
+          class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-stone-500 dark:text-slate-500"
         >
           <CommonIcon name="search" class="h-6 w-6" />
         </div>

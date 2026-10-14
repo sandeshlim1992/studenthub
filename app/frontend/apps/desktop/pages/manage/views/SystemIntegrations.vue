@@ -663,7 +663,7 @@ onMounted(() => {
             type="text"
             :placeholder="__('Search integrations...')"
             :aria-label="__('Search integrations...')"
-            class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-hidden ltr:pr-4 ltr:pl-9 rtl:pr-9 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-hidden ltr:pr-4 ltr:pl-9 rtl:pr-9 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
           />
           <div class="absolute top-1/2 -translate-y-1/2 text-slate-400 ltr:left-3 rtl:right-3">
             <CommonIcon name="search" class="h-3.5 w-3.5" />
@@ -752,7 +752,7 @@ onMounted(() => {
         <div
           v-for="i in 6"
           :key="i"
-          class="h-44 animate-pulse rounded-2xl bg-slate-100 dark:bg-[#1e293b]"
+          class="h-44 animate-pulse rounded-2xl bg-slate-100 dark:bg-stone-500"
         />
       </div>
 
@@ -764,14 +764,14 @@ onMounted(() => {
         <div
           v-for="item in filteredIntegrations"
           :key="item.key"
-          class="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-slate-300 dark:border-[#1e293b] dark:bg-[#0f172a]/40 dark:hover:border-slate-700"
+          class="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all hover:border-slate-300 dark:border-stone-500 dark:bg-[#0f172a]/40 dark:hover:border-slate-700"
         >
           <!-- Card Header -->
           <div>
             <div class="mb-3 flex items-start justify-between gap-3">
               <div class="flex items-center gap-3">
                 <div
-                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-[#1e293b] dark:text-slate-200"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-stone-500 dark:text-slate-200"
                 >
                   <CommonIcon :name="item.icon" class="h-5 w-5" />
                 </div>
@@ -830,7 +830,7 @@ onMounted(() => {
       <!-- Empty state -->
       <div
         v-else
-        class="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-12 text-center dark:border-[#1e293b] dark:bg-[#0f172a]/40"
+        class="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-12 text-center dark:border-stone-500 dark:bg-[#0f172a]/40"
       >
         <CommonIcon name="search" class="mb-2 h-8 w-8 text-slate-300 dark:text-slate-600" />
         <h3 class="mb-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -848,7 +848,7 @@ onMounted(() => {
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs"
     >
       <div
-        class="w-full max-w-lg space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-[#1e293b] dark:bg-[#0f172a]"
+        class="w-full max-w-lg space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-stone-500 dark:bg-[#0f172a]"
       >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2.5">
@@ -873,7 +873,7 @@ onMounted(() => {
           <!-- Webhook Endpoint URL if applicable -->
           <div
             v-if="['cti', 'sipgate', 'check_mk', 'icinga', 'nagios', 'monit'].includes(configModal.item.key)"
-            class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-[#1e293b]/70"
+            class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-stone-500/70"
           >
             <p class="mb-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
               {{ __('Webhook / Endpoint URL') }}
@@ -910,7 +910,7 @@ onMounted(() => {
                 v-model="configModal.url"
                 type="text"
                 placeholder="https://..."
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
 
@@ -926,7 +926,7 @@ onMounted(() => {
                 v-model="configModal.apiKey"
                 type="password"
                 placeholder="••••••••••••••••"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
 
@@ -1000,7 +1000,7 @@ onMounted(() => {
                 v-model="configModal.apiKey"
                 type="password"
                 placeholder="sk_..."
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
 
@@ -1075,7 +1075,7 @@ onMounted(() => {
                 id="integration-token"
                 v-model="configModal.token"
                 type="text"
-                class="flex-1 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="flex-1 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
               <button
                 type="button"
@@ -1104,7 +1104,7 @@ onMounted(() => {
                 v-model="configModal.sender"
                 type="text"
                 placeholder="monitoring@example.com"
-                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+                class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-hidden dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
               />
             </div>
 

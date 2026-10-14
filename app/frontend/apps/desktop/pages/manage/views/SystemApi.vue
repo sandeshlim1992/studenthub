@@ -501,7 +501,7 @@ const executeDeleteApp = async () => {
       <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
         <!-- Token Access Card -->
         <div
-          class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="space-y-1">
             <div class="flex items-center space-x-2 rtl:space-x-reverse">
@@ -541,7 +541,7 @@ const executeDeleteApp = async () => {
 
         <!-- Password Access Card -->
         <div
-          class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="space-y-1">
             <div class="flex items-center space-x-2 rtl:space-x-reverse">
@@ -601,7 +601,7 @@ const executeDeleteApp = async () => {
             id="search-applications"
             v-model="searchQuery"
             type="search"
-            class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-hidden ltr:pr-4 ltr:pl-9 rtl:pr-9 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-[#1e293b] dark:text-slate-100"
+            class="w-full rounded-xl border border-slate-300 bg-slate-50 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-hidden ltr:pr-4 ltr:pl-9 rtl:pr-9 rtl:pl-4 dark:border-[#2d3f5c] dark:bg-stone-500 dark:text-slate-100"
             :placeholder="__('Filter applications...')"
             :aria-label="__('Filter applications')"
           />
@@ -613,7 +613,7 @@ const executeDeleteApp = async () => {
 
       <!-- Applications Table -->
       <div
-        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <div v-if="isLoading" class="p-12 text-center">
           <div

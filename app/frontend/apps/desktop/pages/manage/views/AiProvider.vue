@@ -361,7 +361,7 @@ onMounted(() => {
         <div class="flex items-start space-x-3 rtl:space-x-reverse">
           <button
             type="button"
-            class="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-[#1e293b] dark:text-slate-300 dark:hover:bg-slate-800"
+            class="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-stone-500 dark:text-slate-300 dark:hover:bg-slate-800"
             :aria-label="__('Back to Management Overview')"
             @click="router.push('/manage')"
           >
@@ -395,7 +395,7 @@ onMounted(() => {
 
         <!-- Master Switch -->
         <div
-          class="flex items-center space-x-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 shadow-2xs rtl:space-x-reverse dark:border-slate-800 dark:bg-[#1e293b]"
+          class="flex items-center space-x-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 shadow-2xs rtl:space-x-reverse dark:border-slate-800 dark:bg-stone-500"
         >
           <span
             class="text-xs font-semibold"
@@ -512,7 +512,7 @@ onMounted(() => {
       <div v-else-if="activeTab === 'settings'" class="space-y-6">
         <!-- Provider Selector Grid -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-4 border-b border-slate-100 pb-3 dark:border-slate-800">
             <h2 class="text-base font-bold text-slate-900 dark:text-white">
@@ -531,7 +531,7 @@ onMounted(() => {
               :class="
                 formState.provider === p.key
                   ? 'border-purple-600 bg-purple-50/40 shadow-xs ring-2 ring-purple-600/20 dark:border-purple-500 dark:bg-purple-950/20'
-                  : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs dark:border-slate-700 dark:bg-[#1e293b] dark:hover:border-slate-600'
+                  : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs dark:border-slate-700 dark:bg-stone-500 dark:hover:border-slate-600'
               "
               role="button"
               tabindex="0"
@@ -598,7 +598,7 @@ onMounted(() => {
 
         <!-- Provider Credentials & Parameters -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="mb-5 flex items-center space-x-3 border-b border-slate-100 pb-4 rtl:space-x-reverse dark:border-slate-800"
@@ -791,7 +791,7 @@ onMounted(() => {
       <!-- Tab 2: Feedback & Analytics -->
       <div v-else class="space-y-6">
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-5 border-b border-slate-100 pb-3 dark:border-slate-800">
             <h2 class="text-base font-bold text-slate-900 dark:text-white">

@@ -167,3 +167,5 @@ Never put passwords, tokens or keys in this file.
   mobile app (its spec still fails: NOTES → Tests that already fail)
 - Message actions "Set to internal" / "Set to public" show the message's current state (14 Oct): an open lock while it
   is public, a closed lock while it is internal (Zammad shows the state the action sets)
+- The admin pages' dark backgrounds and borders use the theme's `stone-500` (14 Oct), not the hand-typed `#1e293b`
+  (235 places, the same colour today): a change to `stone-500` in the theme now recolours them with the rest of the app

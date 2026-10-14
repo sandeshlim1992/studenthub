@@ -434,7 +434,7 @@ const submitDeletionTask = async () => {
           :class="
             activeTab === 'in_process'
               ? 'border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/20 dark:border-blue-700 dark:bg-blue-950/30'
-              : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-[#1e293b] dark:hover:bg-slate-800/50'
+              : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-stone-500 dark:hover:bg-slate-800/50'
           "
           :aria-label="__('Filter by in process tasks')"
           @click="activeTab = activeTab === 'in_process' ? 'all' : 'in_process'"
@@ -463,7 +463,7 @@ const submitDeletionTask = async () => {
           :class="
             activeTab === 'completed'
               ? 'border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/20 dark:border-emerald-700 dark:bg-emerald-950/30'
-              : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-[#1e293b] dark:hover:bg-slate-800/50'
+              : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-stone-500 dark:hover:bg-slate-800/50'
           "
           :aria-label="__('Filter by completed tasks')"
           @click="activeTab = activeTab === 'completed' ? 'all' : 'completed'"
@@ -492,7 +492,7 @@ const submitDeletionTask = async () => {
           :class="
             activeTab === 'failed'
               ? 'border-red-500 bg-red-50/50 ring-2 ring-red-500/20 dark:border-red-700 dark:bg-red-950/30'
-              : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-[#1e293b] dark:hover:bg-slate-800/50'
+              : 'border-slate-200 bg-white hover:bg-slate-50 dark:border-slate-800 dark:bg-stone-500 dark:hover:bg-slate-800/50'
           "
           :aria-label="__('Filter by failed tasks')"
           @click="activeTab = activeTab === 'failed' ? 'all' : 'failed'"
@@ -517,7 +517,7 @@ const submitDeletionTask = async () => {
 
       <!-- Tasks Table -->
       <div
-        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <div v-if="isLoading" class="p-12 text-center">
           <CommonIcon name="loading" class="mx-auto h-8 w-8 animate-spin text-blue-600" />
@@ -645,7 +645,7 @@ const submitDeletionTask = async () => {
         :aria-label="__('New Data Privacy Task')"
       >
         <div
-          class="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800"
@@ -688,7 +688,7 @@ const submitDeletionTask = async () => {
                 />
                 <div
                   v-if="newModal.isSearchingUsers"
-                  class="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-3"
+                  class="pointer-events-none absolute inset-y-0 inset-e-0 flex items-center pe-3"
                 >
                   <CommonIcon name="loading" class="h-4 w-4 animate-spin text-slate-400" />
                 </div>

@@ -543,7 +543,7 @@ const executeDeleteTranslation = async () => {
           href="https://translations.zammad.org"
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex shrink-0 items-center rounded-xl border border-blue-300 bg-white px-3.5 py-2 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-50 ltr:ml-4 rtl:mr-4 dark:border-blue-700 dark:bg-[#1e293b] dark:text-blue-300 dark:hover:bg-slate-800"
+          class="inline-flex shrink-0 items-center rounded-xl border border-blue-300 bg-white px-3.5 py-2 text-xs font-semibold text-blue-700 shadow-xs transition hover:bg-blue-50 ltr:ml-4 rtl:mr-4 dark:border-blue-700 dark:bg-stone-500 dark:text-blue-300 dark:hover:bg-slate-800"
         >
           <CommonIcon name="weblate" class="h-3.5 w-3.5 ltr:mr-1.5 rtl:ml-1.5" />
           <span>{{ __('Weblate Portal') }}</span>
@@ -553,7 +553,7 @@ const executeDeleteTranslation = async () => {
 
       <!-- Filters & Search -->
       <div
-        class="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs md:flex-row md:items-center md:justify-between dark:border-slate-800 dark:bg-[#1e293b]"
+        class="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs md:flex-row md:items-center md:justify-between dark:border-slate-800 dark:bg-stone-500"
       >
         <div class="relative w-full max-w-sm">
           <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3">
@@ -589,7 +589,7 @@ const executeDeleteTranslation = async () => {
 
       <!-- Translations Table -->
       <div
-        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800 dark:bg-stone-500"
       >
         <div v-if="isLoading" class="p-12 text-center">
           <CommonIcon name="loading" class="mx-auto h-8 w-8 animate-spin text-blue-600" />
@@ -755,7 +755,7 @@ const executeDeleteTranslation = async () => {
         :aria-label="__('New Translation')"
       >
         <div
-          class="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800"
@@ -925,7 +925,7 @@ const executeDeleteTranslation = async () => {
         :aria-label="__('Edit Translation')"
       >
         <div
-          class="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="flex items-center justify-between border-b border-slate-200 pb-4 dark:border-slate-800"
@@ -1034,7 +1034,7 @@ const executeDeleteTranslation = async () => {
         :aria-label="__('Reset Translation Confirmation')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-center space-x-3 rtl:space-x-reverse">
             <div
@@ -1093,7 +1093,7 @@ const executeDeleteTranslation = async () => {
         :aria-label="__('Confirm Deletion')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-center space-x-3 rtl:space-x-reverse">
             <div

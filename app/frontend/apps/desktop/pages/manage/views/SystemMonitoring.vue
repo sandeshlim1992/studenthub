@@ -407,7 +407,7 @@ const executeRestartFailedJobs = async () => {
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <!-- Monitoring Token Card -->
         <div
-          class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div>
             <div class="flex items-center space-x-2 rtl:space-x-reverse">
@@ -472,7 +472,7 @@ const executeRestartFailedJobs = async () => {
 
         <!-- Health Check Endpoint Card -->
         <div
-          class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div>
             <div class="flex items-center space-x-2 rtl:space-x-reverse">
@@ -548,7 +548,7 @@ const executeRestartFailedJobs = async () => {
         :aria-label="__('Reset Token Confirmation')"
       >
         <div
-          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-center space-x-3 rtl:space-x-reverse">
             <div

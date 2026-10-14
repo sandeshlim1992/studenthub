@@ -356,7 +356,7 @@ onMounted(() => {
         <div class="flex items-start space-x-3 rtl:space-x-reverse">
           <button
             type="button"
-            class="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-[#1e293b] dark:text-slate-300 dark:hover:bg-slate-800"
+            class="mt-1 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-stone-500 dark:text-slate-300 dark:hover:bg-slate-800"
             :aria-label="__('Back to Management Overview')"
             @click="router.push('/manage')"
           >
@@ -392,7 +392,7 @@ onMounted(() => {
         <div class="flex shrink-0 items-center space-x-3 rtl:space-x-reverse">
           <button
             type="button"
-            class="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-[#1e293b] dark:text-slate-200 dark:hover:bg-slate-800"
+            class="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 focus:outline-hidden dark:border-slate-700 dark:bg-stone-500 dark:text-slate-200 dark:hover:bg-slate-800"
             :aria-label="__('Legal Information')"
             @click="isLegalModalOpen = true"
           >
@@ -405,7 +405,7 @@ onMounted(() => {
 
           <!-- Master Switch -->
           <div
-            class="flex items-center space-x-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 shadow-2xs rtl:space-x-reverse dark:border-slate-800 dark:bg-[#1e293b]"
+            class="flex items-center space-x-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 shadow-2xs rtl:space-x-reverse dark:border-slate-800 dark:bg-stone-500"
           >
             <span
               class="text-xs font-semibold"
@@ -513,7 +513,7 @@ onMounted(() => {
       <div v-else class="space-y-6">
         <!-- Card 1: Summary Services -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="mb-5 flex items-center justify-between border-b border-slate-100 pb-4 dark:border-slate-800"
@@ -594,7 +594,7 @@ onMounted(() => {
 
             <!-- Open Questions -->
             <div
-              class="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-purple-300 dark:border-slate-700/80 dark:bg-[#1e293b] dark:hover:border-purple-700"
+              class="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-purple-300 dark:border-slate-700/80 dark:bg-stone-500 dark:hover:border-purple-700"
             >
               <div>
                 <div class="flex items-center justify-between">
@@ -642,7 +642,7 @@ onMounted(() => {
 
             <!-- Upcoming Events -->
             <div
-              class="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-purple-300 dark:border-slate-700/80 dark:bg-[#1e293b] dark:hover:border-purple-700"
+              class="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-purple-300 dark:border-slate-700/80 dark:bg-stone-500 dark:hover:border-purple-700"
             >
               <div>
                 <div class="flex items-center justify-between">
@@ -690,7 +690,7 @@ onMounted(() => {
 
             <!-- Customer Sentiment -->
             <div
-              class="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-purple-300 md:col-span-2 dark:border-slate-700/80 dark:bg-[#1e293b] dark:hover:border-purple-700"
+              class="group relative flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-purple-300 md:col-span-2 dark:border-slate-700/80 dark:bg-stone-500 dark:hover:border-purple-700"
             >
               <div>
                 <div class="flex items-center justify-between">
@@ -742,7 +742,7 @@ onMounted(() => {
 
         <!-- Card 2: Summary Selector -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div
             class="mb-5 flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800"
@@ -902,7 +902,7 @@ onMounted(() => {
 
         <!-- Card 3: Summary Generation Mode -->
         <div
-          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-[#1e293b]"
+          class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="mb-5 border-b border-slate-100 pb-4 dark:border-slate-800">
             <h2 class="text-base font-bold text-slate-900 dark:text-white">
@@ -924,7 +924,7 @@ onMounted(() => {
               :class="
                 summaryConfig.generate_on === 'on_ticket_detail_opening'
                   ? 'border-purple-600 bg-purple-50/40 ring-2 ring-purple-600/20 dark:border-purple-500 dark:bg-purple-950/20'
-                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-[#1e293b] dark:hover:border-slate-600'
+                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-stone-500 dark:hover:border-slate-600'
               "
               role="button"
               tabindex="0"
@@ -970,7 +970,7 @@ onMounted(() => {
               :class="
                 summaryConfig.generate_on === 'on_ticket_summary_sidebar_activation'
                   ? 'border-purple-600 bg-purple-50/40 ring-2 ring-purple-600/20 dark:border-purple-500 dark:bg-purple-950/20'
-                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-[#1e293b] dark:hover:border-slate-600'
+                  : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-stone-500 dark:hover:border-slate-600'
               "
               role="button"
               tabindex="0"
@@ -1040,7 +1040,7 @@ onMounted(() => {
         :aria-label="__('Legal Information')"
       >
         <div
-          class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-[#1e293b]"
+          class="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-stone-500"
         >
           <div class="flex items-start justify-between">
             <div class="flex items-center space-x-2.5 rtl:space-x-reverse">

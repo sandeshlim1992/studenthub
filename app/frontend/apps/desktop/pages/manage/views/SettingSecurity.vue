@@ -418,7 +418,7 @@ onMounted(() => {
       </div>
 
       <!-- Tabs Navigation -->
-      <div class="flex items-center gap-2 border-b border-slate-200 dark:border-[#1e293b] mb-6 overflow-x-auto">
+      <div class="flex items-center gap-2 border-b border-slate-200 dark:border-stone-500 mb-6 overflow-x-auto">
         <button
           type="button"
           class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap"
@@ -463,14 +463,14 @@ onMounted(() => {
 
       <!-- Loading skeleton -->
       <div v-if="isLoading" class="space-y-6">
-        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
-        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
+        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
+        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
       </div>
 
       <div v-else>
         <!-- TAB 1: Base -->
         <div v-if="activeTab === 'base'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
               {{ __('User Login & Registration') }}
             </h2>
@@ -525,7 +525,7 @@ onMounted(() => {
           </div>
 
           <!-- Session Timeout (Security::Base Parity) -->
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <div>
               <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
                 {{ __('Session Timeout') }}
@@ -547,7 +547,7 @@ onMounted(() => {
                 <select
                   id="session-timeout-default"
                   :value="sessionTimeoutValues.default"
-                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                   @change="saveSessionTimeout('default', ($event.target as HTMLSelectElement).value)"
                 >
                   <option v-for="opt in sessionTimeoutOptions" :key="'def-' + opt.value" :value="opt.value">
@@ -567,7 +567,7 @@ onMounted(() => {
                 <select
                   id="session-timeout-admin"
                   :value="sessionTimeoutValues.admin"
-                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                   @change="saveSessionTimeout('admin', ($event.target as HTMLSelectElement).value)"
                 >
                   <option v-for="opt in sessionTimeoutOptions" :key="'adm-' + opt.value" :value="opt.value">
@@ -587,7 +587,7 @@ onMounted(() => {
                 <select
                   id="session-timeout-agent"
                   :value="sessionTimeoutValues['ticket.agent']"
-                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                   @change="saveSessionTimeout('ticket.agent', ($event.target as HTMLSelectElement).value)"
                 >
                   <option v-for="opt in sessionTimeoutOptions" :key="'agt-' + opt.value" :value="opt.value">
@@ -607,7 +607,7 @@ onMounted(() => {
                 <select
                   id="session-timeout-customer"
                   :value="sessionTimeoutValues['ticket.customer']"
-                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                   @change="saveSessionTimeout('ticket.customer', ($event.target as HTMLSelectElement).value)"
                 >
                   <option v-for="opt in sessionTimeoutOptions" :key="'cst-' + opt.value" :value="opt.value">
@@ -621,7 +621,7 @@ onMounted(() => {
 
         <!-- TAB 2: Password Policies -->
         <div v-if="activeTab === 'password'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
               {{ __('Password Complexity Rules') }}
             </h2>
@@ -640,7 +640,7 @@ onMounted(() => {
                 min="4"
                 max="64"
                 :value="allSettings.password_min_size?.state_current?.value || 10"
-                class="w-24 px-3 py-1.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 text-center"
+                class="w-24 px-3 py-1.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 text-center"
                 @change="saveSetting('password_min_size', Number(($event.target as HTMLInputElement).value))"
               />
             </div>
@@ -707,7 +707,7 @@ onMounted(() => {
                 min="1"
                 max="20"
                 :value="allSettings.password_max_login_failed?.state_current?.value || 5"
-                class="w-24 px-3 py-1.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 text-center"
+                class="w-24 px-3 py-1.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 text-center"
                 @change="saveSetting('password_max_login_failed', Number(($event.target as HTMLInputElement).value))"
               />
             </div>
@@ -716,7 +716,7 @@ onMounted(() => {
 
         <!-- TAB 3: Two-Factor Authentication -->
         <div v-if="activeTab === 'two_factor'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
               {{ __('Allowed Authentication Methods') }}
             </h2>
@@ -771,7 +771,7 @@ onMounted(() => {
           </div>
 
           <!-- Role Enforcement -->
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-4">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-4">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">
               {{ __('Enforce 2FA for Specific Roles') }}
             </h2>
@@ -816,9 +816,9 @@ onMounted(() => {
           </div>
 
           <!-- Certificate Table -->
-          <div v-if="sslCertificates.length > 0" class="overflow-hidden rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs">
+          <div v-if="sslCertificates.length > 0" class="overflow-hidden rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs">
             <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-              <thead class="bg-slate-50 dark:bg-[#1e293b]/70 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <thead class="bg-slate-50 dark:bg-stone-500/70 border-b border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <tr>
                   <th class="px-5 py-3.5">{{ __('Subject') }}</th>
                   <th class="px-5 py-3.5">{{ __('Fingerprint') }}</th>
@@ -845,7 +845,7 @@ onMounted(() => {
             </table>
           </div>
 
-          <div v-else class="flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40">
+          <div v-else class="flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40">
             <CommonIcon name="shield-lock" class="w-10 h-10 text-slate-300 dark:text-slate-600 mb-3" />
             <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">{{ __('No SSL certificates installed') }}</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm">{{ __('Upload trusted CA certificates for self-signed mail servers or secure internal connections.') }}</p>
@@ -855,7 +855,7 @@ onMounted(() => {
         <!-- TAB 5: Third-Party Applications -->
         <div v-if="activeTab === 'third_party'" class="space-y-6">
           <!-- General Third-party Options -->
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Third-party Authentication Rules') }}</h2>
 
             <div class="flex items-center justify-between">
@@ -911,11 +911,11 @@ onMounted(() => {
               <div
                 v-for="prov in thirdPartyProviders"
                 :key="prov.name"
-                class="p-5 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs flex flex-col justify-between gap-4"
+                class="p-5 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs flex flex-col justify-between gap-4"
               >
                 <div class="flex items-start justify-between">
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#1e293b] flex items-center justify-center text-slate-600 dark:text-slate-300">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-stone-500 flex items-center justify-center text-slate-600 dark:text-slate-300">
                       <CommonIcon :name="prov.icon" class="w-5 h-5" />
                     </div>
                     <div>
@@ -959,7 +959,7 @@ onMounted(() => {
       v-if="showAddCertModal"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
     >
-      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] shadow-2xl p-6 space-y-4">
+      <div class="w-full max-w-lg rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-stone-500 shadow-2xl p-6 space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-800 dark:text-slate-100">{{ __('Add SSL Certificate') }}</h3>
           <button
@@ -980,7 +980,7 @@ onMounted(() => {
             v-model="newCertContent"
             rows="6"
             placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
-            class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+            class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-xs font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
           />
 
           <div class="flex items-center gap-3 pt-1">
@@ -1026,7 +1026,7 @@ onMounted(() => {
       v-if="providerModal.isOpen"
       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4"
     >
-      <div class="w-full max-w-md rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] shadow-2xl p-6 space-y-4">
+      <div class="w-full max-w-md rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-stone-500 shadow-2xl p-6 space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-800 dark:text-slate-100">
             {{ $t('Configure %s', providerModal.providerTitle) }}
@@ -1042,7 +1042,7 @@ onMounted(() => {
 
         <div class="space-y-4 text-xs">
           <!-- Callback URL notice -->
-          <div class="p-3 rounded-xl bg-slate-50 dark:bg-[#1e293b]/70 border border-slate-200 dark:border-slate-700">
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-stone-500/70 border border-slate-200 dark:border-slate-700">
             <p class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">{{ __('Callback URL') }}</p>
             <div class="flex items-center justify-between gap-2">
               <code class="text-[11px] font-mono text-slate-700 dark:text-slate-300 break-all">{{ providerModal.callbackUrl }}</code>
@@ -1066,7 +1066,7 @@ onMounted(() => {
               id="provider-client-id"
               v-model="providerModal.clientId"
               type="text"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
             />
           </div>
 
@@ -1079,7 +1079,7 @@ onMounted(() => {
               id="provider-client-secret"
               v-model="providerModal.clientSecret"
               type="password"
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
             />
           </div>
 
@@ -1093,7 +1093,7 @@ onMounted(() => {
               v-model="providerModal.site"
               type="text"
               placeholder="https://..."
-              class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+              class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
             />
           </div>
         </div>

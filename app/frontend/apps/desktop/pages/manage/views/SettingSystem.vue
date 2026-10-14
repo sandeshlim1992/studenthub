@@ -277,7 +277,7 @@ onMounted(() => {
       </div>
 
       <!-- Tab Navigation -->
-      <div class="flex items-center gap-2 border-b border-slate-200 dark:border-[#1e293b] mb-6 overflow-x-auto">
+      <div class="flex items-center gap-2 border-b border-slate-200 dark:border-stone-500 mb-6 overflow-x-auto">
         <button
           type="button"
           class="px-4 py-2.5 text-sm font-medium border-b-2 transition-colors cursor-pointer whitespace-nowrap"
@@ -322,14 +322,14 @@ onMounted(() => {
 
       <!-- Loading skeleton -->
       <div v-if="isLoading" class="space-y-6">
-        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
-        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-[#1e293b] animate-pulse" />
+        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
+        <div class="h-36 rounded-2xl bg-slate-100 dark:bg-stone-500 animate-pulse" />
       </div>
 
       <div v-else>
         <!-- TAB 1: Base -->
         <div v-if="activeTab === 'base'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('System Identification & Domain') }}</h2>
 
             <!-- System ID -->
@@ -347,7 +347,7 @@ onMounted(() => {
                   type="number"
                   min="10"
                   max="99"
-                  class="w-32 px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 text-center font-mono"
+                  class="w-32 px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 text-center font-mono"
                 />
                 <button
                   type="button"
@@ -374,7 +374,7 @@ onMounted(() => {
                   v-model="fqdn"
                   type="text"
                   placeholder="zammad.example.com"
-                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
                 <button
                   type="button"
@@ -399,7 +399,7 @@ onMounted(() => {
                 <select
                   id="setting-http-type"
                   v-model="httpType"
-                  class="w-44 px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer font-mono"
+                  class="w-44 px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer font-mono"
                 >
                   <option value="https">https://</option>
                   <option value="http">http://</option>
@@ -419,7 +419,7 @@ onMounted(() => {
 
         <!-- TAB 2: Services -->
         <div v-if="activeTab === 'services'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('System Backends & Integration Services') }}</h2>
 
             <!-- Image Service -->
@@ -432,7 +432,7 @@ onMounted(() => {
                 <select
                   id="setting-image-backend"
                   v-model="imageBackend"
-                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                 >
                   <option value="">{{ __('- Disabled -') }}</option>
                   <option value="Service::Image::Zammad">{{ __('Zammad Image Service') }}</option>
@@ -458,7 +458,7 @@ onMounted(() => {
                 <select
                   id="setting-geo-ip-backend"
                   v-model="geoIpBackend"
-                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                 >
                   <option value="">{{ __('- Disabled -') }}</option>
                   <option value="Service::GeoIp::Zammad">{{ __('Zammad GeoIP Service') }}</option>
@@ -484,7 +484,7 @@ onMounted(() => {
                 <select
                   id="setting-geo-location-backend"
                   v-model="geoLocationBackend"
-                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                 >
                   <option value="">{{ __('- Disabled -') }}</option>
                   <option value="Service::GeoLocation::Osm">{{ __('OpenStreetMap') }}</option>
@@ -510,7 +510,7 @@ onMounted(() => {
                 <select
                   id="setting-geo-calendar-backend"
                   v-model="geoCalendarBackend"
-                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
+                  class="w-full max-w-md px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500 cursor-pointer"
                 >
                   <option value="">{{ __('- Disabled -') }}</option>
                   <option value="Service::GeoCalendar::Zammad">{{ __('Zammad GeoCalendar Service') }}</option>
@@ -530,7 +530,7 @@ onMounted(() => {
 
         <!-- TAB 3: Storage -->
         <div v-if="activeTab === 'storage'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Attachment Storage Provider') }}</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400">
               {{ __('Location where ticket attachments and uploaded assets are permanently stored.') }}
@@ -602,7 +602,7 @@ onMounted(() => {
             </div>
 
             <!-- Attachment Migration Command Guide (Parity with Legacy storage_provider.jst.eco) -->
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-[#1e293b]/50 border border-slate-200 dark:border-slate-800 space-y-2">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-stone-500/50 border border-slate-200 dark:border-slate-800 space-y-2">
               <h3 class="text-xs font-semibold text-slate-700 dark:text-slate-300">
                 {{ __('Attachment Migration Command') }}
               </h3>
@@ -629,7 +629,7 @@ onMounted(() => {
 
         <!-- TAB 4: Network (Proxy) -->
         <div v-if="activeTab === 'network'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('Outbound HTTP/HTTPS Proxy') }}</h2>
             <p class="text-xs text-slate-500 dark:text-slate-400">
               {{ __('Route all outbound API requests (webhooks, email OAuth, GeoIP, integrations) through a corporate proxy.') }}
@@ -646,7 +646,7 @@ onMounted(() => {
                   v-model="proxy"
                   type="text"
                   placeholder="proxy.example.com:3128"
-                  class="w-full max-w-md px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-full max-w-md px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
               </div>
 
@@ -659,7 +659,7 @@ onMounted(() => {
                   id="setting-proxy-user"
                   v-model="proxyUsername"
                   type="text"
-                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
               </div>
 
@@ -672,7 +672,7 @@ onMounted(() => {
                   id="setting-proxy-pass"
                   v-model="proxyPassword"
                   type="password"
-                  class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
               </div>
 
@@ -687,7 +687,7 @@ onMounted(() => {
                   v-model="proxyNo"
                   type="text"
                   placeholder="localhost, 127.0.0.1, *.internal.company"
-                  class="w-full max-w-lg px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
+                  class="w-full max-w-lg px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-sm text-slate-900 dark:text-slate-100 focus:outline-hidden focus:border-blue-500"
                 />
               </div>
             </div>
@@ -717,7 +717,7 @@ onMounted(() => {
 
         <!-- TAB 5: Frontend -->
         <div v-if="activeTab === 'frontend'" class="space-y-6">
-          <div class="p-6 rounded-2xl border border-slate-200 dark:border-[#1e293b] bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
+          <div class="p-6 rounded-2xl border border-slate-200 dark:border-stone-500 bg-white dark:bg-[#0f172a]/40 shadow-xs space-y-6">
             <h2 class="text-base font-semibold text-slate-800 dark:text-slate-100">{{ __('User Interface Behavior') }}</h2>
 
             <!-- Core Workflow AJAX Mode -->

@@ -481,7 +481,7 @@ onMounted(() => {
             v-model="searchQuery"
             type="text"
             :placeholder="__('Search for organizations')"
-            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-[#94a3b8] placeholder:text-slate-400 dark:placeholder:text-[#475569] text-sm focus:outline-hidden focus:border-blue-500 focus:bg-white dark:focus:bg-[#1e2d45] transition-all duration-150"
+            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-[#94a3b8] placeholder:text-slate-400 dark:placeholder:text-[#475569] text-sm focus:outline-hidden focus:border-blue-500 focus:bg-white dark:focus:bg-[#1e2d45] transition-all duration-150"
           />
           <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#475569]">
             <CommonIcon name="search" class="w-4 h-4" />
@@ -490,7 +490,7 @@ onMounted(() => {
       </div>
 
       <!-- Table Section -->
-      <div class="bg-white dark:bg-[#0f172a]/40 border border-slate-200 dark:border-[#1e293b] rounded-2xl shadow-xs mb-6 overflow-x-auto">
+      <div class="bg-white dark:bg-[#0f172a]/40 border border-slate-200 dark:border-stone-500 rounded-2xl shadow-xs mb-6 overflow-x-auto">
         <table class="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -704,7 +704,7 @@ onMounted(() => {
             <input
               v-model="form.name"
               type="text"
-              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
               placeholder="e.g. Acme Corp"
             />
           </div>
@@ -718,7 +718,7 @@ onMounted(() => {
               v-model="form.domain"
               type="text"
               @blur="cleanDomain"
-              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors font-mono"
+              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors font-mono"
               placeholder="example.com"
             />
             <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
@@ -734,7 +734,7 @@ onMounted(() => {
             <textarea
               v-model="form.note"
               rows="3"
-              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
+              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-sm focus:outline-hidden focus:border-blue-500 transition-colors"
               :placeholder="__('Internal notes about this organization...')"
             ></textarea>
             <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
@@ -907,7 +907,7 @@ onMounted(() => {
             <textarea
               v-model="importContent"
               rows="6"
-              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-xs font-mono focus:outline-hidden focus:border-blue-500 transition-colors"
+              class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-stone-500 border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-xs font-mono focus:outline-hidden focus:border-blue-500 transition-colors"
               placeholder="name,domain,domain_assignment,shared,vip,note&#10;Acme Corp,acme.com,true,true,false,Partner"
             ></textarea>
           </div>
@@ -920,7 +920,7 @@ onMounted(() => {
               </label>
               <select
                 v-model="importColSep"
-                class="w-full px-3 py-2 bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-xs focus:outline-hidden focus:border-blue-500 transition-colors"
+                class="w-full px-3 py-2 bg-slate-50 dark:bg-stone-500 border border-slate-200 dark:border-[#2d3f5c] rounded-xl text-xs focus:outline-hidden focus:border-blue-500 transition-colors"
               >
                 <option value=",">{{ __('Comma ( , )') }}</option>
                 <option value=";">{{ __('Semicolon ( ; )') }}</option>

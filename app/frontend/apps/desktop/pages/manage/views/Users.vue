@@ -605,7 +605,7 @@ onMounted(() => {
             v-model="searchQuery"
             type="text"
             :placeholder="__('Search for users')"
-            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-[#1e293b] border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-[#94a3b8] placeholder:text-slate-400 dark:placeholder:text-[#475569] text-sm focus:outline-hidden focus:border-blue-500 focus:bg-white dark:focus:bg-[#1e2d45] transition-all duration-150"
+            class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-stone-500 border border-slate-300 dark:border-[#2d3f5c] rounded-xl text-slate-900 dark:text-[#94a3b8] placeholder:text-slate-400 dark:placeholder:text-[#475569] text-sm focus:outline-hidden focus:border-blue-500 focus:bg-white dark:focus:bg-[#1e2d45] transition-all duration-150"
           />
           <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#475569]">
             <CommonIcon name="search" class="w-4 h-4" />
@@ -641,7 +641,7 @@ onMounted(() => {
       </div>
 
       <!-- Table Section with Click-to-Sort Headers -->
-      <div class="bg-white dark:bg-[#0f172a]/40 border border-slate-200 dark:border-[#1e293b] rounded-2xl shadow-xs mb-6">
+      <div class="bg-white dark:bg-[#0f172a]/40 border border-slate-200 dark:border-stone-500 rounded-2xl shadow-xs mb-6">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/40 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider select-none">

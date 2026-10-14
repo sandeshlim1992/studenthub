@@ -122,11 +122,6 @@ Never put passwords, tokens or keys in this file.
 
 ## In progress
 
-- AI workflow rework (14 Oct; rules in CLAUDE.md, why in DECISIONS.md): all done except `.claude/settings.json`.
-  Claude Code's auto mode wouldn't let Claude edit it (it widens Claude's own permissions), so edit it by hand or
-  approve the edit: remove the `hooks` block and `glab *` / `git cherry-pick *`; add `git add *`, `pnpm lint:ts*`,
-  `pnpm exec eslint *` and `pnpm exec oxfmt *`. Then delete `.claude/hooks/` (kept until then, so machines with
-  hooks on don't get a missing-hook error after every reply)
 - Request forms rework (see DECISIONS.md): steps 1–3 built on 10 Oct (headings and notes, Request details block, the
   form's own questions), step 4 too (Subject at the top of the form, no Description while a form applies). Next:
   step 5 the agents' Request details panel on New ticket, step 6 file uploads and conditions. The admin editor is not

@@ -158,7 +158,7 @@ Never put passwords, tokens or keys in this file.
 - AI instructions are Student Hub's own (14 Oct): `CLAUDE.md` holds the rules, `.dev/ai-agent-instructions.md`
   (read as `.claude/CLAUDE.md`, `AGENTS.md` and `.github/copilot-instructions.md`) is the codebase guide. Removed
   from Zammad's setup: the GitLab workflow, the `code-reviewer` agent and the `work-on-issue` command; its Claude
-  Code hooks go too (the lint hook ran a full type check after every reply; NOTES → In progress). The
+  Code hooks go too (the lint hook ran a full type check after every reply). The
   security-guidance plugin was uninstalled: hooks are off here, so it never ran, and it reviews with Opus after
   every reply that changes code
 - No `.dev/LOG.md` (14 Oct): commit messages are the record of what was done (`git log`); the old log is in the git

@@ -1,13 +1,11 @@
-# Security review (Snyk)
+# Security reviews
 
-What Snyk reports for this repo, what was decided about each finding, and why. Update this file whenever a
-finding is fixed, accepted or ignored in Snyk, so the reason stays in the repo and not in someone's head.
+What each security review of this repo found, what was decided about each finding, and why, so the reason stays in
+the repo and not in someone's head. Each review is a section, newest at the end: add a new one there (no need to read
+the whole file), and update a finding's row when it is fixed, accepted or ignored.
 
-- **Tool:** Snyk VS Code extension (Open Source, Code Security, Infrastructure as Code)
-- **Reviewed:** 12 Oct 2026, on `develop` at `8bada37a44`
-- **Context:** no Zammad update is coming (`.dev/NOTES.md` → Decisions), so fixes go into Zammad's own files, marked
+- **Context:** no Zammad update is coming (`.dev/DECISIONS.md`), so fixes go into Zammad's own files, marked
   with a `Student Hub:` comment, and dependencies are updated here.
-- **Line numbers** are as of that scan; they move as the files change.
 
 Verdicts:
 
@@ -17,7 +15,13 @@ Verdicts:
   checks elsewhere.
 - **False positive:** the pattern Snyk matched isn't a risk here.
 
-## Code Security
+## Snyk (12 Oct)
+
+- **Tool:** Snyk VS Code extension (Open Source, Code Security, Infrastructure as Code)
+- **Reviewed:** 12 Oct 2026, on `develop` at `8bada37a44`
+- **Line numbers** are as of that scan; they move as the files change.
+
+### Code Security
 
 | File:line | Snyk says | Verdict | Why | Commit |
 |---|---|---|---|---|
@@ -39,7 +43,7 @@ Verdicts:
 | `app/controllers/tests_controller.rb:12` | SQL Injection (info) | False positive | A template lookup (`lookup_context.exists?`), not a database query; the route doesn't exist in production (`config/routes/test.rb`) | n/a |
 | `app/frontend/apps/mobile/sw/sw.ts:9` | Insufficient postMessage Validation (info) | False positive | The service worker's message handler only activates a waiting update (`SKIP_WAITING`) | n/a |
 
-### Excluded from Code Security
+#### Excluded from Code Security
 
 Listed in `.dcignore`, because they aren't part of the running app:
 
@@ -48,6 +52,27 @@ Listed in `.dcignore`, because they aren't part of the running app:
 | `spec/` | ~417 "hard-coded password / credential" findings: the test users' passwords (e.g. `test`), plus `spec/support/authenticated_as.rb:55` |
 | `contrib/` | `edit-icon-license-list.php:187` XSS: a developer script, not served |
 | `.dev/` | Developer tooling and notes |
+
+### Open Source (dependencies)
+
+| Package | Problem | Status |
+|---|---|---|
+| rails / activestorage 8.0.5 | Files or directories accessible to external parties | Fixed: 8.0.5.1 (12 Oct, in the commit that added this file) |
+| json 2.21.1 | Use after free | Fixed: 2.21.2 (12 Oct, in the commit that added this file) |
+| graphql 2.6.5 | Missing authorization | Fixed: 2.6.11 (12 Oct, in the commit that added this file) |
+| @tiptap/core 3.28.0 (editor) | ReDoS, prototype pollution | Fixed: all `@tiptap` packages 3.30.5, one copy of core and of prosemirror-model (overrides in `pnpm-workspace.yaml`) (12 Oct, in the commit that added this file) |
+| qs 6.15.3 | Resource exhaustion, uncaught exception | Open: 6.16.0 fixes |
+| ws 8.20.0, nanoid 3.3.12, tmp 0.2.5, esbuild 0.27.7, postcss 8.5.19, brace-expansion 5.0.5 | Various (resource exhaustion, directory traversal, insecure download, ReDoS) | Open: come in through other packages; need a refresh within their ranges or overrides in `pnpm-workspace.yaml` (the `resolutions` in `package.json` are ignored by pnpm 11) |
+| brace-expansion, degit, js-yaml, sprintf-js in `.dev/hygen/package.json` | Various | Accepted: a developer code generator, not part of the app |
+
+Infrastructure as Code: no findings.
+
+### Ignoring a finding in Snyk
+
+1. Make sure it has a row above with its verdict and reason.
+2. In VS Code, hover the finding, click the lightbulb and choose Snyk's "Ignore" option; Snyk adds its own
+   `deepcode ignore` comment to the line. Put the reason there in a few words.
+3. Note "ignored in Snyk" in the row's Why column.
 
 ## Manual review of Student Hub's server code (13 Oct)
 
@@ -79,24 +104,3 @@ the devcontainer's network (`docker run --network container:<devcontainer id>`).
 | `/api/v1/*` | Cross-domain misconfiguration, `Access-Control-Allow-Origin: *` (Medium) | By design | Zammad's own API header (`ApplicationController::SetsHeaders`); without `Allow-Credentials` other sites can't read responses for signed-in users | n/a |
 | `/api/v1/signshow`, `/app`, `/help/…` | Unix timestamps in responses (Low) | False positive | Build and setting timestamps, nothing sensitive | n/a |
 | `/favicon.ico`, `/apple-touch-icon.png` | `X-Content-Type-Options` missing (Low) | By design (dev) | Rails serves these files in development; nginx serves them in production | n/a |
-
-## Open Source (dependencies)
-
-| Package | Problem | Status |
-|---|---|---|
-| rails / activestorage 8.0.5 | Files or directories accessible to external parties | Fixed: 8.0.5.1 (12 Oct, in the commit that added this file) |
-| json 2.21.1 | Use after free | Fixed: 2.21.2 (12 Oct, in the commit that added this file) |
-| graphql 2.6.5 | Missing authorization | Fixed: 2.6.11 (12 Oct, in the commit that added this file) |
-| @tiptap/core 3.28.0 (editor) | ReDoS, prototype pollution | Fixed: all `@tiptap` packages 3.30.5, one copy of core and of prosemirror-model (overrides in `pnpm-workspace.yaml`) (12 Oct, in the commit that added this file) |
-| qs 6.15.3 | Resource exhaustion, uncaught exception | Open: 6.16.0 fixes |
-| ws 8.20.0, nanoid 3.3.12, tmp 0.2.5, esbuild 0.27.7, postcss 8.5.19, brace-expansion 5.0.5 | Various (resource exhaustion, directory traversal, insecure download, ReDoS) | Open: come in through other packages; need a refresh within their ranges or overrides in `pnpm-workspace.yaml` (the `resolutions` in `package.json` are ignored by pnpm 11) |
-| brace-expansion, degit, js-yaml, sprintf-js in `.dev/hygen/package.json` | Various | Accepted: a developer code generator, not part of the app |
-
-Infrastructure as Code: no findings.
-
-## Ignoring a finding in Snyk
-
-1. Make sure it has a row above with its verdict and reason.
-2. In VS Code, hover the finding, click the lightbulb and choose Snyk's "Ignore" option; Snyk adds its own
-   `deepcode ignore` comment to the line. Put the reason there in a few words.
-3. Note "ignored in Snyk" in the row's Why column.

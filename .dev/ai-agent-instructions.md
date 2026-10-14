@@ -1,89 +1,78 @@
+# Codebase guide
 
-# AI Agent Instructions
+Student Hub runs on a Zammad `develop` snapshot from July 2026. No Zammad updates are coming: fixes go straight into
+Zammad's files. The project rules are in `CLAUDE.md` at the repository root; this file says how the code is laid out
+and how to run things. It is also read as `AGENTS.md`, `.claude/CLAUDE.md` and `.github/copilot-instructions.md`.
 
-This file provides guidance on how to work with code in the Zammad repository.
+## Stack
 
-## Project Overview
-
-Zammad is an open-source helpdesk/support platform. The backend is **Ruby on Rails**.
-There are two frontend stacks: the **current production frontend** is CoffeeScript
-(served via the Rails asset pipeline), and the **new frontend** is **Vue 3 + TypeScript**
-served via **Vite** (managed by pnpm), which is being built alongside it. **PostgreSQL** is
-used for persistence, **Redis** for ActionCable/GraphQL subscriptions, and **GraphQL** is the
-API layer between the new Vue apps and the backend.
-
-## Architecture
+- **Backend:** Ruby on Rails with PostgreSQL, Redis (live updates over ActionCable and GraphQL subscriptions) and
+  Elasticsearch (search, Reporting).
+- **New UI:** Vue 3 + TypeScript, built with Vite and pnpm, served at `/`. Staff and students use it.
+- **Classic UI:** CoffeeScript (Spine + jQuery) at `/app`, still maintained.
+- **API:** GraphQL between the new UI and Rails; REST for the classic UI and for Student Hub's own endpoints
+  (`/api/v1/studenthub/…`).
 
 ```text
-CoffeeScript frontend ──→ REST controllers ──→ Rails backend ──→ PostgreSQL
-                                                    ↑
-Vue 3 frontend (desktop/mobile) ──→ GraphQL API ────┘
+Classic UI (CoffeeScript, /app) ──→ REST controllers ─────────────→ Rails ──→ PostgreSQL
+                                                                      ↑
+New UI (Vue 3, /) ──→ GraphQL API, REST /api/v1/studenthub/… ─────────┘
 ```
 
-New features target the Vue 3 + GraphQL stack.
-The CoffeeScript frontend uses REST controllers.
+## Where things are
 
-## Key Directories (non-standard)
+Student Hub's own code (README → each feature lists its files):
 
-- `app/services/service/` — Service objects encapsulating business logic
-- `app/graphql/gql/` — GraphQL schema, types, mutations, subscriptions
-- `app/policies/` — Authorization policies (Pundit)
-- `app/frontend/apps/desktop/` — Vue 3 desktop app
-- `app/frontend/apps/mobile/` — Vue 3 mobile app
-- `app/frontend/shared/` — Shared Vue components, composables, stores, GraphQL types, form system
-- `app/assets/javascripts/` — CoffeeScript frontend (Spine + jQuery, legacy, still actively maintained)
-- `lib/` — Library code, prefer minimal Rails coupling
+- `lib/studenthub/`: feature logic (ticket approvals, ticket views, request forms, checklists, manager sites, theme)
+- `app/controllers/studenthub_*`, `app/policies/controllers/studenthub_*`, `config/routes/studenthub_*.rb`: REST
+  endpoints and who may call them
+- `app/services/service/studenthub_*/`, `ticket_approval/`, `feedback_collection/`: service objects
+- `config/initializers/studenthub_*.rb`: additions to Zammad's classes (prepends and includes), so those files
+  stay unedited
+- `db/migrate/*studenthub*`: records for seeded systems; new databases get them from `Studenthub::Setup` after
+  `db:seed`
+- `app/frontend/apps/desktop/`: `Studenthub*` components and the `/manage` admin pages
+- `e2e/`: Playwright browser tests, with their own packages
+- `script/studenthub/deploy.sh`: the deploy script for the test and production servers
 
-## General Guidelines
+Zammad's layout:
 
-- All new files must include the Zammad copyright header.
-- Never edit translation files (`i18n/*.po`) directly —
-  translations are managed via translations.zammad.org.
+- `app/services/service/`: service objects with the business logic
+- `app/graphql/gql/`: GraphQL schema, types, mutations, subscriptions
+- `app/policies/`: authorization (Pundit)
+- `app/frontend/apps/desktop/`: the new UI; `app/frontend/shared/`: shared components, composables, stores,
+  GraphQL types, the form system; `app/frontend/apps/mobile/`: the mobile app (Student Hub doesn't use it)
+- `app/assets/javascripts/`: the classic UI
+- `lib/`: library code, with as little Rails coupling as possible
 
-## Essential Commands
+## Commands
 
-### Backend
+Use pnpm for everything on the frontend.
 
 ```bash
-RAILS_ENV=test VITE_TEST_MODE=1 bundle exec rspec spec/path/to/file_spec.rb  # Run specific RSpec test
-bundle exec rubocop --autocorrect app/path/to/file.rb                        # Lint specific Ruby file(s)
+bin/dev                                                                     # start the dev app (Rails, Vite, workers)
+RAILS_ENV=test VITE_TEST_MODE=1 bundle exec rspec spec/path/to/file_spec.rb  # backend tests
+bundle exec rubocop app/path/to/file.rb                                     # Ruby lint
+pnpm test app/frontend/path/to/file.spec.ts                                 # frontend tests (Vitest)
+pnpm exec eslint app/frontend/path/to/file.vue                              # lint the files you changed (NOTES → eslint --fix)
+pnpm exec oxfmt app/frontend/path/to/file.vue                               # format
+pnpm lint:ts 2>&1 | grep -c 'error TS'                                      # type check: count the errors (old count: NOTES)
+pnpm generate-graphql-api                                                   # after changing the GraphQL schema
+pnpm generate-setting-types                                                 # after changing settings
+cd e2e && pnpm test                                                         # browser tests against the running app
 ```
 
-### Frontend
+## Conventions
 
-Always use pnpm for frontend and cross-stack commands.
+- Never edit the translation files (`i18n/*.po`) by hand.
+- A new setting goes into both its migration and `db/seeds/settings.rb`.
 
-```bash
-pnpm test app/frontend/path/to/file.spec.ts # Run specific Vitest test
-pnpm lint                                   # Run all linters
-pnpm generate-graphql-api                   # Regenerate GraphQL types after schema changes
-pnpm generate-setting-types                 # Regenerate Config types after setting changes
-```
+## Reference docs
 
-## Development Lifecycle
+Before working in one of these areas, read its guide (not all of them upfront):
 
-Issues are tracked on **GitHub**, code is developed on a self-hosted **GitLab**.
-GitHub hosts a read-only mirror. The agent uses the **GitHub MCP server** for
-issues and **`glab` CLI** for GitLab operations.
-
-Lifecycle: Understand → Research → Plan → Branch (`/prepare-issue-branch`) →
-Implement → Test → Commit → Review → MR (`/create-mr`) → Cherry-pick
-(`/cherry-pick-to-stable`)
-
-See `.dev/agent_docs/development_workflow.md` for the full lifecycle and
-workflow rules.
-
-## Agent Reference Docs
-
-You MUST read the relevant file(s) below before responding when working on that area — do NOT read them all upfront:
-
-- `.dev/agent_docs/graphql_patterns.md` — How to add/modify GraphQL types,
-  mutations, queries, and subscriptions
-- `.dev/agent_docs/frontend_patterns.md` — Vue component conventions,
-  composables, routing, and the form system
-- `.dev/agent_docs/frontend_addon_layer.md` — How an addon extends the Vue
-  frontend via the build-time weave (Vapor-safe, multi-addon)
-- `.dev/agent_docs/testing.md` — How to write and run backend and frontend tests
-- `.dev/agent_docs/service_patterns.md` — Service object conventions and structure
-- `.dev/agent_docs/database_migrations.md` — How to write migrations and work
-  with seeds
+- `.dev/agent_docs/graphql_patterns.md`: GraphQL types, mutations, queries and subscriptions
+- `.dev/agent_docs/frontend_patterns.md`: Vue components, composables, routing and the form system
+- `.dev/agent_docs/testing.md`: writing and running backend and frontend tests
+- `.dev/agent_docs/service_patterns.md`: service objects
+- `.dev/agent_docs/database_migrations.md`: migrations and seeds

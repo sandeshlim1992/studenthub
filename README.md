@@ -1129,9 +1129,14 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 
 ## AI assistant configuration in this repo
 
-- `AGENTS.md`, `.claude/CLAUDE.md` and `.github/copilot-instructions.md` are Zammad's own coding guidelines for AI tools.
-- `.claude/settings.json` is Zammad's Claude Code config (permissions plus lint/regenerate
-  hooks).
+- `CLAUDE.md`: the rules for AI agents (approval, new code, tidying a file before changing it, committing, git).
+- `.dev/ai-agent-instructions.md`: the codebase guide (stack, where things are, commands). AI tools read it as
+  `.claude/CLAUDE.md`, `AGENTS.md` and `.github/copilot-instructions.md`.
+- `.dev/agent_docs/`: guides to GraphQL, the frontend, tests, services and migrations, read when a task needs them.
+- `.dev/NOTES.md` (current state), `.dev/DECISIONS.md` (decisions and why) and `.dev/security-review.md` (security
+  findings): read and kept up to date as `CLAUDE.md` says.
+- `.claude/settings.json`: the commands Claude Code may run without asking, and Zammad's lint and regenerate hooks
+  (`.claude/hooks/`), which are to be removed (`.dev/NOTES.md` → In progress).
 
 ---
 

@@ -209,6 +209,8 @@ export default defineConfigWithVueTs(
       'app/frontend/**/*.spec.*',
       'app/frontend/cypress/**',
       '.eslint-plugin-zammad/**',
+      // Student Hub: the Playwright browser tests.
+      'e2e/**',
     ],
     rules: {
       'zammad/zammad-tailwind-ltr': 'off',

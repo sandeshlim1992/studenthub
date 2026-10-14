@@ -1029,7 +1029,7 @@ onMounted(() => {
       <div class="w-full max-w-md rounded-2xl bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-[#1e293b] shadow-2xl p-6 space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-slate-800 dark:text-slate-100">
-            {{ __('Configure %s', providerModal.providerTitle) }}
+            {{ $t('Configure %s', providerModal.providerTitle) }}
           </h3>
           <button
             type="button"

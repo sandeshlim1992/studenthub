@@ -3,6 +3,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -219,7 +221,7 @@ const handleEditTemplate = (tmpl: TemplateItem) => {
 const handleCloneTemplate = (tmpl: TemplateItem) => {
   formState.value = {
     id: null,
-    name: __('%s (Copy)', tmpl.name || __('Template')),
+    name: i18n.t('%s (Copy)', tmpl.name || __('Template')),
     active: tmpl.active !== false,
     actions: parseOptionsToActions(tmpl.options as Record<string, unknown>),
   }
@@ -299,7 +301,7 @@ const saveTemplate = async () => {
 }
 
 const handleDeleteTemplate = async (id: number, name: string) => {
-  if (!confirm(__('Are you sure you want to delete template "%s"?', name))) return
+  if (!confirm(i18n.t('Are you sure you want to delete template "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/templates/${id}`, {
       method: 'DELETE',

@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -557,7 +558,7 @@ const saveAttribute = async () => {
 const deleteAttribute = async (attr: ObjectAttribute) => {
   if (
     !confirm(
-      __(
+      i18n.t(
         'Are you sure you want to delete "%s"? It will be removed from the database once migrations are executed.',
         attr.display,
       ),

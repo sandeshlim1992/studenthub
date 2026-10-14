@@ -4,6 +4,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 
@@ -340,7 +341,7 @@ const handleEditType = (type: ActivityTypeItem) => {
 const handleCloneType = (type: ActivityTypeItem) => {
   typeFormState.value = {
     id: null,
-    name: __('%s (Copy)', type.name || __('Activity Type')),
+    name: i18n.t('%s (Copy)', type.name || __('Activity Type')),
     note: type.note || '',
     active: type.active,
     isDefault: false,

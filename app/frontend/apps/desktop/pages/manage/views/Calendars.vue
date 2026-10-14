@@ -3,6 +3,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -256,7 +258,7 @@ const handleCloneCalendar = (cal: CalendarItem) => {
 
   formState.value = {
     id: null,
-    name: __('%s (Copy)', cal.name || __('Calendar')),
+    name: i18n.t('%s (Copy)', cal.name || __('Calendar')),
     timezone: cal.timezone || 'UTC',
     default: false,
     ical_url: cal.ical_url || '',
@@ -267,7 +269,7 @@ const handleCloneCalendar = (cal: CalendarItem) => {
 }
 
 const handleDeleteCalendar = async (id: number, name: string) => {
-  if (!confirm(__('Are you sure you want to delete calendar "%s"?', name))) return
+  if (!confirm(i18n.t('Are you sure you want to delete calendar "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/calendars/${id}`, {
       method: 'DELETE',

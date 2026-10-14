@@ -163,3 +163,5 @@ Never put passwords, tokens or keys in this file.
   every reply that changes code
 - No `.dev/LOG.md` (14 Oct): commit messages are the record of what was done (`git log`); the old log is in the git
   history
+- "Continue to mobile" stays out of the avatar menu for now (14 Oct): Taxil removed it and Student Hub doesn't use the
+  mobile app (its spec still fails: NOTES → Tests that already fail)

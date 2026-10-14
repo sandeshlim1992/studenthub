@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -216,8 +217,8 @@ const toggleAgentActive = async (agent: AiAgentRecord) => {
       agent.active = nextVal
       showToast(
         nextVal
-          ? __('AI Agent "%s" activated.', agent.name)
-          : __('AI Agent "%s" deactivated.', agent.name),
+          ? i18n.t('AI Agent "%s" activated.', agent.name)
+          : i18n.t('AI Agent "%s" deactivated.', agent.name),
       )
     } else {
       showToast(__('Failed to update agent state.'), true)
@@ -339,7 +340,7 @@ const saveAgent = async () => {
 }
 
 const deleteAgent = async (agent: AiAgentRecord) => {
-  if (!confirm(__('Are you sure you want to delete the AI agent "%s"?', agent.name))) {
+  if (!confirm(i18n.t('Are you sure you want to delete the AI agent "%s"?', agent.name))) {
     return
   }
 
@@ -671,7 +672,7 @@ const deleteAgent = async (agent: AiAgentRecord) => {
                     type="button"
                     class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden"
                     :class="agent.active ? 'bg-teal-600' : 'bg-slate-300 dark:bg-slate-700'"
-                    :aria-label="__('Toggle active state for %s', agent.name)"
+                    :aria-label="$t('Toggle active state for %s', agent.name)"
                     @click="toggleAgentActive(agent)"
                   >
                     <span

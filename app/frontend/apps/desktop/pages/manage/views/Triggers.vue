@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 
@@ -154,7 +155,7 @@ const openDrawer = async (title: string, trig?: TriggerItem, copy = false) => {
   formState.value = trig
     ? {
         id: copy ? null : trig.id,
-        name: copy ? __('%s (Copy)', trig.name || __('Trigger')) : trig.name || '',
+        name: copy ? i18n.t('%s (Copy)', trig.name || __('Trigger')) : trig.name || '',
         activator: trig.activator || 'action',
         execution_condition_mode: trig.execution_condition_mode || 'selective',
         note: htmlToPlainText(trig.note || ''),
@@ -230,7 +231,7 @@ const saveTrigger = async () => {
 }
 
 const handleDeleteTrigger = async (id: number, name: string) => {
-  if (!confirm(__('Are you sure you want to delete trigger "%s"?', name))) return
+  if (!confirm(i18n.t('Are you sure you want to delete trigger "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/triggers/${id}`, {
       method: 'DELETE',

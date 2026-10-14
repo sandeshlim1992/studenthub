@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -332,8 +333,8 @@ const toggleIntegration = async (item: IntegrationItem) => {
       allSettings.value[item.switchSetting] = updated
       showSuccess(
         !current
-          ? __('Enabled %s integration.', item.title)
-          : __('Disabled %s integration.', item.title),
+          ? i18n.t('Enabled %s integration.', item.title)
+          : i18n.t('Disabled %s integration.', item.title),
       )
     } else {
       const err = await res.json()
@@ -849,7 +850,7 @@ onMounted(() => {
               class="h-5 w-5 text-blue-600 dark:text-blue-400"
             />
             <h3 class="text-base font-bold text-slate-800 dark:text-slate-100">
-              {{ __('Configure %s', configModal.item.name) }}
+              {{ $t('Configure %s', configModal.item.name) }}
             </h3>
           </div>
           <button

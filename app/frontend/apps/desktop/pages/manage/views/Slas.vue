@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 
@@ -180,7 +181,7 @@ const openDrawer = async (title: string, sla?: SlaItem, copy = false) => {
   if (sla) {
     formState.value = {
       id: copy ? null : sla.id,
-      name: copy ? __('%s (Copy)', sla.name || __('SLA')) : sla.name || '',
+      name: copy ? i18n.t('%s (Copy)', sla.name || __('SLA')) : sla.name || '',
       calendar_id: sla.calendar_id || null,
       first_response_time: sla.first_response_time || sla.response_time || '',
       update_time: sla.update_time || '',
@@ -286,7 +287,7 @@ const saveSla = async () => {
 }
 
 const handleDeleteSla = async (id: number, name: string) => {
-  if (!confirm(__('Are you sure you want to delete SLA "%s"?', name))) return
+  if (!confirm(i18n.t('Are you sure you want to delete SLA "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/slas/${id}`, {
       method: 'DELETE',

@@ -587,12 +587,12 @@ const submitDeletionTask = async () => {
                     v-if="task.preferences?.ticket_ids && task.preferences.ticket_ids.length > 0"
                   >
                     <span class="font-medium text-slate-800 dark:text-slate-200">
-                      {{ __('%s ticket(s)', task.preferences.ticket_ids.length) }}
+                      {{ $t('%s ticket(s)', task.preferences.ticket_ids.length) }}
                     </span>
                     <button
                       type="button"
                       class="text-xs text-blue-600 hover:underline ltr:ml-2 rtl:mr-2 dark:text-blue-400"
-                      :aria-label="__('Toggle ticket list for task %s', String(task.id))"
+                      :aria-label="$t('Toggle ticket list for task %s', String(task.id))"
                       @click="toggleTaskExpand(task.id)"
                     >
                       {{ expandedTaskIds[task.id] ? __('See less') : __('See more') }}
@@ -702,7 +702,7 @@ const submitDeletionTask = async () => {
                   :key="u.id"
                   type="button"
                   class="w-full rounded-lg px-2.5 py-1.5 text-start transition hover:bg-red-50 hover:text-red-900 dark:hover:bg-red-950/40 dark:hover:text-red-200"
-                  :aria-label="__('Select user %s', u.email || String(u.id))"
+                  :aria-label="$t('Select user %s', u.email || String(u.id))"
                   @click="selectUserForDeletion(u)"
                 >
                   <span class="font-medium text-slate-800 dark:text-slate-200">

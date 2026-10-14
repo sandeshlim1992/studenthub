@@ -4,6 +4,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -140,11 +141,11 @@ const formatRelativeTime = (dateStr: string): string => {
     const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000)
     if (diffSec < 60) return __('just now')
     const diffMin = Math.floor(diffSec / 60)
-    if (diffMin < 60) return __('%s min ago', diffMin)
+    if (diffMin < 60) return i18n.t('%s min ago', diffMin)
     const diffHrs = Math.floor(diffMin / 60)
-    if (diffHrs < 24) return __('%s hr ago', diffHrs)
+    if (diffHrs < 24) return i18n.t('%s hr ago', diffHrs)
     const diffDays = Math.floor(diffHrs / 24)
-    return __('%s day(s) ago', diffDays)
+    return i18n.t('%s day(s) ago', diffDays)
   } catch {
     return dateStr
   }
@@ -464,7 +465,7 @@ const executeTerminateSession = async () => {
                     type="button"
                     class="rounded-lg p-1.5 text-red-500 transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/30 dark:hover:text-red-400"
                     :title="__('Terminate Session')"
-                    :aria-label="__('Terminate session for %s', getUserDisplayName(session))"
+                    :aria-label="$t('Terminate session for %s', getUserDisplayName(session))"
                     @click="confirmTerminateSession(session)"
                   >
                     <CommonIcon name="trash" class="h-4 w-4" />
@@ -499,7 +500,7 @@ const executeTerminateSession = async () => {
               </h3>
               <p class="text-xs text-slate-500 dark:text-slate-400">
                 {{
-                  __(
+                  $t(
                     'The user "%s" will be disconnected immediately and required to sign in again.',
                     getUserDisplayName(terminateModal.session),
                   )

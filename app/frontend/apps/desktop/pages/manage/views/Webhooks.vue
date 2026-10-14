@@ -3,6 +3,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -210,7 +212,7 @@ const saveWebhook = async () => {
 const handleCloneWebhook = (wh: WebhookItem) => {
   formState.value = {
     id: null,
-    name: __('%s (Copy)', wh.name || __('Webhook')),
+    name: i18n.t('%s (Copy)', wh.name || __('Webhook')),
     endpoint: wh.endpoint || '',
     http_method: (wh.http_method || 'post').toLowerCase(),
     ssl_verify: wh.ssl_verify !== false,
@@ -305,12 +307,12 @@ const selectPredefinedWebhook = (pre: PredefinedDefinition) => {
     formState.value.custom_payload = typeof pre.custom_payload === 'string' ? pre.custom_payload : JSON.stringify(pre.custom_payload, null, 2)
   }
   showPredefinedModal.value = false
-  drawerTitle.value = __('%s (Pre-defined)', pre.name)
+  drawerTitle.value = i18n.t('%s (Pre-defined)', pre.name)
   showDrawer.value = true
 }
 
 const handleDeleteWebhook = async (id: number, name: string) => {
-  if (!confirm(__('Are you sure you want to delete webhook "%s"?', name))) return
+  if (!confirm(i18n.t('Are you sure you want to delete webhook "%s"?', name))) return
   try {
     const res = await fetch(`/api/v1/webhooks/${id}`, {
       method: 'DELETE',

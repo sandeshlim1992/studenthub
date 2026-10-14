@@ -711,7 +711,7 @@ const executeDeleteTranslation = async () => {
                       type="button"
                       class="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                       :title="__('Edit')"
-                      :aria-label="__('Edit translation %s', tr.source)"
+                      :aria-label="$t('Edit translation %s', tr.source)"
                       @click="openEditModal(tr)"
                     >
                       <CommonIcon name="pencil" class="h-4 w-4" />
@@ -722,7 +722,7 @@ const executeDeleteTranslation = async () => {
                       type="button"
                       class="rounded-lg p-1.5 text-amber-600 transition-colors hover:bg-amber-50 hover:text-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/30"
                       :title="__('Reset to Original')"
-                      :aria-label="__('Reset translation %s', tr.source)"
+                      :aria-label="$t('Reset translation %s', tr.source)"
                       @click="confirmResetTranslation(tr)"
                     >
                       <CommonIcon name="arrow-clockwise" class="h-4 w-4" />
@@ -733,7 +733,7 @@ const executeDeleteTranslation = async () => {
                       type="button"
                       class="rounded-lg p-1.5 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/30 dark:hover:text-red-400"
                       :title="__('Remove')"
-                      :aria-label="__('Remove translation %s', tr.source)"
+                      :aria-label="$t('Remove translation %s', tr.source)"
                       @click="confirmDeleteTranslation(tr)"
                     >
                       <CommonIcon name="trash" class="h-4 w-4" />
@@ -839,7 +839,7 @@ const executeDeleteTranslation = async () => {
                       ? 'bg-blue-100 font-medium text-blue-900 dark:bg-blue-900/50 dark:text-blue-200'
                       : 'text-slate-700 dark:text-slate-300'
                   "
-                  :aria-label="__('Select suggestion %s', sug.source)"
+                  :aria-label="$t('Select suggestion %s', sug.source)"
                   @click="selectSuggestion(sug)"
                 >
                   <div class="flex items-center justify-between">
@@ -1048,7 +1048,7 @@ const executeDeleteTranslation = async () => {
               </h3>
               <p class="text-xs text-slate-500 dark:text-slate-400">
                 {{
-                  __(
+                  $t(
                     'Are you sure you want to reset "%s" to its original translation ("%s")?',
                     resetModal.item.source,
                     resetModal.item.target_initial || resetModal.item.source,
@@ -1107,7 +1107,7 @@ const executeDeleteTranslation = async () => {
               </h3>
               <p class="text-xs text-slate-500 dark:text-slate-400">
                 {{
-                  __(
+                  $t(
                     'Are you sure you want to remove the custom translation for "%s"?',
                     deleteModal.item.source,
                   )

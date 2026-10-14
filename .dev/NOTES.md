@@ -15,7 +15,7 @@ Never put passwords, tokens or keys in this file.
 
 ## Tests that already fail
 
-- Type check: `pnpm lint:ts` has 115 old errors (14 Oct); count them with `pnpm lint:ts 2>&1 | grep -c 'error TS'`
+- Type check: `pnpm lint:ts` has 40 old errors (14 Oct); count them with `pnpm lint:ts 2>&1 | grep -c 'error TS'`
 - Zammad's SMS driver specs (Twilio, MessageBird, Massenversand: 3 examples) fail in the container: they expect
   errors from the real SMS services
 - Running all of `pages/ticket` and `pages/ticket-overviews` at once, about 15 tests fail under load, nearly all by
@@ -67,8 +67,8 @@ Never put passwords, tokens or keys in this file.
   The test server copy had 50 unread ones from 7 March for staff (removed from the work PC dev DB only)
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
-  - Theme switch and "Continue to mobile" removed; `/manage` messages show "%s"
-    (login-page public links are back since 7 Oct)
+  - Theme switch removed (login-page public links are back since 7 Oct); "Continue to mobile" stays removed for
+    now (14 Oct)
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit; 35 Zammad unit tests fail (all pass on original Zammad)
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
   phone (CTI) log (both unused), Clearbit's field mapping, Scheduler jobs on users or organisations, the fields of a
@@ -202,7 +202,7 @@ Never put passwords, tokens or keys in this file.
       check `/` signed out and in, an old `/desktop/…` link, a `/#ticket/zoom/<id>` email link, Microsoft sign-in, a
       password-reset email, `/app` and a phone
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
-- [ ] Decide which review findings to fix (the `/manage` saves are fixed, 13 Oct)
+- [ ] Decide on the theme switch Taxil removed (review findings: `/manage` saves fixed 13 Oct, "%s" messages 14 Oct)
 - [ ] Remaining Snyk Open Source findings (JavaScript): qs (direct; 6.16.0 fixes), and ws, nanoid, tmp, esbuild,
       postcss, brace-expansion through other packages (a refresh within their ranges, or overrides in
       `pnpm-workspace.yaml`)

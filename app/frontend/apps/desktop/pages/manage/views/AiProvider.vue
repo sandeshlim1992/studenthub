@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -226,7 +227,7 @@ const fetchSettings = async () => {
 const saveSettingRecord = async (name: string, value: unknown): Promise<boolean> => {
   const setting = allSettings.value[name]
   if (!setting) {
-    showToast(__('Setting "%s" not found.', name), true)
+    showToast(i18n.t('Setting "%s" not found.', name), true)
     return false
   }
 
@@ -243,7 +244,7 @@ const saveSettingRecord = async (name: string, value: unknown): Promise<boolean>
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      showToast(err.message || __('Failed to update setting "%s".', name), true)
+      showToast(err.message || i18n.t('Failed to update setting "%s".', name), true)
       return false
     }
 
@@ -251,7 +252,7 @@ const saveSettingRecord = async (name: string, value: unknown): Promise<boolean>
     allSettings.value[name] = updated
     return true
   } catch {
-    showToast(__('An error occurred while saving "%s".', name), true)
+    showToast(i18n.t('An error occurred while saving "%s".', name), true)
     return false
   }
 }

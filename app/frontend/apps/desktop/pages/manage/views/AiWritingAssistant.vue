@@ -4,6 +4,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -200,7 +201,9 @@ const toggleToolActive = async (tool: AiTextTool) => {
     if (res.ok) {
       tool.active = nextVal
       showToast(
-        nextVal ? __('Tool "%s" activated.', tool.name) : __('Tool "%s" deactivated.', tool.name),
+        nextVal
+          ? i18n.t('Tool "%s" activated.', tool.name)
+          : i18n.t('Tool "%s" deactivated.', tool.name),
       )
     } else {
       showToast(__('Failed to update tool state.'), true)
@@ -291,7 +294,9 @@ const saveTool = async () => {
 }
 
 const deleteTool = async (tool: AiTextTool) => {
-  if (!confirm(__('Are you sure you want to delete the writing assistant tool "%s"?', tool.name))) {
+  if (
+    !confirm(i18n.t('Are you sure you want to delete the writing assistant tool "%s"?', tool.name))
+  ) {
     return
   }
 
@@ -355,7 +360,7 @@ const downloadFeedbackReport = async (tool: AiTextTool) => {
 }
 
 const resetFeedbackTimestamp = async (tool: AiTextTool) => {
-  if (!confirm(__('Are you sure you want to reset feedback statistics for "%s"?', tool.name))) {
+  if (!confirm(i18n.t('Are you sure you want to reset feedback statistics for "%s"?', tool.name))) {
     return
   }
 
@@ -699,7 +704,7 @@ const resetFeedbackTimestamp = async (tool: AiTextTool) => {
                     type="button"
                     class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden"
                     :class="tool.active ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'"
-                    :aria-label="__('Toggle active state for %s', tool.name)"
+                    :aria-label="$t('Toggle active state for %s', tool.name)"
                     @click="toggleToolActive(tool)"
                   >
                     <span

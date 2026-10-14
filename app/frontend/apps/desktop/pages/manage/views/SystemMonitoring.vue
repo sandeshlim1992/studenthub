@@ -384,7 +384,7 @@ const executeRestartFailedJobs = async () => {
             class="mt-6 rounded-xl border border-red-200 bg-white p-4 shadow-2xs dark:border-red-900/60 dark:bg-slate-900"
           >
             <h3 class="text-xs font-bold tracking-wider text-red-800 uppercase dark:text-red-400">
-              {{ __('Active Issues (%s)', healthData.issues.length) }}
+              {{ $t('Active Issues (%s)', healthData.issues.length) }}
             </h3>
             <ul class="mt-2 divide-y divide-slate-100 dark:divide-slate-800">
               <li

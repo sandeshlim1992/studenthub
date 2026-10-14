@@ -165,3 +165,5 @@ Never put passwords, tokens or keys in this file.
   history
 - "Continue to mobile" stays out of the avatar menu for now (14 Oct): Taxil removed it and Student Hub doesn't use the
   mobile app (its spec still fails: NOTES → Tests that already fail)
+- Message actions "Set to internal" / "Set to public" show the message's current state (14 Oct): an open lock while it
+  is public, a closed lock while it is internal (Zammad shows the state the action sets)

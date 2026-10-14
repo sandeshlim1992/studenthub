@@ -28,7 +28,9 @@ const actionPlugin: TicketArticleActionPlugin = {
 
     const label = targetInternalState ? __('Set to internal') : __('Set to public')
 
-    const iconName = targetInternalState ? 'lock' : 'lock-open'
+    // Student Hub: the icon shows the message's current state (open lock while public), not the
+    // state the action sets.
+    const iconName = targetInternalState ? 'lock-open' : 'lock'
 
     const action: TicketArticleAction = {
       apps: ['mobile', 'desktop'],

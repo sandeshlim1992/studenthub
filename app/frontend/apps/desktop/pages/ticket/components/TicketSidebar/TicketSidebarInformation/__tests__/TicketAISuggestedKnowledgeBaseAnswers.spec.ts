@@ -63,9 +63,10 @@ describe('TicketAISuggestedKnowledgeBaseAnswers', () => {
     expect(await wrapper.findByText('Reset your password')).toBeInTheDocument()
     expect(wrapper.getByText('Update billing')).toBeInTheDocument()
 
+    // Student Hub: the new UI's Knowledge Base page, not the classic UI's #knowledge_base/….
     expect(wrapper.getByText('Reset your password').closest('a')).toHaveAttribute(
       'href',
-      expect.stringContaining('#knowledge_base/1/locale/en-us/answer/1'),
+      expect.stringContaining('/knowledge-base/answer/1'),
     )
   })
 

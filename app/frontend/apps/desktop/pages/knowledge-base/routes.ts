@@ -4,7 +4,7 @@ import { ErrorRouteType, redirectErrorRoute } from '#shared/router/error.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 import { ErrorStatusCodes } from '#shared/types/error.ts'
 
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteLocation, RouteRecordRaw } from 'vue-router'
 
 // Student Hub: the Knowledge Base for staff (read, write and edit answers and categories), moved
 // from the classic UI. One page; the path says what it shows:
@@ -13,7 +13,22 @@ import type { RouteRecordRaw } from 'vue-router'
 //   /knowledge-base/category/5/new       a new answer in that category
 //   /knowledge-base/answer/7             an answer
 //   /knowledge-base/answer/7/edit        editing it
+// The classic UI's addresses (#knowledge_base/1/locale/en-us/answer/7/edit and the like, in the help
+// center's edit links and the activity stream) lead to the same page.
+const classicPath = (to: RouteLocation) => {
+  const { kind, id, mode } = to.params
+  if (!kind || !id) return '/knowledge-base'
+
+  return kind === 'answer' && mode
+    ? `/knowledge-base/answer/${id}/edit`
+    : `/knowledge-base/${kind}/${id}`
+}
+
 const routes: RouteRecordRaw[] = [
+  {
+    path: '/knowledge_base/:knowledgeBaseId(\\d+)/locale/:locale/:kind(category|answer)?/:id(\\d+)?/:mode(edit)?',
+    redirect: classicPath,
+  },
   {
     path: '/knowledge-base/:kind(category|answer)?/:id(\\d+)?/:mode(edit|new)?',
     name: 'StudenthubKnowledgeBase',

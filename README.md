@@ -410,7 +410,14 @@ The new UI is the main view: it is served at the home address (`/`) and at its o
 - `/desktop/…` (bookmarks, emails sent before the move) is sent to the same page without `/desktop` (302, so an undo
   isn't stuck in browsers' caches).
 - `/#ticket/zoom/123` (Zammad's notification emails, the classic UI's links) opens `/ticket/zoom/123`: the new UI turns
-  `#…` addresses into its own.
+  `#…` addresses into its own once someone is signed in. Old Knowledge Base addresses
+  (`#knowledge_base/1/locale/en-us/answer/7/edit`, in the help centre's edit links and the activity stream) lead to the
+  Knowledge Base page, and `#system/data_privacy/12` to Data Privacy with a new deletion task for that user (also
+  where Delete on a user's page goes).
+- Sign-in emails link to the new UI's pages: the invitation (`/reset-password/verify/<token>`, as the password reset),
+  signup (`/signup/verify/<token>`) and the admin sign-in link (`/login?token=…`), also when sent by the classic UI's
+  forms (Zammad's older services). Signed-out visitors aren't sent through the `#…` translation, so these emails must
+  not use classic addresses (`spec/requests/studenthub_email_links_spec.rb` checks every mail template).
 - The classic UI stays at **`/app`** (and `/init`) for the few pages only it has (see Moved from the classic UI); the new
   UI's "back to the old UI" switch goes there, and a Microsoft sign-in started there returns there.
 - Addresses under the server's own paths (`/api`, `/assets`, `/auth`, `/mobile`, `/help`…) that don't exist stay a 404;

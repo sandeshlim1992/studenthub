@@ -1,8 +1,8 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 import type { User } from '#shared/graphql/types.ts'
+import { getCurrentRouter } from '#shared/router/router.ts'
 
-import { initializeBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import type { DetailViewActionPlugin } from '#desktop/types/actions.ts'
 
 export default <DetailViewActionPlugin>{
@@ -14,16 +14,9 @@ export default <DetailViewActionPlugin>{
   onClick: (user?: User) => {
     if (!user) return
 
-    const { switchValue, clearSwitchAndRedirect } = initializeBetaUi()
-
-    const url = `/#system/data_privacy/${user.internalId}`
-
-    if (!switchValue.value) {
-      window.location.href = url
-      return
-    }
-
-    // Make sure to clear the beta switch flag, so the admin does not end up in redirect loop.
-    clearSwitchAndRedirect(url)
+    // Student Hub: the new UI's Data Privacy page opens a new deletion task for this user. The classic
+    // UI's #system/data_privacy/… opened the new UI's home page, which is served at / (Studenthub::NewUiAtRoot).
+    // The action menu passes no router, so the app's own is used.
+    getCurrentRouter()?.push(`/manage/system/data_privacy/${user.internalId}`)
   },
 }

@@ -7,8 +7,10 @@ class Service::User::PasswordReset::Deprecated::Send < Service::User::PasswordRe
   def initialize(username:)
     super
 
+    # Student Hub: the new UI's address, as in the service this one extends; the classic UI's
+    # #password_reset_verify/… opened the new UI's home page, which is served at / (Studenthub::NewUiAtRoot)
     @path = {
-      reset: '#password_reset_verify/'
+      reset: 'reset-password/verify/'
     }
   end
 end

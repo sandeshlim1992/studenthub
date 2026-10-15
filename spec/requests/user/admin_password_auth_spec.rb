@@ -42,7 +42,8 @@ RSpec.describe 'User endpoint', authenticated_as: false, type: :request do
 
           post api_v1_users_admin_password_auth_path, params: { username: user.email }
 
-          expect(message).to include "<a href=\"http://zammad.example.com/#login/admin/#{Token.last.token}\">"
+          # Student Hub: the new UI's address (Service::Auth::Deprecated::SendAdminToken)
+          expect(message).to include "<a href=\"http://zammad.example.com/login?token=#{Token.last.token}\">"
         end
       end
     end

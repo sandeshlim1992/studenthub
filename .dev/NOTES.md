@@ -35,6 +35,9 @@ Never put passwords, tokens or keys in this file.
   type fixes: appearance (3), language (2), BETA UI feedback program (5), token access (1), avatar a11y (1) and
   two-factor authentication (16). Run with many other specs, a few more time out (e.g. `StudenthubScheduler` "says
   what is missing", `ticket-create-user` "does not allow agent to toggle customer role"); they pass on their own
+- `user-detail-view-create-new-ticket.spec.ts` (1) times out waiting for the New ticket form's updater, also on its own
+  and without that day's changes (15 Oct). Several other `pages/user` specs time out at 5 s when the whole folder runs
+  and pass on their own
 - Vitest's module cache (`node_modules/.experimental-vitest-cache`) keeps old `import.meta.glob` results: after adding a
   page (`routes.ts`) or a plugin, tests still see the old list (e.g. the rail without KB, Members, Reporting). Delete the
   folder; it is rebuilt
@@ -91,10 +94,6 @@ Never put passwords, tokens or keys in this file.
     that already fail
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
   phone (CTI) log (both unused) and Clearbit's field mapping (README → Moved from the classic UI lists what moved)
-- Links to classic `#…` addresses land on the new UI's home page since it took over `/` (from reading the code, 15 Oct;
-  not checked in a browser): the user invitation email's "set your password" link (`/#password_reset_verify/<token>`
-  in `app/views/mailer/user_invite/*`), Delete on a user's page (`/#system/data_privacy/<id>`) and the AI-suggested
-  Knowledge Base answers (`/#knowledge_base/…`); the new UI has no page or alias for them
 - Home PC: the devcontainer runs the repo from `C:\dev` (9p mount), not `~/studenthub` → file reads ~150× slower
   than the Linux disk, classic UI pages take 20–60 s, Vite and Rails miss file changes (restart `bin/dev` after
   edits). The first page load after a restart takes minutes and the app may show "Loading failed" meanwhile
@@ -210,12 +209,16 @@ Never put passwords, tokens or keys in this file.
   hours, "has reached" for time-event triggers, regular expressions) and every field of a template (message text,
   CC, select fields, how the ticket comes in). Tested with Vitest and request specs (a user job switching off old
   customers, a privacy-task job, an organisation job); not yet checked in a browser
+- Links to classic `#…` addresses (15 Oct): sign-in emails (invitation, signup, admin sign-in, also from the classic
+  forms) link to the new UI's pages; Delete on a user's page opens Data Privacy with a new deletion task for them; the
+  AI-suggested and older Knowledge Base links open the Knowledge Base page. Tested with request specs and Vitest; not
+  yet checked in a browser (an invitation sent from `/manage/users` is the one to try)
 
 ## Next steps
 
 - [ ] Remove the classic UI (plan of 15 Oct): tag `before-classic-ui-removal` and list the files in
-      `.dev/classic-ui-removal.md`; fix the links to classic `#…` addresses (Known issues); switch `/app` and `/init`
-      off (redirect to `/`) on the test server, then production, and watch for `/app` requests; then delete the
+      `.dev/classic-ui-removal.md`; switch `/app` and `/init` off (redirect to `/`; also the BETA switch and the sign-in
+      return to `/app`) on the test server, then production, and watch for `/app` requests; then delete the
       classic app, its QUnit pages and system specs, the classic sidebars, the BETA switch and the CoffeeScript
       build. Keep the public help centre (`/help`), `public/assets` images, sounds and fonts, the web form and chat
       widgets if a website embeds them, the REST API and the mail templates

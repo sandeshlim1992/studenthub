@@ -180,3 +180,17 @@ editors, the Scheduler, Triggers and Templates pages, their specs. Records are s
 | Regular-expression conditions | The setting `ticket_conditions_allow_regular_expression_operators` is checked by the UI only | Accepted | Zammad's own design: the server never checks it (no Ruby code reads the setting), the classic UI hid the operators the same way; only trigger admins can save conditions | — |
 | User and organisation match counts | `/api/v1/users/selector` and `/organizations/selector` count records | No problem | Zammad's `SelectorsController`, `admin.*` only, unchanged | — |
 | Template message text in the rich-text editor | Stored HTML shown in an editor | No problem | Shown only inside Zammad's editor field (as in the Knowledge Base page); the template list shows field names, not the HTML; texts elsewhere are interpolated, never `v-html` | — |
+
+## Links to classic addresses (15 Oct)
+
+`git diff HEAD`: mail templates (the invitation and four translations), Zammad's older email services
+(`Service::User::PasswordReset::Deprecated::Send`, `Service::Auth::Deprecated::SendAdminToken`,
+`Service::User::Deprecated::Signup`), the Delete action on a user's page, the Data Privacy page and route, the
+AI-suggested Knowledge Base answers, a redirect for old Knowledge Base addresses, specs.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Email links built from settings | Could a link point elsewhere? | No problem | Unchanged way of building: `http_type`, `fqdn` and the token, as Zammad's current services do; only the path after the host changed. The tokens, their one-day validity and the pages that check them are Zammad's, unchanged | — |
+| Old `#…` sign-in addresses no longer sent | A signed-out visitor never reached a working page | Fixed | Invitations, signup and admin sign-in emails now open pages that work without signing in | — |
+| `/manage/system/data_privacy/<userId>` | The page loads a user by id from the address | No problem | Admin page (`admin.data_privacy` or another admin permission, as before); the user is read with `GET /api/v1/users/<id>` (Zammad's own permission check) and only preselected: the deletion still needs "DELETE" typed and Zammad's `DataPrivacyTask` checks. `userId` must be digits (route pattern) | — |
+| Redirect for `/knowledge_base/…` | Open redirect? | No problem | The target is always `/knowledge-base/…` on this site; the parameters must be `category`/`answer`, digits and `edit` (route pattern) | — |

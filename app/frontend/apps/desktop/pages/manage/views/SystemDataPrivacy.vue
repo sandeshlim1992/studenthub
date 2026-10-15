@@ -1,12 +1,13 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface UserAsset {
   id: number
@@ -42,6 +43,7 @@ interface TaskByStateResponse {
   }
 }
 
+const route = useRoute()
 const router = useRouter()
 
 const breadcrumbItems = [
@@ -277,6 +279,27 @@ const selectUserForDeletion = async (user: UserAsset) => {
     newModal.value.isAssessingImpact = false
   }
 }
+
+// Student Hub: /manage/system/data_privacy/12 (Delete on a user's page) opens a new deletion task for
+// that user. The address then drops the user, so the same user can be chosen again from their page.
+const openNewTaskFor = async (userId: string) => {
+  try {
+    const user = await studenthubApi<UserAsset>(`/api/v1/users/${userId}`)
+    openNewTaskModal()
+    await selectUserForDeletion(user)
+  } catch (error) {
+    errorMessage.value = (error as Error).message
+  }
+  await router.replace({ name: 'ManageSystemDataPrivacy' })
+}
+
+watch(
+  () => route.params.userId,
+  (userId) => {
+    if (userId) void openNewTaskFor(String(userId))
+  },
+  { immediate: true },
+)
 
 const submitDeletionTask = async () => {
   const { selectedUser, confirmationText } = newModal.value

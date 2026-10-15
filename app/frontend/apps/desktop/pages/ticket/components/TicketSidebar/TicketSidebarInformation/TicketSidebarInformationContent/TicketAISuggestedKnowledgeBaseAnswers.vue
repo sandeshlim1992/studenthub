@@ -101,12 +101,10 @@ const retrySearch = () => {
   refetch()
 }
 
-const answerLink = (translation: RelatedAnswer['translation']) => {
-  const knowledgeBaseId = getIdFromGraphQLId(translation.answer.category.knowledgeBase.id)
-  const { locale } = translation.kbLocale.systemLocale
-  const answerId = getIdFromGraphQLId(translation.answer.id)
-  return `/#knowledge_base/${knowledgeBaseId}/locale/${locale}/answer/${answerId}`
-}
+// Student Hub: the new UI's Knowledge Base page. The classic UI's #knowledge_base/… opened the new UI's
+// home page, which is served at / (Studenthub::NewUiAtRoot).
+const answerLink = (translation: RelatedAnswer['translation']) =>
+  `/knowledge-base/answer/${getIdFromGraphQLId(translation.answer.id)}`
 </script>
 
 <template>

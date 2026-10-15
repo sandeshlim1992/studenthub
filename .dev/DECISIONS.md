@@ -190,3 +190,8 @@ Never put passwords, tokens or keys in this file.
   object manager (`attributes` of the automation options endpoint), with operators by field type as the classic
   editor does, so new fields need no code. The Templates editor uses the same action editor; what it doesn't know is
   kept as a "kept as it is" row (the separate kept-settings list is gone)
+- Links to the classic UI's `#…` addresses (15 Oct): emails are fixed at the source (mail templates and Zammad's older
+  services send new-UI addresses), not with aliases, because the new UI's `#…` translation runs only for signed-in
+  pages and the sign-in check sends everyone else to the login page first. Invitation and reset tokens expire after a
+  day, so links already sent need nothing. In-app links go to the new pages directly; old Knowledge Base and Data
+  Privacy addresses get a redirect or alias for links stored elsewhere (help centre, activity stream, bookmarks)

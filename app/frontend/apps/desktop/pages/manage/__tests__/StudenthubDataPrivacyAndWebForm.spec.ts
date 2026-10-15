@@ -17,9 +17,20 @@ const mockServer = (routes: Record<string, unknown>) => {
   return fetchMock
 }
 
+// The test router is made once per file, with the routes of the first render.
+const routes = [
+  { path: '/', name: 'Home', component: { template: '<div />' } },
+  {
+    path: '/manage/system/data_privacy/:userId(\\d+)?',
+    name: 'ManageSystemDataPrivacy',
+    component: { template: '<div />' },
+  },
+]
+
 const render = (component: unknown) =>
   renderComponent(component, {
     router: true,
+    routerRoutes: routes,
     store: true,
     global: { stubs: { LayoutContent: { template: '<div><slot /></div>' } } },
   })
@@ -46,6 +57,27 @@ it('Data Privacy finds the user typed into the search', async () => {
   expect(fetchMock).toHaveBeenCalledWith(
     '/api/v1/users/search?query=nic&limit=10',
     expect.anything(),
+  )
+})
+
+it('Data Privacy opens a new deletion task for the user chosen on their page', async () => {
+  mockServer({
+    '/api/v1/data_privacy_tasks/by_state': { record_ids: {}, assets: {} },
+    '/api/v1/users/5': {
+      id: 5,
+      firstname: 'Nicole',
+      lastname: 'Braun',
+      email: 'nicole@example.com',
+    },
+    '/api/v1/tickets/selector': { object_count: 3 },
+  })
+
+  const view = render(SystemDataPrivacy)
+  await view.router.push('/manage/system/data_privacy/5')
+
+  expect(await view.findByText('nicole@example.com')).toBeInTheDocument()
+  await vi.waitFor(() =>
+    expect(view.router.currentRoute.value.path).toBe('/manage/system/data_privacy'),
   )
 })
 

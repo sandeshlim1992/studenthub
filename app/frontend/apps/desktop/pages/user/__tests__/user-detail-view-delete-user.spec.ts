@@ -2,6 +2,7 @@
 
 import { within } from '@testing-library/vue'
 
+import { getTestRouter } from '#tests/support/components/renderComponent.ts'
 import { visitView } from '#tests/support/components/visitView.ts'
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
 
@@ -79,8 +80,11 @@ describe('User detail view: Delete user', () => {
 
     const popover = await view.findByRole('region', { name: 'Additional actions' })
 
+    // Student Hub: the new UI's Data Privacy page, not the classic UI's #system/data_privacy/2.
+    const push = vi.spyOn(getTestRouter(), 'push')
+
     await view.events.click(within(popover).getByRole('button', { name: 'Delete' }))
 
-    expect(window.location.href).toBe('/#system/data_privacy/2')
+    expect(push).toHaveBeenCalledWith('/manage/system/data_privacy/2')
   })
 })

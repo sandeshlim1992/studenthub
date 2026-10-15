@@ -680,9 +680,10 @@ const route: RouteRecordRaw[] = [
       pageKey: 'manage-system-maintenance',
     },
   },
+  // Student Hub: with a user (Delete on a user's page), it opens a new deletion task for them.
   {
-    path: '/manage/system/data_privacy',
-    alias: ['/system/data_privacy'],
+    path: '/manage/system/data_privacy/:userId(\\d+)?',
+    alias: ['/system/data_privacy/:userId(\\d+)?'],
     name: 'ManageSystemDataPrivacy',
     component: () => import('./views/SystemDataPrivacy.vue'),
     meta: {

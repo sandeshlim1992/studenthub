@@ -179,3 +179,6 @@ Never put passwords, tokens or keys in this file.
   not with overrides (15 Oct): an override pins a version for good and is easily forgotten, so overrides stay for
   what a range can't do (the editor's one copy of each package in `pnpm-workspace.yaml`). Not `pnpm audit --fix`,
   which writes an override per advisory. Dependabot proposes security fixes only, no routine version bumps
+- Rails 8.1 (15 Oct), as Rails 8.0's security support ended on 7 Oct 2026. `config.load_defaults` stays 8.0 until
+  8.1's new framework defaults have been checked one by one. `benchmark` is in the Gemfile because Zammad's
+  `delayed_job` fork needs it and Rails 8.1 no longer brings it in

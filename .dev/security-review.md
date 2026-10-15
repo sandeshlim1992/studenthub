@@ -156,3 +156,12 @@ table editing and the `@@` mention list work. It also found:
 |---|---|---|---|---|
 | `app/frontend/shared/utils/htmlCleanup.ts` | Pasted HTML ran its scripts (the open row above) | Fixed | It now parses in a document without a window (`createHTMLDocument`), where nothing loads or runs, and builds the paragraphs it makes from line breaks there too. Same clean-up and output: Zammad's 19 `htmlCleanup` specs and the editor specs pass. `studenthubHtmlCleanup.spec.ts` and the browser test "Pasting into a reply" (`agent-journey.spec.ts`) fail on the old code | the commit that added this section |
 | `app/assets/javascripts/app/lib/app_post/utils.coffee` (classic UI at `/app`, `App.Utils.htmlCleanup` → `_checkTypeOf`) | The same in the classic UI: pasted HTML is parsed with jQuery's `$(html)` in the live page, and a browser check (15 Oct) saw the pasted `<img onerror>` run | Open | Agents can still reply at `/app`. Fix: give jQuery an inert document to parse in; to report to Zammad with the other | — |
+
+## Rails 8.1 (15 Oct)
+
+`git diff HEAD`: `Gemfile` and `Gemfile.lock` only. All new versions come from rubygems.org; the gems from git
+(`delayed_job`, `delayed_job_active_record`, `autodiscover`) are unchanged.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Brakeman: "Support for Rails 8.0.5.1 ended on 2026-10-07" | No more security fixes for Rails 8.0 | Fixed: Rails 8.1.4 | Brakeman finds nothing on 8.1.4. 15 shared gems moved with it (e.g. `net-imap` 0.6.8, `rack` 3.2.7). The full backend suite shows no failure caused by the update (NOTES → Tests that already fail), the browser tests pass, and the production asset build works | the commit that added this section |

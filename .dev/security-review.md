@@ -194,3 +194,12 @@ AI-suggested Knowledge Base answers, a redirect for old Knowledge Base addresses
 | Old `#…` sign-in addresses no longer sent | A signed-out visitor never reached a working page | Fixed | Invitations, signup and admin sign-in emails now open pages that work without signing in | — |
 | `/manage/system/data_privacy/<userId>` | The page loads a user by id from the address | No problem | Admin page (`admin.data_privacy` or another admin permission, as before); the user is read with `GET /api/v1/users/<id>` (Zammad's own permission check) and only preselected: the deletion still needs "DELETE" typed and Zammad's `DataPrivacyTask` checks. `userId` must be digits (route pattern) | — |
 | Redirect for `/knowledge_base/…` | Open redirect? | No problem | The target is always `/knowledge-base/…` on this site; the parameters must be `category`/`answer`, digits and `edit` (route pattern) | — |
+
+## Classic UI switched off (15 Oct)
+
+`git diff HEAD`: `config/routes.rb` (`/app`, `/init` → 302 to `/`), its request spec, docs.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| New redirects | Open redirect? | No problem | Fixed target `/`; nothing from the request goes into it | — |
+| Classic UI no longer served | Its known pasted-HTML issue (15 Oct) | Out of reach | The classic app isn't served once a server runs this; its code goes in the delete step | — |

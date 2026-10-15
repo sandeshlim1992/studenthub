@@ -4,12 +4,14 @@ Rails.application.routes.draw do
 
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 
-  # app init
-  match '/init', to: 'init#index', via: :get
-  match '/app',  to: 'init#index', via: :get
+  # Student Hub: the classic UI is switched off (.dev/classic-ui-removal.md): its addresses open the new UI.
+  # Browsers keep the #… part through the redirect, so /app#ticket/zoom/5 opens that ticket. A 302, so an undo
+  # isn't stuck in browsers' caches.
+  match '/init', to: redirect('/', status: 302), via: :get
+  match '/app',  to: redirect('/', status: 302), via: :get
 
   # just remember to delete public/index.html.
-  # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot); the classic UI stays at /app
+  # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot)
   root to: 'desktop#index', via: :get
   root to: 'errors#routing', via: %i[post put delete options], as: nil
 

@@ -232,7 +232,6 @@ bin/dev                                              # starts Rails, Vite, webso
 |---|---|
 | `http://localhost:3000/` | New Vue 3 UI (Student Hub portal, dashboard) |
 | `http://localhost:3000/manage` | New Student Hub admin area |
-| `http://localhost:3000/app#dashboard` | Legacy UI with the custom theme |
 
 ### Browser tests (Playwright)
 
@@ -418,8 +417,10 @@ The new UI is the main view: it is served at the home address (`/`) and at its o
   signup (`/signup/verify/<token>`) and the admin sign-in link (`/login?token=…`), also when sent by the classic UI's
   forms (Zammad's older services). Signed-out visitors aren't sent through the `#…` translation, so these emails must
   not use classic addresses (`spec/requests/studenthub_email_links_spec.rb` checks every mail template).
-- The classic UI stays at **`/app`** (and `/init`) for the few pages only it has (see Moved from the classic UI); the new
-  UI's "back to the old UI" switch goes there, and a Microsoft sign-in started there returns there.
+- The classic UI is switched off (15 Oct): **`/app`** and `/init` send people to `/` (302), and browsers keep the `#…`
+  part, so `/app#ticket/zoom/5` opens that ticket in the new UI. Its code is deleted later; how to undo the switch and
+  what the delete removes and keeps: [`.dev/classic-ui-removal.md`](.dev/classic-ui-removal.md) (restore tag
+  `before-classic-ui-off`).
 - Addresses under the server's own paths (`/api`, `/assets`, `/auth`, `/mobile`, `/help`…) that don't exist stay a 404;
   any other unknown address opens the new UI, which says the page doesn't exist.
 - Phones get the new UI too (the classic page that sent them to Zammad's mobile app is no longer the home page).

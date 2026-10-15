@@ -132,8 +132,9 @@ Never put passwords, tokens or keys in this file.
   ("First ticket goes to Unassigned Tickets") did that before; the staff form loads fine with it on (checked 7 Oct),
   so the production step to switch it off needs rethinking
 - Student ticket wizard fails silently when a required field (Group, Sub-Category) is empty
-- Classic UI (`/app`): pasting HTML into a reply runs its scripts (`<img onerror>`): `App.Utils.htmlCleanup` parses it
-  with jQuery's `$(html)` in the live page (security-review.md, 15 Oct). Fixed in the new UI's `htmlCleanup`
+- Classic UI: pasting HTML into a reply runs its scripts (`<img onerror>`): `App.Utils.htmlCleanup` parses it with
+  jQuery's `$(html)` in the live page (security-review.md, 15 Oct). Fixed in the new UI's `htmlCleanup`; out of reach
+  once `/app` is switched off on a server (on `develop` since 15 Oct), gone with the classic UI's code
 
 ## In progress
 
@@ -216,15 +217,12 @@ Never put passwords, tokens or keys in this file.
 
 ## Next steps
 
-- [ ] Remove the classic UI (plan of 15 Oct): tag `before-classic-ui-removal` and list the files in
-      `.dev/classic-ui-removal.md`; switch `/app` and `/init` off (redirect to `/`; also the BETA switch and the sign-in
-      return to `/app`) on the test server, then production, and watch for `/app` requests; then delete the
-      classic app, its QUnit pages and system specs, the classic sidebars, the BETA switch and the CoffeeScript
-      build. Keep the public help centre (`/help`), `public/assets` images, sounds and fonts, the web form and chat
-      widgets if a website embeds them, the REST API and the mail templates
+- [ ] Classic UI switched off on `develop` (15 Oct; `/app`, `/init` → `/`, tag `before-classic-ui-off`): deploy to the
+      test server, check `/app` and an old `/app#ticket/zoom/<id>` link, deploy to production, then watch for a week or
+      two whether anyone still opens `/app`; then delete its code (`.dev/classic-ui-removal.md` → Step 2)
 - [ ] Test server, then production: deploy Rails 8.1 (on `develop` since 15 Oct; no migration, `--rollback` undoes it)
       and check sign-in (Microsoft too), tickets, email fetching and sending (`net-imap` 0.6.8), notifications and live
-      updates, `/app` and reports
+      updates, `/app` sending to `/` and reports
 - [ ] Later: Rails 8.1's new framework defaults one at a time, then `config.load_defaults 8.1`
 - [ ] Test and production servers: the next deploy runs the 20261013120000 migration, which takes `admin.*`
       permissions off customer-only roles; check its output ("Customer: removed …") to see whether students had any.
@@ -235,13 +233,11 @@ Never put passwords, tokens or keys in this file.
 - [ ] New UI at `/`: reinstall the deploy script on the test server (it now follows `/desktop/login` → `/login`) and
       run `script/studenthub/test/deploy_test.sh` there (needs `initdb`, missing in the container); after deploying,
       check `/` signed out and in, an old `/desktop/…` link, a `/#ticket/zoom/<id>` email link, Microsoft sign-in, a
-      password-reset email, `/app` and a phone
+      password-reset email, `/app` sending to `/` and a phone
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
 - [ ] Decide on the theme switch Taxil removed (review findings: `/manage` saves fixed 13 Oct, "%s" messages 14 Oct)
-- [ ] Classic UI: fix pasted HTML running scripts (`_checkTypeOf` in `utils.coffee`: jQuery parses in an inert
-      document). Left for later (15 Oct). Many `App.Utils` text helpers go through `_checkTypeOf`, so run Zammad's
-      classic-UI tests with the fix. Then report both to Zammad (`SECURITY.md`; the new UI's `htmlCleanup` is fixed
-      here since 15 Oct)
+- [ ] Report the pasted-HTML issue of both UIs to Zammad (`SECURITY.md`; the new UI's `htmlCleanup` is fixed here since
+      15 Oct, the classic UI's `_checkTypeOf` in `utils.coffee` isn't, and needs no fix here once the classic UI is gone)
 - [ ] GitHub → Settings → Code security: switch on Dependabot alerts and security updates (`.github/dependabot.yml`
       asks for security fixes only, 15 Oct)
 - [ ] npm advisories in development tools (`pnpm audit` without `--prod`, 15 Oct: 71, 4 critical; none in the app):

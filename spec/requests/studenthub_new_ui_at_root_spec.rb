@@ -24,11 +24,19 @@ RSpec.describe 'Student Hub new UI at /', :aggregate_failures, type: :request do
     expect(controller).to be_a(DesktopController)
   end
 
-  it 'keeps the classic UI at /app' do
+  # The #… part of an old link (/app#ticket/zoom/5) never reaches the server; browsers keep it through the
+  # redirect, and the new UI turns it into its own address.
+  it 'sends the classic UI addresses to the new UI' do
     get '/app'
+    expect(response).to have_http_status(:found)
+    expect(response).to redirect_to('/')
 
-    expect(response).to have_http_status(:ok)
-    expect(controller).to be_a(InitController)
+    get '/init'
+    expect(response).to have_http_status(:found)
+    expect(response).to redirect_to('/')
+
+    get '/app?locale=de-de'
+    expect(response).to redirect_to('/')
   end
 
   it 'sends old /desktop links to the same page without /desktop' do

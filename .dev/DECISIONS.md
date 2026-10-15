@@ -195,3 +195,6 @@ Never put passwords, tokens or keys in this file.
   pages and the sign-in check sends everyone else to the login page first. Invitation and reset tokens expire after a
   day, so links already sent need nothing. In-app links go to the new pages directly; old Knowledge Base and Data
   Privacy addresses get a redirect or alias for links stored elsewhere (help centre, activity stream, bookmarks)
+- Classic UI switched off (15 Oct): `/app` and `/init` redirect to `/` (302, so an undo isn't stuck in caches) before
+  any of its code is deleted, so the switch is one commit to revert (tag `before-classic-ui-off`). The code goes after
+  a week or two without `/app` requests on production; `.dev/classic-ui-removal.md` lists what goes and what stays

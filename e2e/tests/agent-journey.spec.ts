@@ -80,7 +80,7 @@ test.describe('A student ticket handled by an agent on the web', () => {
     for (const item of ['Admin', 'Reports'])
       await expect(rail.getByRole('link', { name: item, exact: true })).toHaveCount(0)
 
-    for (const section of ['Waiting time today', 'Escalations', 'Your workload', 'Activity'])
+    for (const section of ['Waiting time today', 'Escalations', 'Your tickets', 'Activity'])
       await expect(page.getByRole('region', { name: section })).toBeVisible()
     await expect(
       page

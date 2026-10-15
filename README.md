@@ -464,7 +464,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
 - **Dashboard:** in production builds too (`pages/dashboard/routes.ts`; Zammad registers it only in development and
   test mode), first in the navigation. Three dashboards; users with more than one (an admin who is also an agent and a manager
-  has all three) switch between **Team overview**, **My work** and **Approvals** in the navigation panel (above the
+  has all three) switch between **Team overview**, **My overview** and **Approvals** in the navigation panel (above the
   dashboard while the panel is hidden), and the choice is kept in the browser; the top bar shows
   "Dashboard / `<view>`" (`views/Dashboard.vue`, `composables/useStudenthubDashboardViews.ts`,
   `components/StudenthubDashboardSwitch.vue`):

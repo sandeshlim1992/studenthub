@@ -170,7 +170,7 @@ describe('Student Hub dashboards', () => {
         ),
       ).toBeInTheDocument()
 
-      const workload = view.getByRole('region', { name: 'Your workload' })
+      const workload = view.getByRole('region', { name: 'Your tickets' })
       expect(workload).toHaveTextContent('31of 142 open')
       expect(within(workload).getByRole('img')).toHaveAccessibleName(
         'Email 124, Phone 58, Web / Portal 32',

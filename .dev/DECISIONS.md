@@ -171,3 +171,7 @@ Never put passwords, tokens or keys in this file.
   (235 places, the same colour today): a change to `stone-500` in the theme now recolours them with the rest of the app
 - No "New desktop BETA UI … not ready for production use" pop-up after signing in (14 Oct): the new UI is the main
   one at `/` (`AppDesktop.vue` no longer calls Zammad's `useBetaUiDisclaimer`; the composable and its spec stay)
+- The agents' dashboard is called "My overview" (15 Oct, was "My work"): it pairs with Team overview and shows
+  figures about the agent's tickets rather than a to-do list
+- My overview's "Your workload" card is called "Your tickets" (15 Oct): it shows the agent's assigned tickets, how
+  many are in process and how they came in, not only how busy they are

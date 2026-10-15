@@ -70,7 +70,7 @@ describe('Dashboard', () => {
     const switcher = await view.findByRole('group', { name: 'Dashboard view' })
     expect(
       Array.from(switcher.querySelectorAll('button')).map((button) => button.textContent?.trim()),
-    ).toEqual(['Team overview', 'My work', 'Approvals'])
+    ).toEqual(['Team overview', 'My overview', 'Approvals'])
     expect(view.getByRole('button', { name: 'Team overview' })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -83,7 +83,7 @@ describe('Dashboard', () => {
     expect(view.getByRole('button', { name: 'Approvals' })).toHaveAttribute('aria-pressed', 'true')
     expect(localStorage.getItem('studenthub-dashboard-view')).toBe('approvals')
 
-    await view.events.click(view.getByRole('button', { name: 'My work' }))
+    await view.events.click(view.getByRole('button', { name: 'My overview' }))
 
     expect(await view.findByText('Briefing dashboard')).toBeInTheDocument()
   })
@@ -109,11 +109,11 @@ describe('Dashboard', () => {
       { label: 'Team overview' },
     ])
 
-    await view.events.click(view.getByRole('button', { name: 'My work' }))
+    await view.events.click(view.getByRole('button', { name: 'My overview' }))
 
     expect(crumbs.value).toEqual([
       { label: 'Dashboard', route: '/dashboard' },
-      { label: 'My work' },
+      { label: 'My overview' },
     ])
   })
 
@@ -125,7 +125,7 @@ describe('Dashboard', () => {
     const switcher = await view.findByRole('group', { name: 'Dashboard view' })
     expect(
       Array.from(switcher.querySelectorAll('button')).map((button) => button.textContent?.trim()),
-    ).toEqual(['My work', 'Approvals'])
+    ).toEqual(['My overview', 'Approvals'])
     expect(view.getByText('Briefing dashboard')).toBeInTheDocument()
   })
 

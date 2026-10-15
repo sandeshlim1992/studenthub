@@ -446,15 +446,15 @@ describe('navigation design C', () => {
         within(dashboards)
           .getAllByRole('button')
           .map((button) => button.querySelector('.sh-nav-views__name')?.textContent),
-      ).toEqual(['Team overview', 'My work', 'Approvals'])
+      ).toEqual(['Team overview', 'My overview', 'Approvals'])
       expect(within(dashboards).getByRole('button', { name: /Team overview/ })).toHaveAttribute(
         'aria-pressed',
         'true',
       )
 
-      await view.events.click(within(dashboards).getByRole('button', { name: /My work/ }))
+      await view.events.click(within(dashboards).getByRole('button', { name: /My overview/ }))
 
-      expect(within(dashboards).getByRole('button', { name: /My work/ })).toHaveAttribute(
+      expect(within(dashboards).getByRole('button', { name: /My overview/ })).toHaveAttribute(
         'aria-pressed',
         'true',
       )

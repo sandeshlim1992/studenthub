@@ -29,7 +29,8 @@ Never put passwords, tokens or keys in this file.
   object selector conditions"). The migration code it tests is fine; the spec needs fixing
 - The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs);
   Student Hub doesn't use the mobile app. `continue-to-mobile.spec.ts` (2) fails since Taxil removed that menu entry
-- Zammad's drawer specs (`left-sidebar.spec.ts` width handling ×6) fail by design since design C
+- Zammad's drawer specs (`left-sidebar.spec.ts`: width handling ×6, and User menu ×5 since the avatar menu moved to
+  the top bar) fail by design since design C
 - 9 more of Zammad's layout specs fail since the redesign (seen 14 Oct, the same with and without that day's avatar
   menu fix): `LayoutPage` "expands search…", `LayoutPublicPage` "renders title and logo", `LayoutSidebar` "supports
   end position", `LeftSidebarFooterMenu` (2, the avatar) and `LeftSidebarHeader` (4)
@@ -241,7 +242,7 @@ Never put passwords, tokens or keys in this file.
 - [ ] Home PC (and the work PC if it's still on C:): move the repo to the Ubuntu file system
 - [ ] New UI: student portal look still to do; check the Overviews admin page in a browser
 - [ ] Check the manager dashboard in a browser as manager@ with a waiting request (without one: checked 12 Oct, in
-      the same frame as Team overview and My work); decide whether to commit `PRODUCT.md`
+      the same frame as Team overview and My overview); decide whether to commit `PRODUCT.md`
 - [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
 - [ ] Check the navigation (design C) in a browser: rail labels fit, panel on Tickets / ticket screens / Dashboard,
       Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, a 1280 px ticket

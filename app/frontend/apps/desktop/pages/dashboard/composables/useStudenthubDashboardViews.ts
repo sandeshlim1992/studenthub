@@ -10,7 +10,7 @@ import type {
   StudenthubDashboardViewKey,
 } from '#desktop/pages/dashboard/utils/studenthubDashboard.ts'
 
-// Student Hub: which dashboard. Admins get the team overview, agents their briefing ("My work")
+// Student Hub: which dashboard. Admins get the team overview, agents their briefing ("My overview")
 // and managers their approvals; users with more than one switch between them, on the page or in
 // the navigation panel (both use this). Managers without another staff role only get their
 // approvals (their role carries ticket.agent, so the server tells them apart).
@@ -50,7 +50,7 @@ export const useStudenthubDashboardViews = () => {
 
     if (hasPermission('admin')) list.push({ value: 'team', label: __('Team overview') })
     if (hasPermission('ticket.agent') && !isManagerOnly.value)
-      list.push({ value: 'mine', label: __('My work') })
+      list.push({ value: 'mine', label: __('My overview') })
     if (isApprover.value) list.push({ value: 'approvals', label: __('Approvals') })
 
     return list

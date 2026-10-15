@@ -74,7 +74,7 @@
   color: var(--dash-accent);
 }
 
-/* Users with more than one dashboard: Team overview / My work / Approvals. Also shown on the
+/* Users with more than one dashboard: Team overview / My overview / Approvals. Also shown on the
    manager dashboard, outside .sh-dash, hence the fallbacks. */
 .sh-dash-switch {
   display: inline-flex;

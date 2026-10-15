@@ -7,7 +7,7 @@ import type {
 } from '#desktop/pages/dashboard/utils/studenthubDashboard.ts'
 
 // Student Hub: the buttons above the dashboard for users with more than one dashboard
-// (Team overview, My work, Approvals).
+// (Team overview, My overview, Approvals).
 defineProps<{
   views: StudenthubDashboardView[]
 }>()

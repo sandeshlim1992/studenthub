@@ -257,10 +257,10 @@ const scale = (...values: (number | null)[]) =>
     />
 
     <div class="sh-dash-two">
-      <section class="sh-dash-card" :aria-label="$t('Your workload')">
+      <section class="sh-dash-card" :aria-label="$t('Your tickets')">
         <header class="sh-dash-card__head">
           <span class="sh-dash-sq"><CommonIcon name="list-ul" size="xs" decorative /></span>
-          <h2>{{ $t('Your workload') }}</h2>
+          <h2>{{ $t('Your tickets') }}</h2>
           <CommonLink class="sh-dash-card__link" link="/tickets/view/my_assigned" internal>
             {{ $t('View my tickets') }} →
           </CommonLink>

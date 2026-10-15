@@ -24,9 +24,6 @@ Never put passwords, tokens or keys in this file.
   `ticket-detail-view-hint-note` (3) and `ticket-detail-view-live-users` (5), which fail on their own too (13 Oct).
   `studenthub-talk-to-student-support` ("opens the ticket wizard") and `ticket-detail-view-studenthub-queue` fail now
   and then even on their own (timing; seen on 14 Oct on the code before and after the lint tidy)
-- `spec/lib/studenthub/checklist_assignments/webhook_triggers_spec.rb` fails (4 examples, also on its own): it adds
-  the `subcategory` ticket field without its database column, so Zammad refuses the trigger's condition ("Invalid
-  object selector conditions"). The migration code it tests is fine; the spec needs fixing
 - The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs);
   Student Hub doesn't use the mobile app. `continue-to-mobile.spec.ts` (2) fails since Taxil removed that menu entry
 - Zammad's drawer specs (`left-sidebar.spec.ts`: width handling ×6, and User menu ×5 since the avatar menu moved to
@@ -46,10 +43,20 @@ Never put passwords, tokens or keys in this file.
 - 15 of Zammad's 1,382 `spec/graphql` examples fail since Student Hub added ticket fields (e.g. `approval_*`): the
   ticket create (4) and update (7) mutations and the frontend attributes query (2) return the extra fields, and the
   record loader's query counts (2) are higher. Same 15 before and after the 12 Oct gem updates
+- The full backend suite (15 Oct, Rails 8.1, without `spec/system` and `spec/integration`, about 50 min): 16,365
+  examples, 387 fail, all of them on Rails 8.0 too except two that depend on test order. About 337 need outside
+  services and stop with "This test requires the ENV variables […]" (`ZAMMAD_AI_TOKEN`, `MAIL_SERVER`, Microsoft
+  Graph, OpenAI, Facebook, S3, GitHub/GitLab, Mattermost, Teams, the CI proxy: only Zammad's CI has them). About 28
+  don't know Student Hub's additions (the 15 GraphQL ones above; the Ticket, User and Organization reference lists,
+  the Excel export's columns, notification templates, system report, roles, the checklists migration). About 22
+  depend on what other specs left in the test database (`session_timeout_job_spec` ×17, Ticket `email`/`type`, one
+  search index job)
 - Backend specs share Redis with the dev server (`redis://redis:6379`), and some Zammad specs set the 5-minute
   "restart required" key (`zammad_restart_required_timestamp`): while it is set, every `bin/dev` process stops itself
-  in a loop (12 Oct). Don't run specs while `bin/dev` runs (or wait 5 minutes, then restart it); fix: a separate
-  Redis database for tests
+  in a loop (12 Oct). Run them with `REDIS_URL=redis://redis:6379/1` (a separate database; the 15 Oct runs did). With
+  `bin/dev` running, also leave out `spec/models/package_spec.rb` and `spec/lib/user_agent_spec.rb` and run them with
+  `bin/dev` stopped: the first swaps `app/models/ticket.rb` (the dev app reloads it, its worker restarts; a run stopped
+  mid-spec left it as `ticket.rb.save` on 15 Oct), the second needs ports 3000 and 3001
 - Three ticket-overviews specs (`studenthub-talk-to-student-support`, `ticket-overviews-empty-states`,
   `ticket-overviews-polling`) sometimes fail when the whole `pages/ticket-overviews` folder runs together with the
   table specs (route stays `TicketOverview`, polling times out); they pass on their own, with or without the 12 Oct
@@ -200,6 +207,10 @@ Never put passwords, tokens or keys in this file.
 
 ## Next steps
 
+- [ ] Test server, then production: deploy Rails 8.1 (on `develop` since 15 Oct; no migration, `--rollback` undoes it)
+      and check sign-in (Microsoft too), tickets, email fetching and sending (`net-imap` 0.6.8), notifications and live
+      updates, `/app` and reports
+- [ ] Later: Rails 8.1's new framework defaults one at a time, then `config.load_defaults 8.1`
 - [ ] Test and production servers: the next deploy runs the 20261013120000 migration, which takes `admin.*`
       permissions off customer-only roles; check its output ("Customer: removed …") to see whether students had any.
       Other dev databases get it with `bin/rails db:migrate`

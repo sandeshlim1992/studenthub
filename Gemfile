@@ -4,7 +4,8 @@ source 'https://rubygems.org'
 
 # core - base
 ruby '3.4.9'
-gem 'rails', '~> 8.0.0'
+# Student Hub: Rails 8.1 (15 Oct 2026), as 8.0's security support ended on 7 Oct 2026.
+gem 'rails', '~> 8.1.0'
 gem 'rake'
 
 # core - rails additions
@@ -21,6 +22,9 @@ gem 'puma', group: :puma
 gem 'pg', '~> 1.5', '>= 1.5.4', group: :postgres
 
 # core - asynchrous task execution
+# Student Hub: Zammad's delayed_job fork requires 'benchmark', which Rails 8.1 no longer brings in
+# and Ruby 4 drops from its default gems.
+gem 'benchmark'
 gem 'daemons'
 gem 'delayed_job', git: 'https://github.com/zammad-deps/delayed_job', branch: 'threadsafe'
 gem 'delayed_job_active_record', git: 'https://github.com/zammad-deps/delayed_job_active_record', branch: 'update-limit-143'

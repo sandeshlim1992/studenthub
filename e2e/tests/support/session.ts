@@ -4,18 +4,7 @@ import { expect, type Page } from '@playwright/test'
 
 import type { Account } from './env.ts'
 
-// The "New desktop BETA UI" notice can open over any page; confirm it whenever it shows.
-export const confirmBetaNotice = async (page: Page) => {
-  await page.addLocatorHandler(
-    page.getByRole('heading', { name: 'New desktop BETA UI' }),
-    async () => {
-      await page.getByRole('button', { name: 'Confirm' }).click()
-    },
-  )
-}
-
-// Signs in with the local login form (under "Admin / Local Login"). The page fixture confirms
-// the BETA UI notice (support/fixtures.ts).
+// Signs in with the local login form (under "Admin / Local Login").
 export const signIn = async (page: Page, account: Account) => {
   await page.goto('/login')
 
@@ -29,8 +18,8 @@ export const signIn = async (page: Page, account: Account) => {
     await page.getByRole('textbox', { name: 'Password' }).fill(account.password)
     await page.getByRole('button', { name: 'Sign in' }).click()
 
-    // Checked without waiting, so no wait outlives the sign-in: a leftover one ran the BETA notice
-    // handler at the same time as the test's next step, which then hung.
+    // Checked without waiting, so no wait outlives the sign-in and runs alongside the test's next
+    // step.
     const tokenFailed = page.getByText('Security token verification failed')
     let outcome: 'signed-in' | 'token-failed' | undefined
     await expect(async () => {

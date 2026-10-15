@@ -20,7 +20,6 @@ import { useAuthenticationStore } from '#shared/stores/authentication.ts'
 import { useLocaleStore } from '#shared/stores/locale.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
-import { useBetaUiDisclaimer } from '#desktop/components/BetaUi/composables/useBetaUiDisclaimer.ts'
 import {
   useBetaUiFeedbackConsent,
   initializeBetaUiFeedbackConsentDialog,
@@ -73,11 +72,8 @@ if (switchValue.value) {
   useBetaUiFeedbackRouteGuard()
 }
 
-// Shows the warning for the BETA usage of the desktop view.
-//   The user has not yet enrolled into the BETA program.
-else {
-  useBetaUiDisclaimer()
-}
+// Student Hub: no "New desktop BETA UI … not ready for production use" warning after signing in;
+// the new UI is the main one at /.
 
 // We need to trigger a manual translation update for the form related strings.
 const formConfig = useFormKitConfig()

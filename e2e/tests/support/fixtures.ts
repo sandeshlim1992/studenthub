@@ -9,7 +9,6 @@ import {
 } from '@playwright/test'
 
 import { BASE_URL, staffAccount, studentAccount, type Account } from './env.ts'
-import { confirmBetaNotice } from './session.ts'
 
 interface Article {
   id: number
@@ -152,11 +151,6 @@ export const test = base.extend<
   { appErrors: string[] },
   { staff: StaffApi; student: StudentApi; studentId: number }
 >({
-  page: async ({ page }, use) => {
-    await confirmBetaNotice(page)
-    await use(page)
-  },
-
   // Console errors and warnings, uncaught errors and failed requests to the app, per test.
   appErrors: [
     async ({ page }, use) => {

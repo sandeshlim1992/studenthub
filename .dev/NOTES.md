@@ -126,9 +126,6 @@ Never put passwords, tokens or keys in this file.
 - Student ticket wizard fails silently when a required field (Group, Sub-Category) is empty
 - `package.json` → `resolutions` (loader-utils, postcss, stylelint-config-recommended) does nothing: pnpm 11 only reads
   overrides from `pnpm-workspace.yaml`. postcss is still 8.5.19, which Snyk flags
-- Staff get Zammad's "New desktop BETA UI … not ready for production use" pop-up once per browser after signing in
-  (`useBetaUiDisclaimer.ts`), although the new UI is now the main one at `/`; not decided yet whether to drop or
-  reword it
 
 ## In progress
 

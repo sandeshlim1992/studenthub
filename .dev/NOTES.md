@@ -90,10 +90,11 @@ Never put passwords, tokens or keys in this file.
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit, 0 since 14 Oct; Zammad unit tests that fail: see Tests
     that already fail
 - Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
-  phone (CTI) log (both unused), Clearbit's field mapping, Scheduler jobs on users or organisations, the fields of a
-  template other than title, state, priority, team and owner (kept on save), and conditions or actions the shared
-  editor doesn't know, e.g. "has reached" of time-based triggers (kept on save) (README → Moved from the classic UI
-  lists what moved)
+  phone (CTI) log (both unused) and Clearbit's field mapping (README → Moved from the classic UI lists what moved)
+- Links to classic `#…` addresses land on the new UI's home page since it took over `/` (from reading the code, 15 Oct;
+  not checked in a browser): the user invitation email's "set your password" link (`/#password_reset_verify/<token>`
+  in `app/views/mailer/user_invite/*`), Delete on a user's page (`/#system/data_privacy/<id>`) and the AI-suggested
+  Knowledge Base answers (`/#knowledge_base/…`); the new UI has no page or alias for them
 - Home PC: the devcontainer runs the repo from `C:\dev` (9p mount), not `~/studenthub` → file reads ~150× slower
   than the Linux disk, classic UI pages take 20–60 s, Vite and Rails miss file changes (restart `bin/dev` after
   edits). The first page load after a restart takes minutes and the app may show "Loading failed" meanwhile
@@ -201,12 +202,23 @@ Never put passwords, tokens or keys in this file.
   The classic UI still shows its add / edit buttons for checklists; the server refuses them for agents
 - Triggers, Macros, SLAs, Report Profiles and the Time Accounting selector use the Scheduler's condition and action
   editor (12 Oct): trigger fields (Action, the message, Customer is VIP, "has changed"), expert-mode groups (also in
-  the Scheduler), Set title and Set customer. Templates still edit only some fields and keep the rest. Before, those
-  editors saved only their few fields and Zammad replaced the whole set (emails, webhooks, tags, notes and other
-  conditions were deleted). Not yet checked in a browser (`admin@example.com` signs in since 13 Oct)
+  the Scheduler), Set title and Set customer. Before, those editors saved only their few fields and Zammad replaced
+  the whole set (emails, webhooks, tags, notes and other conditions were deleted). Not yet checked in a browser
+  (`admin@example.com` signs in since 13 Oct)
+- The last classic-only admin features moved (15 Oct): Scheduler jobs on users and organisations, every condition of
+  the classic editor (fields of the object manager, fixed dates, today, lists of texts, numbers, people, working
+  hours, "has reached" for time-event triggers, regular expressions) and every field of a template (message text,
+  CC, select fields, how the ticket comes in). Tested with Vitest and request specs (a user job switching off old
+  customers, a privacy-task job, an organisation job); not yet checked in a browser
 
 ## Next steps
 
+- [ ] Remove the classic UI (plan of 15 Oct): tag `before-classic-ui-removal` and list the files in
+      `.dev/classic-ui-removal.md`; fix the links to classic `#…` addresses (Known issues); switch `/app` and `/init`
+      off (redirect to `/`) on the test server, then production, and watch for `/app` requests; then delete the
+      classic app, its QUnit pages and system specs, the classic sidebars, the BETA switch and the CoffeeScript
+      build. Keep the public help centre (`/help`), `public/assets` images, sounds and fonts, the web form and chat
+      widgets if a website embeds them, the REST API and the mail templates
 - [ ] Test server, then production: deploy Rails 8.1 (on `develop` since 15 Oct; no migration, `--rollback` undoes it)
       and check sign-in (Microsoft too), tickets, email fetching and sending (`net-imap` 0.6.8), notifications and live
       updates, `/app` and reports

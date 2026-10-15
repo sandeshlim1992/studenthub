@@ -73,7 +73,12 @@ const actionRows = ref<ActionRow[]>([])
 const problems = ref<string[]>([])
 
 const allowExpert = computed(() => Boolean(useApplicationStore().config.ticket_allow_expert_conditions))
-const conditionFieldList = computed(() => (options.value ? conditionFields(options.value, 'trigger') : []))
+const allowRegex = computed(() =>
+  Boolean(useApplicationStore().config.ticket_conditions_allow_regular_expression_operators),
+)
+const conditionFieldList = computed(() =>
+  options.value ? conditionFields(options.value, 'trigger', { allowRegex: allowRegex.value }) : [],
+)
 const actionFieldList = computed(() => (options.value ? actionFields(options.value, 'trigger') : []))
 
 const breadcrumbItems = [

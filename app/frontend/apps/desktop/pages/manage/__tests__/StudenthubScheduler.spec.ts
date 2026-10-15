@@ -32,6 +32,20 @@ const options: AutomationOptions = {
   ticket_attributes: [],
 }
 
+const userOptions: AutomationOptions = {
+  ...options,
+  roles: [{ id: 3, name: 'Customer', active: true }],
+  attributes: {
+    user: [
+      { name: 'email', display: 'Email', data_type: 'input', active: true, options: [] },
+      { name: 'active', display: 'Active', data_type: 'active', active: true, options: [] },
+    ],
+    organization: [
+      { name: 'shared', display: 'Shared organization', data_type: 'boolean', active: true, options: [] },
+    ],
+  },
+}
+
 const everyTenMinutes = {
   days: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false },
   hours: { '9': true, '10': true, '11': true },
@@ -208,6 +222,84 @@ describe('Scheduler', () => {
         },
         perform: { 'ticket.state_id': { value: '4' } },
       })
+    })
+
+    it('builds a job on users from their role, last login and tickets', async () => {
+      const calls = mockServer({
+        'GET /api/v1/studenthub/automation/options': () => ({ body: userOptions }),
+        'POST /api/v1/users/selector': () => ({ body: { object_count: 12 } }),
+        'POST /api/v1/jobs': () => ({ status: 201, body: { id: 12 } }),
+      })
+
+      const view = await renderView(SchedulerJob, '/manage/scheduler/new')
+
+      await view.events.type(await view.findByLabelText('Name'), 'Clean up old customers')
+      await view.events.click(view.getByLabelText('Users'))
+
+      await view.events.selectOptions(view.getByLabelText('Add a condition'), 'user.role_ids')
+      await view.events.selectOptions(within(view.getByRole('listitem', { name: 'Role' })).getByLabelText('Add a value'), '3')
+
+      await view.events.selectOptions(view.getByLabelText('Add a condition'), 'ticket_customer.open_existing')
+      const openTickets = view.getByRole('listitem', { name: 'Tickets as customer › Has open tickets' })
+      await view.events.selectOptions(within(openTickets).getByLabelText('Value'), 'false')
+
+      await view.events.selectOptions(view.getByLabelText('Add a condition'), 'user.last_login')
+      const lastLogin = view.getByRole('listitem', { name: 'Last login' })
+      await view.events.selectOptions(within(lastLogin).getByLabelText('Operator'), 'before (absolute)')
+      await view.events.type(within(lastLogin).getByLabelText('Date'), '2025-09-01T00:00')
+
+      expect(await view.findByRole('status', {}, { timeout: 3000 })).toHaveTextContent('12 users match now')
+
+      await view.events.selectOptions(view.getByLabelText('Add an action'), 'user.action')
+      expect(view.getByRole('listitem', { name: 'Add a data privacy deletion task' })).toHaveTextContent('cannot be undone')
+      expect(view.queryByRole('option', { name: 'Send an email' })).not.toBeInTheDocument()
+
+      await view.events.click(view.getByRole('button', { name: 'Save job' }))
+
+      await vi.waitFor(() => expect(calls.some((call) => call.method === 'POST' && call.url === '/api/v1/jobs')).toBe(true))
+      expect(calls.find((call) => call.url === '/api/v1/jobs')?.body).toMatchObject({
+        name: 'Clean up old customers',
+        object: 'User',
+        condition: {
+          'user.role_ids': { operator: 'is', value: ['3'] },
+          'ticket_customer.open_existing': { operator: 'is', value: false },
+          'user.last_login': { operator: 'before (absolute)', value: '2025-09-01T00:00:00.000Z' },
+        },
+        perform: { 'user.action': { value: 'data_privacy_deletion_task' } },
+      })
+    })
+
+    it('opens a job on organizations and keeps what it works on', async () => {
+      const organizationJob = {
+        ...job,
+        id: 13,
+        name: 'Unshare empty organizations',
+        object: 'Organization',
+        condition: { 'organization.members_existing': { operator: 'is', value: false } },
+        perform: { 'organization.shared': { value: 'false' } },
+      }
+      const calls = mockServer({
+        'GET /api/v1/studenthub/automation/options': () => ({ body: userOptions }),
+        'GET /api/v1/jobs/13': () => ({ body: organizationJob }),
+        'POST /api/v1/organizations/selector': () => ({ body: { object_count: 2 } }),
+        'PUT /api/v1/jobs/13': () => ({ body: organizationJob }),
+      })
+
+      const view = await renderView(SchedulerJob, '/manage/scheduler/13')
+
+      await vi.waitFor(() => expect(view.getByLabelText('Organizations')).toBeChecked())
+      expect(view.getByLabelText('Tickets')).toBeDisabled()
+      expect(view.getByRole('listitem', { name: 'Has members' })).toBeInTheDocument()
+      expect(view.getByRole('listitem', { name: 'Set Shared organization' })).toBeInTheDocument()
+      expect(await view.findByRole('status', {}, { timeout: 3000 })).toHaveTextContent('2 organizations match now')
+
+      await view.events.click(view.getByRole('button', { name: 'Save job' }))
+
+      await vi.waitFor(() => expect(calls.some((call) => call.method === 'PUT')).toBe(true))
+      const saved = calls.find((call) => call.method === 'PUT')?.body as Record<string, unknown>
+      expect(saved.object).toBe('Organization')
+      expect(saved.condition).toEqual(organizationJob.condition)
+      expect(saved.perform).toEqual(organizationJob.perform)
     })
 
     it('says what is missing instead of saving', async () => {

@@ -1042,13 +1042,19 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
 - **Knowledge Base answers in search:** the top bar's search drop-down lists matching answers under "Found
   knowledge base answers" (title and text; Zammad's own Knowledge Base search, which also works without
   Elasticsearch), and "More in the Knowledge Base" opens all results on the Knowledge Base page.
-- **Scheduler** (`/manage/scheduler`): jobs with when they run (days, hours, minutes), conditions (state,
-  priority, team, owner incl. unassigned, organisation, select fields such as Category and Campus, tags, title,
-  and times such as "updated more than 2 days ago" or "escalation within the next hour") and actions (state,
-  priority, team, owner, select fields, title, tags, internal note, email, webhook, delete). The editor shows how
-  many tickets match now. Expert mode (groups that match all, any or none, a field more than once) can be switched
-  on while Zammad's setting `ticket_allow_expert_conditions` allows it. Settings it doesn't know (e.g. SMS) are
-  kept as they are.
+- **Scheduler** (`/manage/scheduler`): jobs with when they run (days, hours, minutes), what they work on (tickets,
+  users or organisations, chosen for a new job), conditions and actions. Ticket jobs: conditions on every ticket
+  field (state, priority, team, owner incl. unassigned, select fields such as Category and Campus, tags, title,
+  number, customer, created / updated by, contributors), the customer's and organisation's fields, the messages
+  (from, to, CC, subject, text, sender, type), dates compared with now ("updated more than 2 days ago"), with a
+  date or with today, and whether the job runs in a calendar's working hours; actions on state, priority, team,
+  owner, select fields, title, pending time, tags, internal note, email, webhook, delete. User jobs: role, last
+  login, every user field, the organisation's fields, "has tickets (open)" as customer or owner and the customer
+  tickets' last contact; actions on the user's fields (e.g. switch off, VIP) and "Add a data privacy deletion
+  task". Organisation jobs: members, every organisation field; actions on its fields. The editor shows how many
+  tickets, users or organisations match now. Expert mode (groups that match all, any or none, a field more than
+  once) can be switched on while Zammad's setting `ticket_allow_expert_conditions` allows it. Settings it doesn't
+  know (e.g. SMS) are kept as they are.
 - **Roles** (`/manage/roles`): permissions grouped as admin area, agent work, customers and profile
   settings, and team access per team (read, create, change, overview, full). Warns before an admin removes their own
   admin access. The Admin role's team access is still kept in step by the Teams views.
@@ -1075,14 +1081,21 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
   The stored password is never sent to the browser.
 
 - **Triggers, Macros, SLAs, Report Profiles, Time Accounting** (the selector): the same condition and action
-  editor as the Scheduler, expert mode included. Triggers also have Action (created, updated, merged), the message
-  (created, sender, type, internal), Customer is VIP and "has changed"; Action and the yes/no fields are saved as
-  one value, as Zammad compares them. Actions add Set title and Set customer (the current user or a person found by
-  name or email); triggers also call webhooks, macros don't, and only the Scheduler deletes tickets. Anything the
-  editor doesn't know (e.g. "has reached" of time-based triggers) shows as "kept as it is" and is saved unchanged.
-- **Templates**: the page edits title, state, priority, team and owner; the other fields of a template (message
-  text, Category, …) are kept when it is saved and listed under "Kept as they are". Change those in the classic
-  admin (`/app`).
+  editor as the Scheduler, expert mode included, with every condition of the classic editor: the fields of the
+  ticket, its customer, organisation and messages (from the object manager, so new fields show up), dates with
+  now, a date or today, texts that are, start or end with one of several values, numbers (less / more than),
+  people (a person found by name or email, nobody, or in triggers the current user). Triggers also have Action
+  (created, updated, merged), the message (created, time accounted), Customer is VIP, "has changed", "has
+  reached" (pending time, escalation) and "has reached warning" (escalation) for time-event triggers, and regular
+  expressions while Zammad's setting `ticket_conditions_allow_regular_expression_operators` allows them; Action and
+  the yes/no fields are saved as one value, as Zammad compares them. Actions add Set title, Set pending till and
+  Set customer (the current user or a person found by name or email); triggers also call webhooks, macros don't,
+  and only the Scheduler deletes tickets. Anything the editor doesn't know shows as "kept as it is" and is saved
+  unchanged.
+- **Templates**: everything a template fills in, with the same action editor: title, state, priority, team, owner,
+  customer, every select field (Category, Sub-category, ITIL type, Impact, Urgency, …), pending time, tags, how the
+  ticket comes in (phone in / out, email), the message text (the Knowledge Base page's editor) and CC. A template
+  opened and saved without changes is saved as it was; anything the editor doesn't know is kept.
 
 Still only in the classic admin: BETA UI and KB Answer Generation; the live chat console and the phone (CTI) log
 (both unused); setup for Clearbit (keep it off: it sends email addresses to a third party).
@@ -1093,15 +1106,14 @@ Still only in the classic admin: BETA UI and KB Answer Generation; the live chat
 | `app/services/service/studenthub_knowledge_base/`, `app/controllers/studenthub_knowledge_base_controller.rb`, `config/routes/studenthub_knowledge_base.rb` | Knowledge Base tree, answer and search (`GET /api/v1/studenthub/knowledge_base`, `…/answers/:id`, `…/search`) |
 | `app/frontend/apps/desktop/pages/knowledge-base/` | Knowledge Base page |
 | `app/frontend/apps/desktop/composables/useStudenthubKnowledgeBaseSearch.ts`, `components/Search/QuickSearch/StudenthubQuickSearchKnowledgeBase.vue` (in `QuickSearchResultList.vue`) | Answers in the quick search |
-| `app/services/service/studenthub_automation/options.rb`, `app/controllers/studenthub_automation_controller.rb` | Choices for conditions and actions (`GET /api/v1/studenthub/automation/options`) |
-| `pages/manage/components/Automation/` (`automation.ts`, `AutomationConditions.vue` with `AutomationConditionEditor.vue` / `AutomationConditionGroup.vue` / `AutomationConditionRow.vue`, `AutomationActionEditor.vue`, `AutomationUserPicker.vue`), `pages/manage/views/Scheduler.vue`, `SchedulerJob.vue`; used by `Triggers.vue`, `Macros.vue`, `Slas.vue`, `ReportProfiles.vue`, `TimeAccounting.vue` | Condition (plain list or expert-mode groups) / action / schedule editors; the Scheduler pages |
+| `app/services/service/studenthub_automation/options.rb`, `app/controllers/studenthub_automation_controller.rb` | Choices for conditions and actions, and the fields of tickets, users and organisations with their types (`GET /api/v1/studenthub/automation/options`; admins of any of these editors, Templates included) |
+| `pages/manage/components/Automation/` (`automation.ts`, `AutomationConditions.vue` with `AutomationConditionEditor.vue` / `AutomationConditionGroup.vue` / `AutomationConditionRow.vue`, `AutomationActionEditor.vue`, `AutomationFieldSelect.vue`, `AutomationUserPicker.vue`, `AutomationRichText.vue`), `pages/manage/views/Scheduler.vue`, `SchedulerJob.vue`; used by `Triggers.vue`, `Macros.vue`, `Templates.vue`, `Slas.vue`, `ReportProfiles.vue`, `TimeAccounting.vue` | Condition (plain list or expert-mode groups) / action / schedule editors; the Scheduler pages (jobs on tickets, users, organisations) |
 | `app/services/service/studenthub_roles/overview.rb`, `app/controllers/studenthub_roles_controller.rb`, `pages/manage/components/Roles/`, `views/Roles.vue`, `RoleEdit.vue` | Roles (`GET /api/v1/studenthub/roles`) |
 | `app/services/service/studenthub_ldap/options.rb`, `app/controllers/studenthub_ldap_controller.rb`, `pages/manage/components/Ldap/`, `views/Ldap.vue`, `LdapSource.vue` | LDAP (`GET/PUT /api/v1/studenthub/ldap`) |
 | `pages/ticket/components/TicketSidebar/plugins/studenthub-feedback.ts`, `…/TicketSidebarStudenthubFeedback/` | Customer feedback panel |
 | `pages/manage/views/PublicLinks.vue`; `CommonPublicLinks` in `Login.vue`, `PasswordReset.vue` | Public Links |
 | `app/services/service/studenthub_secure_email/`, `app/services/service/studenthub_exchange/`, `app/controllers/studenthub_integrations_controller.rb`, `lib/studenthub/exchange_return.rb`, `lib/studenthub/exchange_stored_password.rb`, `views/SecureEmail.vue`, `Exchange.vue`, `components/Exchange/` | S/MIME, PGP and Exchange (`GET/PUT /api/v1/studenthub/integrations/smime\|pgp\|exchange`) |
 | `app/services/service/studenthub_ticket_fields/`, `app/controllers/studenthub_ticket_fields_controller.rb`, `views/TicketStates.vue`, `TicketPriorities.vue`, `Tags.vue` | States and priorities with their tickets, the "new tags" setting |
-| `pages/manage/components/Automation/keptSettings.ts`, `AutomationKeptSettings.vue`; edits in `views/Templates.vue` | What the Templates editor doesn't show, kept on save and listed |
 | `app/controllers/studenthub_locales_controller.rb`, `config/routes/studenthub_locales.rb` | The active languages with their ids for the Knowledge Base and Branding pages (`GET /api/v1/studenthub/locales`; Zammad has no REST list) |
 
 ---

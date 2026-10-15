@@ -4,13 +4,20 @@
 import { computed } from 'vue'
 
 import {
-  HAS_CHANGED,
+  fieldLabel,
+  fromLocalInput,
+  isAbsoluteOperator,
+  isListOperator,
+  needsValue,
   operatorsOf,
+  preConditionsOf,
   RELATIVE_RANGES,
+  toLocalInput,
   type ConditionField,
   type ConditionRow,
 } from './automation.ts'
 import AutomationChoicePicker from './AutomationChoicePicker.vue'
+import AutomationUserPicker from './AutomationUserPicker.vue'
 
 // One condition: the field, how it is compared and with what. Used in the plain list and in the
 // groups of expert mode.
@@ -24,19 +31,22 @@ const row = defineModel<ConditionRow>({ required: true })
 const id = (part: string) => `${props.idPrefix}-${part}-${row.value.uid}`
 
 const kind = computed(() => props.field?.kind)
-const needsValue = computed(() => row.value.operator !== HAS_CHANGED)
-const preConditions = computed(
-  () =>
-    props.field?.preConditions ?? [
-      { value: 'not_set', label: __('nobody (unassigned)') },
-      { value: 'specific', label: __('one of these agents') },
-    ],
-)
+const label = computed(() => (props.field ? fieldLabel(props.field) : row.value.key))
+const hasValue = computed(() => needsValue(row.value.operator))
+const fixedDate = computed(() => isAbsoluteOperator(row.value.operator))
 
 const single = computed({
   get: () => row.value.values[0] ?? '',
   set: (value: string) => {
     row.value.values = value ? [value] : []
+  },
+})
+
+// A fixed time is kept as Zammad keeps it (ISO, UTC) and shown in the browser's time zone.
+const date = computed({
+  get: () => (props.field?.dateOnly ? row.value.text : toLocalInput(row.value.text)),
+  set: (value: string) => {
+    row.value.text = props.field?.dateOnly ? value : fromLocalInput(value)
   },
 })
 
@@ -47,11 +57,9 @@ const inputClass =
 <template>
   <li
     class="flex flex-wrap items-start gap-2 rounded-lg border border-[var(--sh-line)] bg-white p-2.5"
-    :aria-label="field ? $t(field.label) : row.key"
+    :aria-label="label"
   >
-    <span class="min-w-36 pt-1.5 text-sm font-semibold text-[var(--sh-ink)]">
-      {{ field ? $t(field.label) : row.key }}
-    </span>
+    <span class="min-w-36 pt-1.5 text-sm font-semibold text-[var(--sh-ink)]">{{ label }}</span>
 
     <span v-if="row.raw !== undefined" class="grow pt-1.5 text-xs text-[var(--sh-muted)]">
       {{ $t('Set elsewhere, kept as it is:') }}
@@ -72,8 +80,18 @@ const inputClass =
         </select>
       </label>
 
-      <div v-if="needsValue" class="flex min-w-0 grow flex-wrap items-center gap-2">
-        <template v-if="kind === 'date'">
+      <div v-if="hasValue" class="flex min-w-0 grow flex-wrap items-center gap-2">
+        <label v-if="kind === 'date' && fixedDate" :for="id('date')">
+          <span class="sr-only">{{ $t('Date') }}</span>
+          <input
+            :id="id('date')"
+            v-model="date"
+            :type="field?.dateOnly ? 'date' : 'datetime-local'"
+            :class="inputClass"
+          />
+        </label>
+
+        <template v-else-if="kind === 'date'">
           <label :for="id('amount')">
             <span class="sr-only">{{ $t('Amount') }}</span>
             <input
@@ -101,7 +119,23 @@ const inputClass =
             v-model="row.text"
             type="text"
             :class="[inputClass, 'w-full']"
-            :placeholder="kind === 'tags' ? $t('Tags, separated by commas') : ''"
+            :placeholder="
+              kind === 'tags'
+                ? $t('Tags, separated by commas')
+                : isListOperator(row.operator)
+                  ? $t('Values, separated by commas')
+                  : ''
+            "
+          />
+        </label>
+
+        <label v-else-if="kind === 'number'" :for="id('number')">
+          <span class="sr-only">{{ $t('Value') }}</span>
+          <input
+            :id="id('number')"
+            v-model="row.text"
+            type="number"
+            :class="[inputClass, 'w-28']"
           />
         </label>
 
@@ -119,22 +153,34 @@ const inputClass =
           </select>
         </label>
 
-        <template v-else-if="kind === 'owner'">
+        <template v-else-if="kind === 'owner' || kind === 'person'">
           <label :for="id('owner')">
-            <span class="sr-only">{{ $t('Which owner') }}</span>
+            <span class="sr-only">{{ kind === 'owner' ? $t('Which owner') : $t('Who') }}</span>
             <select :id="id('owner')" v-model="row.preCondition" :class="inputClass">
-              <option v-for="choice in preConditions" :key="choice.value" :value="choice.value">
+              <option
+                v-for="choice in preConditionsOf(field)"
+                :key="choice.value"
+                :value="choice.value"
+              >
                 {{ $t(choice.label) }}
               </option>
             </select>
           </label>
-          <AutomationChoicePicker
-            v-if="row.preCondition === 'specific'"
-            :id="id('values')"
-            v-model="row.values"
-            :choices="field?.choices ?? []"
-            :label="$t('Add an agent')"
-          />
+          <template v-if="row.preCondition === 'specific'">
+            <AutomationUserPicker
+              v-if="kind === 'person'"
+              :id="id('person')"
+              v-model="single"
+              v-model:completion="row.completion"
+            />
+            <AutomationChoicePicker
+              v-else
+              :id="id('values')"
+              v-model="row.values"
+              :choices="field?.choices ?? []"
+              :label="$t('Add an agent')"
+            />
+          </template>
         </template>
 
         <AutomationChoicePicker

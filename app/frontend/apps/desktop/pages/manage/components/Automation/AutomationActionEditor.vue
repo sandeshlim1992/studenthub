@@ -3,11 +3,22 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { EMAIL_RECIPIENTS, emptyAction, type ActionField, type ActionRow } from './automation.ts'
+import {
+  EMAIL_RECIPIENTS,
+  emptyAction,
+  fromLocalInput,
+  RELATIVE_RANGES,
+  toLocalInput,
+  type ActionField,
+  type ActionRow,
+} from './automation.ts'
 import AutomationChoicePicker from './AutomationChoicePicker.vue'
+import AutomationFieldSelect from './AutomationFieldSelect.vue'
+import AutomationRichText from './AutomationRichText.vue'
 import AutomationUserPicker from './AutomationUserPicker.vue'
 
-// What happens to each matching ticket. One row per action.
+// What happens to each matching ticket, user or organization (or what a template fills in). One row
+// per action.
 
 const props = defineProps<{ fields: ActionField[]; idPrefix: string }>()
 
@@ -16,11 +27,22 @@ const rows = defineModel<ActionRow[]>({ required: true })
 const fieldOf = (key: string) => props.fields.find((field) => field.key === key)
 const unusedFields = computed(() => props.fields.filter((field) => !rows.value.some((row) => row.key === field.key)))
 
-const add = (event: Event) => {
-  const select = event.target as HTMLSelectElement
-  const field = fieldOf(select.value)
+const add = (key: string) => {
+  const field = fieldOf(key)
   if (field) rows.value = [...rows.value, emptyAction(field)]
-  select.value = ''
+}
+
+// A fixed time is kept as Zammad keeps it (ISO, UTC) and shown in the browser's time zone.
+const fixedDateOf = (row: ActionRow) => (fieldOf(row.key)?.dateOnly ? row.value : toLocalInput(row.value))
+
+const setFixedDate = (row: ActionRow, value: string) => {
+  row.value = fieldOf(row.key)?.dateOnly ? value : fromLocalInput(value)
+}
+
+// Switching between a fixed and a relative date starts the value again.
+const setDateOperator = (row: ActionRow, operator: string) => {
+  row.operator = operator
+  row.value = operator === 'relative' ? '1' : ''
 }
 
 const remove = (uid: number) => {
@@ -113,6 +135,68 @@ const areaClass =
             {{ $t('Matching tickets are deleted for good, with all their messages.') }}
           </p>
 
+          <p v-else-if="fieldOf(row.key)?.kind === 'privacy'" class="pt-1.5 text-sm font-semibold text-red-700">
+            {{
+              $t(
+                'Matching users and their tickets as customer are scheduled for deletion. Once the data privacy task runs, they are deleted for good (a history entry is kept). This cannot be undone.',
+              )
+            }}
+          </p>
+
+          <AutomationChoicePicker
+            v-else-if="fieldOf(row.key)?.kind === 'multichoice'"
+            :id="`${idPrefix}-values-${row.uid}`"
+            v-model="row.values"
+            :choices="fieldOf(row.key)?.choices ?? []"
+            :label="$t('Add a value')"
+          />
+
+          <div v-else-if="fieldOf(row.key)?.kind === 'date'" class="flex flex-wrap items-center gap-2">
+            <label :for="`${idPrefix}-when-${row.uid}`">
+              <span class="sr-only">{{ $t('When') }}</span>
+              <select
+                :id="`${idPrefix}-when-${row.uid}`"
+                :value="row.operator"
+                :class="inputClass"
+                @change="setDateOperator(row, ($event.target as HTMLSelectElement).value)"
+              >
+                <option value="relative">{{ $t('in …') }}</option>
+                <option value="static">{{ $t('on the date') }}</option>
+              </select>
+            </label>
+            <template v-if="row.operator === 'relative'">
+              <label :for="`${idPrefix}-amount-${row.uid}`">
+                <span class="sr-only">{{ $t('Amount') }}</span>
+                <input :id="`${idPrefix}-amount-${row.uid}`" v-model="row.value" type="number" min="1" :class="[inputClass, 'w-20']" />
+              </label>
+              <label :for="`${idPrefix}-range-${row.uid}`">
+                <span class="sr-only">{{ $t('Unit') }}</span>
+                <select :id="`${idPrefix}-range-${row.uid}`" v-model="row.range" :class="inputClass">
+                  <option v-for="range in RELATIVE_RANGES" :key="range.value" :value="range.value">
+                    {{ $t(range.label) }}
+                  </option>
+                </select>
+              </label>
+            </template>
+            <label v-else :for="`${idPrefix}-date-${row.uid}`">
+              <span class="sr-only">{{ $t('Date') }}</span>
+              <input
+                :id="`${idPrefix}-date-${row.uid}`"
+                :value="fixedDateOf(row)"
+                :type="fieldOf(row.key)?.dateOnly ? 'date' : 'datetime-local'"
+                :class="inputClass"
+                @input="setFixedDate(row, ($event.target as HTMLInputElement).value)"
+              />
+            </label>
+          </div>
+
+          <AutomationRichText
+            v-else-if="fieldOf(row.key)?.kind === 'richtext'"
+            :id="`${idPrefix}-richtext-${row.uid}`"
+            v-model="row.value"
+            :label="$t(fieldOf(row.key)!.label)"
+          />
+
           <label v-else-if="fieldOf(row.key)?.kind === 'text'" :for="`${idPrefix}-text-${row.uid}`">
             <span class="sr-only">{{ $t('Value') }}</span>
             <input :id="`${idPrefix}-text-${row.uid}`" v-model="row.value" type="text" :class="[inputClass, 'w-full']" />
@@ -156,12 +240,14 @@ const areaClass =
       </li>
     </ul>
 
-    <label v-if="unusedFields.length" :for="`${idPrefix}-add`" class="self-start">
-      <span class="sr-only">{{ $t('Add an action') }}</span>
-      <select :id="`${idPrefix}-add`" :class="inputClass" @change="add">
-        <option value="">{{ $t('+ Add an action…') }}</option>
-        <option v-for="field in unusedFields" :key="field.key" :value="field.key">{{ $t(field.label) }}</option>
-      </select>
-    </label>
+    <AutomationFieldSelect
+      v-if="unusedFields.length"
+      :id="`${idPrefix}-add`"
+      class="self-start"
+      :fields="unusedFields"
+      :label="$t('Add an action')"
+      :placeholder="$t('+ Add an action…')"
+      @pick="add"
+    />
   </div>
 </template>

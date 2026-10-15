@@ -8,12 +8,18 @@ import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import AutomationKeptSettings from '#desktop/pages/manage/components/Automation/AutomationKeptSettings.vue'
 import {
-  keepSettings,
-  noKeptSettings,
-  withKeptSettings,
-} from '#desktop/pages/manage/components/Automation/keptSettings.ts'
+  actionFields,
+  actionProblems,
+  emptyAction,
+  performToRows,
+  rowsToPerform,
+  type ActionField,
+  type ActionRow,
+  type AutomationOptions,
+} from '#desktop/pages/manage/components/Automation/automation.ts'
+import AutomationActionEditor from '#desktop/pages/manage/components/Automation/AutomationActionEditor.vue'
+import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface TemplateItem {
   id: number
@@ -24,17 +30,8 @@ interface TemplateItem {
   created_at?: string
 }
 
-interface MetaItem {
-  id: number
-  name: string
-}
-
 const router = useRouter()
 const templates = ref<TemplateItem[]>([])
-const ticketStatesList = ref<MetaItem[]>([])
-const ticketPrioritiesList = ref<MetaItem[]>([])
-const groupsList = ref<MetaItem[]>([])
-const usersList = ref<{ id: number; fullname: string; login: string }[]>([])
 
 const isLoading = ref(true)
 const errorText = ref('')
@@ -46,25 +43,22 @@ const showDrawer = ref(false)
 const drawerTitle = ref('')
 const submitting = ref(false)
 
-interface ActionRow {
-  field: string
-  value: string
-  textValue: string
-}
-
 const defaultFormState = () => ({
   id: null as number | null,
   name: '',
   active: true,
-  actions: [] as ActionRow[],
 })
 
 const formState = ref(defaultFormState())
 
-// Student Hub: fields this editor doesn't show (the message text, Category, …) are kept and saved
-// back (keptSettings.ts); these are the keys it does show.
-const SHOWN_OPTION_KEYS = ['ticket.title', 'ticket.state_id', 'ticket.priority_id', 'ticket.group_id', 'ticket.owner_id']
-const keptOptions = ref(noKeptSettings())
+// Student Hub: what a template fills in is edited with the shared action editor (Automation/): every
+// ticket field, the message text and CC, and how the ticket comes in. Anything it doesn't know is
+// kept and saved back as it was.
+const options = ref<AutomationOptions | null>(null)
+const actionRows = ref<ActionRow[]>([])
+const problems = ref<string[]>([])
+
+const actionFieldList = computed(() => (options.value ? actionFields(options.value, 'template') : []))
 
 const breadcrumbItems = [
   { label: __('Administration'), route: '/manage' },
@@ -80,66 +74,6 @@ const toggleActionMenu = (id: number, event: Event) => {
 
 const closeActionMenu = () => {
   activeActionMenuId.value = null
-}
-
-const buildOptionsPayload = () => {
-  const options: Record<string, { value: string }> = {}
-  for (const act of formState.value.actions) {
-    let key = ''
-    let val = ''
-    if (act.field === 'title') {
-      key = 'ticket.title'
-      val = act.textValue
-    } else if (act.field === 'state') {
-      key = 'ticket.state_id'
-      val = act.value
-    } else if (act.field === 'priority') {
-      key = 'ticket.priority_id'
-      val = act.value
-    } else if (act.field === 'group') {
-      key = 'ticket.group_id'
-      val = act.value
-    } else if (act.field === 'owner') {
-      key = 'ticket.owner_id'
-      val = act.value
-    }
-
-    if (key && val) {
-      options[key] = { value: val }
-    }
-  }
-  return options
-}
-
-const parseOptionsToActions = (options?: Record<string, unknown>) => {
-  const actions: ActionRow[] = []
-  if (!options) return actions
-
-  for (const [key, rawVal] of Object.entries(options)) {
-    let field = ''
-    if (key === 'ticket.title') field = 'title'
-    else if (key === 'ticket.state_id') field = 'state'
-    else if (key === 'ticket.priority_id') field = 'priority'
-    else if (key === 'ticket.group_id') field = 'group'
-    else if (key === 'ticket.owner_id') field = 'owner'
-
-    if (!field) continue
-
-    let valStr = ''
-    if (typeof rawVal === 'object' && rawVal !== null && 'value' in rawVal) {
-      valStr = String((rawVal as { value: unknown }).value ?? '')
-    } else {
-      valStr = String(rawVal ?? '')
-    }
-
-    actions.push({
-      field,
-      value: field === 'title' ? '' : valStr,
-      textValue: field === 'title' ? valStr : '',
-    })
-  }
-
-  return actions
 }
 
 const fetchTemplates = async () => {
@@ -172,20 +106,11 @@ const fetchTemplates = async () => {
   }
 }
 
-const fetchMetadata = async () => {
+const loadOptions = async () => {
   try {
-    const [groupsRes, statesRes, prioritiesRes, usersRes] = await Promise.all([
-      fetch('/api/v1/groups', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/ticket_states', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/ticket_priorities', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-      fetch('/api/v1/users?per_page=500', { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }),
-    ])
-    if (groupsRes.ok) groupsList.value = await groupsRes.json()
-    if (statesRes.ok) ticketStatesList.value = await statesRes.json()
-    if (prioritiesRes.ok) ticketPrioritiesList.value = await prioritiesRes.json()
-    if (usersRes.ok) usersList.value = await usersRes.json()
-  } catch (e) {
-    console.error('Failed to fetch metadata:', e)
+    options.value = await studenthubApi<AutomationOptions>('/api/v1/studenthub/automation/options')
+  } catch (error) {
+    errorText.value = (error as Error).message
   }
 }
 
@@ -195,67 +120,62 @@ const filteredTemplates = computed(() => {
   return templates.value.filter((t) => t.name.toLowerCase().includes(query))
 })
 
-const handleNewTemplate = () => {
-  formState.value = defaultFormState()
-  formState.value.actions = [{ field: 'title', value: '', textValue: '' }]
-  keptOptions.value = noKeptSettings()
-  drawerTitle.value = __('New Template')
+// A new template starts with its title.
+const openDrawer = (heading: string, state: ReturnType<typeof defaultFormState>, tmpl?: TemplateItem) => {
+  const titleField = actionFieldList.value.find((field) => field.key === 'ticket.title')
+
+  formState.value = state
+  actionRows.value = tmpl?.options ? performToRows(tmpl.options, actionFieldList.value) : []
+  if (!actionRows.value.length && titleField) actionRows.value = [emptyAction(titleField)]
+  problems.value = []
+  drawerTitle.value = heading
   showDrawer.value = true
+}
+
+const handleNewTemplate = () => {
+  openDrawer(__('New Template'), defaultFormState())
 }
 
 const handleEditTemplate = (tmpl: TemplateItem) => {
-  formState.value = {
-    id: tmpl.id,
-    name: tmpl.name || '',
-    active: tmpl.active !== false,
-    actions: parseOptionsToActions(tmpl.options as Record<string, unknown>),
-  }
-  if (formState.value.actions.length === 0) {
-    formState.value.actions.push({ field: 'title', value: '', textValue: '' })
-  }
-  keptOptions.value = keepSettings(tmpl.options, SHOWN_OPTION_KEYS)
-  drawerTitle.value = __('Edit Template')
-  showDrawer.value = true
+  openDrawer(__('Edit Template'), { id: tmpl.id, name: tmpl.name || '', active: tmpl.active !== false }, tmpl)
 }
 
 const handleCloneTemplate = (tmpl: TemplateItem) => {
-  formState.value = {
-    id: null,
-    name: i18n.t('%s (Copy)', tmpl.name || __('Template')),
-    active: tmpl.active !== false,
-    actions: parseOptionsToActions(tmpl.options as Record<string, unknown>),
-  }
-  if (formState.value.actions.length === 0) {
-    formState.value.actions.push({ field: 'title', value: '', textValue: '' })
-  }
-  keptOptions.value = keepSettings(tmpl.options, SHOWN_OPTION_KEYS)
-  drawerTitle.value = __('Clone Template')
-  showDrawer.value = true
+  openDrawer(
+    __('Clone Template'),
+    { id: null, name: i18n.t('%s (Copy)', tmpl.name || __('Template')), active: tmpl.active !== false },
+    tmpl,
+  )
 }
 
-const getTemplateActionSummary = (tmpl: TemplateItem) => {
-  const actions = parseOptionsToActions(tmpl.options as Record<string, unknown>)
-  return actions.map((act) => {
-    if (act.field === 'title') return `${__('Title')}: ${act.textValue || '-'}`
-    if (act.field === 'state') {
-      const st = ticketStatesList.value.find((s) => String(s.id) === act.value)
-      return `${__('State')}: ${st ? st.name : act.value}`
-    }
-    if (act.field === 'priority') {
-      const pr = ticketPrioritiesList.value.find((p) => String(p.id) === act.value)
-      return `${__('Priority')}: ${pr ? pr.name : act.value}`
-    }
-    if (act.field === 'group') {
-      const gr = groupsList.value.find((g) => String(g.id) === act.value)
-      return `${__('Group')}: ${gr ? gr.name : act.value}`
-    }
-    if (act.field === 'owner') {
-      const u = usersList.value.find((usr) => String(usr.id) === act.value)
-      return `${__('Owner')}: ${u ? u.fullname || u.login : act.value}`
-    }
-    return act.field
-  })
+// What a row sets, for the list: the chosen value's name, or the text (formatted texts by name only).
+const valueOf = (field: ActionField, row: ActionRow) => {
+  const choiceLabel = (value: string) => field.choices?.find((choice) => choice.value === value)?.label ?? value
+
+  switch (field.kind) {
+    case 'choice':
+    case 'owner':
+      return i18n.t(choiceLabel(row.value))
+    case 'multichoice':
+      return row.values.map((value) => i18n.t(choiceLabel(value))).join(', ')
+    case 'text':
+    case 'tags':
+      return row.value
+    case 'customer':
+      return row.completion
+    default:
+      return ''
+  }
 }
+
+const getTemplateActionSummary = (tmpl: TemplateItem) =>
+  performToRows(tmpl.options, actionFieldList.value).map((row) => {
+    const field = actionFieldList.value.find((item) => item.key === row.key)
+    if (!field) return row.key
+
+    const value = row.raw === undefined ? valueOf(field, row) : ''
+    return value ? `${i18n.t(field.label)}: ${value}` : i18n.t(field.label)
+  })
 
 const saveTemplate = async () => {
   if (!formState.value.name.trim()) {
@@ -263,12 +183,15 @@ const saveTemplate = async () => {
     return
   }
 
+  problems.value = actionProblems(actionRows.value, actionFieldList.value)
+  if (problems.value.length) return
+
   submitting.value = true
   try {
     const payload = {
       name: formState.value.name,
       active: formState.value.active,
-      options: withKeptSettings(keptOptions.value, buildOptionsPayload()),
+      options: rowsToPerform(actionRows.value, actionFieldList.value),
     }
 
     const isEdit = formState.value.id !== null
@@ -344,7 +267,7 @@ const toggleActiveState = async (tmpl: TemplateItem) => {
 
 onMounted(() => {
   fetchTemplates()
-  fetchMetadata()
+  loadOptions()
   window.addEventListener('click', closeActionMenu)
 })
 </script>
@@ -563,131 +486,13 @@ onMounted(() => {
             <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase tracking-wider">
               {{ __('Actions') }}
             </label>
-            <div class="space-y-3">
-              <AutomationKeptSettings :settings="keptOptions" />
-              <div
-                v-for="(act, idx) in formState.actions"
-                :key="idx"
-                class="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl relative"
-              >
-                <button
-                  @click="formState.actions.splice(idx, 1)"
-                  class="absolute top-3 right-3 text-slate-400 hover:text-red-500 cursor-pointer"
-                >
-                  <CommonIcon name="trash3" class="w-4 h-4" />
-                </button>
-                <div class="grid grid-cols-2 gap-3 mb-3 pr-8">
-                  <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 mb-1 uppercase">{{ __('Field') }}</label>
-                    <select
-                      v-model="act.field"
-                      @change="act.value = ''; act.textValue = ''"
-                      class="w-full px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    >
-                      <option value="title">{{ __('Title') }}</option>
-                      <option value="state">{{ __('State') }}</option>
-                      <option value="priority">{{ __('Priority') }}</option>
-                      <option value="group">{{ __('Group') }}</option>
-                      <option value="owner">{{ __('Owner') }}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Values Selection -->
-                <div>
-                  <label class="block text-[10px] font-semibold text-slate-400 mb-1.5 uppercase">{{ __('Value') }}</label>
-
-                  <!-- Title Input -->
-                  <div v-if="act.field === 'title'">
-                    <input
-                      v-model="act.textValue"
-                      type="text"
-                      :placeholder="__('Default ticket title')"
-                      class="w-full px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
-                  <!-- State -->
-                  <div v-else-if="act.field === 'state'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="state in ticketStatesList"
-                      :key="state.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(state.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(state.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ state.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Priority -->
-                  <div v-else-if="act.field === 'priority'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="prio in ticketPrioritiesList"
-                      :key="prio.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(prio.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(prio.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ prio.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Group -->
-                  <div v-else-if="act.field === 'group'" class="flex flex-wrap gap-1.5">
-                    <label
-                      v-for="grp in groupsList"
-                      :key="grp.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(grp.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(grp.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ grp.name }}</span>
-                    </label>
-                  </div>
-
-                  <!-- Owner -->
-                  <div v-else-if="act.field === 'owner'" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-                    <label
-                      v-for="user in usersList.slice(0, 40)"
-                      :key="user.id"
-                      class="flex items-center gap-1 px-2.5 py-1 bg-white dark:bg-slate-800 border rounded-md text-xs cursor-pointer"
-                      :class="act.value === String(user.id) ? 'border-blue-400' : 'border-slate-200 dark:border-slate-700'"
-                    >
-                      <input
-                        type="radio"
-                        :value="String(user.id)"
-                        v-model="act.value"
-                        class="text-blue-600"
-                      />
-                      <span>{{ user.fullname || user.login }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                @click="formState.actions.push({ field: 'title', value: '', textValue: '' })"
-                class="w-full px-4 py-2 border border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1"
-              >
-                <CommonIcon name="plus" class="w-3.5 h-3.5" />{{ __('Add Action') }}
-              </button>
-            </div>
+            <p v-if="!options" class="text-sm text-slate-500">{{ $t('Loading…') }}</p>
+            <AutomationActionEditor v-else v-model="actionRows" :fields="actionFieldList" id-prefix="template-action" />
+            <CommonAlert v-if="problems.length" class="mt-3" variant="danger" role="alert">
+              <ul class="list-disc ps-4">
+                <li v-for="problem in problems" :key="problem">{{ $t(problem) }}</li>
+              </ul>
+            </CommonAlert>
           </div>
 
           <!-- Active -->

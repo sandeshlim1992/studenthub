@@ -1,6 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { waitFor } from '@testing-library/vue'
+import { waitFor, within } from '@testing-library/vue'
 
 import { renderComponent } from '#tests/support/components/index.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
@@ -176,6 +176,40 @@ describe('Triggers', () => {
     const body = await sent(calls, 'PUT', '/api/v1/triggers/40')
 
     expect(body.condition).toEqual(condition)
+  })
+
+  it('edits a time-event trigger on reached pending times and escalation warnings', async () => {
+    const trigger = {
+      id: 41,
+      name: 'Escalation warning: tell the team',
+      activator: 'time',
+      active: true,
+      condition: {
+        'ticket.escalation_at': { operator: 'has reached warning', value: [] },
+        'ticket.title': { operator: 'starts with one of', value: ['Laptop', 'Password'] },
+      },
+      perform: { 'ticket.tags': { operator: 'add', value: 'escalation-warning' } },
+    }
+    const calls = mockServer({
+      ...shared,
+      'GET /api/v1/triggers': () => [trigger],
+      'PUT /api/v1/triggers/41': () => trigger,
+    })
+
+    const view = render(Triggers)
+    await view.events.click(await view.findByText(trigger.name))
+
+    const escalation = await view.findByRole('listitem', { name: 'Escalation at' })
+    expect(within(escalation).getByLabelText('Operator')).toHaveValue('has reached warning')
+    expect(
+      within(view.getByRole('listitem', { name: 'Title' })).getByLabelText('Value'),
+    ).toHaveValue('Laptop, Password')
+    expect(view.queryByText('Set elsewhere, kept as it is:')).not.toBeInTheDocument()
+
+    await view.events.click(view.getByRole('button', { name: 'Save' }))
+    const body = await sent(calls, 'PUT', '/api/v1/triggers/41')
+
+    expect(body.condition).toEqual(trigger.condition)
   })
 
   it('switches expert mode on for a new trigger when Zammad allows it', async () => {

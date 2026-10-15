@@ -14,7 +14,7 @@ import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 import { describeTimeplan, type Timeplan } from '../components/Automation/timeplan.ts'
 
 // Student Hub: the Scheduler (Zammad's scheduled jobs), moved from the classic admin. Jobs run at the
-// chosen times and change the tickets that match their conditions.
+// chosen times and change the tickets, users or organizations that match their conditions.
 
 interface Job {
   id: number
@@ -26,6 +26,12 @@ interface Job {
   last_run_at: string | null
   next_run_at: string | null
   matching: number | null
+}
+
+const OBJECT_LABELS: Record<string, string> = {
+  Ticket: __('Tickets'),
+  User: __('Users'),
+  Organization: __('Organizations'),
 }
 
 const breadcrumbItems = [
@@ -103,7 +109,7 @@ const remove = async (job: Job) => {
         <div>
           <h1 class="text-2xl font-bold tracking-tight text-[var(--sh-ink)]">{{ $t('Scheduler') }}</h1>
           <p class="mt-1 text-sm text-[var(--sh-muted)]">
-            {{ $t('Jobs that run at set times and change the tickets matching their conditions.') }}
+            {{ $t('Jobs that run at set times and change the tickets, users or organizations matching their conditions.') }}
           </p>
         </div>
         <CommonButton
@@ -126,6 +132,7 @@ const remove = async (job: Job) => {
           <thead>
             <tr class="text-start">
               <th class="px-4 py-2.5 text-start">{{ $t('Name') }}</th>
+              <th class="px-4 py-2.5 text-start">{{ $t('Works on') }}</th>
               <th class="px-4 py-2.5 text-start">{{ $t('Runs') }}</th>
               <th class="px-4 py-2.5 text-start">{{ $t('Last run') }}</th>
               <th class="px-4 py-2.5 text-start">{{ $t('Next run') }}</th>
@@ -144,6 +151,7 @@ const remove = async (job: Job) => {
                 </RouterLink>
                 <p v-if="job.note" class="mt-0.5 line-clamp-1 text-xs text-[var(--sh-muted)]">{{ job.note }}</p>
               </td>
+              <td class="px-4 py-3 text-[var(--sh-ink-2)]">{{ $t(OBJECT_LABELS[job.object] ?? job.object) }}</td>
               <td class="px-4 py-3 text-[var(--sh-ink-2)]">{{ describeTimeplan(job.timeplan) }}</td>
               <td class="px-4 py-3 text-[var(--sh-muted)]">
                 <CommonDateTime v-if="job.last_run_at" :date-time="job.last_run_at" type="relative" />

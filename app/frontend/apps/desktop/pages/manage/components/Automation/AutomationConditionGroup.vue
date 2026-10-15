@@ -10,6 +10,7 @@ import {
   type ConditionGroup,
 } from './automation.ts'
 import AutomationConditionRow from './AutomationConditionRow.vue'
+import AutomationFieldSelect from './AutomationFieldSelect.vue'
 
 // Expert mode: a group of conditions and groups, of which all, any or none must match. A field can
 // be used more than once (e.g. "state has changed" and "state is closed").
@@ -22,11 +23,9 @@ const group = defineModel<ConditionGroup>({ required: true })
 
 const fieldOf = (key: string) => props.fields.find((field) => field.key === key)
 
-const addCondition = (event: Event) => {
-  const select = event.target as HTMLSelectElement
-  const field = fieldOf(select.value)
+const addCondition = (key: string) => {
+  const field = fieldOf(key)
   if (field) group.value.children = [...group.value.children, emptyCondition(field)]
-  select.value = ''
 }
 
 const addGroup = () => {
@@ -101,15 +100,13 @@ const inputClass =
     </ul>
 
     <div class="flex flex-wrap items-center gap-2">
-      <label :for="`${idPrefix}-add-${group.uid}`">
-        <span class="sr-only">{{ $t('Add a condition') }}</span>
-        <select :id="`${idPrefix}-add-${group.uid}`" :class="inputClass" @change="addCondition">
-          <option value="">{{ $t('+ Add a condition…') }}</option>
-          <option v-for="field in fields" :key="field.key" :value="field.key">
-            {{ $t(field.label) }}
-          </option>
-        </select>
-      </label>
+      <AutomationFieldSelect
+        :id="`${idPrefix}-add-${group.uid}`"
+        :fields="fields"
+        :label="$t('Add a condition')"
+        :placeholder="$t('+ Add a condition…')"
+        @pick="addCondition"
+      />
       <button
         type="button"
         class="h-8 rounded-lg border border-[var(--sh-line)] bg-white px-2 text-sm text-[var(--sh-ink)] hover:border-[var(--sh-app)]"

@@ -182,3 +182,11 @@ Never put passwords, tokens or keys in this file.
 - Rails 8.1 (15 Oct), as Rails 8.0's security support ended on 7 Oct 2026. `config.load_defaults` stays 8.0 until
   8.1's new framework defaults have been checked one by one. `benchmark` is in the Gemfile because Zammad's
   `delayed_job` fork needs it and Rails 8.1 no longer brings it in
+- The classic UI is to be removed (15 Oct); what it alone still did moves to the new UI first. Moved: Scheduler jobs
+  on users and organisations, every condition of the classic editor and every field of a template. Dropped, not
+  moved: the BETA UI page and switch, the live chat console, the phone (CTI) log, Clearbit's setup and
+  "subscribe me" on a ticket (contributors come through @mentions)
+- The condition and action editor builds the fields of tickets, customers, users and organisations from Zammad's
+  object manager (`attributes` of the automation options endpoint), with operators by field type as the classic
+  editor does, so new fields need no code. The Templates editor uses the same action editor; what it doesn't know is
+  kept as a "kept as it is" row (the separate kept-settings list is gone)

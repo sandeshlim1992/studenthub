@@ -165,3 +165,18 @@ table editing and the `@@` mention list work. It also found:
 | Finding | Problem | Verdict | Why | Commit |
 |---|---|---|---|---|
 | Brakeman: "Support for Rails 8.0.5.1 ended on 2026-10-07" | No more security fixes for Rails 8.0 | Fixed: Rails 8.1.4 | Brakeman finds nothing on 8.1.4. 15 shared gems moved with it (e.g. `net-imap` 0.6.8, `rack` 3.2.7). The full backend suite shows no failure caused by the update (NOTES → Tests that already fail), the browser tests pass, and the production asset build works | the commit that added this section |
+
+## Classic-only automation features in the new UI (15 Oct)
+
+`git diff HEAD`: the automation options endpoint (service, controller comment, policy), the condition and action
+editors, the Scheduler, Triggers and Templates pages, their specs. Records are still saved through Zammad's own APIs
+(`/api/v1/jobs`, `/triggers`, `/templates`) with their own permission checks; nothing new writes data.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Options endpoint now also for `admin.template` | Template admins can read the names of states, priorities, teams, agents, organisations, webhooks, roles and calendars | Accepted | Read-only names and ids, no settings or secrets; a template needs the agents, teams and select fields anyway (the page loaded `/api/v1/users?per_page=500`, groups, states and priorities before). Agents without an admin permission still get 403 (spec) | — |
+| New `attributes` in the options | Field definitions of tickets, users and organisations could carry more than labels | No problem | Only name, display, type, active, relation and the option labels are sent. External data source fields (whose options hold a search URL and credentials) and passwords are left out (`FIELD_TYPES`, spec "leaves out passwords and lists of ids") | — |
+| User jobs: "Add a data privacy deletion task" | A scheduled job can delete users and their tickets | Accepted | The same action as the classic Scheduler, for `admin.scheduler` only (Zammad's jobs API and `Job` validation); the editor warns that it cannot be undone. Request spec runs such a job | — |
+| Regular-expression conditions | The setting `ticket_conditions_allow_regular_expression_operators` is checked by the UI only | Accepted | Zammad's own design: the server never checks it (no Ruby code reads the setting), the classic UI hid the operators the same way; only trigger admins can save conditions | — |
+| User and organisation match counts | `/api/v1/users/selector` and `/organizations/selector` count records | No problem | Zammad's `SelectorsController`, `admin.*` only, unchanged | — |
+| Template message text in the rich-text editor | Stored HTML shown in an editor | No problem | Shown only inside Zammad's editor field (as in the Knowledge Base page); the template list shows field names, not the HTML; texts elsewhere are interpolated, never `v-html` | — |

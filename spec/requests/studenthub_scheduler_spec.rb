@@ -36,6 +36,28 @@ RSpec.describe 'Student Hub Scheduler (new UI)', aggregate_failures: true, authe
       expect(json_response['ticket_attributes'].pluck('name')).not_to include('state_id', 'group_id', 'approval_state')
     end
 
+    it 'gives roles, calendars and the fields of tickets, users and organisations with their types' do
+      create(:calendar, name: 'Office hours')
+
+      get '/api/v1/studenthub/automation/options', as: :json
+
+      expect(json_response['roles'].pluck('name')).to include('Admin', 'Agent', 'Customer')
+      expect(json_response['calendars'].pluck('name')).to include('Office hours')
+
+      fields = json_response['attributes']
+      expect(fields['ticket'].find { |field| field['name'] == 'customer_id' }).to include('data_type' => 'user_autocompletion', 'relation' => 'User')
+      expect(fields['ticket'].find { |field| field['name'] == 'sh_campus' }['options'].pluck('value')).to eq(%w[LSST LSST::Wembley])
+      expect(fields['user'].find { |field| field['name'] == 'vip' }).to include('data_type' => 'boolean')
+      expect(fields['organization'].pluck('name')).to include('name', 'shared', 'domain', 'active')
+    end
+
+    it 'leaves out passwords and lists of ids' do
+      get '/api/v1/studenthub/automation/options', as: :json
+
+      expect(json_response['attributes']['user'].pluck('name')).not_to include('password', 'role_ids', 'group_ids', 'organization_ids')
+      expect(json_response['attributes']['ticket'].pluck('name')).not_to include('tags')
+    end
+
     context 'with an agent' do
       let(:current_user) { create(:agent) }
 
@@ -48,6 +70,16 @@ RSpec.describe 'Student Hub Scheduler (new UI)', aggregate_failures: true, authe
 
     context 'with someone who may only change macros' do
       let(:current_user) { create(:agent, roles: [create(:role, permission_names: ['admin.macro'])]) }
+
+      it 'gives the choices too' do
+        get '/api/v1/studenthub/automation/options', as: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context 'with someone who may only change templates' do
+      let(:current_user) { create(:agent, roles: [create(:role, permission_names: ['admin.template'])]) }
 
       it 'gives the choices too' do
         get '/api/v1/studenthub/automation/options', as: :json
@@ -105,6 +137,25 @@ RSpec.describe 'Student Hub Scheduler (new UI)', aggregate_failures: true, authe
       expect(job.perform.keys).not_to include('notification.email')
     end
 
+    it 'saves a job with a fixed date, a list of titles and working time, and counts its tickets' do
+      calendar = create(:calendar)
+      condition = {
+        'ticket.created_at'          => { operator: 'before (absolute)', value: '2026-09-01T00:00:00.000Z' },
+        'ticket.title'               => { operator: 'starts with one of', value: %w[Laptop Password] },
+        'customer.vip'               => { operator: 'is', value: true },
+        'execution_time.calendar_id' => { operator: 'is not in working time', value: calendar.id.to_s },
+      }
+      travel_to(Time.zone.parse('2026-08-01')) { create(:ticket, title: 'Laptop broken', customer: create(:customer, vip: true)) }
+      create(:ticket, title: 'Laptop too', customer: create(:customer, vip: true))
+
+      post '/api/v1/jobs', params: payload.merge(condition:), as: :json
+      expect(response).to have_http_status(:created)
+      expect(Job.find(json_response['id']).condition['ticket.title']['value']).to eq(%w[Laptop Password])
+
+      post '/api/v1/tickets/selector', params: { condition: condition.except('execution_time.calendar_id') }, as: :json
+      expect(json_response['object_count']).to eq(1)
+    end
+
     it 'counts the tickets a condition matches now' do
       travel_to(6.days.ago) { create_list(:ticket, 2, state: pending) }
       create(:ticket, state: pending)
@@ -112,6 +163,62 @@ RSpec.describe 'Student Hub Scheduler (new UI)', aggregate_failures: true, authe
       post '/api/v1/tickets/selector', params: { condition: payload[:condition] }, as: :json
 
       expect(json_response['object_count']).to eq(2)
+    end
+  end
+
+  # Jobs on users and organisations: what the page sends for them.
+  describe 'saving a job on users or organisations' do
+    let(:timeplan) do
+      { days: { Mon: true }, hours: { '3' => true }, minutes: { '0' => true } }
+    end
+
+    it 'switches off customers who have not signed in for a year and have no open tickets' do
+      customer_role = Role.find_by(name: 'Customer')
+      inactive = travel_to(2.years.ago) { create(:customer, last_login: Time.zone.now) }
+      recent   = create(:customer, last_login: Time.zone.now)
+      condition = {
+        'user.role_ids'                 => { operator: 'is', value: [customer_role.id.to_s] },
+        'user.last_login'               => { operator: 'before (relative)', value: '1', range: 'year' },
+        'ticket_customer.open_existing' => { operator: 'is', value: false },
+      }
+
+      post '/api/v1/users/selector', params: { condition: }, as: :json
+      expect(json_response['object_ids']).to include(inactive.id)
+      expect(json_response['object_ids']).not_to include(recent.id)
+
+      post '/api/v1/jobs', params: { name: 'Switch off old customers', object: 'User', active: true, timeplan:, condition:, perform: { 'user.active' => { value: 'false' } } }, as: :json
+      expect(response).to have_http_status(:created)
+
+      job = Job.find(json_response['id'])
+      job.run(true)
+      expect(inactive.reload.active).to be(false)
+      expect(recent.reload.active).to be(true)
+    end
+
+    it 'adds a data privacy deletion task for matching users' do
+      customer = create(:customer, note: 'leaver')
+      post '/api/v1/jobs', params: {
+        name: 'Remove leavers', object: 'User', active: true, timeplan:,
+        condition: { 'user.note' => { operator: 'contains', value: 'leaver' } },
+        perform: { 'user.action' => { value: 'data_privacy_deletion_task' } }
+      }, as: :json
+      expect(response).to have_http_status(:created)
+
+      Job.find(json_response['id']).run(true)
+      expect(DataPrivacyTask.where(deletable: customer)).to exist
+    end
+
+    it 'marks organisations without members as not shared' do
+      empty = create(:organization, shared: true)
+      post '/api/v1/jobs', params: {
+        name: 'Unshare empty organisations', object: 'Organization', active: true, timeplan:,
+        condition: { 'organization.members_existing' => { operator: 'is', value: false } },
+        perform: { 'organization.shared' => { value: 'false' } }
+      }, as: :json
+      expect(response).to have_http_status(:created)
+
+      Job.find(json_response['id']).run(true)
+      expect(empty.reload.shared).to be(false)
     end
   end
 end

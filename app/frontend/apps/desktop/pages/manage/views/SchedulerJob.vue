@@ -23,8 +23,10 @@ import {
   rowsToPerform,
   stateRows,
   stateToCondition,
+  type ActionFlavour,
   type ActionRow,
   type AutomationOptions,
+  type ConditionFlavour,
   type ConditionState,
 } from '../components/Automation/automation.ts'
 import AutomationActionEditor from '../components/Automation/AutomationActionEditor.vue'
@@ -32,15 +34,66 @@ import AutomationConditions from '../components/Automation/AutomationConditions.
 import AutomationTimeplanEditor from '../components/Automation/AutomationTimeplanEditor.vue'
 import { emptyTimeplan, normalizeTimeplan, timeplanProblems, type Timeplan } from '../components/Automation/timeplan.ts'
 
-// Student Hub: one scheduler job: when it runs, which tickets it picks and what it does to them.
-// Saved through Zammad's jobs API (/api/v1/jobs).
+// Student Hub: one scheduler job: when it runs, which tickets, users or organizations it picks and
+// what it does to them. Saved through Zammad's jobs API (/api/v1/jobs).
+
+type JobObject = 'Ticket' | 'User' | 'Organization'
+
+interface ObjectTexts {
+  label: string
+  which: string
+  whichAll: string
+  matching: string
+  noCondition: string
+}
+
+// What a job can work on: its conditions and actions, where Zammad counts the matching records, and
+// how the page talks about them.
+const OBJECTS: Record<JobObject, { conditions: ConditionFlavour; actions: ActionFlavour; path: string; texts: ObjectTexts }> = {
+  Ticket: {
+    conditions: 'scheduler',
+    actions: 'scheduler',
+    path: 'tickets',
+    texts: {
+      label: __('Tickets'),
+      which: __('Which tickets'),
+      whichAll: __('Which tickets (all conditions must match)'),
+      matching: __('%s tickets match now'),
+      noCondition: __('Add at least one condition, so the job does not change every ticket.'),
+    },
+  },
+  User: {
+    conditions: 'user',
+    actions: 'user',
+    path: 'users',
+    texts: {
+      label: __('Users'),
+      which: __('Which users'),
+      whichAll: __('Which users (all conditions must match)'),
+      matching: __('%s users match now'),
+      noCondition: __('Add at least one condition, so the job does not change every user.'),
+    },
+  },
+  Organization: {
+    conditions: 'organization',
+    actions: 'organization',
+    path: 'organizations',
+    texts: {
+      label: __('Organizations'),
+      which: __('Which organizations'),
+      whichAll: __('Which organizations (all conditions must match)'),
+      matching: __('%s organizations match now'),
+      noCondition: __('Add at least one condition, so the job does not change every organization.'),
+    },
+  },
+}
 
 interface Job {
   id: number
   name: string
   note: string | null
   active: boolean
-  object: string
+  object: JobObject
   disable_notification: boolean
   timeplan: Partial<Timeplan>
   condition: unknown
@@ -74,16 +127,25 @@ const name = ref('')
 const note = ref('')
 const active = ref(true)
 const disableNotification = ref(true)
-const object = ref('Ticket')
+const object = ref<JobObject>('Ticket')
 const timeplan = ref<Timeplan>(emptyTimeplan())
 const conditionState = ref<ConditionState>(emptyConditionState())
 const actionRows = ref<ActionRow[]>([])
 
 const allowExpert = computed(() => Boolean(useApplicationStore().config.ticket_allow_expert_conditions))
 
-const conditionFieldList = computed(() => (options.value ? conditionFields(options.value) : []))
-const actionFieldList = computed(() => (options.value ? actionFields(options.value) : []))
-const isTicketJob = computed(() => object.value === 'Ticket')
+const objectMeta = computed(() => OBJECTS[object.value])
+const conditionFieldList = computed(() =>
+  options.value ? conditionFields(options.value, objectMeta.value.conditions) : [],
+)
+const actionFieldList = computed(() => (options.value ? actionFields(options.value, objectMeta.value.actions) : []))
+
+// The conditions and actions of one kind of record mean nothing for another, so they start again.
+const changeObject = (value: JobObject) => {
+  object.value = value
+  conditionState.value = emptyConditionState()
+  actionRows.value = []
+}
 
 const condition = computed(() => stateToCondition(conditionState.value, conditionFieldList.value))
 
@@ -136,17 +198,17 @@ onActivated(() => {
 })
 watch([jobId, copyId], () => load())
 
-// How many tickets the conditions pick now.
+// How many tickets, users or organizations the conditions pick now.
 const matchCount = ref<number | null>(null)
 watchDebounced(
   condition,
   async (value) => {
-    if (!isTicketJob.value || !Object.keys(value as object).length) {
+    if (!Object.keys(value as object).length) {
       matchCount.value = null
       return
     }
     try {
-      const result = await studenthubApi<{ object_count: number }>('/api/v1/tickets/selector', {
+      const result = await studenthubApi<{ object_count: number }>(`/api/v1/${objectMeta.value.path}/selector`, {
         method: 'POST',
         body: { condition: value },
       })
@@ -162,9 +224,7 @@ const checkProblems = () => {
   const found: string[] = []
   if (!name.value.trim()) found.push(__('Give the job a name.'))
   found.push(...timeplanProblems(timeplan.value))
-  if (!stateRows(conditionState.value).length) {
-    found.push(__('Add at least one condition, so the job does not change every ticket.'))
-  }
+  if (!stateRows(conditionState.value).length) found.push(objectMeta.value.texts.noCondition)
   found.push(...conditionStateProblems(conditionState.value, conditionFieldList.value))
   if (!actionRows.value.length) found.push(__('Add at least one action.'))
   found.push(...actionProblems(actionRows.value, actionFieldList.value))
@@ -213,10 +273,6 @@ const inputClass =
       <CommonAlert v-if="loadError" variant="danger">{{ loadError }}</CommonAlert>
       <p v-else-if="!options" class="text-sm text-[var(--sh-muted)]">{{ $t('Loading…') }}</p>
 
-      <CommonAlert v-else-if="!isTicketJob" variant="warning">
-        {{ $t('This job works on %s records. Edit it in the classic admin (Scheduler).', object) }}
-      </CommonAlert>
-
       <form v-else class="flex flex-col gap-5" novalidate @submit.prevent="save">
         <section aria-labelledby="job-basics" class="flex flex-col gap-3 rounded-xl border border-[var(--sh-line)] bg-white p-5">
           <h2 id="job-basics" class="text-sm font-extrabold tracking-wider text-slate-600 uppercase">{{ $t('Job') }}</h2>
@@ -228,6 +284,26 @@ const inputClass =
             {{ $t('Note') }}
             <input id="job-note" v-model="note" type="text" maxlength="250" :class="inputClass" />
           </label>
+          <fieldset class="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <legend class="mb-1 text-sm font-semibold text-[var(--sh-ink)]">{{ $t('Works on') }}</legend>
+            <label
+              v-for="(meta, key) in OBJECTS"
+              :key="key"
+              :for="`job-object-${key}`"
+              class="flex items-center gap-2 text-sm text-[var(--sh-ink)]"
+            >
+              <input
+                :id="`job-object-${key}`"
+                type="radio"
+                name="job-object"
+                :value="key"
+                :checked="object === key"
+                :disabled="Boolean(jobId)"
+                @change="changeObject(key)"
+              />
+              {{ $t(meta.texts.label) }}
+            </label>
+          </fieldset>
           <div class="flex flex-wrap gap-5">
             <label for="job-active" class="flex items-center gap-2 text-sm text-[var(--sh-ink)]">
               <input id="job-active" v-model="active" type="checkbox" />
@@ -248,10 +324,10 @@ const inputClass =
         <section aria-labelledby="job-which" class="flex flex-col gap-3 rounded-xl border border-[var(--sh-line)] bg-white p-5">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h2 id="job-which" class="text-sm font-extrabold tracking-wider text-slate-600 uppercase">
-              {{ conditionState.group ? $t('Which tickets') : $t('Which tickets (all conditions must match)') }}
+              {{ conditionState.group ? $t(objectMeta.texts.which) : $t(objectMeta.texts.whichAll) }}
             </h2>
             <span v-if="matchCount !== null" class="text-sm font-semibold text-[var(--sh-app)]" role="status">
-              {{ $t('%s tickets match now', matchCount) }}
+              {{ $t(objectMeta.texts.matching, matchCount) }}
             </span>
           </div>
           <AutomationConditions

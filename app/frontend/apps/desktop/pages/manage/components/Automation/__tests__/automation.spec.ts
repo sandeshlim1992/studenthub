@@ -10,6 +10,8 @@ import {
   conditionToState,
   emptyAction,
   emptyCondition,
+  fieldLabel,
+  fromLocalInput,
   groupToRows,
   isExpertCondition,
   newGroup,
@@ -19,6 +21,8 @@ import {
   rowsToPerform,
   stateRows,
   stateToCondition,
+  toLocalInput,
+  type AutomationAttribute,
   type AutomationOptions,
 } from '../automation.ts'
 
@@ -216,5 +220,247 @@ describe('trigger conditions, expert mode and the other actions', () => {
     expect(keys(triggerActions)).not.toContain('ticket.action')
     expect(keys(macroActions)).not.toContain('notification.webhook')
     expect(keys(macroActions)).toContain('ticket.customer_id')
+  })
+})
+
+describe('the conditions and actions of the classic editor', () => {
+  const attribute = (name: string, display: string, dataType: string, extra: Partial<AutomationAttribute> = {}) => ({
+    name,
+    display,
+    data_type: dataType,
+    active: true,
+    options: [],
+    ...extra,
+  })
+
+  const fullOptions: AutomationOptions = {
+    ...options,
+    organizations: [{ id: 5, name: 'LSST', active: true }],
+    roles: [{ id: 3, name: 'Customer', active: true }],
+    calendars: [{ id: 1, name: 'Office hours', active: true }],
+    ticket_attributes: [
+      ...options.ticket_attributes,
+      attribute('itil_type', 'ITIL type', 'multi_tree_select', {
+        options: [{ value: 'Service Requests', label: 'Service Requests' }],
+      }),
+    ],
+    attributes: {
+      ticket: [
+        attribute('number', '#', 'input'),
+        attribute('customer_id', 'Customer', 'user_autocompletion', { relation: 'User' }),
+        attribute('state_id', 'State', 'select', { relation: 'TicketState' }),
+        attribute('time_unit', 'Time units', 'integer'),
+      ],
+      user: [
+        attribute('email', 'Email', 'input'),
+        attribute('vip', 'VIP', 'boolean'),
+        attribute('active', 'Active', 'active'),
+        attribute('organization_id', 'Organization', 'autocompletion_ajax', { relation: 'Organization' }),
+        attribute('note', 'Note', 'richtext'),
+        attribute('birthday', 'Birthday', 'date'),
+      ],
+      organization: [attribute('name', 'Name', 'input'), attribute('shared', 'Shared organization', 'boolean')],
+    },
+  }
+
+  const ticketFields = conditionFields(fullOptions)
+  const keys = (list: { key: string }[]) => list.map((field) => field.key)
+  const roundTrip = (condition: Record<string, unknown>, list = ticketFields) => {
+    const rows = conditionToRows(condition, list)
+    expect(rows.filter((row) => row.raw !== undefined)).toEqual([])
+    return rowsToCondition(rows, list)
+  }
+
+  it('compares dates with a fixed date or today, and texts with several values', () => {
+    const condition = {
+      'ticket.created_at': { operator: 'before (absolute)', value: '2026-09-01T08:00:00.000Z' },
+      'ticket.updated_at': { operator: 'today' },
+      'ticket.title': { operator: 'starts with one of', value: ['Laptop', 'Password'] },
+      'ticket.number': { operator: 'is any of', value: ['10012', '10013'] },
+      'ticket.time_unit': { operator: 'is greater than', value: '30' },
+    }
+
+    expect(roundTrip(condition)).toEqual(condition)
+    expect(conditionToRows(condition, ticketFields)[2].text).toBe('Laptop, Password')
+  })
+
+  it('offers the fields of the ticket, its customer and organization, and its messages', () => {
+    expect(keys(ticketFields)).toEqual(
+      expect.arrayContaining([
+        'ticket.number',
+        'ticket.customer_id',
+        'ticket.created_by_id',
+        'ticket.mention_user_ids',
+        'article.subject',
+        'article.body',
+        'customer.email',
+        'customer.organization_id',
+        'organization.shared',
+      ]),
+    )
+    expect(keys(ticketFields).filter((key) => key === 'ticket.state_id')).toHaveLength(1)
+    expect(keys(ticketFields)).not.toContain('execution_time.calendar_id')
+
+    const vip = ticketFields.find((field) => field.key === 'customer.vip')!
+    expect(fieldLabel(vip)).toBe('Customer › VIP')
+
+    const condition = {
+      'customer.vip': { operator: 'is', value: true },
+      'customer.organization_id': { operator: 'is', value: ['5'] },
+      'organization.name': { operator: 'contains', value: 'LSST' },
+      'customer.note': { operator: 'contains not', value: 'leaver' },
+    }
+    expect(roundTrip(condition)).toEqual(condition)
+  })
+
+  it('picks people by name, or nobody', () => {
+    const condition = {
+      'ticket.customer_id': { operator: 'is', pre_condition: 'specific', value: '12', value_completion: 'Ann Lee <ann@example.com>' },
+      'ticket.created_by_id': { operator: 'is not', pre_condition: 'not_set', value: [] },
+    }
+    expect(roundTrip(condition)).toEqual(condition)
+
+    const customer = emptyCondition(ticketFields.find((field) => field.key === 'ticket.customer_id')!)
+    expect(conditionProblems([customer], ticketFields)).toEqual(['Customer: choose a person.'])
+  })
+
+  it('offers working hours in jobs and triggers, and "has reached" in triggers', () => {
+    const scheduler = conditionFields(fullOptions, 'scheduler')
+    const working = { 'execution_time.calendar_id': { operator: 'is not in working time', value: '1' } }
+    expect(roundTrip(working, scheduler)).toEqual(working)
+
+    const trigger = conditionFields(fullOptions, 'trigger')
+    const timeEvent = {
+      operator: 'AND',
+      conditions: [
+        { name: 'ticket.pending_time', operator: 'has reached', value: [] },
+        { name: 'ticket.escalation_at', operator: 'has reached warning', value: [] },
+        { name: 'article.time_accounting', operator: 'is set', value: [] },
+        { name: 'ticket.number', operator: 'has changed', value: [] },
+      ],
+    }
+    const state = conditionToState(timeEvent, trigger)
+    expect(stateRows(state).every((row) => row.raw === undefined)).toBe(true)
+    expect(conditionStateProblems(state, trigger)).toEqual([])
+    expect(stateToCondition(state, trigger)).toEqual(timeEvent)
+
+    expect(conditionToRows({ 'ticket.pending_time': { operator: 'has reached', value: [] } }, ticketFields)[0].raw).toBeDefined()
+  })
+
+  it('offers regular expressions in triggers only while Zammad allows them', () => {
+    const regex = { 'ticket.title': { operator: 'matches regex', value: '^Laptop' } }
+
+    expect(conditionToRows(regex, conditionFields(fullOptions, 'trigger'))[0].raw).toBeDefined()
+    expect(roundTrip(regex, conditionFields(fullOptions, 'trigger', { allowRegex: true }))).toEqual(regex)
+    expect(conditionToRows(regex, conditionFields(fullOptions, 'ticket', { allowRegex: true }))[0].raw).toBeDefined()
+  })
+
+  it('names what is missing in dates, numbers and lists', () => {
+    const rows = conditionToRows(
+      {
+        'ticket.created_at': { operator: 'after (absolute)', value: '' },
+        'ticket.time_unit': { operator: 'is', value: 'many' },
+        'ticket.title': { operator: 'is any of', value: [] },
+      },
+      ticketFields,
+    )
+
+    expect(conditionProblems(rows, ticketFields)).toEqual([
+      'Created at: enter a date.',
+      'Time units: enter a number.',
+      'Title: enter a value.',
+    ])
+  })
+
+  it('offers jobs on users their own fields, their organization and their tickets', () => {
+    const userFields = conditionFields(fullOptions, 'user')
+    expect(keys(userFields)).toEqual(
+      expect.arrayContaining([
+        'user.role_ids',
+        'user.last_login',
+        'user.email',
+        'user.vip',
+        'organization.shared',
+        'ticket_customer.open_existing',
+        'ticket_customer.last_contact_at',
+        'ticket_owner.existing',
+      ]),
+    )
+
+    const condition = {
+      'user.role_ids': { operator: 'is', value: ['3'] },
+      'user.last_login': { operator: 'before (relative)', value: '1', range: 'year' },
+      'user.birthday': { operator: 'after (absolute)', value: '2000-01-01' },
+      'ticket_customer.open_existing': { operator: 'is', value: false },
+    }
+    expect(roundTrip(condition, userFields)).toEqual(condition)
+    expect(userFields.find((field) => field.key === 'user.birthday')?.dateOnly).toBe(true)
+
+    const organizationFields = conditionFields(fullOptions, 'organization')
+    expect(keys(organizationFields)).toEqual(
+      expect.arrayContaining(['organization.members_existing', 'organization.name', 'organization.shared']),
+    )
+  })
+
+  it('switches users and organizations off, sets their fields and adds a privacy task', () => {
+    const userActions = actionFields(fullOptions, 'user')
+    expect(keys(userActions)).toEqual(['user.vip', 'user.active', 'user.organization_id', 'user.birthday', 'user.action'])
+
+    const perform = {
+      'user.active': { value: 'false' },
+      'user.organization_id': { value: '5' },
+      'user.action': { value: 'data_privacy_deletion_task' },
+    }
+    expect(rowsToPerform(performToRows(perform, userActions), userActions)).toEqual(perform)
+
+    const privacy = emptyAction(userActions.find((field) => field.key === 'user.action')!)
+    expect(rowsToPerform([privacy], userActions)).toEqual({ 'user.action': { value: 'data_privacy_deletion_task' } })
+    expect(actionProblems([privacy], userActions)).toEqual([])
+
+    expect(keys(actionFields(fullOptions, 'organization'))).toEqual(['organization.shared'])
+  })
+
+  it('fills in every field of a template, the message text included', () => {
+    const templateActions = actionFields(fullOptions, 'template')
+    expect(keys(templateActions)).not.toEqual(expect.arrayContaining(['article.note']))
+    expect(keys(templateActions)).not.toContain('notification.webhook')
+
+    // A template from the test server.
+    const template = {
+      'article.body': { value: '<div><p>Dear IT Support,</p></div>' },
+      'ticket.title': { value: 'Password Reset Request' },
+      'ticket.campus': { value: 'LSST' },
+      'ticket.itil_type': { value: ['Service Requests'], value_completion: '' },
+      'ticket.priority_id': { value: '2' },
+      'ticket.formSenderType': { value: 'phone-in' },
+      'article.cc': { value: 'it@example.com' },
+      'ticket.pending_time': { operator: 'relative', value: '3', range: 'day' },
+    }
+    const rows = performToRows(template, templateActions)
+
+    expect(rows.filter((row) => row.raw !== undefined)).toEqual([])
+    expect(rowsToPerform(rows, templateActions)).toEqual(template)
+
+    const fixed = { 'ticket.pending_time': { operator: 'static', value: '2026-11-02T09:30:00.000Z' } }
+    expect(rowsToPerform(performToRows(fixed, templateActions), templateActions)).toEqual(fixed)
+  })
+
+  it('names what is missing in the new actions', () => {
+    const templateActions = actionFields(fullOptions, 'template')
+    const empty = (key: string) => emptyAction(templateActions.find((field) => field.key === key)!)
+
+    expect(
+      actionProblems(
+        [empty('ticket.itil_type'), { ...empty('ticket.pending_time'), operator: 'static', value: '' }, empty('article.body')],
+        templateActions,
+      ),
+    ).toEqual(['Set ITIL type: choose at least one.', 'Set pending till: enter a date.', 'Message text: enter a text.'])
+  })
+
+  it('shows a fixed time in the browser time zone and keeps it in UTC', () => {
+    expect(toLocalInput('2026-09-01T08:00:00.000Z')).toBe('2026-09-01T08:00')
+    expect(fromLocalInput('2026-09-01T08:00')).toBe('2026-09-01T08:00:00.000Z')
+    expect(toLocalInput('')).toBe('')
+    expect(fromLocalInput('')).toBe('')
   })
 })

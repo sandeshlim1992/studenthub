@@ -124,3 +124,26 @@ No server code changed, so no full review.
 | File | Problem | Verdict | Why | Commit |
 |---|---|---|---|---|
 | 14 frontend files (admin pages, profile settings, New ticket, message actions, `Form.vue`, three specs) | Type fixes could drop a check | No problem | No permission check, validation or error handling was removed; the only new code is guards (an icon shown only when there is one, no form lookup without an id). New ticket still sends the same customer and attachments | the commit that added this section |
+
+## npm dependency fixes and a browser check of the editor (15 Oct)
+
+`pnpm audit --prod` listed 19 advisories in 10 packages (12 high). Each package was refreshed within the range its
+parents already allow (`pnpm update <name>`), with no new overrides. The `resolutions` in `package.json`, which
+pnpm 11 ignores, are gone, and `vite-bundle-visualizer` moved to `devDependencies`. Afterwards `pnpm audit --prod`
+lists 1 (low). `.github/dependabot.yml` sets Dependabot up for security fixes only.
+
+| Package | Problem | Verdict | Why |
+|---|---|---|---|
+| prosemirror-view 1.42.0 (the editor) | XSS in paste handling | Fixed: 1.42.6 | Runs in every staff and student browser |
+| vue 3.5.39 (with `@vue/server-renderer`, `@vue/runtime-core`, `@vue/compiler-dom`) | XSS in attribute names (server renderer) | Fixed: 3.5.44 | Student Hub doesn't render on the server; Vue's packages move together |
+| qs 6.15.3 | Array-limit bypass | Fixed: 6.16.0 | Parses the search page's filters |
+| ws, nanoid, source-map-js, postcss, brace-expansion, tmp | Denial of service, path traversal | Fixed: 8.22.0, 3.3.20, 1.2.2, 8.5.30, 5.0.12, 0.2.7 | Build tools and Node-only code; fixed so new findings stand out |
+| esbuild 0.27.7 | File read through esbuild's own development server | Accepted | Vite doesn't use esbuild's server, and esbuild never runs on the servers. The older Vite inside `@sa11y/vitest` (Vitest 3) keeps it at 0.27; Student Hub's Vite 8 accepts 0.28 |
+| 71 advisories in development tools (`pnpm audit` without `--prod`, 4 critical: Vitest 3 inside `@sa11y/vitest`, GraphQL codegen, stylelint, markdownlint-cli2, …) | Various | Open | Developer machines only, never in the app (NOTES → Next steps) |
+
+A browser test of the reply editor after the update (Playwright, not kept): bold, lists, a pasted link and table,
+table editing and the `@@` mention list work. It also found:
+
+| File | Problem | Verdict | Why |
+|---|---|---|---|
+| `app/frontend/shared/utils/htmlCleanup.ts` (Zammad's, unchanged by Student Hub) | Pasted HTML runs its scripts: `htmlCleanup` parses it with `innerHTML` on an element of the live page, so `<img src=… onerror=…>` runs while the HTML is cleaned. In the browser the script ran through `htmlCleanup` alone and not through ProseMirror's own paste (which parses in a detached document). Every HTML paste into the editor goes through it, as do text modules, Knowledge Base suggestions and signatures | Open | Someone has to paste HTML an attacker prepared (a web page decides what copying from it puts on the clipboard); the script then acts as the signed-in user. Fix: parse in an inert document (`document.implementation.createHTMLDocument`). Probably also in current Zammad: report to `security@zammad.com` (SECURITY.md) |

@@ -175,3 +175,7 @@ Never put passwords, tokens or keys in this file.
   figures about the agent's tickets rather than a to-do list
 - My overview's "Your workload" card is called "Your tickets" (15 Oct): it shows the agent's assigned tickets, how
   many are in process and how they came in, not only how busy they are
+- Vulnerable npm packages are fixed by refreshing them within the ranges their parents allow (`pnpm update <name>`),
+  not with overrides (15 Oct): an override pins a version for good and is easily forgotten, so overrides stay for
+  what a range can't do (the editor's one copy of each package in `pnpm-workspace.yaml`). Not `pnpm audit --fix`,
+  which writes an override per advisory. Dependabot proposes security fixes only, no routine version bumps

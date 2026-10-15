@@ -147,3 +147,12 @@ table editing and the `@@` mention list work. It also found:
 | File | Problem | Verdict | Why |
 |---|---|---|---|
 | `app/frontend/shared/utils/htmlCleanup.ts` (Zammad's, unchanged by Student Hub) | Pasted HTML runs its scripts: `htmlCleanup` parses it with `innerHTML` on an element of the live page, so `<img src=… onerror=…>` runs while the HTML is cleaned. In the browser the script ran through `htmlCleanup` alone and not through ProseMirror's own paste (which parses in a detached document). Every HTML paste into the editor goes through it, as do text modules, Knowledge Base suggestions and signatures | Open | Someone has to paste HTML an attacker prepared (a web page decides what copying from it puts on the clipboard); the script then acts as the signed-in user. Fix: parse in an inert document (`document.implementation.createHTMLDocument`). Probably also in current Zammad: report to `security@zammad.com` (SECURITY.md) |
+
+## Check of the pasted-HTML fix before committing (15 Oct)
+
+`git diff HEAD`: frontend only, one Zammad file. No permission check, validation or error handling changed.
+
+| File | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| `app/frontend/shared/utils/htmlCleanup.ts` | Pasted HTML ran its scripts (the open row above) | Fixed | It now parses in a document without a window (`createHTMLDocument`), where nothing loads or runs, and builds the paragraphs it makes from line breaks there too. Same clean-up and output: Zammad's 19 `htmlCleanup` specs and the editor specs pass. `studenthubHtmlCleanup.spec.ts` and the browser test "Pasting into a reply" (`agent-journey.spec.ts`) fail on the old code | the commit that added this section |
+| `app/assets/javascripts/app/lib/app_post/utils.coffee` (classic UI at `/app`, `App.Utils.htmlCleanup` → `_checkTypeOf`) | The same in the classic UI: pasted HTML is parsed with jQuery's `$(html)` in the live page, and a browser check (15 Oct) saw the pasted `<img onerror>` run | Open | Agents can still reply at `/app`. Fix: give jQuery an inert document to parse in; to report to Zammad with the other | — |

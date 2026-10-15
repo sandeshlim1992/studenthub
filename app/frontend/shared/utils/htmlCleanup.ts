@@ -32,7 +32,8 @@ const removeTrailingLineBreaks = (parent: Element) => {
   parent.querySelectorAll('br').forEach((element) => {
     // keep paragraphs with just a line break, but convert them into <p> tags
     if (element.parentElement?.childNodes.length === 1) {
-      const p = document.createElement('p')
+      // Student Hub: in the document being cleaned (see htmlCleanup), as it gets the pasted attributes.
+      const p = element.ownerDocument.createElement('p')
       for (const attr of element.parentElement.attributes) {
         p.setAttribute(attr.name, attr.value)
       }
@@ -80,7 +81,9 @@ export const htmlCleanup = (
   removeImages = false,
   returnElement = false,
 ): string | Element => {
-  const element = document.createElement('div') as Element
+  // Student Hub: parse in a document without a window, where nothing loads or runs. In the live page an
+  // <img onerror> in pasted HTML ran as the signed-in user (security-review.md, 15 Oct).
+  const element = document.implementation.createHTMLDocument('').createElement('div') as Element
   element.innerHTML = html
 
   removeComments(element)

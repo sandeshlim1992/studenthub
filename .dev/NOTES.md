@@ -125,8 +125,8 @@ Never put passwords, tokens or keys in this file.
   ("First ticket goes to Unassigned Tickets") did that before; the staff form loads fine with it on (checked 7 Oct),
   so the production step to switch it off needs rethinking
 - Student ticket wizard fails silently when a required field (Group, Sub-Category) is empty
-- Pasting HTML into the editor runs its scripts (`<img onerror>`): Zammad's `htmlCleanup` parses pasted HTML in the
-  live page (security-review.md, 15 Oct). Not from the editor library: ProseMirror's own paste doesn't run them
+- Classic UI (`/app`): pasting HTML into a reply runs its scripts (`<img onerror>`): `App.Utils.htmlCleanup` parses it
+  with jQuery's `$(html)` in the live page (security-review.md, 15 Oct). Fixed in the new UI's `htmlCleanup`
 
 ## In progress
 
@@ -212,8 +212,10 @@ Never put passwords, tokens or keys in this file.
       password-reset email, `/app` and a phone
 - [ ] Test server: start Elasticsearch; `chmod 600 /etc/zammad/zammad.env`
 - [ ] Decide on the theme switch Taxil removed (review findings: `/manage` saves fixed 13 Oct, "%s" messages 14 Oct)
-- [ ] Fix pasted HTML running scripts in the editor (`htmlCleanup` → an inert document, plus a browser test), and
-      report it to Zammad (`SECURITY.md`)
+- [ ] Classic UI: fix pasted HTML running scripts (`_checkTypeOf` in `utils.coffee`: jQuery parses in an inert
+      document). Left for later (15 Oct). Many `App.Utils` text helpers go through `_checkTypeOf`, so run Zammad's
+      classic-UI tests with the fix. Then report both to Zammad (`SECURITY.md`; the new UI's `htmlCleanup` is fixed
+      here since 15 Oct)
 - [ ] GitHub → Settings → Code security: switch on Dependabot alerts and security updates (`.github/dependabot.yml`
       asks for security fixes only, 15 Oct)
 - [ ] npm advisories in development tools (`pnpm audit` without `--prod`, 15 Oct: 71, 4 critical; none in the app):

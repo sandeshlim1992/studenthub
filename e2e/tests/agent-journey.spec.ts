@@ -8,8 +8,8 @@ import { signIn } from './support/session.ts'
 
 // An agent handles a student's ticket on the web: finds it in their team, replies, adds an
 // internal note, takes it and waits for the student, sees the student's answer and closes it;
-// plus what an agent must not see. The student works through the API (support/fixtures.ts).
-// Everything is a web message: no email is involved.
+// plus what an agent must not see, and pasting into a reply. The student works through the API
+// (support/fixtures.ts). Everything is a web message: no email is involved.
 
 // Values from the Student Hub data.
 const TEAM = 'Service Desk' // the agent's team (role "Agent : Service Desk")
@@ -25,6 +25,14 @@ const STUDENT_MESSAGE =
 const AGENT_REPLY = `Agent reply ${RUN}: please try a private window and tell us if it loads.`
 const INTERNAL_NOTE = `Internal note ${RUN}: checked the portal status, it is up.`
 const STUDENT_REPLY = `Student reply ${RUN}: it loads in a private window.`
+// What copying from a hostile web page can put on the clipboard: a link and a table to keep, and two
+// scripts that must not run. The broken image fails without a network request, so its handler runs
+// at once if the HTML is parsed in the live page.
+const PASTED_HTML =
+  '<p>Pasted <a href="https://example.com/">link</a></p>' +
+  '<table><tbody><tr><td>A1</td><td>B1</td></tr></tbody></table>' +
+  '<img src="data:image/png;base64,AAAA" onerror="window.pastedScriptRan = true">' +
+  '<p onclick="window.pastedScriptRan = true">after the table</p>'
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
@@ -41,6 +49,17 @@ const write = async (page: Page, placeholder: RegExp, text: string) => {
 
   return box
 }
+
+// What the editor receives on Ctrl+V. A test can't put HTML with event handlers on the real
+// clipboard; a web page can, through what copying from it puts there.
+const pasteHtml = (editor: Locator, html: string) =>
+  editor.evaluate((element, pasted) => {
+    const clipboardData = new DataTransfer()
+    clipboardData.setData('text/html', pasted)
+    element.dispatchEvent(
+      new ClipboardEvent('paste', { clipboardData, bubbles: true, cancelable: true }),
+    )
+  }, html)
 
 test.describe('A student ticket handled by an agent on the web', () => {
   test.describe.configure({ mode: 'serial' })
@@ -290,6 +309,44 @@ test('leaving a ticket for the ticket list leaves no errors', async ({ page, app
   await openTicketThenList(page)
 
   expect(appErrors).toEqual([])
+})
+
+test.describe('Pasting into a reply', () => {
+  let ticketId: number
+
+  test.beforeAll(async ({ staff, student }) => {
+    const ticket = await student.createTicket({
+      title: `[TEST] Playwright paste ${RUN}`,
+      body: STUDENT_MESSAGE,
+      groupId: await staff.groupId(NEW_TICKETS_TEAM),
+      fields: TICKET_FIELDS,
+    })
+    ticketId = ticket.id
+
+    await staff.update(ticketId, { group_id: await staff.groupId(TEAM) })
+  })
+
+  test.afterAll(async ({ staff }) => {
+    if (ticketId) await staff.deleteTicket(ticketId)
+  })
+
+  test('keeps the link and table and runs none of its scripts', async ({ page, appErrors }) => {
+    await page.goto(`/tickets/${ticketId}`)
+    const replyBox = await write(page, /^Write a reply to/, 'From the page: ')
+    const editor = replyBox.locator('[contenteditable="true"][id^="body-"]')
+
+    await pasteHtml(editor, PASTED_HTML)
+
+    await expect(editor.locator('a[href="https://example.com/"]')).toHaveText('link')
+    await expect(editor.locator('td').first()).toHaveText('A1')
+    await expect(editor).toContainText('after the table')
+    // A live handler on the broken image would have run by now.
+    await page.waitForTimeout(1_000)
+    expect(await page.evaluate(() => Reflect.get(window, 'pastedScriptRan'))).toBeUndefined()
+    await expect(editor.locator('[onerror], [onclick]')).toHaveCount(0)
+
+    expect(appErrors).toEqual([])
+  })
 })
 
 test.describe('Signing out', () => {

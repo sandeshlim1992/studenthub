@@ -4,7 +4,7 @@
 import { watchDebounced } from '@vueuse/shared'
 import { ref } from 'vue'
 
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 // Finds a person by name or email (Zammad's user search) and picks one: the id is the value, the
 // name with the email is shown (and kept as value_completion, as the classic UI does).

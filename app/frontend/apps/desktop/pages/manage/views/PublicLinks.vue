@@ -5,10 +5,10 @@ import { computed, onActivated, onMounted, ref } from 'vue'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 // Student Hub: Public Links, moved from the classic admin: links shown under the sign-in form (and,
 // if chosen, on the sign-up and password reset pages), e.g. to the IT pages or a privacy notice.

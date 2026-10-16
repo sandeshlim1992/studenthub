@@ -4,9 +4,9 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { i18n } from '#shared/i18n.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 import { useStudenthubDashboardActivity } from '../composables/useStudenthubDashboardActivity.ts'
 import {

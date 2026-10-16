@@ -2,7 +2,7 @@
 
 import { ref } from 'vue'
 
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 // Student Hub: the latest ticket activity on the dashboards
 // (GET /api/v1/studenthub/dashboard/activity, Service::StudenthubDashboard::Activity).

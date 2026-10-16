@@ -2,9 +2,9 @@
 
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 
-// Student Hub: calls to Zammad's REST API from the new UI. Sends the session's CSRF token with
-// changes (Zammad refuses changes without it) and turns error replies into StudenthubApiError,
-// with Zammad's message for people when it gives one.
+// Student Hub: calls to Zammad's REST API from the new UI and the mobile app. Sends the session's
+// CSRF token with changes (Zammad refuses changes without it) and turns error replies into
+// StudenthubApiError, with Zammad's message for people when it gives one.
 
 export class StudenthubApiError extends Error {
   status: number

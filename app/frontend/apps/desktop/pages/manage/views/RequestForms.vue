@@ -8,6 +8,7 @@ import {
   useNotifications,
 } from '#shared/components/CommonNotifications/index.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
@@ -20,7 +21,6 @@ import {
   type RequestFormOptions,
   type RequestFormStatus,
 } from '#desktop/pages/manage/components/RequestForms/types.ts'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 // Student Hub: Request forms. For a Category › Sub-category, the extra ticket fields asked for when
 // someone (e.g. HR) raises a ticket under it. A form is edited as a draft next to a preview of

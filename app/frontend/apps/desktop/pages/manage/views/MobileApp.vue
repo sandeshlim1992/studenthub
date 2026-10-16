@@ -7,6 +7,7 @@ import {
   NotificationTypes,
   useNotifications,
 } from '#shared/components/CommonNotifications/index.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 import {
   readStudenthubQuickLinks,
   STUDENTHUB_QUICK_LINK_LABEL_MAX,
@@ -18,7 +19,6 @@ import {
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 // Student Hub: Administration → Manage → Mobile app (Studenthub::MobileApp). For now the quick
 // links on the mobile app's Home, a label and a web address each, in this order. Saved as the

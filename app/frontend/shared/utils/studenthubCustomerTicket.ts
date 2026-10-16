@@ -1,9 +1,8 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import type { StudenthubStateTone } from '#desktop/utils/studenthubTicketList.ts'
-
-// Student Hub: the student's column on the ticket screen
-// (GET /api/v1/studenthub/customer_tickets/:id, Service::StudenthubCustomerTicket::Overview).
+// Student Hub: the student's view of their request: the new UI's column on the ticket screen and
+// the mobile app's chat (GET /api/v1/studenthub/customer_tickets/:id,
+// Service::StudenthubCustomerTicket::Overview).
 
 export type StudenthubCustomerTicketStage =
   | 'received'
@@ -54,7 +53,8 @@ export const STUDENTHUB_CUSTOMER_TICKET_STEPS = [
 // What each stage means for the student, in their words.
 export const STUDENTHUB_CUSTOMER_TICKET_STATUS: Record<
   StudenthubCustomerTicketStage,
-  { label: string; note: string; tone: StudenthubStateTone }
+  // The new UI's state colours (StudenthubStateTone); named here, as shared code can't import it.
+  { label: string; note: string; tone: 'blue' | 'teal' | 'amber' | 'grey' | 'purple' | 'green' }
 > = {
   received: {
     label: __('Received'),

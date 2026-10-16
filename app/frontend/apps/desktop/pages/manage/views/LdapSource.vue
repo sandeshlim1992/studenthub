@@ -5,10 +5,10 @@ import { computed, onActivated, onBeforeUnmount, onMounted, ref, watch } from 'v
 import { useRoute, useRouter } from 'vue-router'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 import {
   fromGroupRoleRows,

@@ -3,7 +3,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
+
 import {
   readStudenthubLoginPanel,
   STUDENTHUB_LOGIN_PANEL_DEFAULTS,

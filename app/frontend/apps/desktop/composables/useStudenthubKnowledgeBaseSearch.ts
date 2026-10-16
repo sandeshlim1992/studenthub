@@ -3,8 +3,7 @@
 import { computed, ref, toValue, watch, type MaybeRefOrGetter } from 'vue'
 
 import { useSessionStore } from '#shared/stores/session.ts'
-
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 // Student Hub: full-text search of Knowledge Base answers (GET /api/v1/studenthub/knowledge_base/search),
 // for the top bar's quick search and the Knowledge Base page.

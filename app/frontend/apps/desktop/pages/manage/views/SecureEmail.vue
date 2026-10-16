@@ -5,10 +5,10 @@ import { computed, onActivated, onMounted, ref } from 'vue'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 // Student Hub: S/MIME and PGP, moved from the classic admin (one page, two kinds): on/off, signing of
 // system notifications, certificates or keys, and per team whether new emails are signed and

@@ -7,11 +7,11 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { getNodeByName } from '#shared/components/Form/utils.ts'
 import { useObjectAttributesStore } from '#shared/entities/object-attributes/stores/objectAttributes.ts'
 import { EnumObjectManagerObjects } from '#shared/graphql/types.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import StudenthubRequestFormSection from '#desktop/components/StudenthubRequestForm/StudenthubRequestFormSection.vue'
 import StudenthubRequestSummary from '#desktop/components/StudenthubRequestForm/StudenthubRequestSummary.vue'
 import type { StudenthubRequestFormDefinition } from '#desktop/components/StudenthubRequestForm/types.ts'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 export type CategoryKey =
   | 'service_request'

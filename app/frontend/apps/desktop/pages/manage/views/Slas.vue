@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router'
 import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import {
@@ -20,7 +21,6 @@ import {
   type ConditionState,
 } from '#desktop/pages/manage/components/Automation/automation.ts'
 import AutomationConditions from '#desktop/pages/manage/components/Automation/AutomationConditions.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface SlaItem {
   id: number

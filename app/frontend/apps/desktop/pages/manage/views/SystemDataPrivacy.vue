@@ -5,9 +5,9 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface UserAsset {
   id: number

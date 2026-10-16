@@ -2,7 +2,7 @@
 
 import { ref, type Ref } from 'vue'
 
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 // Student Hub: the feedback a customer gave on a ticket (GET /api/v1/feedback_collection/tickets/:id).
 

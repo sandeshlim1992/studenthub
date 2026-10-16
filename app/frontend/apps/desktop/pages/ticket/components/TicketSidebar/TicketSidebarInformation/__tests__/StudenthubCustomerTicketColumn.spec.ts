@@ -5,8 +5,7 @@ import { ref } from 'vue'
 import { renderComponent } from '#tests/support/components/index.ts'
 
 import { setCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
-
-import type { StudenthubCustomerTicketOverview } from '#desktop/utils/studenthubCustomerTicket.ts'
+import type { StudenthubCustomerTicketOverview } from '#shared/utils/studenthubCustomerTicket.ts'
 
 import StudenthubCustomerTicketColumn from '../TicketSidebarInformationContent/StudenthubCustomerTicketColumn.vue'
 

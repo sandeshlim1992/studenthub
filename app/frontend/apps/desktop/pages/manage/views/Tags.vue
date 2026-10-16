@@ -5,10 +5,10 @@ import { computed, onActivated, onMounted, ref } from 'vue'
 
 import { NotificationTypes, useNotifications } from '#shared/components/CommonNotifications/index.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 // Student Hub: Tags, moved from the classic admin: every tag with how many tickets have it; add,
 // rename (renaming to an existing tag merges the two) and delete, and whether agents may create tags.

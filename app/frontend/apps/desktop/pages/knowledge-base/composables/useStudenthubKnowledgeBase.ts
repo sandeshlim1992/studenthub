@@ -3,8 +3,7 @@
 import { computed, ref } from 'vue'
 
 import { i18n } from '#shared/i18n/index.ts'
-
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import type {
   KnowledgeBaseAnswerDetail,

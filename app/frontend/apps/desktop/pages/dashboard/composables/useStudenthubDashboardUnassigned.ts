@@ -2,7 +2,7 @@
 
 import { ref } from 'vue'
 
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 // Student Hub: unassigned tickets in each of the agent's teams
 // (GET /api/v1/studenthub/dashboard/unassigned, Service::StudenthubDashboard::Unassigned).

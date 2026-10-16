@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router'
 
 import { i18n } from '#shared/i18n.ts'
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 import {
@@ -19,7 +20,6 @@ import {
   type AutomationOptions,
 } from '#desktop/pages/manage/components/Automation/automation.ts'
 import AutomationActionEditor from '#desktop/pages/manage/components/Automation/AutomationActionEditor.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 interface TemplateItem {
   id: number

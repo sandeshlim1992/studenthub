@@ -8,10 +8,10 @@ import {
   useNotifications,
 } from '#shared/components/CommonNotifications/index.ts'
 import { useConfirmation } from '#shared/composables/useConfirmation.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 // Student Hub: Departments (Studenthub::Departments). Each has a name, the campuses it covers
 // (from the ticket's Campus field, which admins manage under Objects) and one email address.

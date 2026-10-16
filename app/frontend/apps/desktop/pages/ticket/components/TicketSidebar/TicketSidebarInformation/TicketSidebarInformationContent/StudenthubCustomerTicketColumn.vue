@@ -13,18 +13,18 @@ import type { TicketById } from '#shared/entities/ticket/types.ts'
 import { i18n } from '#shared/i18n.ts'
 import type { ObjectLike } from '#shared/types/utils.ts'
 import { humanizeFileSize } from '#shared/utils/files.ts'
-
-import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
-import CommonSectionCollapse from '#desktop/components/CommonSectionCollapse/CommonSectionCollapse.vue'
-import { useStudenthubNow } from '#desktop/components/Ticket/StudenthubTicketCells/useStudenthubNow.ts'
-import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
-import { StudenthubApiError, studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { StudenthubApiError, studenthubApi } from '#shared/utils/studenthubApi.ts'
 import {
   STUDENTHUB_CUSTOMER_TICKET_STATUS,
   STUDENTHUB_CUSTOMER_TICKET_STEPS,
   studenthubCustomerTicketPath,
   type StudenthubCustomerTicketOverview,
-} from '#desktop/utils/studenthubCustomerTicket.ts'
+} from '#shared/utils/studenthubCustomerTicket.ts'
+
+import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
+import CommonSectionCollapse from '#desktop/components/CommonSectionCollapse/CommonSectionCollapse.vue'
+import { useStudenthubNow } from '#desktop/components/Ticket/StudenthubTicketCells/useStudenthubNow.ts'
+import { useTicketInformation } from '#desktop/pages/ticket/composables/useTicketInformation.ts'
 import { formatDayTime } from '#desktop/utils/studenthubTicketDetails.ts'
 import { STUDENTHUB_STATE_TONES } from '#desktop/utils/studenthubTicketList.ts'
 

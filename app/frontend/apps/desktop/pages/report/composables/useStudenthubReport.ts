@@ -2,7 +2,7 @@
 
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import {
   canStepForward,

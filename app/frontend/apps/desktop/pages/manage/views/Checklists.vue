@@ -3,10 +3,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
+import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
-import { studenthubApi } from '#desktop/utils/studenthubApi.ts'
 
 import StudenthubChecklistSubCategories from '../components/Checklists/StudenthubChecklistSubCategories.vue'
 

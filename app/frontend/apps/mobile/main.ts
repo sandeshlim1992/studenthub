@@ -15,6 +15,8 @@ import { useAuthenticationStore } from '#shared/stores/authentication.ts'
 import initializeStore from '#shared/stores/index.ts'
 import { useLocaleStore } from '#shared/stores/locale.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
+import { isMobile } from '#shared/utils/browser.ts'
+import { desktopAppAddress } from '#shared/utils/studenthubAppSwitch.ts'
 
 import { setCurrentApp } from '#mobile/currentApp.ts'
 import { initializeForm, initializeFormFields } from '#mobile/form/index.ts'
@@ -84,6 +86,19 @@ export default async function mountApp(): Promise<void> {
   await Promise.all(initalizeAfterSessionCheck)
 
   if (session.id) session.initialized = true
+
+  // Student Hub: staff on a phone get the new UI (#shared/utils/studenthubAppSwitch.ts); after
+  // signing in here, the router guard studenthubStaffToDesktop does the same.
+  const desktopAddress = desktopAppAddress({
+    path: window.location.pathname.replace(/^\/mobile/, '') || '/',
+    phone: isMobile,
+    staff: session.hasPermission('ticket.agent'),
+  })
+
+  if (desktopAddress) {
+    window.location.replace(desktopAddress)
+    return
+  }
 
   const locale = useLocaleStore()
 

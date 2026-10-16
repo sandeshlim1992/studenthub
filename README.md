@@ -511,11 +511,13 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     `LoginThirdParty.vue`).
   - Home: a header with search, tiles for New ticket, Ticket overviews, Notifications and Knowledge Base (the new
     UI's) (`pages/home/components/StudenthubHomeTiles.vue`), then the favourite overviews. The bottom menu has labels.
-  - Who gets it (`app/frontend/shared/utils/studenthubAppSwitch.ts`, used in both apps' `main.ts`): a phone opening the
-    new UI's home, sign-in page or a ticket goes to the same page in the mobile app (a ticket also after signing in);
-    pages only the new UI has (password reset, sign-up, Knowledge Base, admin pages) stay in it. Computers and tablets
-    get the new UI. Opening `/mobile` shows the mobile app on any device. "Continue to desktop" in the mobile app keeps
-    a phone on the new UI, and "Continue to mobile" in the avatar menu (phones only) goes back.
+  - Who gets it (`app/frontend/shared/utils/studenthubAppSwitch.ts`, used in both apps' `main.ts` and the mobile
+    router guard `studenthubStaffToDesktop.ts`): the mobile app is for students on a phone. A phone opening the new
+    UI's home, sign-in page or a ticket goes to the same page in the mobile app (a ticket also after signing in);
+    pages only the new UI has (password reset, sign-up, Knowledge Base, admin pages) stay in it. Staff on a phone get
+    the new UI: signed out they reach the mobile sign-in, which sends them on once signed in. Computers and tablets
+    get the new UI, but may open `/mobile` directly. "Continue to desktop" in the mobile app keeps a student's phone
+    on the new UI, and "Continue to mobile" in the avatar menu (students only) goes back.
   - No Playground: Zammad's developer page of test fields (`/mobile/playground`) is removed, with its link on Home.
   - No Zammad name: the account page has no "This is Zammad version …" section and no "You can help translating
     Zammad" hint (`pages/account/views/AccountOverview.vue`), and the app installs as "Student Hub" (iPhone hint and

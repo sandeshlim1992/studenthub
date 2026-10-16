@@ -3,6 +3,7 @@
 import mainInitializeRouter from '#shared/router/index.ts'
 import type { InitializeAppRouter, RoutesModule } from '#shared/types/router.ts'
 
+import studenthubStaffToDesktop from './guards/before/studenthubStaffToDesktop.ts'
 import transitionViewGuard from './guards/before/viewTransition.ts'
 
 import type { App } from 'vue'
@@ -58,7 +59,14 @@ export const routes: Array<RouteRecordRaw> = [
 ]
 
 const initializeRouter: InitializeAppRouter = (app: App) => {
-  return mainInitializeRouter(app, routes, [transitionViewGuard], [], 'mobile')
+  // Student Hub: staff on a phone get the new UI (studenthubStaffToDesktop).
+  return mainInitializeRouter(
+    app,
+    routes,
+    [transitionViewGuard, studenthubStaffToDesktop],
+    [],
+    'mobile',
+  )
 }
 
 export default initializeRouter

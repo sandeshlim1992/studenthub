@@ -224,3 +224,7 @@ Never put passwords, tokens or keys in this file.
 - The mobile app's Playground is removed (16 Oct): a developer page of test fields that any signed-in student could open
   at `/mobile/playground` (its Home link showed in development only). The mobile app is mainly for students. The new
   UI's own Playground stays for now
+- The mobile app is for students only (16 Oct): staff on a phone get the new UI with their staff tools, also right
+  after signing in on the mobile sign-in page; computers may still open `/mobile` directly. Showing staff the student
+  side of the mobile app was considered and dropped: it needs the Customer role (`ticket.customer`) on staff, and
+  with the college organisations shared that role would let staff read every ticket of their college's students

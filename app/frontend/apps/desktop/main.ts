@@ -90,6 +90,7 @@ export const mountApp = async () => {
   const mobileAddress = mobileAppAddress({
     location: window.location,
     phone: isMobile,
+    staff: session.hasPermission('ticket.agent'),
     chosenDesktop: Boolean(useMobileNavigation().forceDesktopApp.value),
     systemReady: Boolean(application.config.system_init_done),
   })

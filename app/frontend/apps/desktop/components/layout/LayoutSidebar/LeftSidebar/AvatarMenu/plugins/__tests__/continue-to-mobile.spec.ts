@@ -1,6 +1,10 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+import { initializeStore } from '#tests/support/components/initializeStore.ts'
+import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { waitFor } from '#tests/support/vitest-wrapper.ts'
+
+import { useSessionStore } from '#shared/stores/session.ts'
 
 import { MOBILE_SLUG } from '#desktop/composables/responsiveness/useMobileNavigation.ts'
 
@@ -28,6 +32,10 @@ describe('avatar menu continue-to-mobile plugin', () => {
     setIsMobile(false)
     localStorage.removeItem('forceDesktopApp')
 
+    // Student Hub: the entry asks whether the signed-in person is staff.
+    initializeStore()
+    useSessionStore().user = null
+
     Object.defineProperty(window, 'location', {
       configurable: true,
       writable: true,
@@ -49,6 +57,14 @@ describe('avatar menu continue-to-mobile plugin', () => {
     setIsMobile(true)
 
     expect(continueToMobileItem.show?.()).toBe(true)
+  })
+
+  // Student Hub: the mobile app is for students and sends staff back to the new UI.
+  it('is hidden for staff on a phone', () => {
+    setIsMobile(true)
+    mockPermissions(['ticket.agent'])
+
+    expect(continueToMobileItem.show?.()).toBe(false)
   })
 
   it('is shown when desktop mode was forced before', () => {

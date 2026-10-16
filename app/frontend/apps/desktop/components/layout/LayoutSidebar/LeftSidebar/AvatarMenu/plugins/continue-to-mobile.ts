@@ -1,5 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
+import { useSessionStore } from '#shared/stores/session.ts'
 import { isMobile } from '#shared/utils/browser.ts'
 
 import {
@@ -20,9 +21,12 @@ export default <AvatarMenuPlugin>{
     clearForceDesktopApp()
     continueToMobile()
   },
-  // Student Hub: back again for phones and for whoever chose the desktop view in the mobile app,
-  // as phones get the mobile app (#shared/utils/studenthubAppSwitch.ts).
+  // Student Hub: back again for students on a phone and for whoever chose the desktop view in the
+  // mobile app. Not for staff: the mobile app is for students and sends them back
+  // (#shared/utils/studenthubAppSwitch.ts).
   show: () => {
+    if (useSessionStore().hasPermission('ticket.agent')) return false
+
     const { forceDesktopApp } = useMobileNavigation()
     return Boolean(forceDesktopApp.value) || isMobile
   },

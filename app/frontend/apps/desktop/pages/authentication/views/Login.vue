@@ -24,7 +24,6 @@ import fsbImg from '#desktop/assets/images/fsb.png'
 import lsstImg from '#desktop/assets/images/lsst.png'
 import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 import ukbcImg from '#desktop/assets/images/ukbc.png'
-import { useBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import CommonPublicLinks from '#desktop/components/CommonPublicLinks/CommonPublicLinks.vue'
 import LayoutPublicPage from '#desktop/components/layout/LayoutPublicPage/LayoutPublicPage.vue'
@@ -197,8 +196,6 @@ const showPasswordLogin = computed(
     !hasEnabledProviders.value ||
     verifyTokenResult?.value,
 )
-
-const { switchValue, toggleBetaUiSwitch } = useBetaUi()
 </script>
 
 <template>

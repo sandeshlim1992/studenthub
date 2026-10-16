@@ -22,7 +22,6 @@ import { convertToGraphQLId } from '#shared/graphql/utils.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
-import { useFeedbackDialog } from '#desktop/components/BetaUi/FeedbackDialog/useFeedbackDialog.ts'
 import CommonActionMenu from '#desktop/components/CommonActionMenu/CommonActionMenu.vue'
 import CommonBreadcrumb from '#desktop/components/CommonBreadcrumb/CommonBreadcrumb.vue'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
@@ -1410,8 +1409,6 @@ const userEntity = {
   note: '',
   active: true,
 }
-
-const { openFeedbackDialog } = useFeedbackDialog()
 </script>
 
 <template>
@@ -1471,17 +1468,6 @@ const { openFeedbackDialog } = useFeedbackDialog()
         <CommonButton variant="subtle" @click="rampUpProgressBarNotificationValue">
           Show persistent notification (with progress bar)
         </CommonButton>
-      </div>
-
-      <h3>Feedback Dialog</h3>
-      <div class="mb-4 space-x-2">
-        <CommonButton variant="primary" @click="openFeedbackDialog({ milestone: '5h' })"
-          >Open Timed Feedback Dialog
-        </CommonButton>
-
-        <CommonButton variant="primary" @click="openFeedbackDialog()"
-          >Open Manual Feedback Dialog</CommonButton
-        >
       </div>
 
       <div>

@@ -465,8 +465,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   panel is hidden). On those three pages Recent is the rail's button. Administration and Reporting have no panel (Recent
   is the rail's button there too, and Show panel isn't offered). Other pages show only Recent. **Hide panel**
   (remembered, like Zammad's collapsed sidebar; hidden at first on screens narrower than 768 px) leaves the rail with
-  **Show panel** and a button for the list of Recent tabs. The BETA UI switch, when on, is at the foot of the panel. The
-  Tickets page has no views column of its own any more (on small screens its tabs above the list stay).
+  **Show panel** and a button for the list of Recent tabs. The  Tickets page has no views column of its own any more (on small screens its tabs above the list stay).
 - **Start page:** staff (Agent, Admin and Managers roles) land on the Dashboard after signing in (password or Microsoft)
   and whenever they open `/`; students keep their ticket list. A link someone was sent to still opens that page
   (`router/guards/before/studenthubHome.ts`). The Tickets page is at `/tickets/view`.
@@ -1105,8 +1104,9 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
   ticket comes in (phone in / out, email), the message text (the Knowledge Base page's editor) and CC. A template
   opened and saved without changes is saved as it was; anything the editor doesn't know is kept.
 
-Still only in the classic admin: BETA UI and KB Answer Generation; the live chat console and the phone (CTI) log
-(both unused); setup for Clearbit (keep it off: it sends email addresses to a third party).
+Not moved, on purpose (the classic UI is switched off): the BETA UI page and switch (Zammad's way back to its classic
+UI; gone from the new UI too), KB Answer Generation, the live chat console and the phone (CTI) log (both unused), setup
+for Clearbit (keep it off: it sends email addresses to a third party).
 
 | File(s) | Purpose |
 |---|---|

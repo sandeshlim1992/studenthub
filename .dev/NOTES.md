@@ -31,16 +31,21 @@ Never put passwords, tokens or keys in this file.
 - 9 more of Zammad's layout specs fail since the redesign (seen 14 Oct, the same with and without that day's avatar
   menu fix): `LayoutPage` "expands search…", `LayoutPublicPage` "renders title and logo", `LayoutSidebar` "supports
   end position", `LeftSidebarFooterMenu` (2, the avatar) and `LeftSidebarHeader` (4)
-- 28 of Zammad's personal settings specs fail, also when only those files run, the same before and after the 14 Oct
-  type fixes: appearance (3), language (2), BETA UI feedback program (5), token access (1), avatar a11y (1) and
-  two-factor authentication (16). Run with many other specs, a few more time out (e.g. `StudenthubScheduler` "says
-  what is missing", `ticket-create-user` "does not allow agent to toggle customer role"); they pass on their own
+- 35 of Zammad's personal settings specs fail, also when only those files run (16 Oct, the same without that day's
+  changes): appearance (3), language (2), notification a11y (1), token access (1), avatar a11y (1) and two-factor
+  authentication (27). The BETA UI feedback program specs went with the switch (16 Oct). Run with many other specs, a
+  few more time out (e.g. `StudenthubScheduler` "says what is missing", `ticket-create-user` "does not allow agent to
+  toggle customer role"); they pass on their own
+- 8 of Zammad's sign-in page specs fail when `pages/authentication` runs on its own (16 Oct, also without that day's
+  changes, where 10 failed): `login-maintenance` (1), `login-password-login` "hides if the setting is turned off…",
+  `login-product-branding` (3), `login-two-factor` (1), `signup-verify` (1), `signup` "show public links…"
 - `user-detail-view-create-new-ticket.spec.ts` (1) times out waiting for the New ticket form's updater, also on its own
   and without that day's changes (15 Oct). Several other `pages/user` specs time out at 5 s when the whole folder runs
   and pass on their own
 - Vitest's module cache (`node_modules/.experimental-vitest-cache`) keeps old `import.meta.glob` results: after adding a
   page (`routes.ts`) or a plugin, tests still see the old list (e.g. the rail without KB, Members, Reporting). Delete the
-  folder; it is rebuilt
+  folder; it is rebuilt. It also keeps a deleted file (16 Oct, after a `git stash` round trip every personal settings
+  spec failed with "Cannot find module …/newBetaUi.ts")
 - `knowledgeBaseBody.spec.ts` "gives images that were there their cid back…" fails in Vitest (jsdom has no
   `Blob.stream`), also on the code before the Knowledge Base panel
 - 15 of Zammad's 1,382 `spec/graphql` examples fail since Student Hub added ticket fields (e.g. `approval_*`): the
@@ -92,8 +97,8 @@ Never put passwords, tokens or keys in this file.
     now (14 Oct)
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit, 0 since 14 Oct; Zammad unit tests that fail: see Tests
     that already fail
-- Still only in the classic UI: BETA UI and KB Answer Generation admin pages, the live chat console and the
-  phone (CTI) log (both unused) and Clearbit's field mapping (README → Moved from the classic UI lists what moved)
+- Not moved, on purpose: KB Answer Generation, the live chat console and the phone (CTI) log (both unused) and
+  Clearbit's field mapping (README → Moved from the classic UI)
 - Home PC: the devcontainer runs the repo from `C:\dev` (9p mount), not `~/studenthub` → file reads ~150× slower
   than the Linux disk, classic UI pages take 20–60 s, Vite and Rails miss file changes (restart `bin/dev` after
   edits). The first page load after a restart takes minutes and the app may show "Loading failed" meanwhile
@@ -219,7 +224,8 @@ Never put passwords, tokens or keys in this file.
 
 - [ ] Classic UI switched off on `develop` (15 Oct; `/app`, `/init` → `/`, tag `before-classic-ui-off`): deploy to the
       test server, check `/app` and an old `/app#ticket/zoom/<id>` link, deploy to production, then watch for a week or
-      two whether anyone still opens `/app`; then delete its code (`.dev/classic-ui-removal.md` → Step 2)
+      two whether anyone still opens `/app`; then delete its code (`.dev/classic-ui-removal.md` → Step 2; the BETA switch
+      and the sign-in return to `/app` are already gone, 16 Oct)
 - [ ] Test server, then production: deploy Rails 8.1 (on `develop` since 15 Oct; no migration, `--rollback` undoes it)
       and check sign-in (Microsoft too), tickets, email fetching and sending (`net-imap` 0.6.8), notifications and live
       updates, `/app` sending to `/` and reports
@@ -274,7 +280,7 @@ Never put passwords, tokens or keys in this file.
       the same frame as Team overview and My overview); decide whether to commit `PRODUCT.md`
 - [ ] Check Close moving on to the next ticket in a browser (not tried on the dev data; covered by unit tests)
 - [ ] Check the navigation (design C) in a browser: rail labels fit, panel on Tickets / ticket screens / Dashboard,
-      Hide / Show panel, Recent from the rail while hidden, BETA UI switch, the light Recent tabs, a 1280 px ticket
+      Hide / Show panel, Recent from the rail while hidden, the light Recent tabs, a 1280 px ticket
       screen with queue + panel, the Dashboard panel (views, Needs attention, who is online) and the Members panel
       (filters, role groups, Sort by, Clear filters), the Knowledge Base panel (filter, tree, New category above the
       page), Recent collapsed after signing in, no panel on Administration and Reporting

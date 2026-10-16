@@ -20,19 +20,12 @@ import { useAuthenticationStore } from '#shared/stores/authentication.ts'
 import { useLocaleStore } from '#shared/stores/locale.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
-import {
-  useBetaUiFeedbackConsent,
-  initializeBetaUiFeedbackConsentDialog,
-} from '#desktop/components/BetaUi/composables/useBetaUiFeedbackConsent.ts'
 import { initializeConfirmationDialog } from '#desktop/components/CommonConfirmationDialog/initializeConfirmationDialog.ts'
 import { useConnection } from '#desktop/composables/useConnection.ts'
 import { useTicketOverviewsStore } from '#desktop/entities/ticket/stores/ticketOverviews.ts'
 import { useUserCurrentTaskbarTabsStore } from '#desktop/entities/user/current/stores/taskbarTabs.ts'
 import { useTicketBulkUpdateStore } from '#desktop/entities/user/current/stores/ticketBulkUpdate.ts'
-import { useAppUsageStore } from '#desktop/stores/appUsage.ts'
 
-import { useBetaUi } from './components/BetaUi/composables/useBetaUi.ts'
-import { useBetaUiFeedbackRouteGuard } from './components/BetaUi/composables/useBetaUiFeedbackRouteGuard.ts'
 import { useMobileDetection } from './composables/responsiveness/useMobileDetection.ts'
 import { useStudenthubAppColor } from './composables/useStudenthubAppColor.ts'
 
@@ -59,21 +52,8 @@ usePushMessages()
 // browser tab or maintenance mode switch).
 useAuthenticationChanges()
 
-// TODO: Remove when desktop view is stable.
-const { switchValue } = useBetaUi()
-
-// Shows the feedback consent for the BETA usage of the desktop view.
-//  The user has by this point enrolled into the BETA program.
-
-initializeBetaUiFeedbackConsentDialog() // Calling it within the check also doesn't pick up the setup scope 😱
-
-if (switchValue.value) {
-  useBetaUiFeedbackConsent()
-  useBetaUiFeedbackRouteGuard()
-}
-
-// Student Hub: no "New desktop BETA UI … not ready for production use" warning after signing in;
-// the new UI is the main one at /.
+// Student Hub: no BETA switch, feedback program or "New desktop BETA UI … not ready for production use"
+// warning: the new UI is the only one (the classic UI is switched off, .dev/classic-ui-removal.md).
 
 // We need to trigger a manual translation update for the form related strings.
 const formConfig = useFormKitConfig()
@@ -108,7 +88,6 @@ watch(
     useUserCurrentTaskbarTabsStore()
     useTicketOverviewsStore()
     initializeDefaultObjectAttributes()
-    useAppUsageStore()
     useTicketBulkUpdateStore()
     useMobileDetection()
   },

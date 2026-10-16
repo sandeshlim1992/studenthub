@@ -6,6 +6,7 @@ Moved from the classic UI); the rest was dropped on purpose (DECISIONS.md, 15 Oc
 
 1. **Switched off** (15 Oct): `/app` and `/init` send people to `/`. Its code is still there.
 2. **Deleted** (later, after a week or two without `/app` requests on production): its code, in commits by area.
+   Done ahead of that (16 Oct), as they don't change the undo: the new UI's BETA switch and the sign-in return to `/app`.
 
 ## Step 1: switched off
 
@@ -50,9 +51,12 @@ Removes:
   its routes, `spec/system/js`
 - Its Capybara system tests (most of `spec/system`; keep `apps/desktop`, `knowledge_base_public` and the widgets')
 - Student Hub's classic sidebars (`ticket_zoom/sidebar_studenthub_approval`, `…_feedback`: the new UI has both)
-- In the new UI: the BETA switch (`components/BetaUi/`, its places in `AppDesktop.vue`, `LeftSidebarFooterMenu.vue`,
-  `Login.vue`, the personal setting "New BETA UI"); in the server: the sign-in return to `/app#`
-  (`sessions_controller.rb`, `Studenthub::NewUiAtRoot.classic_origin?`, `CLASSIC_PATHS`)
+- Done 16 Oct: in the new UI the BETA switch (`components/BetaUi/`, the `appUsage` store and `useTimeTracker`, the
+  personal setting "New BETA UI", their places in `AppDesktop.vue`, the sidebar footer, `StudenthubNavPanel.vue`,
+  `Login.vue`, `Manage.vue`, the notification list, the Playground, `visitView.ts`); in the server the sign-in return
+  to `/app#` (`sessions_controller.rb`, `Studenthub::NewUiAtRoot.classic_origin?`, `CLASSIC_PATHS`). Zammad's server
+  side of the switch stays, unused: the settings `ui_desktop_beta_switch*`, the user's `hasBetaUiSwitchAvailable` and
+  the `betaUiSendFeedback` mutation
 - Then the build: the CSS watcher's classic part in `Procfile.dev`, and the `coffee-rails` and `eco` gems if the help
   centre doesn't need them; regenerate the translation catalog with the generator (never edit `i18n/*.po` by hand)
 

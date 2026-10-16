@@ -91,11 +91,5 @@ RSpec.describe 'Student Hub new UI at /', :aggregate_failures, type: :request do
       expect(described_class.without_desktop('//evil.example', '')).to eq('/evil.example')
       expect(described_class.without_desktop('\\evil.example', '')).to eq('/evil.example')
     end
-
-    it 'knows a sign-in started from the classic UI' do
-      expect(described_class.classic_origin?('https://helpdesk.example/app')).to be(true)
-      expect(described_class.classic_origin?('https://helpdesk.example/login?redirect=/approvals')).to be(false)
-      expect(described_class.classic_origin?(nil)).to be(false)
-    end
   end
 end

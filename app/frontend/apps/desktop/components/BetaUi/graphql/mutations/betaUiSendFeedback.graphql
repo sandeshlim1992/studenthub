@@ -1,5 +1,0 @@
-mutation betaUiSendFeedback($input: BetaUiFeedbackInput!) {
-  betaUiSendFeedback(input: $input) {
-    success
-  }
-}

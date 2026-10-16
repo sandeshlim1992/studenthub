@@ -1,29 +1,13 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { FormKit } from '@formkit/vue'
-
-
-import { useBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
-import { showFeedbackConsent } from '#desktop/components/BetaUi/composables/useBetaUiFeedbackConsent.ts'
-import { useFeedbackDialog } from '#desktop/components/BetaUi/FeedbackDialog/useFeedbackDialog.ts'
+// Student Hub: no BETA UI switch, the new UI is the only one (.dev/classic-ui-removal.md).
 import CollapseButton from '#desktop/components/CollapseButton/CollapseButton.vue'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
 
 import { SidebarName } from '../../types.ts'
 
 const { isSidebarCollapsed, toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
-
-const {
-  switchValue,
-  toggleBetaUiSwitch,
-  betaUiSwitchEnabled,
-  dismissBetaUiSwitch,
-  hasFeedbackConsent,
-} = useBetaUi()
-
-const { openFeedbackDialog } = useFeedbackDialog()
-
 </script>
 
 <template>
@@ -32,40 +16,6 @@ const { openFeedbackDialog } = useFeedbackDialog()
     :class="{ 'mx-auto mb-2 flex-col!': isSidebarCollapsed }"
   >
     <div class="flex w-full flex-col gap-2">
-      <div
-        v-if="betaUiSwitchEnabled && !isSidebarCollapsed"
-        class="relative -mx-3 inline-flex h-11 items-center justify-start gap-2 bg-blue-900 ps-3 pe-8 dark:bg-blue-900"
-      >
-        <FormKit
-          type="toggle"
-          :label="__('BETA UI')"
-          :value="true"
-          :variants="{ true: 'True', false: 'False' }"
-          wrapper-class="!flex-row"
-          label-class="!text-white truncate"
-          @input-raw="toggleBetaUiSwitch()"
-        />
-        <CommonLink
-          v-if="switchValue"
-          class="truncate text-white hover:text-white! hover:underline!"
-          link="#"
-          size="small"
-          @click="
-            () => (hasFeedbackConsent === 'true' ? openFeedbackDialog() : showFeedbackConsent())
-          "
-        >
-          {{ $t('Feedback') }}
-        </CommonLink>
-        <CommonIcon
-          class="absolute inset-e-3 text-white"
-          name="x"
-          :fixed-size="{ width: 16, height: 16 }"
-          role="button"
-          :aria-label="$t('Hide BETA UI switch')"
-          @click="dismissBetaUiSwitch"
-        />
-      </div>
-
       <div class="flex gap-2" :class="{ 'mx-auto mb-0.5 flex-col!': isSidebarCollapsed }">
         <CollapseButton
           owner-id="primary-sidebar"

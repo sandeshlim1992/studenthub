@@ -198,3 +198,6 @@ Never put passwords, tokens or keys in this file.
 - Classic UI switched off (15 Oct): `/app` and `/init` redirect to `/` (302, so an undo isn't stuck in caches) before
   any of its code is deleted, so the switch is one commit to revert (tag `before-classic-ui-off`). The code goes after
   a week or two without `/app` requests on production; `.dev/classic-ui-removal.md` lists what goes and what stays
+- The new UI's BETA switch is removed (16 Oct), ahead of the classic UI's code, as it led only to the classic UI;
+  Zammad's server side of it (settings, the user's flag, the feedback mutation) stays unused rather than changing the
+  GraphQL schema

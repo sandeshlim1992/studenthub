@@ -2,8 +2,9 @@
 
 # Student Hub: the new UI is served at / (Zammad serves it at /desktop). The home address and
 # every page the new UI has (/tickets, /ticket/…, /login, /manage…) render it (DesktopController);
-# old /desktop/… links are sent to the same page without /desktop. The classic UI stays at /app
-# (and /init). Every file changed for this is listed in .dev/new-ui-at-root.md, with how to undo it.
+# old /desktop/… links are sent to the same page without /desktop. Every file changed for this is
+# listed in .dev/new-ui-at-root.md, with how to undo it. The classic UI's /app and /init redirect to
+# / (.dev/classic-ui-removal.md).
 module Studenthub::NewUiAtRoot
   # First path segments that belong to the server, not the new UI: a path there that no route
   # matches stays a 404 instead of opening the new UI.
@@ -11,9 +12,6 @@ module Studenthub::NewUiAtRoot
     api app assets auth cable calendar_subscriptions desktop feedback graphql help ical init mobile
     oauth rails robots.txt ws
   ].freeze
-
-  # Pages the classic UI is served at.
-  CLASSIC_PATHS = %w[/app /init].freeze
 
   # Route constraint for the catch-all in config/routes.rb.
   def self.page?(request)
@@ -30,13 +28,6 @@ module Studenthub::NewUiAtRoot
   def self.without_desktop(path, query_string)
     target = "/#{path.to_s.sub(%r{\A[/\\]+}, '')}"
     query_string.present? ? "#{target}?#{query_string}" : target
-  end
-
-  # Whether a sign-in started from the classic UI (the referring page's path is /app or /init).
-  def self.classic_origin?(origin)
-    CLASSIC_PATHS.include?(URI.parse(origin.to_s).path)
-  rescue URI::InvalidURIError
-    false
   end
 
   # Where to go after a sign-in started in the new UI: its "redirect" parameter when it is a path

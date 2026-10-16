@@ -2,13 +2,13 @@
 
 <script setup lang="ts">
 import { toRef } from 'vue'
+import { useRouter } from 'vue-router'
 
 import CommonUserAvatar from '#shared/components/CommonUserAvatar/CommonUserAvatar.vue'
 import { useActivityMessage } from '#shared/composables/activity-message/useActivityMessage.ts'
 import type { OnlineNotification } from '#shared/graphql/types.ts'
 
 import AiAgentAvatar from '#desktop/components/AiAgent/AiAgentAvatar.vue'
-import { initializeBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 
 interface Props {
@@ -24,13 +24,15 @@ const emit = defineEmits<{
 }>()
 
 const { link, builder, highlightedMessage } = useActivityMessage(toRef(props, 'notification'))
-const { clearSwitchAndRedirect } = initializeBetaUi()
+const router = useRouter()
 
 const handleLinkClick = (event: Event, notification: OnlineNotification) => {
+  // Student Hub: classic #… links (e.g. a Knowledge Base answer) open the same page in the new UI,
+  // whose routes take the old addresses; they no longer leave through the BETA UI switch.
   if (link && link.startsWith('#') && link.length > 1) {
     event.preventDefault()
     emit('visited', notification)
-    clearSwitchAndRedirect(`/${link}`)
+    router.push(`/${link.slice(1)}`)
     return
   }
 

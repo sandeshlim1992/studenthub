@@ -11,8 +11,6 @@ import { random } from 'lodash-es'
 import { useNotifications } from '#shared/components/CommonNotifications/useNotifications.ts'
 import { useLocaleStore } from '#shared/stores/locale.ts'
 
-import { initializeBetaUiFeedbackConsentDialog } from '#desktop/components/BetaUi/composables/useBetaUiFeedbackConsent.ts'
-
 import mockApolloClient from '../mock-apollo-client.ts'
 
 import LayoutTestDesktopView from './LayoutTestDesktopView.vue'
@@ -128,10 +126,6 @@ export const visitView = async (
   const view = renderComponent(
     {
       template: html` <LayoutTest${isDesktop ? 'DesktopView' : 'MobileView'} />`,
-      setup() {
-        if (!isDesktop) return
-        initializeBetaUiFeedbackConsentDialog()
-      },
       components: {
         LayoutTestDesktopView,
         LayoutTestMobileView,

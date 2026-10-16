@@ -1,9 +1,6 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { waitFor } from '@testing-library/vue'
-
 import { renderComponent } from '#tests/support/components/index.ts'
-import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
 import { waitForNextTick } from '#tests/support/utils.ts'
 
@@ -21,23 +18,6 @@ vi.mock('#shared/server/apollo/client.ts', () => ({
     },
   }),
 }))
-
-vi.mock(
-  '#desktop/components/BetaUi/FeedbackDialog/useFeedbackDialog.ts',
-  async (originalModule) => {
-    const module =
-      await originalModule<typeof import('#desktop/components/CommonDialog/useDialog.ts')>()
-
-    return {
-      ...module,
-      useFeedbackDialog: () => ({
-        openFeedbackDialog: ({ callback }: { callback: () => void }) => {
-          callback()
-        },
-      }),
-    }
-  },
-)
 
 describe('LayoutPage', () => {
   beforeEach(() => {
@@ -146,100 +126,5 @@ describe('LayoutPage', () => {
     wrapper.router.removeRoute('Current')
   })
 
-  describe('Feature: Beta UI Switch', () => {
-    beforeAll(() => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          ...window.location,
-          pathname: '/desktop',
-          href: '/desktop',
-        },
-      })
-    })
-
-    beforeEach(() => {
-      mockApplicationConfig({
-        ui_desktop_beta_switch: true,
-      })
-
-      mockUserCurrent({
-        hasBetaUiSwitchAvailable: true,
-      })
-    })
-
-    it('shows the switch if the feature is enabled', async () => {
-      const wrapper = renderComponent(LayoutPage, {
-        router: true,
-        form: true,
-      })
-
-      const toggle = wrapper.getByLabelText('BETA UI')
-
-      expect(toggle).toBeChecked()
-
-      expect(window.location.href).toBe('/desktop')
-
-      await wrapper.events.click(toggle)
-
-      // Student Hub: the classic UI is at /app
-      await waitFor(() => expect(window.location.href).toBe('/app'))
-    })
-
-    it('hides the switch if the feature is disabled', async () => {
-      mockApplicationConfig({
-        ui_desktop_beta_switch: false,
-      })
-
-      const wrapper = renderComponent(LayoutPage, {
-        router: true,
-        form: true,
-      })
-
-      expect(wrapper.queryByLabelText('BETA UI')).not.toBeInTheDocument()
-    })
-
-    it('hides the switch if the user has no permissions', async () => {
-      mockUserCurrent({
-        hasBetaUiSwitchAvailable: false,
-      })
-
-      const wrapper = renderComponent(LayoutPage, {
-        router: true,
-        form: true,
-      })
-
-      expect(wrapper.queryByLabelText('BETA UI')).not.toBeInTheDocument()
-    })
-
-    it('hides the switch if the user has dismissed it', async () => {
-      localStorage.setItem('beta-ui-switch-dismiss', 'true')
-
-      const wrapper = renderComponent(LayoutPage, {
-        router: true,
-        form: true,
-      })
-
-      expect(wrapper.queryByLabelText('BETA UI')).not.toBeInTheDocument()
-
-      localStorage.removeItem('beta-ui-switch-dismiss')
-    })
-
-    it('dismisses the switch on demand', async () => {
-      const wrapper = renderComponent(LayoutPage, {
-        router: true,
-        form: true,
-      })
-
-      const toggle = wrapper.getByLabelText('BETA UI')
-
-      const button = wrapper.getByRole('button', {
-        name: 'Hide BETA UI switch',
-      })
-
-      await wrapper.events.click(button)
-
-      expect(toggle).not.toBeInTheDocument()
-      expect(button).not.toBeInTheDocument()
-    })
-  })
+  // Student Hub: the BETA UI switch is gone (.dev/classic-ui-removal.md).
 })

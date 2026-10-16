@@ -6,13 +6,6 @@ import type * as Types from './schema-types';
 
 export * from './schema-types'
 export type { Exact }
-export type BetaUiSendFeedbackMutationVariables = Exact<{
-  input: Types.BetaUiFeedbackInput;
-}>;
-
-
-export type BetaUiSendFeedbackMutation = { betaUiSendFeedback: { __typename: 'BetaUiSendFeedbackPayload', success: boolean } | null | undefined };
-
 export type OrganizationInfoForPopoverQueryVariables = Exact<{
   organizationId: string | number;
   membersCount?: number | null | undefined;

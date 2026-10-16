@@ -1,12 +1,8 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { FormKit } from '@formkit/vue'
 import { storeToRefs } from 'pinia'
 
-import { useBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
-import { showFeedbackConsent } from '#desktop/components/BetaUi/composables/useBetaUiFeedbackConsent.ts'
-import { useFeedbackDialog } from '#desktop/components/BetaUi/FeedbackDialog/useFeedbackDialog.ts'
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import { SidebarName } from '#desktop/components/layout/types.ts'
 import { useSidebarDisplay } from '#desktop/components/layout/useSidebarDisplay.ts'
@@ -26,8 +22,7 @@ import StudenthubNavTicketViews from './StudenthubNavTicketViews.vue'
 // open rail item, then on Tickets and the ticket screens the ticket views and Recent (Zammad's
 // tabs), on the Dashboard the dashboards, "Needs attention" and who is online, on the Members page
 // its filters, on the Knowledge Base its categories, elsewhere Recent.
-// Hiding it is remembered like Zammad's collapsed sidebar (SidebarName.Primary). The BETA UI switch
-// moved here from Zammad's sidebar footer.
+// Hiding it is remembered like Zammad's collapsed sidebar (SidebarName.Primary).
 
 const {
   isTicketSection,
@@ -42,16 +37,6 @@ const { toggleSidebar } = useSidebarDisplay(SidebarName.Primary)
 const roleLabel = useStudenthubRoleLabel()
 
 const { hasTaskbarTabs, loading: isTaskbarLoading } = storeToRefs(useUserCurrentTaskbarTabsStore())
-
-const {
-  switchValue,
-  toggleBetaUiSwitch,
-  betaUiSwitchEnabled,
-  dismissBetaUiSwitch,
-  hasFeedbackConsent,
-} = useBetaUi()
-
-const { openFeedbackDialog } = useFeedbackDialog()
 </script>
 
 <template>
@@ -98,37 +83,6 @@ const { openFeedbackDialog } = useFeedbackDialog()
         <p class="sh-nav-panel__label">{{ $t('Recent') }}</p>
         <p class="sh-nav-panel__empty">{{ $t('Tickets you open are listed here.') }}</p>
       </template>
-    </div>
-
-    <div v-if="betaUiSwitchEnabled" class="sh-nav-panel__beta">
-      <FormKit
-        type="toggle"
-        :label="__('BETA UI')"
-        :value="true"
-        :variants="{ true: 'True', false: 'False' }"
-        wrapper-class="!flex-row"
-        label-class="truncate"
-        @input-raw="toggleBetaUiSwitch()"
-      />
-      <CommonLink
-        v-if="switchValue"
-        class="truncate"
-        link="#"
-        size="small"
-        @click="
-          () => (hasFeedbackConsent === 'true' ? openFeedbackDialog() : showFeedbackConsent())
-        "
-      >
-        {{ $t('Feedback') }}
-      </CommonLink>
-      <CommonButton
-        v-tooltip="$t('Hide BETA UI switch')"
-        class="ms-auto shrink-0"
-        icon="x"
-        size="small"
-        variant="neutral"
-        @click="dismissBetaUiSwitch"
-      />
     </div>
   </aside>
 </template>

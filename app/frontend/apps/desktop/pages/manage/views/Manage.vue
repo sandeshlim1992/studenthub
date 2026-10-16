@@ -4,20 +4,15 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { initializeBetaUi } from '#desktop/components/BetaUi/composables/useBetaUi.ts'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
 const searchQuery = ref('')
 const route = useRoute()
 const router = useRouter()
 
+// Every tile opens a page of the new UI (/manage/…, /report).
 const handleRedirect = (target: string) => {
-  if (target.startsWith('/manage') || target.startsWith('/report')) {
-    router.push(target)
-  } else {
-    const { clearSwitchAndRedirect } = initializeBetaUi()
-    clearSwitchAndRedirect(target)
-  }
+  router.push(target)
 }
 
 interface AdminItem {

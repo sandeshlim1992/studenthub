@@ -330,16 +330,6 @@
   font-weight: 600;
 }
 
-.sh-nav-panel__beta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: auto;
-  padding: 0.5rem 0.5rem 0;
-  border-top: 1px solid var(--sh-line);
-  font-size: 0.8125rem;
-}
-
 .sh-nav-views {
   display: flex;
   flex-direction: column;

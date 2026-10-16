@@ -97,11 +97,9 @@ class SessionsController < ApplicationController
 
     auth = request.env['omniauth.auth']
 
-    # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot), the classic UI at /app
+    # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot); the classic UI is switched off
     redirect_url = if request.env['omniauth.origin']&.include?('/mobile')
                      "/mobile#{omniauth_redirect_path}"
-                   elsif Studenthub::NewUiAtRoot.classic_origin?(request.env['omniauth.origin'])
-                     '/app#'
                    else
                      Studenthub::NewUiAtRoot.local_path(omniauth_redirect_path)
                    end

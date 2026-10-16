@@ -425,17 +425,17 @@ RSpec.describe 'Sessions endpoints', type: :request do
       OmniAuth.config.test_mode = false
     end
 
-    # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot), the classic UI at /app
+    # Student Hub: the new UI is served at / (Studenthub::NewUiAtRoot), the classic UI is switched off
     it 'redirects to the app' do
       get '/auth/github/callback'
 
       expect(response).to redirect_to('/')
     end
 
-    it 'redirects to the classic UI when the sign-in started there' do
+    it 'redirects to the new UI also when the sign-in started on an old classic UI page' do
       get '/auth/github/callback', env: { 'omniauth.origin' => 'http://www.example.com/app' }
 
-      expect(response).to redirect_to('/app#')
+      expect(response).to redirect_to('/')
     end
 
     it 'sets the :user_id session parameter' do

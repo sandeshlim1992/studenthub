@@ -203,3 +203,14 @@ AI-suggested Knowledge Base answers, a redirect for old Knowledge Base addresses
 |---|---|---|---|---|
 | New redirects | Open redirect? | No problem | Fixed target `/`; nothing from the request goes into it | — |
 | Classic UI no longer served | Its known pasted-HTML issue (15 Oct) | Out of reach | The classic app isn't served once a server runs this; its code goes in the delete step | — |
+
+## BETA switch and the sign-in return to /app removed (16 Oct)
+
+`git diff HEAD`: deletions in the new UI (BETA switch, usage tracking, the "New BETA UI" setting) and their tests, the
+generated GraphQL types, `sessions_controller.rb` and `Studenthub::NewUiAtRoot` (the return to `/app#`), specs, docs.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Sign-in return after OmniAuth (Microsoft) | Where a sign-in sends people back to | No problem | One branch less: `/mobile…` or `Studenthub::NewUiAtRoot.local_path`, which keeps the return on this server (spec "keeps sign-in returns on this server"); no new input used | — |
+| Notifications with classic `#…` links | Navigation from a notification | No problem | `router.push` inside the app (the old code set `window.location` to the same `/#…` address); the routes decide what opens, permissions apply as before | — |
+| Removed code | Did a permission check or validation go with it? | No problem | Only the switch, its feedback dialog and usage tracking went; the server-side feedback mutation keeps its own checks and is no longer called | — |

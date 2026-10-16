@@ -5,7 +5,6 @@ import { createApp } from 'vue'
 import '#mobile/styles/main.css'
 
 import { initializeAppName } from '#shared/composables/useAppName.ts'
-import { useForceDesktop } from '#shared/composables/useForceDesktop.ts'
 import { initializeDefaultObjectAttributes } from '#shared/entities/object-attributes/composables/useObjectAttributes.ts'
 import initializeGlobalComponents from '#shared/initializer/globalComponents.ts'
 import initializeGlobalProperties from '#shared/initializer/globalProperties.ts'
@@ -29,11 +28,10 @@ import initializeApolloClient from '#mobile/server/apollo/index.ts'
 import AppMobile from './AppMobile.vue'
 import { ensureAfterAuth } from './pages/authentication/after-auth/composable/useAfterAuthPlugins.ts'
 
-const { forceDesktopLocalStorage } = useForceDesktop()
-
-// If the user explicitly switched to the desktop app the last time around,
-//   redirect them automatically, before hoisting the app.
-if (forceDesktopLocalStorage.value) window.location.href = '/'
+// Student Hub: opening the mobile app is choosing it, on any device, so it forgets an earlier
+//   "Continue to desktop" instead of sending the person to the new UI
+//   (#shared/utils/studenthubAppSwitch.ts).
+window.localStorage.removeItem('forceDesktopApp')
 
 export default async function mountApp(): Promise<void> {
   const app = createApp(AppMobile)

@@ -14,9 +14,10 @@ const csrfToken = getCSRFToken()
 </script>
 
 <template>
-  <section class="mt-4 mb-16 w-full max-w-md" data-test-id="loginThirdParty">
-    <p class="p-3 text-center">
-      {{ $c.user_show_password_login ? $t('Or sign in using') : $t('Sign in using') }}
+  <!-- Student Hub: shown first, above the local login (design option 5). -->
+  <section class="w-full max-w-md" data-test-id="loginThirdParty">
+    <p class="mb-5 text-base text-gray">
+      {{ $t('Use your college Microsoft account.') }}
     </p>
     <div class="-m-2 flex flex-wrap p-1">
       <form
@@ -28,7 +29,7 @@ const csrfToken = getCSRFToken()
       >
         <input type="hidden" name="authenticity_token" :value="csrfToken" />
         <button
-          class="m-1 flex h-14 w-full cursor-pointer items-center justify-center rounded-xl bg-gray-600 px-4 py-2 text-white select-none"
+          class="m-1 flex h-14 w-full cursor-pointer items-center justify-center rounded-2xl bg-blue px-4 py-2 font-semibold select-none"
         >
           <CommonIcon
             :name="provider.icon"
@@ -36,8 +37,8 @@ const csrfToken = getCSRFToken()
             decorative
             class="shrink-0 ltr:mr-2.5 rtl:ml-2.5"
           />
-          <span class="truncate text-xl leading-7">
-            {{ $t(provider.label) }}
+          <span class="truncate text-lg leading-7">
+            {{ $t('Sign in with %s', $t(provider.label)) }}
           </span>
         </button>
       </form>

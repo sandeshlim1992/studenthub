@@ -24,8 +24,10 @@ Never put passwords, tokens or keys in this file.
   `ticket-detail-view-hint-note` (3) and `ticket-detail-view-live-users` (5), which fail on their own too (13 Oct).
   `studenthub-talk-to-student-support` ("opens the ticket wizard") and `ticket-detail-view-studenthub-queue` fail now
   and then even on their own (timing; seen on 14 Oct on the code before and after the lint tidy)
-- The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs);
-  Student Hub doesn't use the mobile app. `continue-to-mobile.spec.ts` (2) fails since Taxil removed that menu entry
+- The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs)
+- The whole mobile app's specs at once (`app/frontend/apps/mobile`, 16 Oct): 9 to 26 fail under load, which ones
+  varies between runs. `FieldDateTime` "datetime" (3) and `form-updater.mobile` (2) fail on the code before the light
+  theme too; the sign-in, home and layout specs pass when run folder by folder (37, 12 and 26)
 - Zammad's drawer specs (`left-sidebar.spec.ts`: width handling ×6, and User menu ×5 since the avatar menu moved to
   the top bar) fail by design since design C
 - 9 more of Zammad's layout specs fail since the redesign (seen 14 Oct, the same with and without that day's avatar
@@ -93,8 +95,8 @@ Never put passwords, tokens or keys in this file.
   The test server copy had 50 unread ones from 7 March for staff (removed from the work PC dev DB only)
 - Review of Taxil's work (30 Sep), not fixed yet:
   - "Continue with Microsoft" button on `/desktop/login` does nothing → fixed on `studenthub-newUI` (sign-in redesign)
-  - Theme switch removed (login-page public links are back since 7 Oct); "Continue to mobile" stays removed for
-    now (14 Oct)
+  - Theme switch removed (login-page public links are back since 7 Oct); "Continue to mobile" is back for phones
+    since 16 Oct
   - TypeScript errors: 74 then, 144 after Taxil's 3 Oct commit, 0 since 14 Oct; Zammad unit tests that fail: see Tests
     that already fail
 - Not moved, on purpose: KB Answer Generation, the live chat console and the phone (CTI) log (both unused) and

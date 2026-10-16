@@ -9,10 +9,9 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex justify-center p-2">
-    <CommonLogo />
-  </div>
-  <h1 class="mb-6 flex justify-center p-2 text-2xl font-bold">
+  <!-- Student Hub: design option 5, the product logo above a large left-aligned title. -->
+  <CommonLogo class="h-14 w-auto" />
+  <h1 class="mt-10 mb-6 text-4xl font-extrabold">
     {{ $t(title) }}
   </h1>
   <template v-if="$c.maintenance_mode">

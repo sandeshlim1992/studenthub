@@ -14,6 +14,7 @@ import useAppMaintenanceCheck from '#shared/composables/useAppMaintenanceCheck.t
 import useMetaTitle from '#shared/composables/useMetaTitle.ts'
 import { useOnEmitter } from '#shared/composables/useOnEmitter.ts'
 import usePushMessages from '#shared/composables/usePushMessages.ts'
+import { useStudenthubAppColor } from '#shared/composables/useStudenthubAppColor.ts'
 import { initializeDefaultObjectAttributes } from '#shared/entities/object-attributes/composables/useObjectAttributes.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useAuthenticationStore } from '#shared/stores/authentication.ts'
@@ -27,7 +28,6 @@ import { useUserCurrentTaskbarTabsStore } from '#desktop/entities/user/current/s
 import { useTicketBulkUpdateStore } from '#desktop/entities/user/current/stores/ticketBulkUpdate.ts'
 
 import { useMobileDetection } from './composables/responsiveness/useMobileDetection.ts'
-import { useStudenthubAppColor } from './composables/useStudenthubAppColor.ts'
 
 import studentHubLogo from '#desktop/assets/images/student_hub_logo.png'
 

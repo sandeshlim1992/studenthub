@@ -1,0 +1,82 @@
+/* Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ */
+
+/*
+ * Student Hub: a light theme for the mobile app (.dev/DECISIONS.md, 16 Oct).
+ * Zammad's mobile components are built for a dark page and name their colours after it:
+ * "black" is the page, "white" the text, gray-500/600 the cards, gray-400 raised parts,
+ * gray-300 lines and gray-100 to gray-200 dimmer text. Redefining those tokens turns every
+ * page light without editing the components. The accents get darker steps, so they read
+ * on the light page and still carry the page colour as text when they are a fill ("black"
+ * text on a blue badge). Contrast of each step against the page is noted.
+ */
+
+:root {
+  --sh-app: #14234b;
+  --color-black: #f4f5f8;
+  --color-white: #14234b; /* 14:1 */
+  --color-gray: #5b6476; /* 5.5:1 */
+  --color-gray-100: #3d4659; /* 8.7:1 */
+  --color-gray-150: #4b5468; /* 7:1 */
+  --color-gray-200: #667085; /* 4.6:1, dim text, and the fill of selected tabs */
+  --color-gray-300: #d3d9e4;
+  --color-gray-400: #e9edf3;
+  --color-gray-500: #fff;
+  --color-gray-600: #fff;
+  --color-gray-highlight: rgba(20, 35, 75, 0.07);
+  --color-gray-light: rgba(255, 255, 255, 0.92);
+
+  /* The application colour admins choose under Branding, kept dark enough for light text. */
+  --color-blue: var(--sh-app);
+  --color-blue-dark: color-mix(in sRGB, var(--sh-app) 70%, black);
+  --color-blue-highlight: color-mix(in sRGB, var(--sh-app) 10%, transparent);
+  --color-yellow: #8a5a00; /* 5.4:1 */
+  --color-yellow-highlight: rgba(138, 90, 0, 0.1);
+  --color-yellow-inactive: #b89a5c;
+  --color-red: #b42318; /* 6:1 */
+  --color-red-highlight: rgba(180, 35, 24, 0.1);
+  --color-red-bright: #c81e1e;
+  --color-red-dark: #fdecea;
+  --color-green: #16723f; /* 5.5:1 */
+  --color-green-highlight: rgba(22, 114, 63, 0.1);
+  --color-orange: #a24a07; /* 5.5:1 */
+  --color-pink: #b0285e; /* 5.8:1 */
+  --color-pink-bright: #c8105a;
+}
+
+/* On a coloured fill, "white" (icons in menu squares, alerts, selected tabs, form buttons)
+   and "black" (badges) both mean light content. Redefining "white" there also reaches the
+   buttons that force it with !important (Add reply). */
+:is(.bg-blue, .bg-blue\/80, .bg-pink, .bg-orange, .bg-green, .bg-red, .bg-red-bright, .bg-yellow),
+:is(.bg-gray-200, .\!bg-gray-200),
+.alert-error,
+.alert-success,
+[data-variant='submit'] .formkit-variant-submit\:bg-yellow,
+[data-variant='primary'] .formkit-variant-primary\:bg-blue,
+[data-variant='secondary'] .formkit-variant-secondary\:bg-blue {
+  --color-white: #fff;
+
+  color: #fff;
+}
+
+/* The agent's messages are "white" bubbles with "black" text: keep them white, apart from
+   the customer's bubbles in the application colour. */
+.Agent.bg-white {
+  background-color: #fff;
+  color: var(--color-white);
+  border-color: var(--color-gray-300);
+}
+
+/* Zammad's yellow submit buttons (Sign in, Save, Create) take the application colour. */
+[data-variant='submit'] .formkit-variant-submit\:bg-yellow {
+  background-color: var(--color-blue);
+}
+
+/* Literal white in Zammad's own styles. */
+:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-white);
+  caret-color: var(--color-white);
+}
+
+.form-group .formkit-outer:not(:last-child) > :last-child {
+  border-color: rgba(20, 35, 75, 0.1);
+}

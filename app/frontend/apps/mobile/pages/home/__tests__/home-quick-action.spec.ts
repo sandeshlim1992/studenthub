@@ -16,9 +16,10 @@ describe('testing quick action', () => {
 
     const view = await visitView('/')
 
-    expect(view.getByLabelText('Create new ticket')).toBeInTheDocument()
+    // Student Hub: the quick action is the "New ticket" tile (design option 5).
+    const newTicket = view.getByRole('link', { name: 'New ticket' })
 
-    await view.events.click(view.getByLabelText('Create new ticket'))
+    await view.events.click(newTicket)
 
     await waitFor(() => {
       expect(view.queryByText('Create ticket')).toBeInTheDocument()

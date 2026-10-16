@@ -79,6 +79,10 @@ describe('password login', () => {
 
     const view = await visitView('/login')
 
+    // Student Hub: with a third-party sign-in switched on, the form opens from "Admin / local login".
+    const localLogin = view.queryByRole('button', { name: 'Admin / local login' })
+    if (localLogin) await view.events.click(localLogin)
+
     const username = view.getByLabelText('Username / Email')
 
     await view.events.type(username, 'admin@example.com')

@@ -1,6 +1,9 @@
 /* stylelint-disable import-notation */
 @import 'tailwindcss';
 @import './tokens.css';
+
+/* Student Hub: light theme, redefines the tokens above. */
+@import './studenthub-light.css';
 @import '../../../shared/styles/utilities.css';
 
 @plugin '@formkit/themes/tailwindcss';

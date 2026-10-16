@@ -33,6 +33,10 @@ const visitLogin = async (login?: Partial<LoginMutation['login']>) => {
 }
 
 const login = async (view: ExtendedRenderResult) => {
+  // Student Hub: with a third-party sign-in switched on, the form opens from "Admin / local login".
+  const localLogin = view.queryByRole('button', { name: 'Admin / local login' })
+  if (localLogin) await view.events.click(localLogin)
+
   const loginInput = view.getByPlaceholderText('Username / Email')
   const passwordInput = view.getByPlaceholderText('Password')
 

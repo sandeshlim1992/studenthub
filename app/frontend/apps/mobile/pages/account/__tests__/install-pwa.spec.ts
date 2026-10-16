@@ -71,7 +71,8 @@ describe('Installing Zammad as PWA', () => {
 
     await view.events.click(install)
 
-    expect(view.getByText(/To install Zammad as an app, press/)).toBeInTheDocument()
+    // Student Hub: the app installs as Student Hub.
+    expect(view.getByText(/To install Student Hub as an app, press/)).toBeInTheDocument()
     expect(view.getByIconName('ios-share')).toBeInTheDocument()
     expect(view.getByIconName('add-square')).toBeInTheDocument()
   })

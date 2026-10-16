@@ -20,42 +20,53 @@ const notificationCount = computed(() => {
 </script>
 
 <template>
+  <!-- Student Hub: design option 5, labels under the icons and a rounded top; same height. -->
   <footer
-    class="bottom-navigation fixed bottom-0 z-10 w-full bg-gray-light backdrop-blur-lg"
+    class="bottom-navigation fixed bottom-0 z-10 w-full rounded-t-3xl bg-gray-light shadow-[0_-6px_20px_rgb(20_35_75/6%)] backdrop-blur-lg"
     :class="{ 'px-4': isCustomLayout }"
     data-bottom-navigation
   >
-    <div v-if="!isCustomLayout" class="flex h-14 w-full items-center text-center">
-      <CommonLink link="/" class="flex flex-1 justify-center" exact-active-class="text-blue">
-        <CommonIcon name="home" />
+    <div v-if="!isCustomLayout" class="flex h-14 w-full items-center text-center font-semibold">
+      <CommonLink
+        link="/"
+        size="small"
+        class="flex flex-1 flex-col items-center gap-0.5"
+        exact-active-class="text-blue"
+      >
+        <CommonIcon name="home" size="base" decorative />
+        {{ $t('Home') }}
       </CommonLink>
       <CommonLink
         link="/notifications"
+        size="small"
         exact-active-class="text-blue"
-        class="relative flex flex-1 justify-center"
+        class="relative flex flex-1 flex-col items-center gap-0.5"
       >
         <div
           v-if="notificationCount"
           role="status"
           :aria-label="$t('Unread notifications')"
-          class="absolute h-4 min-w-[1rem] rounded-full bg-blue px-1 text-center text-xs text-black ltr:ml-4 rtl:mr-4"
+          class="absolute top-0 h-4 min-w-[1rem] rounded-full bg-blue px-1 text-center text-xs text-black ltr:ml-6 rtl:mr-6"
         >
           {{ notificationCount }}
         </div>
-        <CommonIcon name="notification-subscribed" decorative />
+        <CommonIcon name="notification-subscribed" size="base" decorative />
+        {{ $t('Notifications') }}
       </CommonLink>
       <CommonLink
         link="/account"
-        class="group flex flex-1 justify-center"
+        size="small"
+        class="group flex flex-1 flex-col items-center gap-0.5"
         exact-active-class="user-active"
       >
         <CommonUserAvatar
           v-if="user"
           :entity="user"
           class="group-[.user-active]:rounded-full group-[.user-active]:ring-2 group-[.user-active]:ring-blue"
-          size="small"
+          size="xs"
           personal
         />
+        {{ $t('Account') }}
       </CommonLink>
     </div>
   </footer>

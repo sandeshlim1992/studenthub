@@ -5,38 +5,16 @@ import { computed } from 'vue'
 
 import { useSessionStore } from '#shared/stores/session.ts'
 
-import CommonInputSearch from '#mobile/components/CommonInputSearch/CommonInputSearch.vue'
 import CommonSectionMenu from '#mobile/components/CommonSectionMenu/CommonSectionMenu.vue'
 import type { MenuItem } from '#mobile/components/CommonSectionMenu/index.ts'
-import CommonTicketCreateLink from '#mobile/components/CommonTicketCreateLink/CommonTicketCreateLink.vue'
 import { useTicketOverviews } from '#mobile/entities/ticket/composables/useTicketOverviews.ts'
 
-const IS_DEV = import.meta.env.DEV
+import StudenthubHomeTiles from '../components/StudenthubHomeTiles.vue'
 
 const session = useSessionStore()
 
-const menu: MenuItem[] = [
-  {
-    type: 'link',
-    link: '/tickets/view',
-    label: __('Ticket overviews'),
-    icon: { name: 'all-tickets', size: 'base' },
-    iconBg: 'bg-pink',
-    permission: ['ticket.agent', 'ticket.customer'],
-  },
-  // Cannot inline import.meta here, Vite fails
-  ...(IS_DEV
-    ? [
-        {
-          type: 'link' as const,
-          link: '/playground',
-          label: 'Playground',
-          icon: { name: 'settings', size: 'small' as const },
-          iconBg: 'bg-orange',
-        },
-      ]
-    : []),
-]
+// Student Hub: no menu above the overviews. "Ticket overviews" is one of the tiles
+// (StudenthubHomeTiles), and the developers' Playground page is removed.
 
 const overviews = useTicketOverviews()
 
@@ -56,14 +34,21 @@ const ticketOverview = computed<MenuItem[]>(() => {
 
 <template>
   <div class="p-4">
-    <CommonTicketCreateLink class="mt-1.5 mb-3" />
-    <h1 class="mb-5 flex w-full items-center justify-center text-4xl font-bold">
-      {{ $t('Home') }}
-    </h1>
-    <CommonLink :aria-label="$t('Search…')" link="/search">
-      <CommonInputSearch aria-hidden="true" tabindex="-1" wrapper-class="mb-4" no-border />
-    </CommonLink>
-    <CommonSectionMenu :items="menu" />
+    <!-- Student Hub: design option 5, a header with search, then the tiles. -->
+    <header class="mt-2 mb-5 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold text-gray">{{ $c.product_name }}</p>
+        <h1 class="text-3xl font-extrabold">{{ $t('Home') }}</h1>
+      </div>
+      <CommonLink
+        :aria-label="$t('Search…')"
+        link="/search"
+        class="flex size-11 items-center justify-center rounded-xl bg-gray-500"
+      >
+        <CommonIcon name="search" size="small" decorative />
+      </CommonLink>
+    </header>
+    <StudenthubHomeTiles class="mb-5" />
     <CommonSectionMenu
       v-if="session.hasPermission(['ticket.agent', 'ticket.customer'])"
       :items="ticketOverview"

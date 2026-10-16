@@ -13,6 +13,7 @@ import useAppMaintenanceCheck from '#shared/composables/useAppMaintenanceCheck.t
 import useMetaTitle from '#shared/composables/useMetaTitle.ts'
 import { useOnEmitter } from '#shared/composables/useOnEmitter.ts'
 import usePushMessages from '#shared/composables/usePushMessages.ts'
+import { useStudenthubAppColor } from '#shared/composables/useStudenthubAppColor.ts'
 import { initializeDefaultObjectAttributes } from '#shared/entities/object-attributes/composables/useObjectAttributes.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 import { useAuthenticationStore } from '#shared/stores/authentication.ts'
@@ -49,6 +50,9 @@ const updateServiceWorker = registerSW({
 
 useAppMaintenanceCheck({ onNeedRefresh: () => updateServiceWorker(true) })
 usePushMessages()
+
+// Student Hub: the light theme's accent is the application colour chosen under Branding.
+useStudenthubAppColor()
 
 // Add a check for authenticated changes (e.g. login/logout in a other
 // browser tab or maintenance mode switch).

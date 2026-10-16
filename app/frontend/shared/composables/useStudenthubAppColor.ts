@@ -4,7 +4,7 @@ import { watch } from 'vue'
 
 import { useApplicationStore } from '#shared/stores/application.ts'
 
-import { applyStudenthubAppColor } from '#desktop/utils/studenthubAppColor.ts'
+import { applyStudenthubAppColor } from '#shared/utils/studenthubAppColor.ts'
 
 // Keeps the --sh-app CSS variable in step with the admin setting, including live
 // updates when an admin changes it while others have the app open.

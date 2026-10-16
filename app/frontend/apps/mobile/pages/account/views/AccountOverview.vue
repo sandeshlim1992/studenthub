@@ -9,15 +9,12 @@ import CommonUserAvatar from '#shared/components/CommonUserAvatar/CommonUserAvat
 import FormGroup from '#shared/components/Form/FormGroup.vue'
 import { useForceDesktop } from '#shared/composables/useForceDesktop.ts'
 import { useLocaleUpdate } from '#shared/composables/useLocaleUpdate.ts'
-import { useProductAboutQuery } from '#shared/graphql/queries/about.api.ts'
 import { i18n } from '#shared/i18n.ts'
-import { QueryHandler } from '#shared/server/apollo/handler/index.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 import { browser, os } from '#shared/utils/browser.ts'
 import { usePWASupport, isStandalone } from '#shared/utils/pwa.ts'
 
 import CommonSectionMenu from '#mobile/components/CommonSectionMenu/CommonSectionMenu.vue'
-import CommonSectionMenuItem from '#mobile/components/CommonSectionMenu/CommonSectionMenuItem.vue'
 import CommonSectionMenuLink from '#mobile/components/CommonSectionMenu/CommonSectionMenuLink.vue'
 import CommonSectionPopup from '#mobile/components/CommonSectionPopup/CommonSectionPopup.vue'
 import { useHeader } from '#mobile/composables/useHeader.ts'
@@ -37,19 +34,9 @@ useHeader({
 const session = useSessionStore()
 const user = toRef(session, 'user')
 
-const { modelCurrentLocale, localeOptions, isSavingLocale, translation } = useLocaleUpdate()
+const { modelCurrentLocale, localeOptions, isSavingLocale } = useLocaleUpdate()
 
-const hasVersionPermission = session.hasPermission('admin')
-
-const productAboutQuery = new QueryHandler(
-  useProductAboutQuery({
-    enabled: hasVersionPermission,
-    fetchPolicy: 'cache-first',
-  }),
-  { errorNotificationMessage: __('The product version could not be fetched.') },
-)
-
-const productAbout = productAboutQuery.result()
+// Student Hub: no "This is Zammad version …" section and no "You can help translating Zammad" hint.
 
 const isMobileIOS = browser.name?.includes('Safari') && os.name?.includes('iOS')
 const { canInstallPWA, installPWA } = usePWASupport()
@@ -75,7 +62,8 @@ const installPWAMessage = computed(() => {
     __(
       'To install %s as an app, press the %s "Share" button and then the %s "Add to Home Screen" button.',
     ),
-    __('Zammad'),
+    // Student Hub: the app installs as Student Hub.
+    'Student Hub',
     iconShare,
     iconAdd,
   )
@@ -152,20 +140,7 @@ const { forceDesktop } = useForceDesktop()
         :no-options-label-translation="true"
         sorting="value"
       />
-
-      <template #help>
-        {{ $t('Did you know?') }}
-        <CommonLink class="text-blue" target="_blank" :link="translation.link">
-          {{ $t('You can help translating Zammad.') }}
-        </CommonLink>
-      </template>
     </FormGroup>
-
-    <CommonSectionMenu v-if="hasVersionPermission">
-      <CommonSectionMenuItem :label="__('Version')">
-        {{ $t('This is Zammad version %s', productAbout?.productAbout as string) }}
-      </CommonSectionMenuItem>
-    </CommonSectionMenu>
 
     <div class="mb-4">
       <FormKit

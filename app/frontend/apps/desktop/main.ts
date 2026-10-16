@@ -16,7 +16,10 @@ import { useAuthenticationStore } from '#shared/stores/authentication.ts'
 import initializeStore from '#shared/stores/index.ts'
 import { useLocaleStore } from '#shared/stores/locale.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
+import { isMobile } from '#shared/utils/browser.ts'
+import { mobileAppAddress } from '#shared/utils/studenthubAppSwitch.ts'
 
+import { useMobileNavigation } from '#desktop/composables/responsiveness/useMobileNavigation.ts'
 import { twoFactorConfigurationPluginLookup } from '#desktop/entities/two-factor-configuration/plugins/index.ts'
 import { initializeForm, initializeFormFields } from '#desktop/form/index.ts'
 import { initializeDesktopVisuals } from '#desktop/initializer/desktopVisuals.ts'
@@ -82,6 +85,19 @@ export const mountApp = async () => {
   }
 
   await Promise.all(initalizeAfterSessionCheck)
+
+  // Student Hub: phones get the mobile app (#shared/utils/studenthubAppSwitch.ts).
+  const mobileAddress = mobileAppAddress({
+    location: window.location,
+    phone: isMobile,
+    chosenDesktop: Boolean(useMobileNavigation().forceDesktopApp.value),
+    systemReady: Boolean(application.config.system_init_done),
+  })
+
+  if (mobileAddress) {
+    window.location.replace(mobileAddress)
+    return
+  }
 
   if (session.id) session.initialized = true
 

@@ -6,7 +6,7 @@ import { mockGraphQLApi } from '#tests/support/mock-graphql-api.ts'
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { setupView } from '#tests/support/mock-user.ts'
 import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
-import { waitUntil, waitUntilApisResolved } from '#tests/support/utils.ts'
+import { waitUntil } from '#tests/support/utils.ts'
 
 import { UserCurrentLocaleDocument } from '#shared/entities/user/current/graphql/mutations/userCurrentLocale.api.ts'
 import { ProductAboutDocument } from '#shared/graphql/queries/about.api.ts'
@@ -54,16 +54,16 @@ describe('account page', () => {
 
     const view = await visitView('/account')
 
-    await waitUntilApisResolved(languageApi)
-
     const mainContent = view.getByTestId('appMain')
     expect(mainContent, 'have avatar').toHaveTextContent('JD')
     expect(mainContent, 'have my name').toHaveTextContent('John Doe')
     expect(mainContent, 'have logout button').toHaveTextContent('Sign out')
     expect(mainContent, 'has language').toHaveTextContent('Deutsch')
 
-    expect(languageApi.spies.resolve).toHaveBeenCalled()
-    expect(mainContent, 'has version').toHaveTextContent('v1.0.0')
+    // Student Hub: no Zammad version section and no "help translating Zammad" hint.
+    expect(languageApi.spies.resolve).not.toHaveBeenCalled()
+    expect(mainContent).not.toHaveTextContent('Version')
+    expect(mainContent).not.toHaveTextContent('Zammad')
   })
 
   it('can change language', async () => {

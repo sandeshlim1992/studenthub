@@ -10,20 +10,22 @@ class MobileController < ApplicationController
   end
 
   def manifest
-    name = Setting.get('organization').presence || Setting.get('product_name').presence || 'Zammad'
+    # Student Hub: named Student Hub, not Zammad, when no name is set and on the home screen.
+    name = Setting.get('organization').presence || Setting.get('product_name').presence || __('Student Hub')
 
     render(
       layout:       false,
       json:         {
         id:               '/mobile/',
-        short_name:       'Zammad',
+        short_name:       __('Student Hub'),
         name:             name,
         # TODO
         # dir: "ltr",
         # lang: "en-US",
         orientation:      'portrait',
-        background_color: '#191919',
-        theme_color:      '#191919',
+        # Student Hub: the light theme's page colour (apps/mobile/styles/studenthub-light.css).
+        background_color: '#f4f5f8',
+        theme_color:      '#f4f5f8',
         display:          'standalone',
         start_url:        '/mobile/',
         icons:            [

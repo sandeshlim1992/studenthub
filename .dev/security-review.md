@@ -214,3 +214,21 @@ generated GraphQL types, `sessions_controller.rb` and `Studenthub::NewUiAtRoot` 
 | Sign-in return after OmniAuth (Microsoft) | Where a sign-in sends people back to | No problem | One branch less: `/mobile…` or `Studenthub::NewUiAtRoot.local_path`, which keeps the return on this server (spec "keeps sign-in returns on this server"); no new input used | — |
 | Notifications with classic `#…` links | Navigation from a notification | No problem | `router.push` inside the app (the old code set `window.location` to the same `/#…` address); the routes decide what opens, permissions apply as before | — |
 | Removed code | Did a permission check or validation go with it? | No problem | Only the switch, its feedback dialog and usage tracking went; the server-side feedback mutation keeps its own checks and is no longer called | — |
+
+## Mobile app: "Powered by Zammad" removed, design option 5 in a light theme (16 Oct)
+
+`git diff HEAD`: the mobile sign-in page, its header and third-party buttons, the home page and its new tiles, the bottom
+menu, a new stylesheet, the mobile page and layout views, the manifest colours in `MobileController`, the application
+colour helper moved from the new UI to shared code, specs, docs.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Username and password behind "Admin / local login" | Could anyone be locked out, or the password sign-in be reached when it is switched off? | No problem | Only whether the form is shown changed; it opens from the start when no third-party sign-in is on, and stays hidden when `user_show_password_login` is off with a provider on, as before. Sign-in, two-factor and the server's checks are unchanged | — |
+| Third-party sign-in buttons moved first | Forms and tokens | No problem | Same forms: same action URLs and CSRF token, only their place and label changed | — |
+| Knowledge Base tile | Links to a page the person may not open? | No problem | Shown only with `knowledge_base.reader` or `.editor` (display only); a fixed address (`/knowledge-base`), and the new UI and server check the permission as before | — |
+| Application colour in the mobile CSS | CSS injection through the setting | No problem | `applyStudenthubAppColor` sets `--sh-app` only for a `#rrggbb` colour dark enough for white text (unchanged helper, now shared); the server validates the setting too | — |
+| Manifest and page colours, app name | Server output | No problem | Fixed values; no user input | — |
+| Phones sent to the mobile app | Open redirect | No problem | The address is built only from fixed paths: `/mobile/` plus the current address's own `#…`, `/mobile/login`, or `/mobile/tickets/` and digits; nothing from a query reaches it, so it can't leave this server | — |
+| Opening `/mobile` clears "Continue to desktop" | Permissions | No problem | Only a display choice in the browser's own storage; sign-in and permissions are the same in both apps | — |
+| Mobile Playground removed | Removed code | No problem | A developer page any signed-in user could open by its address; nothing else used it (its imports all have other users) | — |
+| Version section removed from the account page | Removed code | No problem | It showed admins the Zammad version; only the display and its query went, no check. Showing less is no risk | — |

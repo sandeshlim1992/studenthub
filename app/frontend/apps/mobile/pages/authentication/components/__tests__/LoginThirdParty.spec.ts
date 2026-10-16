@@ -41,9 +41,10 @@ describe('LoginThirdParty.vue', () => {
   it('shows the third-party login buttons', () => {
     const view = renderLoginThirdParty()
 
-    const samlButton = view.getByRole('button', { name: 'SAML' })
-    const githubButton = view.getByRole('button', { name: 'GitHub' })
-    const gitlabButton = view.getByRole('button', { name: 'GitLab' })
+    // Student Hub: the buttons read "Sign in with …" (design option 5).
+    const samlButton = view.getByRole('button', { name: 'Sign in with SAML' })
+    const githubButton = view.getByRole('button', { name: 'Sign in with GitHub' })
+    const gitlabButton = view.getByRole('button', { name: 'Sign in with GitLab' })
 
     expect(samlButton.parentElement).toHaveAttribute('action', '/auth/saml?fingerprint=foobar')
     expect(githubButton.parentElement).toHaveAttribute('action', '/auth/github?fingerprint=foobar')

@@ -1,7 +1,7 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import {
@@ -63,6 +63,12 @@ const showPasswordLogin = computed(
   () => application.config.user_show_password_login || !hasEnabledProviders.value,
 )
 
+// Student Hub: Microsoft sign-in comes first; the username and password form opens on request,
+// or straight away when no third-party sign-in is switched on.
+const localLoginRequested = ref(false)
+const showLocalLoginToggle = computed(() => hasEnabledProviders.value && showPasswordLogin.value)
+const localLoginOpen = computed(() => localLoginRequested.value || !hasEnabledProviders.value)
+
 const { forceDesktop } = useForceDesktop()
 
 const finishLogin = () => {
@@ -90,16 +96,44 @@ const showError = (error: UserError) => {
         <CommonIcon name="chevron-left" decorative />
       </button>
     </div>
-    <main class="m-auto w-full max-w-md">
+    <!-- Student Hub: at the top, so opening the local login doesn't move what is above it. -->
+    <main class="mx-auto mt-6 mb-auto w-full max-w-md">
       <div class="flex grow flex-col justify-center">
         <div class="my-5 grow">
           <LoginHeader :title="loginPageTitle" />
-          <LoginCredentialsForm
-            v-if="loginFlow.state === 'credentials' && showPasswordLogin"
-            @ask-two-factor="askTwoFactor"
-            @error="showError"
-            @finish="finishLogin"
-          />
+          <!-- Student Hub: Microsoft first, then the local login behind a toggle (design option 5). -->
+          <template v-if="loginFlow.state === 'credentials'">
+            <LoginThirdParty v-if="hasEnabledProviders" :providers="enabledProviders" />
+            <template v-if="showLocalLoginToggle">
+              <p class="my-6 flex items-center gap-3 text-sm text-gray">
+                <span class="h-px grow bg-gray-300" aria-hidden="true" />
+                {{ $t('or') }}
+                <span class="h-px grow bg-gray-300" aria-hidden="true" />
+              </p>
+              <button
+                type="button"
+                class="flex h-14 w-full cursor-pointer items-center justify-between rounded-2xl bg-gray-500 px-5 text-base font-semibold"
+                :aria-expanded="localLoginOpen"
+                @click="localLoginRequested = !localLoginRequested"
+              >
+                {{ $t('Admin / local login') }}
+                <CommonIcon
+                  name="chevron-down"
+                  size="small"
+                  decorative
+                  class="transition-transform"
+                  :class="{ 'rotate-180': localLoginOpen }"
+                />
+              </button>
+            </template>
+            <div v-if="showPasswordLogin && localLoginOpen" class="mt-4">
+              <LoginCredentialsForm
+                @ask-two-factor="askTwoFactor"
+                @error="showError"
+                @finish="finishLogin"
+              />
+            </div>
+          </template>
           <LoginTwoFactor
             v-else-if="loginFlow.state === '2fa' && twoFactorPlugin && loginFlow.credentials"
             :credentials="loginFlow.credentials"
@@ -138,10 +172,6 @@ const showError = (error: UserError) => {
         </button>
       </section>
     </main>
-    <LoginThirdParty
-      v-if="hasEnabledProviders && loginFlow.state === 'credentials'"
-      :providers="enabledProviders"
-    />
     <section v-if="!showPasswordLogin" class="mb-6 w-full max-w-md text-center">
       <p>
         {{

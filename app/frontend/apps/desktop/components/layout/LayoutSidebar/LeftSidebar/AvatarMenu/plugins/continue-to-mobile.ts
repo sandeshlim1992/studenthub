@@ -20,6 +20,11 @@ export default <AvatarMenuPlugin>{
     clearForceDesktopApp()
     continueToMobile()
   },
-  show: () => false,
+  // Student Hub: back again for phones and for whoever chose the desktop view in the mobile app,
+  // as phones get the mobile app (#shared/utils/studenthubAppSwitch.ts).
+  show: () => {
+    const { forceDesktopApp } = useMobileNavigation()
+    return Boolean(forceDesktopApp.value) || isMobile
+  },
   order: 150,
 }

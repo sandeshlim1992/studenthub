@@ -204,3 +204,23 @@ Never put passwords, tokens or keys in this file.
 - No "Powered by Zammad" in the mobile app (16 Oct): its sign-in footer (`LoginFooter.vue`, the "Powered by Zammad"
   line and, with custom branding, Zammad's logo) is removed, as the new UI's sign-in page has none. The copyright
   headers in the code stay
+- The mobile app follows design option 5 in a light theme on every page (16 Oct, chosen from five designs). The theme
+  redefines the colour tokens Zammad's mobile components are built on ("black" is the page, "white" the text)
+  instead of editing about 117 components, so it is one Student Hub stylesheet to undo; the accents take darker steps
+  and the application colour, so "black" text on a coloured badge still reads. The username and password form sits
+  behind "Admin / local login" under the Microsoft button, and is open from the start when no third-party sign-in is
+  on, so nobody is locked out. The heading stays the product name, as a "Sign in" heading next to the "Sign in"
+  button is ambiguous for screen readers and Zammad's tests. The Knowledge Base tile opens the new UI's, as the mobile
+  app has none. The application colour helper moved from the new UI to shared code for this second user
+- No Zammad name in the mobile app (16 Oct): the account page's "This is Zammad version …" section and "You can help
+  translating Zammad" hint are removed, and the app installs as "Student Hub" (a fixed name, as the home-screen label
+  must be short; the full name still comes from the organisation or product name setting)
+- Phones get the mobile app, computers and tablets the new UI (16 Oct), as the classic UI did before it was switched
+  off; this replaces "Continue to mobile stays out of the avatar menu" (14 Oct), which is back for phones. "Phone" is
+  Zammad's own check (`isMobile`, the device type from the browser), so tablets get the new UI. Only the pages the
+  mobile app also has switch (home, sign-in, a ticket); links to the new UI's own pages (password reset, sign-up,
+  Knowledge Base) stay put, so emails keep working. Opening `/mobile` directly shows it on any device and forgets an
+  earlier "Continue to desktop", so a computer can check the mobile app and Zammad's mobile browser tests still run
+- The mobile app's Playground is removed (16 Oct): a developer page of test fields that any signed-in student could open
+  at `/mobile/playground` (its Home link showed in development only). The mobile app is mainly for students. The new
+  UI's own Playground stays for now

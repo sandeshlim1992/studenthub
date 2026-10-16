@@ -423,7 +423,7 @@ The new UI is the main view: it is served at the home address (`/`) and at its o
   `before-classic-ui-off`).
 - Addresses under the server's own paths (`/api`, `/assets`, `/auth`, `/mobile`, `/help`…) that don't exist stay a 404;
   any other unknown address opens the new UI, which says the page doesn't exist.
-- Phones get the new UI too (the classic page that sent them to Zammad's mobile app is no longer the home page).
+- Phones get the mobile app: see Mobile app (`/mobile`) below.
 
 **Undo:** everything changed for this is listed, file by file, in [`.dev/new-ui-at-root.md`](.dev/new-ui-at-root.md),
 with the git tag `before-new-ui-at-root` (the last commit before it) and the commands to restore.
@@ -502,6 +502,24 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
 - **Mobile app sign-in:** no "Powered by Zammad" footer (`app/frontend/apps/mobile/pages/authentication/views/`
   `Login.vue` and `LoginAfterAuth.vue`), as on the new UI's sign-in page.
+- **Mobile app (`/mobile`), design option 5:**
+  - A light theme on every page: `app/frontend/apps/mobile/styles/studenthub-light.css` redefines the colour tokens
+    Zammad's mobile components use, and the accent is the application colour. The page, browser bar and installed
+    app colours are light too (`app/views/mobile/index.html.erb`, `layouts/mobile.html.erb`, `MobileController`).
+  - Sign-in: Microsoft first, then "or" and **Admin / local login**, which opens the username and password form (open
+    from the start when no third-party sign-in is on) (`pages/authentication/views/Login.vue`, `LoginHeader.vue`,
+    `LoginThirdParty.vue`).
+  - Home: a header with search, tiles for New ticket, Ticket overviews, Notifications and Knowledge Base (the new
+    UI's) (`pages/home/components/StudenthubHomeTiles.vue`), then the favourite overviews. The bottom menu has labels.
+  - Who gets it (`app/frontend/shared/utils/studenthubAppSwitch.ts`, used in both apps' `main.ts`): a phone opening the
+    new UI's home, sign-in page or a ticket goes to the same page in the mobile app (a ticket also after signing in);
+    pages only the new UI has (password reset, sign-up, Knowledge Base, admin pages) stay in it. Computers and tablets
+    get the new UI. Opening `/mobile` shows the mobile app on any device. "Continue to desktop" in the mobile app keeps
+    a phone on the new UI, and "Continue to mobile" in the avatar menu (phones only) goes back.
+  - No Playground: Zammad's developer page of test fields (`/mobile/playground`) is removed, with its link on Home.
+  - No Zammad name: the account page has no "This is Zammad version …" section and no "You can help translating
+    Zammad" hint (`pages/account/views/AccountOverview.vue`), and the app installs as "Student Hub" (iPhone hint and
+    the manifest's short name in `MobileController`).
 - **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in
   on the right.
   Admins write the panel's heading, tagline and description under **Administration → Settings → Branding → Sign-in

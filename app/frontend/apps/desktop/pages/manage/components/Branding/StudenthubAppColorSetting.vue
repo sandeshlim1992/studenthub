@@ -4,7 +4,6 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { getCSRFToken } from '#shared/server/apollo/utils/csrfToken.ts'
-
 import {
   applyStudenthubAppColor,
   contrastWithWhite,
@@ -12,7 +11,7 @@ import {
   STUDENTHUB_APP_COLOR_PRESETS,
   STUDENTHUB_DEFAULT_APP_COLOR,
   STUDENTHUB_MIN_APP_COLOR_CONTRAST,
-} from '#desktop/utils/studenthubAppColor.ts'
+} from '#shared/utils/studenthubAppColor.ts'
 
 // Student Hub: lets admins choose the application colour of the new UI
 // (setting "studenthub_app_color", validated on the server as well).

@@ -17,7 +17,6 @@ import { EnumPublicLinksScreen } from '#shared/graphql/types.ts'
 import { useApplicationStore } from '#shared/stores/application.ts'
 
 import LoginCredentialsForm from '../components/LoginCredentialsForm.vue'
-import LoginFooter from '../components/LoginFooter.vue'
 import LoginHeader from '../components/LoginHeader.vue'
 import LoginRecoveryCode from '../components/LoginRecoveryCode.vue'
 import LoginThirdParty from '../components/LoginThirdParty.vue'
@@ -179,6 +178,6 @@ const showError = (error: UserError) => {
         </CommonLink>
       </template>
     </nav>
-    <LoginFooter />
+    <!-- Student Hub: no "Powered by Zammad" footer, as on the new UI's sign-in page. -->
   </div>
 </template>

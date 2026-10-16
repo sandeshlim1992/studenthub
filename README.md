@@ -500,6 +500,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   blue eyes and a green beak (the college colours). The Student Hub logo elsewhere is unchanged.
 - **Loading screen:** the application colour with three dots in the college colours (LSST, UKBC, FSB) under
   "Student Hub" (`app/views/init/spinner-loading.html.erb`, used by the new UI and the mobile app).
+- **Mobile app sign-in:** no "Powered by Zammad" footer (`app/frontend/apps/mobile/pages/authentication/views/`
+  `Login.vue` and `LoginAfterAuth.vue`), as on the new UI's sign-in page.
 - **Sign-in page:** brand panel in the application colour with the logo, text and institution logos centred, sign-in
   on the right.
   Admins write the panel's heading, tagline and description under **Administration → Settings → Branding → Sign-in

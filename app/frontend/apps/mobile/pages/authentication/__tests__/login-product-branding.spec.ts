@@ -38,17 +38,11 @@ describe('testing login product branding', () => {
     )
   })
 
-  it('check that expected footer logo is present', async () => {
+  // Student Hub: the "Powered by Zammad" footer, with Zammad's logo, is removed.
+  it('check that no Zammad footer logo is present', async () => {
     const view = await visitView('/login')
 
-    const logo = view.getByAltText('Logo')
-
-    expect(logo).toBeInTheDocument()
-    expect(logo).toHaveAttribute('src', '/assets/images/icons/logo.svg')
-
-    const link = logo.parentElement
-
-    expect(link).toHaveAttribute('href', 'https://zammad.org')
-    expect(link).toHaveAttribute('target', '_blank')
+    expect(view.queryByAltText('Logo')).not.toBeInTheDocument()
+    expect(view.container.querySelector('a[href="https://zammad.org"]')).toBeNull()
   })
 })

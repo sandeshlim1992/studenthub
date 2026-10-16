@@ -5,7 +5,6 @@ import { ref, nextTick, watch } from 'vue'
 import { onBeforeRouteLeave, useRouter } from 'vue-router'
 
 import { useAfterAuthPlugins } from '../after-auth/composable/useAfterAuthPlugins.ts'
-import LoginFooter from '../components/LoginFooter.vue'
 import LoginHeader from '../components/LoginHeader.vue'
 
 import type { RouteLocationRaw } from 'vue-router'
@@ -47,6 +46,6 @@ const redirect = async (route: RouteLocationRaw) => {
         </div>
       </div>
     </main>
-    <LoginFooter />
+    <!-- Student Hub: no "Powered by Zammad" footer, as on the new UI's sign-in page. -->
   </div>
 </template>

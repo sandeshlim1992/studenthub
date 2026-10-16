@@ -201,3 +201,6 @@ Never put passwords, tokens or keys in this file.
 - The new UI's BETA switch is removed (16 Oct), ahead of the classic UI's code, as it led only to the classic UI;
   Zammad's server side of it (settings, the user's flag, the feedback mutation) stays unused rather than changing the
   GraphQL schema
+- No "Powered by Zammad" in the mobile app (16 Oct): its sign-in footer (`LoginFooter.vue`, the "Powered by Zammad"
+  line and, with custom branding, Zammad's logo) is removed, as the new UI's sign-in page has none. The copyright
+  headers in the code stay

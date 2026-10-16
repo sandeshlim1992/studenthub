@@ -1,72 +1,67 @@
 <!-- Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/ -->
 <script setup lang="ts">
-import { computed, toRef } from 'vue'
+import { computed } from 'vue'
 
-import CommonUserAvatar from '#shared/components/CommonUserAvatar/CommonUserAvatar.vue'
-import { useOnlineNotificationCount } from '#shared/entities/online-notification/composables/useOnlineNotificationCount.ts'
+import { useTicketCreateView } from '#shared/entities/ticket/composables/useTicketCreateView.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
 import { useCustomLayout } from './useCustomLayout.ts'
 
-const user = toRef(useSessionStore(), 'user')
 const { isCustomLayout } = useCustomLayout()
-const { unseenCount } = useOnlineNotificationCount()
+const { ticketCreateEnabled } = useTicketCreateView()
+const session = useSessionStore()
 
-const notificationCount = computed(() => {
-  if (!unseenCount.value) return ''
-  if (unseenCount.value > 99) return '99+'
-  return unseenCount.value.toString()
+const ticketsLink = computed(() => {
+  if (session.hasPermission('ticket.customer')) return '/tickets'
+  if (session.hasPermission('ticket.agent')) return '/tickets/view'
+  return undefined
 })
 </script>
 
 <template>
-  <!-- Student Hub: design option 5, labels under the icons and a rounded top; same height. -->
+  <!-- Student Hub: design C1, Home, a raised New request button and Tickets (students' own list,
+       staff's overviews). Notifications and the account are in the header of Home and Tickets. -->
   <footer
-    class="bottom-navigation fixed bottom-0 z-10 w-full rounded-t-3xl bg-gray-light shadow-[0_-6px_20px_rgb(20_35_75/6%)] backdrop-blur-lg"
+    class="bottom-navigation fixed bottom-0 z-10 w-full bg-gray-light shadow-[0_-6px_20px_rgb(20_35_75/6%)] backdrop-blur-lg"
     :class="{ 'px-4': isCustomLayout }"
     data-bottom-navigation
   >
-    <div v-if="!isCustomLayout" class="flex h-14 w-full items-center text-center font-semibold">
+    <div
+      v-if="!isCustomLayout"
+      class="grid h-14 w-full grid-cols-3 items-end pb-1.5 text-center font-semibold"
+    >
       <CommonLink
         link="/"
         size="small"
-        class="flex flex-1 flex-col items-center gap-0.5"
+        class="flex flex-col items-center gap-0.5"
         exact-active-class="text-blue"
       >
         <CommonIcon name="home" size="base" decorative />
         {{ $t('Home') }}
       </CommonLink>
       <CommonLink
-        link="/notifications"
+        v-if="ticketCreateEnabled"
+        link="/tickets/create"
         size="small"
-        exact-active-class="text-blue"
-        class="relative flex flex-1 flex-col items-center gap-0.5"
+        class="flex flex-col items-center gap-1"
       >
-        <div
-          v-if="notificationCount"
-          role="status"
-          :aria-label="$t('Unread notifications')"
-          class="absolute top-0 h-4 min-w-[1rem] rounded-full bg-blue px-1 text-center text-xs text-black ltr:ml-6 rtl:mr-6"
+        <span
+          class="-mt-7 flex size-14.5 items-center justify-center rounded-full border-4 border-black bg-blue shadow-[0_6px_16px_rgb(20_35_75/25%)]"
         >
-          {{ notificationCount }}
-        </div>
-        <CommonIcon name="notification-subscribed" size="base" decorative />
-        {{ $t('Notifications') }}
+          <CommonIcon name="add" size="base" decorative />
+        </span>
+        {{ $t('New request') }}
       </CommonLink>
+      <span v-else />
       <CommonLink
-        link="/account"
+        v-if="ticketsLink"
+        :link="ticketsLink"
         size="small"
-        class="group flex flex-1 flex-col items-center gap-0.5"
-        exact-active-class="user-active"
+        class="flex flex-col items-center gap-0.5"
+        active-class="text-blue"
       >
-        <CommonUserAvatar
-          v-if="user"
-          :entity="user"
-          class="group-[.user-active]:rounded-full group-[.user-active]:ring-2 group-[.user-active]:ring-blue"
-          size="xs"
-          personal
-        />
-        {{ $t('Account') }}
+        <CommonIcon name="all-tickets" size="base" decorative />
+        {{ $t('Tickets') }}
       </CommonLink>
     </div>
   </footer>

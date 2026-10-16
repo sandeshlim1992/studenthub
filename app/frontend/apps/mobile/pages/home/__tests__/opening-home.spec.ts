@@ -3,9 +3,12 @@
 import { getByTestId } from '@testing-library/vue'
 
 import { visitView } from '#tests/support/components/visitView.ts'
+import { mockGraphQLSubscription } from '#tests/support/mock-graphql-api.ts'
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
 import { mockTicketOverviews } from '#tests/support/mocks/ticket-overviews.ts'
+
+import { OnlineNotificationsCountDocument } from '#shared/entities/online-notification/graphql/subscriptions/onlineNotificationsCount.api.ts'
 
 import { getTicketOverviewStorage } from '#mobile/entities/ticket/helpers/ticketOverviewStorage.ts'
 
@@ -13,6 +16,8 @@ describe('home page', () => {
   beforeEach(() => {
     mockUserCurrent({ id: '666' })
     mockTicketOverviews()
+    // Student Hub: Home's header counts the unread notifications.
+    mockGraphQLSubscription(OnlineNotificationsCountDocument)
   })
 
   it('renders ticket overviews based on localStorage', async () => {

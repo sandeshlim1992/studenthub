@@ -41,6 +41,20 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    // Student Hub: the students' Tickets tab, every ticket they raised.
+    path: '/tickets',
+    name: 'StudenthubTickets',
+    props: false,
+    component: () => import('./views/StudenthubTickets.vue'),
+    meta: {
+      title: __('Tickets'),
+      requiresAuth: true,
+      requiredPermission: ['ticket.customer'],
+      hasBottomNavigation: true,
+      level: 1,
+    },
+  },
+  {
     path: '/tickets/view/:overviewLink?',
     name: 'TicketOverview',
     props: true,

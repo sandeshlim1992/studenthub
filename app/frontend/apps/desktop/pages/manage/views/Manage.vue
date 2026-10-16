@@ -119,13 +119,21 @@ const categories = ref<Category[]>([
         name: __('Request forms'),
         icon: 'clipboard2',
         target: '/manage/request-forms',
-        description: __('Ask for extra details when a ticket is raised under a chosen sub-category.'),
+        description: __(
+          'Ask for extra details when a ticket is raised under a chosen sub-category.',
+        ),
       },
       {
         name: __('Departments'),
         icon: 'buildings',
         target: '/manage/departments',
         description: __('Set up departments with the campuses they cover and their email address.'),
+      },
+      {
+        name: __('Mobile app'),
+        icon: 'phone',
+        target: '/manage/mobile-app',
+        description: __('Customise the students’ mobile app, e.g. quick links on its home screen.'),
       },
       {
         name: __('Ticket States'),
@@ -155,7 +163,9 @@ const categories = ref<Category[]>([
         name: __('Public Links'),
         icon: 'link-45deg',
         target: '/manage/public-links',
-        description: __('Add links under the sign-in form, e.g. IT help pages or a privacy notice.'),
+        description: __(
+          'Add links under the sign-in form, e.g. IT help pages or a privacy notice.',
+        ),
       },
       {
         name: __('Calendars'),
@@ -448,11 +458,13 @@ const breadcrumbItems = computed(() => {
   return [{ label: __('Administration') }]
 })
 
-const pageTitle = computed(() => isSystemSection.value ? __('System') : __('Administration'))
+const pageTitle = computed(() => (isSystemSection.value ? __('System') : __('Administration')))
 
-const pageDescription = computed(() => isSystemSection.value
+const pageDescription = computed(() =>
+  isSystemSection.value
     ? __('Manage system integrations, object schemas, workflows, monitoring, and diagnostics.')
-    : __('Manage and configure all settings of your helpdesk application.'))
+    : __('Manage and configure all settings of your helpdesk application.'),
+)
 
 const handleBack = () => {
   if (isSystemSection.value) {

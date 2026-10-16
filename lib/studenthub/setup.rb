@@ -18,6 +18,8 @@ module Studenthub::Setup
     Studenthub::TicketApproval::Setup.sync_overviews
     Studenthub::RequestForms::Setup.ensure!
     Studenthub::Departments.ensure!
+    Studenthub::MobileApp.ensure!
+    Studenthub::MyTicketsView.ensure!
     Studenthub::WebReplyNotice.ensure!
     Studenthub::Theme::Setup.ensure!
     Studenthub::Theme::TicketListSetup.ensure!

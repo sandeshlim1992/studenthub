@@ -27,7 +27,12 @@ Never put passwords, tokens or keys in this file.
 - The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs)
 - The whole mobile app's specs at once (`app/frontend/apps/mobile`, 16 Oct): 9 to 26 fail under load, which ones
   varies between runs. `FieldDateTime` "datetime" (3) and `form-updater.mobile` (2) fail on the code before the light
-  theme too; the sign-in, home and layout specs pass when run folder by folder (37, 12 and 26)
+  theme too; the sign-in, home and layout specs pass when run folder by folder (37, 10 and 14 since the C1 Home and
+  Tickets tab, 16 Oct)
+- 3 specs fail on their own, not touched by the day's changes (16 Oct): `StudenthubScheduler` "builds a job on users
+  from their role, last login and tickets" and `automation` "shows a fixed time in the browser time zone and keeps it
+  in UTC" are an hour off (the container runs in Europe/London, BST); `browser` "generate fingerprint" gets another
+  value, probably for the same reason
 - Zammad's drawer specs (`left-sidebar.spec.ts`: width handling ×6, and User menu ×5 since the avatar menu moved to
   the top bar) fail by design since design C
 - 9 more of Zammad's layout specs fail since the redesign (seen 14 Oct, the same with and without that day's avatar
@@ -80,6 +85,10 @@ Never put passwords, tokens or keys in this file.
 - Test server: `/etc/zammad/zammad.env` is world-readable and holds the M365 client secret
   (check production too)
 - Base is a July `develop` snapshot, not a stable Zammad release
+- Anyone with any `admin.…` permission (e.g. Departments, Request forms, Mobile app) can read and change the 86
+  settings that have no permission of their own through Zammad's settings API, e.g. `system_bcc` (a copy of every
+  outgoing email), `developer_mode`, `import_mode` (checked 16 Oct). Zammad's design; it matters only if a role gets
+  such a permission without full admin. See security-review.md (16 Oct, Mobile app)
 - No longer used by the Checklist tab (13 Oct), left in place: Zammad's `ChecklistItems.vue`, `ChecklistItem.vue`,
   `ChecklistTemplates.vue`, `ChecklistEmptyTemplates.vue`, `useChecklistTemplates.ts` (their own specs still pass)
 - The first sign-in in a fresh browser can fail with "Security token verification failed"; the page reloads and the
@@ -224,6 +233,11 @@ Never put passwords, tokens or keys in this file.
 
 ## Next steps
 
+- [ ] Mobile Home (16 Oct): decide where students' topics and "Popular answers" come from (Student Hub's Knowledge
+      Base API is staff-only; Home links to the help center and the admins' quick links for now)
+- [ ] Test and production servers: the next deploy runs the 20261016100000 migration ("My Tickets" lists every state
+      but merged); check that a student sees their In Progress and Resolved tickets, and whether an admin had changed
+      that view there
 - [ ] Classic UI switched off on `develop` (15 Oct; `/app`, `/init` → `/`, tag `before-classic-ui-off`): deploy to the
       test server, check `/app` and an old `/app#ticket/zoom/<id>` link, deploy to production, then watch for a week or
       two whether anyone still opens `/app`; then delete its code (`.dev/classic-ui-removal.md` → Step 2; the BETA switch

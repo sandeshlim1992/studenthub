@@ -509,8 +509,29 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   - Sign-in: Microsoft first, then "or" and **Admin / local login**, which opens the username and password form (open
     from the start when no third-party sign-in is on) (`pages/authentication/views/Login.vue`, `LoginHeader.vue`,
     `LoginThirdParty.vue`).
-  - Home: a header with search, tiles for New ticket, Ticket overviews, Notifications and Knowledge Base (the new
-    UI's) (`pages/home/components/StudenthubHomeTiles.vue`), then the favourite overviews. The bottom menu has labels.
+  - Home and Tickets (design C1, with C3's latest ticket): a header in the application colour with the product name,
+    Notifications (with the unread count) and the account, then the page's title (`components/layout/`
+    `StudenthubAppHeader.vue`). Home greets the student ("How can we help, Sam?"), then search, their latest ticket
+    with its steps Received, In progress (or Waiting for you) and Resolved (`pages/home/components/`
+    `StudenthubLatestTicket.vue`), the admins' **Quick links** (below) and **Help articles** (the help center,
+    `/help`, while the Knowledge Base is on); staff keep their favourite overviews below. The bottom menu has Home, a
+    raised **New request** button and **Tickets** (`LayoutBottomNavigation.vue`).
+  - Tickets tab (`/mobile/tickets`, `pages/ticket/views/StudenthubTickets.vue`): every ticket the student raised, with
+    search (title or number), All / Open / Waiting for you / Closed with counts, and **Sort by** Latest change or
+    State (New, In progress, Waiting for you, Resolved, Closed; latest change first within each). Staff's Tickets opens
+    their overviews. The tickets come from Zammad's "My Tickets" view (customer is the current user), so others'
+    tickets in a shared organisation never appear; Student Hub makes it list every state but merged
+    (`lib/studenthub/my_tickets_view.rb`, migration `20261016100000`), which also fixes the new UI's student ticket
+    list. Where a ticket stands is read from its state's name and type
+    (`entities/ticket/helpers/studenthubTicketStage.ts`, `composables/useStudenthubMyTickets.ts`).
+  - **Administration → Manage → Mobile app** (`/manage/mobile-app`, permission `admin.mobile_app`;
+    `apps/desktop/pages/manage/views/MobileApp.vue`): what students see in the mobile app. For now **Quick links**:
+    up to 8 links to other websites (a label and an `https://` or `http://` address), in order, shown on Home as
+    cards with the site's name that open in a new tab (`pages/home/components/StudenthubQuickLinks.vue`). Setting
+    `studenthub_mobile_quick_links`, sent only to signed-in users; the server refuses anything but a list of labels
+    (at most 40 characters) and web addresses (`lib/studenthub/mobile_app.rb`,
+    `app/models/setting/validation/studenthub_mobile_quick_links.rb`, migration `20261016110000`,
+    `app/frontend/shared/utils/studenthubQuickLinks.ts`).
   - Who gets it (`app/frontend/shared/utils/studenthubAppSwitch.ts`, used in both apps' `main.ts` and the mobile
     router guard `studenthubStaffToDesktop.ts`): the mobile app is for students on a phone. A phone opening the new
     UI's home, sign-in page or a ticket goes to the same page in the mobile app (a ticket also after signing in);

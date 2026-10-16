@@ -3,64 +3,53 @@
 import { flushPromises } from '@vue/test-utils'
 
 import { renderComponent } from '#tests/support/components/index.ts'
-import { mockGraphQLSubscription } from '#tests/support/mock-graphql-api.ts'
-
-import { OnlineNotificationsCountDocument } from '#shared/entities/online-notification/graphql/subscriptions/onlineNotificationsCount.api.ts'
-import { convertToGraphQLId } from '#shared/graphql/utils.ts'
-import { useSessionStore } from '#shared/stores/session.ts'
-import type { UserData } from '#shared/types/store.ts'
+import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
+import { mockPermissions } from '#tests/support/mock-permissions.ts'
 
 import LayoutBottomNavigation from '../LayoutBottomNavigation.vue'
 
+const renderNavigation = async () => {
+  const view = renderComponent(LayoutBottomNavigation, {
+    store: true,
+    router: true,
+  })
+  await flushPromises()
+
+  return view
+}
+
+// Student Hub: design C1, Home, New request and Tickets.
 describe('bottom navigation in layout', () => {
   it('renders navigation', async () => {
-    mockGraphQLSubscription(OnlineNotificationsCountDocument)
-    const view = renderComponent(LayoutBottomNavigation, {
-      store: true,
-      router: true,
-    })
-    const store = useSessionStore()
+    mockPermissions(['ticket.customer'])
+    mockApplicationConfig({ customer_ticket_create: true })
 
-    store.user = {
-      id: convertToGraphQLId('User', 100),
-      firstname: 'User',
-      lastname: 'Test',
-    } as UserData
+    const view = await renderNavigation()
 
-    await flushPromises()
-
-    expect(view.getByIconName('home')).toBeInTheDocument()
     expect(view.getByIconName('home').closest('a')).toHaveClass('text-blue')
-
-    expect(view.getByIconName('notification-subscribed')).toBeInTheDocument()
-    expect(view.getByText('UT')).toBeInTheDocument()
+    expect(view.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/mobile/')
+    expect(view.getByRole('link', { name: 'New request' })).toHaveAttribute(
+      'href',
+      '/tickets/create',
+    )
+    expect(view.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', '/tickets')
   })
 
-  it('rendering notifications counter', async () => {
-    const subscription = mockGraphQLSubscription(OnlineNotificationsCountDocument)
-    const view = renderComponent(LayoutBottomNavigation, {
-      store: true,
-      router: true,
-    })
-    const store = useSessionStore()
+  it("opens staff's overviews from Tickets", async () => {
+    mockPermissions(['ticket.agent'])
 
-    store.user = {
-      id: convertToGraphQLId('User', 100),
-      firstname: 'User',
-      lastname: 'Test',
-    } as UserData
-    await flushPromises()
+    const view = await renderNavigation()
 
-    expect(view.queryByRole('status', { name: 'Unread notifications' })).not.toBeInTheDocument()
+    expect(view.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', '/tickets/view')
+  })
 
-    await subscription.next({
-      data: {
-        onlineNotificationsCount: {
-          unseenCount: 1,
-        },
-      },
-    })
+  it('leaves out New request when students may not raise tickets', async () => {
+    mockPermissions(['ticket.customer'])
+    mockApplicationConfig({ customer_ticket_create: false })
 
-    expect(view.getByRole('status', { name: 'Unread notifications' })).toHaveTextContent('1')
+    const view = await renderNavigation()
+
+    expect(view.queryByRole('link', { name: 'New request' })).not.toBeInTheDocument()
+    expect(view.getByRole('link', { name: 'Tickets' })).toBeInTheDocument()
   })
 })

@@ -234,3 +234,33 @@ colour helper moved from the new UI to shared code, specs, docs.
 | Opening `/mobile` clears "Continue to desktop" | Permissions | No problem | Only a display choice in the browser's own storage; sign-in and permissions are the same in both apps | — |
 | Mobile Playground removed | Removed code | No problem | A developer page any signed-in user could open by its address; nothing else used it (its imports all have other users) | — |
 | Version section removed from the account page | Removed code | No problem | It showed admins the Zammad version; only the display and its query went, no check. Showing less is no risk | — |
+
+## Mobile app: Home and Tickets tab in design C1 (16 Oct)
+
+`git diff HEAD`: the mobile Home page, a new header, the latest ticket card, the bottom menu, a new Tickets tab
+(`/mobile/tickets`) with its route, a helper for where a ticket stands, specs, docs. Frontend only; no server change.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Tickets tab and latest ticket | Could a student see others' tickets? | No problem | Read through Zammad's `ticketsByOverview` for the "My Tickets" view, whose condition the server applies (customer is the current user); the shared organisations' tickets aren't asked for. Search and filters only narrow what came back | — |
+| New `/tickets` route | Permissions | No problem | `requiredPermission: ['ticket.customer']`; the server checks the overview's roles and conditions anyway | — |
+| Help articles link | Links to a page the person may not open? | No problem | A fixed address (`/help`), shown while the Knowledge Base is on; the help center shows only published answers | — |
+| Removed Home tiles and quick action | Removed code | No problem | Display only; New request, Tickets and Notifications are in the bottom menu and header, with the same permission checks (`useTicketCreateView`, `ticket.customer` / `ticket.agent`) | — |
+
+## Mobile app: "My Tickets" in every state, quick links and their admin page (16 Oct)
+
+`git diff HEAD`: a migration and `Studenthub::MyTicketsView` changing the "My Tickets" view's state condition; a new
+permission `admin.mobile_app`, the setting `studenthub_mobile_quick_links` and its validation
+(`Setting::Validation::StudenthubMobileQuickLinks`); the new UI's Mobile app admin page; the quick links on the mobile
+app's Home; sorting on the Tickets tab; specs, docs. Full review: the server change touches permissions, settings and
+web addresses people open.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| "My Tickets" now lists every state but merged | Could a student see more than their own tickets? | No problem | Only the state condition changed; "customer is the current user" stays and is applied by the server. The tickets that now appear are the student's own, which they could already open (spec "lists the customer's own tickets in every state but merged") | — |
+| Quick link addresses | `javascript:`, `data:` or relative links run in the app or mislead | No problem | The server accepts only `http`/`https` with a host (URI parse; spec covers `javascript:`, `data:`, relative, no host, spaces, too long); the mobile app shows only links that pass the same check and binds them as `href`, never as HTML. Labels are shown as text | — |
+| Links open other sites | Tab-nabbing, referrer leak | No problem | `target="_blank"` with `rel="noopener noreferrer"` | — |
+| Misleading addresses (`https://lsst.ac@evil.example`) | A link that looks like the college's | No problem | The card shows the address's real host (`evil.example`), worked out by the browser's URL parser; only admins can set links | — |
+| Who can change the quick links | Permissions | No problem | Zammad's settings API: `admin.*` plus the setting's own `admin.mobile_app` (`SettingPolicy`); specs: admin and an agent with only `admin.mobile_app` can, an agent without it gets 403 | — |
+| Who gets the quick links | Data to signed-out visitors | No problem | `authentication: true`: only signed-in users get them with the app config (spec checks signed out) | — |
+| Settings without their own permission (existing, found while checking `admin.mobile_app`) | Anyone with any `admin.…` permission can read and change 86 settings that have no permission of their own, e.g. `system_bcc` (copy of all outgoing email), `developer_mode`, `import_mode`; checked with an agent holding only `admin.mobile_app` (200, value changed) | Let the user decide | Zammad's `SettingsControllerPolicy` / `SettingPolicy` design, not new: the same holds for `admin.departments`, `admin.request_forms` and Zammad's own sub-permissions. It matters only if a role gets one of them without full admin. Fix option: in `SettingPolicy`, require `admin` (or `admin.setting_system`) for settings without a permission | — |

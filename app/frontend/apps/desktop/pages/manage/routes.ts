@@ -207,6 +207,18 @@ const route: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/manage/mobile-app',
+    name: 'ManageMobileApp',
+    component: () => import('./views/MobileApp.vue'),
+    meta: {
+      title: __('Mobile app'),
+      requiresAuth: true,
+      requiredPermission: ['admin.mobile_app'],
+      level: 3,
+      pageKey: 'manage-mobile-app',
+    },
+  },
+  {
     path: '/manage/roles',
     name: 'ManageRoles',
     component: () => import('./views/Roles.vue'),

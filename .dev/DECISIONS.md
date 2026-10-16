@@ -228,3 +228,18 @@ Never put passwords, tokens or keys in this file.
   after signing in on the mobile sign-in page; computers may still open `/mobile` directly. Showing staff the student
   side of the mobile app was considered and dropped: it needs the Customer role (`ticket.customer`) on staff, and
   with the college organisations shared that role would let staff read every ticket of their college's students
+- The mobile app's Home and Tickets follow design C1 with C3's latest ticket (16 Oct, chosen from five home designs
+  and five variations of C): New request moves into the middle of the bottom menu and Tickets replaces Account;
+  Notifications and the account move to the header. The Tickets tab lists only the student's own tickets (Zammad's
+  "My Tickets" view), not "My Organization Tickets", because the college organisations are shared. Its filters and
+  counts are worked out in the browser from up to 50 tickets at a time (Show more loads the next 50), as students
+  have few. The design's topics and "Popular answers" wait: Student Hub's Knowledge Base API is for staff only
+  ("students read the public help center"), so Home links to the help center until a students' source is decided
+- "My Tickets" lists a student's tickets in every state but merged (16 Oct), as a condition ("state is not merged")
+  rather than a list of states, so states admins add later show up too; Zammad's seeded list had left out
+  "3. In Progress", "4.1 Pending / On Hold" and "5. Resolved". The Tickets tab sorts by state in the order a ticket
+  goes through, grouped as its labels are (Assigned, In Progress and On Hold are all "In progress")
+- The mobile app gets its own admin page, **Mobile app** under Manage (16 Oct), so more of the app can be set there
+  later; its first part is the quick links on Home. They are a setting (no table: at most 8, saved as one list
+  through Zammad's settings API, which checks the new `admin.mobile_app` permission) and only http and https
+  addresses are allowed, as the app opens them; each card shows the site's name, so students see where it leads

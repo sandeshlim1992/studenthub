@@ -9,7 +9,7 @@ import type { ExtendedRenderResult } from '#tests/support/components/index.ts'
 import { getTestRouter } from '#tests/support/components/renderComponent.ts'
 import { visitView } from '#tests/support/components/visitView.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
-import { mockGraphQLApi } from '#tests/support/mock-graphql-api.ts'
+import { mockGraphQLApi, mockGraphQLSubscription } from '#tests/support/mock-graphql-api.ts'
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { setupView } from '#tests/support/mock-user.ts'
 import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
@@ -19,6 +19,7 @@ import { nullableMock, waitUntil } from '#tests/support/utils.ts'
 import { AutocompleteSearchUserDocument } from '#shared/components/Form/fields/FieldCustomer/graphql/queries/autocompleteSearch/user.api.ts'
 import { FormUpdaterDocument } from '#shared/components/Form/graphql/queries/formUpdater.api.ts'
 import { ObjectManagerFrontendAttributesDocument } from '#shared/entities/object-attributes/graphql/queries/objectManagerFrontendAttributes.api.ts'
+import { OnlineNotificationsCountDocument } from '#shared/entities/online-notification/graphql/subscriptions/onlineNotificationsCount.api.ts'
 import { TicketCreateDocument } from '#shared/entities/ticket/graphql/mutations/create.api.ts'
 
 import { defaultOrganization } from '#mobile/entities/organization/__tests__/mocks/organization-mocks.ts'
@@ -165,6 +166,11 @@ const checkShownSteps = async (view: ExtendedRenderResult, steps: Array<string>)
 beforeAll(async () => {
   // So we don't need to wait until it loads inside test.
   await import('#shared/components/Form/fields/FieldEditor/FieldEditorInput.vue')
+})
+
+// Student Hub: leaving the form opens Home, whose header counts the unread notifications.
+beforeEach(() => {
+  mockGraphQLSubscription(OnlineNotificationsCountDocument)
 })
 
 describe('Creating new ticket as agent', () => {

@@ -4,12 +4,19 @@ import { isNavigationFailure } from 'vue-router'
 
 import { getTestRouter } from '#tests/support/components/renderComponent.ts'
 import { visitView } from '#tests/support/components/visitView.ts'
+import { mockGraphQLSubscription } from '#tests/support/mock-graphql-api.ts'
 import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
 import { mockTicketOverviews } from '#tests/support/mocks/ticket-overviews.ts'
 
+import { OnlineNotificationsCountDocument } from '#shared/entities/online-notification/graphql/subscriptions/onlineNotificationsCount.api.ts'
 import { EnumAfterAuthType } from '#shared/graphql/types.ts'
 
 import { ensureAfterAuth } from '../after-auth/composable/useAfterAuthPlugins.ts'
+
+// Student Hub: both tests end on Home, whose header counts the unread notifications.
+beforeEach(() => {
+  mockGraphQLSubscription(OnlineNotificationsCountDocument)
+})
 
 it("doesn't open the page if there is nothing to show", async () => {
   mockUserCurrent({ id: '666' })

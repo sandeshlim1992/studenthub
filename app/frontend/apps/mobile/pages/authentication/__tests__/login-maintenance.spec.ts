@@ -9,6 +9,7 @@ import { mockGraphQLApi, mockGraphQLSubscription } from '#tests/support/mock-gra
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { mockTicketOverviews } from '#tests/support/mocks/ticket-overviews.ts'
 
+import { OnlineNotificationsCountDocument } from '#shared/entities/online-notification/graphql/subscriptions/onlineNotificationsCount.api.ts'
 import {
   mockPublicLinks,
   mockPublicLinksSubscription,
@@ -29,6 +30,8 @@ vi.mock('#shared/server/apollo/client.ts', () => {
 
 beforeEach(() => {
   mockTicketOverviews()
+  // Student Hub: Home's header counts the unread notifications.
+  mockGraphQLSubscription(OnlineNotificationsCountDocument)
   mockPublicLinks([])
   mockPublicLinksSubscription()
   mockApplicationConfig({ product_name: 'Zammad' })

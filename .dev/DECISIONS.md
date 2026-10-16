@@ -243,3 +243,9 @@ Never put passwords, tokens or keys in this file.
   later; its first part is the quick links on Home. They are a setting (no table: at most 8, saved as one list
   through Zammad's settings API, which checks the new `admin.mobile_app` permission) and only http and https
   addresses are allowed, as the app opens them; each card shows the site's name, so students see where it leads
+- The mobile app's ticket screen is a chat for students (16 Oct, design 1 of five, with a "Did this solve your
+  problem?" card added): a message is sent from a box at the bottom through Student Hub's REST endpoint, not Zammad's
+  ticket form, so it takes one tap and no Save; files still go through Zammad's reply form, which handles uploads. A
+  message to a resolved or closed request reopens it with the same rules as the new UI's "Still not fixed? Reopen".
+  "Yes" on a closed request with no rating waiting is not saved, so the card asks again next time. `studenthubApi` and
+  the student ticket types moved to `app/frontend/shared/utils/`, as the two apps may not import each other's files

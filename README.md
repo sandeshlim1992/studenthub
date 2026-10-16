@@ -524,6 +524,19 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     (`lib/studenthub/my_tickets_view.rb`, migration `20261016100000`), which also fixes the new UI's student ticket
     list. Where a ticket stands is read from its state's name and type
     (`entities/ticket/helpers/studenthubTicketStage.ts`, `composables/useStudenthubMyTickets.ts`).
+  - Ticket screen for students (design 1 "Chat"): a header with the title, "#number · college · where it stands"
+    and an ⓘ button for the ticket's information (`pages/ticket/components/TicketDetailView/`
+    `StudenthubChatHeader.vue`), Zammad's message bubbles (theirs on the right in the application colour), "No
+    messages yet" when nothing is visible to them, and a chat box at the bottom in place of Add reply
+    (`StudenthubChatComposer.vue`). A message goes straight into the conversation (`POST /api/v1/studenthub/`
+    `customer_tickets/:id/reply`, `Service::StudenthubCustomerTicket::Reply`); to a resolved or closed request it
+    reopens it (through `Reopen`, so the team's follow-up setting applies; where replies are not taken the box offers
+    New ticket). The paperclip opens Zammad's reply form for files. Under a resolved or closed request,
+    **Did this solve your problem?** (`StudenthubSolvedCard.vue`): Yes closes a resolved request and asks for the star
+    rating Feedback Collection is waiting for; No turns the chat box into "Tell us what is still not working…". They
+    share `pages/ticket/composable/useStudenthubCustomerTicket.ts`, which reads the new UI's student column endpoint
+    (`GET /api/v1/studenthub/customer_tickets/:id`; `studenthubApi` and the types are in `app/frontend/shared/utils/`).
+    Staff keep Zammad's ticket screen.
   - **Administration → Manage → Mobile app** (`/manage/mobile-app`, permission `admin.mobile_app`;
     `apps/desktop/pages/manage/views/MobileApp.vue`): what students see in the mobile app. For now **Quick links**:
     up to 8 links to other websites (a label and an `https://` or `http://` address), in order, shown on Home as

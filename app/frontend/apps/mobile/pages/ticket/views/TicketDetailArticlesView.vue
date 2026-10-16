@@ -6,6 +6,7 @@ import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { useStickyHeader } from '#shared/composables/useStickyHeader.ts'
+import { useTicketView } from '#shared/entities/ticket/composables/useTicketView.ts'
 import {
   type AddArticleCallbackArgs,
   useArticleDataHandler,
@@ -19,6 +20,8 @@ import CommonLoader from '#mobile/components/CommonLoader/CommonLoader.vue'
 import { useHeader } from '#mobile/composables/useHeader.ts'
 
 import ArticlesList from '../components/TicketDetailView/ArticlesList.vue'
+import StudenthubChatHeader from '../components/TicketDetailView/StudenthubChatHeader.vue'
+import StudenthubSolvedCard from '../components/TicketDetailView/StudenthubSolvedCard.vue'
 import TicketDetailViewHeader from '../components/TicketDetailView/TicketDetailViewHeader.vue'
 import TicketDetailViewTitle from '../components/TicketDetailView/TicketDetailViewTitle.vue'
 import { ARTICLE_PAGE_SIZE } from '../composable/useTicketArticlesRows.ts'
@@ -48,6 +51,11 @@ const scrollElement = (element: Element) => {
 }
 
 const session = useSessionStore()
+
+// Student Hub: students get the chat header, an empty conversation note and the
+// "Did this solve your problem?" card.
+const { isTicketAgent } = useTicketView(ticket)
+const isStudent = computed(() => Boolean(ticket.value) && !isTicketAgent.value)
 
 const scheduleMyArticleScroll = async (
   articleInternalId: number,
@@ -240,19 +248,22 @@ useEventListener(
     class="relative backdrop-blur-lg"
     :style="stickyStyles.header"
   >
-    <TicketDetailViewHeader
-      :ticket="ticket"
-      :live-user-list="liveUserList"
-      :loading-ticket="isLoadingTicket"
-      :refetching-ticket="isRefetchingTicket"
-    />
-    <CommonLoader
-      :loading="isLoadingTicket"
-      data-test-id="loader-title"
-      class="flex border-b-[0.5px] border-white/10 bg-gray-600/90 px-4 py-5"
-    >
-      <TicketDetailViewTitle v-if="ticket" :ticket="ticket" />
-    </CommonLoader>
+    <StudenthubChatHeader v-if="ticket && isStudent" :ticket="ticket" />
+    <template v-else>
+      <TicketDetailViewHeader
+        :ticket="ticket"
+        :live-user-list="liveUserList"
+        :loading-ticket="isLoadingTicket"
+        :refetching-ticket="isRefetchingTicket"
+      />
+      <CommonLoader
+        :loading="isLoadingTicket"
+        data-test-id="loader-title"
+        class="flex border-b-[0.5px] border-white/10 bg-gray-600/90 px-4 py-5"
+      >
+        <TicketDetailViewTitle v-if="ticket" :ticket="ticket" />
+      </CommonLoader>
+    </template>
   </div>
   <div id="ticket-articles-list" class="flex flex-1 flex-col" :style="stickyStyles.body">
     <CommonLoader data-test-id="loader-list" :loading="isLoadingTicket" class="mt-2">
@@ -263,6 +274,17 @@ useEventListener(
         :total-count="totalCount"
         @load-previous="loadPreviousArticles"
       />
+      <template v-if="isStudent">
+        <p
+          v-if="articleResult && !articles.length"
+          class="px-4 py-10 text-center text-sm text-gray"
+        >
+          {{ $t('No messages yet. Write below to contact the team.') }}
+        </p>
+        <StudenthubSolvedCard />
+        <!-- Room for the chat box, which is taller than Zammad's bottom bar. -->
+        <div class="h-8" aria-hidden="true"></div>
+      </template>
     </CommonLoader>
   </div>
 </template>

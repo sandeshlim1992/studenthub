@@ -230,6 +230,11 @@ Never put passwords, tokens or keys in this file.
   forms) link to the new UI's pages; Delete on a user's page opens Data Privacy with a new deletion task for them; the
   AI-suggested and older Knowledge Base links open the Knowledge Base page. Tested with request specs and Vitest; not
   yet checked in a browser (an invitation sent from `/manage/users` is the one to try)
+- Mobile ticket screen for students (16 Oct, chat design; README → Mobile app): checked in headless Chromium on a
+  phone viewport as student@ on #886843 (closed: the card, No, the box's "still not working" prompt) and #886854
+  (sending; the message "Chat box check from the mobile app." was added there). Yes (closing a resolved request, the
+  star rating) only in tests: the dev data has no resolved ticket or waiting rating. The paperclip's Zammad reply form
+  on a closed ticket is not yet checked
 
 ## Next steps
 

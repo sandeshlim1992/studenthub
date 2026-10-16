@@ -264,3 +264,21 @@ web addresses people open.
 | Who can change the quick links | Permissions | No problem | Zammad's settings API: `admin.*` plus the setting's own `admin.mobile_app` (`SettingPolicy`); specs: admin and an agent with only `admin.mobile_app` can, an agent without it gets 403 | — |
 | Who gets the quick links | Data to signed-out visitors | No problem | `authentication: true`: only signed-in users get them with the app config (spec checks signed out) | — |
 | Settings without their own permission (existing, found while checking `admin.mobile_app`) | Anyone with any `admin.…` permission can read and change 86 settings that have no permission of their own, e.g. `system_bcc` (copy of all outgoing email), `developer_mode`, `import_mode`; checked with an agent holding only `admin.mobile_app` (200, value changed) | Let the user decide | Zammad's `SettingsControllerPolicy` / `SettingPolicy` design, not new: the same holds for `admin.departments`, `admin.request_forms` and Zammad's own sub-permissions. It matters only if a role gets one of them without full admin. Fix option: in `SettingPolicy`, require `admin` (or `admin.setting_system`) for settings without a permission | — |
+
+## Mobile app: students' chat on the ticket screen (16 Oct)
+
+`git diff HEAD`: a new endpoint `POST /api/v1/studenthub/customer_tickets/:id/reply` and its service
+`Service::StudenthubCustomerTicket::Reply`; `Reopen`'s message HTML made a class method for it; the mobile app's chat
+header, chat box and "Did this solve your problem?" card; `studenthubApi` and the student ticket types moved to
+`app/frontend/shared/utils/` (imports only); specs, docs. Full review: the server change takes user input and checks
+permissions.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Who may call `reply` | Agents or other students posting into a ticket | No problem | The controller policy allows `ticket.customer` only; the controller authorizes `show?` on the ticket; the service then needs `update?` (open requests) or Reopen's `follow_up?` (resolved, closed). Specs: another student gets 403 and no message is added; an agent without the customer role gets 403 | — |
+| Students of a shared organisation | A student replying on another student's ticket in the same shared organisation | No problem (not new) | Zammad's `update?` gives customers of a shared organisation the same access to its tickets through its own ticket form and GraphQL; Close and Reopen already follow it. Whether the college organisations should be shared is a separate, existing question (see the staff Customer role decision, 16 Oct) | — |
+| Message text | HTML or script in the message | No problem | Escaped with `ERB::Util.html_escape`, newlines become `<br>`, cut at 10,000 characters (Reopen's code, now shared); spec checks `<b>` arrives escaped. The bubble shows it through Zammad's article rendering | — |
+| Message type | A student making an internal note or another channel's message | No problem | Type `web` and `internal: false` are fixed in the service; nothing from the request picks them | — |
+| Closed requests the team doesn't reopen | Reopening through the chat box | No problem | Resolved and closed requests go through `Reopen`, which refuses merged tickets and groups with "new ticket" follow-ups (spec "refuses", no message added) | — |
+| CSRF | A third-party page posting a message as the student | No problem | Zammad's session check for JSON requests needs `X-CSRF-Token`; `studenthubApi` sends it (unchanged code, only moved) | — |
+| Message flood | Many messages in a row | Not addressed | Same as Zammad's own customer form (no limit per ticket); the box is disabled while a message is sending | — |

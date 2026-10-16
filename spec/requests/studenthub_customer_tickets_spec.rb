@@ -139,8 +139,64 @@ RSpec.describe 'Student Hub customer ticket column', :aggregate_failures, type: 
     end
   end
 
+  describe 'POST /api/v1/studenthub/customer_tickets/:id/reply', authenticated_as: :customer do
+    def reply(message)
+      post "/api/v1/studenthub/customer_tickets/#{ticket.id}/reply", params: { message: }, as: :json
+    end
+
+    it 'adds the message to the conversation' do
+      reply("Here is my <b>student number</b>\n12345")
+
+      expect(response).to have_http_status(:ok)
+      article = ticket.articles.find_by(created_by_id: customer.id)
+      expect(article).to have_attributes(internal: false, content_type: 'text/html')
+      expect(article.sender.name).to eq('Customer')
+      expect(article.type.name).to eq('web')
+      expect(article.body).to include('Here is my &lt;b&gt;student number&lt;/b&gt;<br>12345')
+      expect(json_response['progress']['stage']).to be_present
+    end
+
+    it 'needs a message' do
+      expect { reply(' ') }.not_to change(Ticket::Article, :count)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    context 'with a closed request' do
+      let(:ticket) { create(:ticket, customer:, group:, state_name: 'closed') }
+
+      it 'reopens it with the message' do
+        reply('Still broken')
+
+        expect(response).to have_http_status(:ok)
+        expect(ticket.articles.find_by(created_by_id: customer.id).body).to include('Still broken')
+        expect(ticket.reload.state).to eq(Ticket::State.find_by(default_follow_up: true))
+      end
+
+      context 'when the team takes no replies on closed tickets' do
+        let(:group) { create(:group, follow_up_possible: 'new_ticket') }
+
+        it 'refuses' do
+          expect { reply('Still broken') }.not_to change(Ticket::Article, :count)
+
+          expect(response).to have_http_status(:unprocessable_content)
+        end
+      end
+    end
+
+    context 'with another student' do
+      let(:ticket) { create(:ticket, customer: create(:customer), group:) }
+
+      it 'refuses' do
+        expect { reply('Hello') }.not_to change(Ticket::Article, :count)
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
+
   describe 'POST /api/v1/studenthub/customer_tickets/:id/rating', authenticated_as: :customer do
-    let(:ticket) { create(:ticket, customer:, group:, state_name: 'closed') }
+    let(:ticket)            { create(:ticket, customer:, group:, state_name: 'closed') }
     let!(:feedback_request) { create(:feedback_request, ticket:, customer:) }
 
     before { Setting.set('feedback_collection', true) }

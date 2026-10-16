@@ -15,6 +15,11 @@ class Service::StudenthubCustomerTicket::Reopen < Service::Base
     @message = message.to_s.strip
   end
 
+  # The student's text as the message's HTML; Reply uses it too.
+  def self.body(message)
+    "<div>#{ERB::Util.html_escape(message.truncate(MESSAGE_MAX_LENGTH)).gsub(%r{\r?\n}, '<br>')}</div>"
+  end
+
   def self.follow_up_state
     Ticket::State.where(active: true).find_by(default_follow_up: true) ||
       Ticket::State.by_category(:open).where(active: true).reorder(:id).first
@@ -26,7 +31,7 @@ class Service::StudenthubCustomerTicket::Reopen < Service::Base
 
     Transaction.execute do
       Service::Ticket::Article::Create.with_current_user(current_user).execute(
-        article_data: { body: body, content_type: 'text/html', type: 'web', internal: false },
+        article_data: { body: self.class.body(message), content_type: 'text/html', type: 'web', internal: false },
         ticket:       ticket,
       )
 
@@ -45,9 +50,5 @@ class Service::StudenthubCustomerTicket::Reopen < Service::Base
     return false if ticket.state.state_type.name == 'merged'
 
     TicketPolicy.new(current_user, ticket).follow_up?
-  end
-
-  def body
-    "<div>#{ERB::Util.html_escape(message.truncate(MESSAGE_MAX_LENGTH)).gsub(%r{\r?\n}, '<br>')}</div>"
   end
 end

@@ -1,8 +1,8 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 # Student Hub: the student's column on the ticket screen (summary, progress, files, actions).
-# Every action needs read access to the ticket (Zammad's ticket rules); closing and reopening
-# check the ticket rules again in their services.
+# Every action needs read access to the ticket (Zammad's ticket rules); closing, reopening and
+# replying check the ticket rules again in their services.
 class StudenthubCustomerTicketsController < ApplicationController
   prepend_before_action :authenticate_and_authorize!
 
@@ -21,6 +21,14 @@ class StudenthubCustomerTicketsController < ApplicationController
   # POST /api/v1/studenthub/customer_tickets/:id/reopen { message: "…" }
   def reopen
     Service::StudenthubCustomerTicket::Reopen.with_current_user(current_user).execute(ticket:, message: params[:message])
+
+    show
+  end
+
+  # POST /api/v1/studenthub/customer_tickets/:id/reply { message: "…" }
+  # The chat box on the mobile ticket screen; reopens a resolved or closed request.
+  def reply
+    Service::StudenthubCustomerTicket::Reply.with_current_user(current_user).execute(ticket:, message: params[:message])
 
     show
   end

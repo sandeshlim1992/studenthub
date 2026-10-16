@@ -43,7 +43,9 @@ import { getOpenedDialogs } from '#mobile/composables/useDialog.ts'
 import { useTicketWithMentionLimitQuery } from '#mobile/entities/ticket/graphql/queries/ticketWithMentionLimit.api.ts'
 import type { TicketInformation } from '#mobile/entities/ticket/types.ts'
 
+import StudenthubChatComposer from '../components/TicketDetailView/StudenthubChatComposer.vue'
 import TicketDetailViewActions from '../components/TicketDetailView/TicketDetailViewActions.vue'
+import { provideStudenthubCustomerTicket } from '../composable/useStudenthubCustomerTicket.ts'
 import { useTicketArticleReply } from '../composable/useTicketArticleReply.ts'
 import { TICKET_INFORMATION_SYMBOL } from '../composable/useTicketInformation.ts'
 import { useTicketLiveUser } from '../composable/useTicketLiveUser.ts'
@@ -141,6 +143,10 @@ const ticketEditSchema = [
 ]
 
 const { isTicketAgent } = useTicketView(ticket)
+
+// Student Hub: students chat (StudenthubChatComposer) instead of using the Add reply button.
+const isStudent = computed(() => Boolean(ticket.value) && !isTicketAgent.value)
+provideStudenthubCustomerTicket(ticket, isStudent)
 
 const { notify } = useNotifications()
 
@@ -307,12 +313,16 @@ const ticketEditSchemaData = reactive({
 const { isOpened: commonSelectOpened } = useCommonSelect()
 
 const showReplyButton = computed(() => {
+  // Student Hub: students write in the chat box.
+  if (isStudent.value) return false
   if (articleReplyDialog.isOpened.value) return false
 
   return isTicketEditable.value
 })
 
 const showScrollDown = computed(() => {
+  // Student Hub: the chat box takes the bottom of the conversation.
+  if (isStudent.value) return false
   if (articleReplyDialog.isOpened.value) return false
 
   return scrollDownState.value
@@ -331,6 +341,17 @@ const showBottomBanner = computed(() => {
 
   return (isTicketEditable.value && isDirty.value) || showReplyButton.value || showScrollDown.value
 })
+
+// Student Hub: the chat box shows under the conversation, unless a dialog, a list or unsaved
+// changes (the Save bar) take the bottom of the screen.
+const showStudenthubComposer = computed(
+  () =>
+    isStudent.value &&
+    route.name === 'TicketDetailArticlesView' &&
+    !isDirty.value &&
+    !commonSelectOpened.value &&
+    getOpenedDialogs().size === 0,
+)
 </script>
 
 <template>
@@ -371,6 +392,14 @@ const showBottomBanner = computed(() => {
       :hidden="!showBottomBanner"
       @reply="openReplyForm({ articleType: isTicketAgent ? 'note' : 'web' })"
       @save="submitForm"
+    />
+  </Teleport>
+  <!-- Student Hub: the student's chat box. -->
+  <Teleport to="body">
+    <StudenthubChatComposer
+      v-if="showStudenthubComposer"
+      :can-attach="isTicketEditable && Boolean(form?.formNode)"
+      @attach="openReplyForm({ articleType: 'web' })"
     />
   </Teleport>
 </template>

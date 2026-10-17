@@ -542,7 +542,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     escaped) (`composable/useStudenthubRequestChat.ts`, `useStudenthubRequestSend.ts`).
   - Ticket screen for students (design 1 "Chat"): a header with the title, "#number · college · where it stands"
     and an ⓘ button for the ticket's information (`pages/ticket/components/TicketDetailView/`
-    `StudenthubChatHeader.vue`), Zammad's message bubbles (theirs on the right in the application colour), "No
+    `StudenthubChatHeader.vue`), Zammad's message bubbles (theirs on the right in the application colour; without the ⋮ article actions, which only staff get: `ArticleBubble.vue`), "No
     messages yet" when nothing is visible to them, and a chat box at the bottom in place of Add reply
     (`StudenthubChatComposer.vue`). A message goes straight into the conversation (`POST /api/v1/studenthub/`
     `customer_tickets/:id/reply`, `Service::StudenthubCustomerTicket::Reply`); to a resolved or closed request it

@@ -271,7 +271,9 @@ const onContextClick = () => {
           >
             {{ shownMore ? $t('See less') : $t('See more') }}
           </button>
+          <!-- Student Hub: no article actions (meta data, link, reply) in the students' chat; they reply in the chat box. -->
           <button
+            v-if="session.hasPermission('ticket.agent')"
             :class="[colorClasses, 'flex h-7 w-7 items-center justify-center rounded-md']"
             type="button"
             data-name="article-context"

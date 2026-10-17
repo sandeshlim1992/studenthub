@@ -6,6 +6,7 @@ import { flushPromises } from '@vue/test-utils'
 import { renderComponent } from '#tests/support/components/index.ts'
 import { getTestRouter } from '#tests/support/components/renderComponent.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
+import { mockPermissions } from '#tests/support/mock-permissions.ts'
 import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
 
 import { convertToGraphQLId } from '#shared/graphql/utils.ts'
@@ -73,6 +74,8 @@ describe('component for displaying text article', () => {
     mockUserCurrent({
       id: '2',
     })
+    // Student Hub: the article actions are for staff.
+    mockPermissions(['ticket.agent'])
 
     mockApplicationConfig({
       api_path: '/api',
@@ -144,6 +147,15 @@ describe('component for displaying text article', () => {
     )
 
     expect(view.queryByText('Show more')).not.toBeInTheDocument()
+  })
+
+  // Student Hub: students reply in the chat box; meta data, link and reply are for staff.
+  it('has no article actions for students', () => {
+    mockPermissions(['ticket.customer'])
+
+    const view = renderArticleBubble()
+
+    expect(view.queryByRole('button', { name: 'Article actions' })).not.toBeInTheDocument()
   })
 
   it('has "see more" for large article', async () => {

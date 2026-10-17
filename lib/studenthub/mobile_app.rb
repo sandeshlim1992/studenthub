@@ -3,11 +3,13 @@
 # Student Hub: what admins set for the students' mobile app under Administration → Manage →
 # Mobile app, both on its home screen and only for signed-in users: the quick links (links to
 # other websites, each a label and an http(s) address) and the popular answers (Knowledge Base
-# answers published in the help center, see PopularAnswers), in the admins' order.
+# answers published in the help center, see PopularAnswers), in the admins' order. Also the
+# notifications that tell students about their tickets (Transaction::StudenthubStudentNotification).
 module Studenthub::MobileApp
-  PERMISSION      = 'admin.mobile_app'.freeze
-  QUICK_LINKS     = 'studenthub_mobile_quick_links'.freeze
-  POPULAR_ANSWERS = 'studenthub_mobile_popular_answers'.freeze
+  PERMISSION            = 'admin.mobile_app'.freeze
+  QUICK_LINKS           = 'studenthub_mobile_quick_links'.freeze
+  POPULAR_ANSWERS       = 'studenthub_mobile_popular_answers'.freeze
+  STUDENT_NOTIFICATIONS = '9710_studenthub_student_notification'.freeze
 
   # The new UI's admin page and the mobile app use the same limits (studenthubQuickLinks.ts,
   # MobileAppPopularAnswers.vue).
@@ -16,8 +18,9 @@ module Studenthub::MobileApp
   MAX_URL_LENGTH      = 500
   MAX_POPULAR_ANSWERS = 5
 
-  # Creates the permission and the two settings (empty). Idempotent; used by the 20261016110000 and
-  # 20261017100000 migrations and Studenthub::Setup.ensure_all!.
+  # Creates the permission, the two settings (empty) and the students' notifications. Idempotent;
+  # used by the 20261016110000, 20261017100000 and 20261017120000 migrations and
+  # Studenthub::Setup.ensure_all!.
   def self.ensure!
     Permission.create_if_not_exists(
       name:        PERMISSION,
@@ -56,9 +59,19 @@ module Studenthub::MobileApp
       },
       frontend:    false
     )
+    Setting.create_if_not_exists(
+      title:       __('Defines transaction backend.'),
+      name:        STUDENT_NOTIFICATIONS,
+      area:        'Transaction::Backend::Async',
+      description: __('Defines the transaction backend to tell students about replies and changes on their tickets.'),
+      options:     {},
+      state:       'Transaction::StudenthubStudentNotification',
+      frontend:    false
+    )
   end
 
   def self.remove!
+    Setting.find_by(name: STUDENT_NOTIFICATIONS)&.destroy
     Setting.find_by(name: POPULAR_ANSWERS)&.destroy
     Setting.find_by(name: QUICK_LINKS)&.destroy
     Permission.find_by(name: PERMISSION)&.destroy

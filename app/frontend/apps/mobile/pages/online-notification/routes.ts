@@ -6,12 +6,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/notifications',
     name: 'NotificationsList',
-    component: () => import('./views/NotificationsList.vue'),
+    // Student Hub: the students' notifications, with the app's own header (design C1).
+    component: () => import('./views/StudenthubNotifications.vue'),
     meta: {
       title: __('Notifications'),
       requiresAuth: true,
       requiredPermission: null,
-      hasHeader: true,
       hasBottomNavigation: true,
       level: 1,
     },

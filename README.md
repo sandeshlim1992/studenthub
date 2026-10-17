@@ -542,8 +542,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     escaped) (`composable/useStudenthubRequestChat.ts`, `useStudenthubRequestSend.ts`).
   - Ticket screen for students (design 1 "Chat"): a header with the title, "#number · college · where it stands"
     and an ⓘ button for the ticket's information (`pages/ticket/components/TicketDetailView/`
-    `StudenthubChatHeader.vue`), Zammad's message bubbles (theirs on the right in the application colour; without the ⋮ article actions, which only staff get: `ArticleBubble.vue`), "No
-    messages yet" when nothing is visible to them, and a chat box at the bottom in place of Add reply
+    `StudenthubChatHeader.vue`), Zammad's message bubbles (theirs on the right in the application colour; without
+    the ⋮ article actions, which only staff get: `ArticleBubble.vue`), "No messages yet" when nothing is visible to
+    them, and a chat box at the bottom in place of Add reply
     (`StudenthubChatComposer.vue`). A message goes straight into the conversation (`POST /api/v1/studenthub/`
     `customer_tickets/:id/reply`, `Service::StudenthubCustomerTicket::Reply`); to a resolved or closed request it
     reopens it (through `Reopen`, so the team's follow-up setting applies; where replies are not taken the box offers
@@ -560,8 +561,9 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     published answers show. A topic (`/mobile/knowledge-base/:id`) has the topics above it over its title, its
     sub-topics and its answers. Search covers every published answer once two letters are typed (title, topic and
     the start of the text), answers named after the words before those that only mention them; Elasticsearch is asked
-    for its top 100, as drafts, internal answers and other languages drop out after it (Zammad asks for 10). An answer (`/mobile/knowledge-base/answers/:id`) shows its text in a card with its
-    images and videos (as in the help center), links to other answers opening in the app, its files, **Was this
+    for its top 100, as drafts, internal answers and other languages drop out after it (Zammad asks for 10). An
+    answer (`/mobile/knowledge-base/answers/:id`) shows its text in a card with its images and videos (as in the help
+    center), links to other answers opening in the app, its files, **Was this
     helpful?** (students: Yes / No, which they may change) and **Still need help? Raise a request** (the request chat).
     The header has a back button (`StudenthubAppHeader.vue`: `back-link`, `context`). Endpoints (students and staff;
     votes students only): `GET /api/v1/studenthub/mobile_app/knowledge_base`, `…/knowledge_base/categories/:id`,
@@ -583,6 +585,21 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     Sections without matches are hidden, so with no matching article the requests come first; the later sections
     wait for the articles so nothing moves while the student taps. The words stay in the address (`?search=`), so
     coming back from a result shows the same results. Nothing at all: "Nothing matches" and Raise a request.
+  - **Notifications** for students (the bell in the header; `/mobile/notifications`, `pages/online-notification/`
+    `views/StudenthubNotifications.vue`, `components/StudenthubNotificationItem.vue`): Zammad notifies only staff, so
+    Student Hub tells students in the app when the team replies on their ticket ("The team replied to …"; not internal
+    notes or the system's automatic emails) and when it moves to another stage as the Tickets tab shows them (in
+    progress, waiting for your reply, resolved, closed; a reply that comes with a new state counts once, as the
+    reply). Nothing for what the student does themselves, merged tickets, escalations and reminders, nor for staff who
+    raised a ticket (Zammad notifies them). An async transaction backend creates them
+    (`app/models/transaction/studenthub_student_notification.rb`, setting `9710_studenthub_student_notification`
+    from `Studenthub::MobileApp.ensure!`, migration `20261017120000`), with their own types (`studenthub_reply`,
+    `studenthub_progress` …) and texts (`shared/composables/activity-message/activityMessageBuilder/builders/`
+    `ticket.ts`). Closing a ticket marks the ticket's other notifications read but not the students'
+    (`app/jobs/ticket_online_notification_seen_job.rb`); opening the ticket does. Each card opens its ticket, with an
+    unread dot and Delete; **Mark all as read** sits in the header with the unread count. As in Zammad, read
+    notifications are cleared after 10 minutes and unread ones after 9 months. Staff are not given names: students may
+    see only staff's first and last names, and the chat shows none.
   - **Administration → Manage → Mobile app** (`/manage/mobile-app`, permission `admin.mobile_app`;
     `apps/desktop/pages/manage/views/MobileApp.vue`): what students see on the mobile app's Home.
     - **Quick links:** up to 8 links to other websites (a label and an `https://` or `http://` address), in order,

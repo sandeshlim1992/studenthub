@@ -283,3 +283,10 @@ Never put passwords, tokens or keys in this file.
   state (an admin's choice, kept for the new UI's list), and its grouping comes before any order asked for, so Home
   asks a small Student Hub endpoint for the newest (`GET /api/v1/studenthub/customer_tickets/latest`, sorted on the
   server, correct however many tickets there are) and the Tickets tab sorts the tickets it has loaded itself
+- Students get notifications in the app (17 Oct; the restyle plus notifications, chosen over the restyle alone):
+  Zammad's go to staff only, so the bell in the mobile app's header never lit up for students. Student Hub's own async
+  transaction backend tells the ticket's customer (students only; staff keep Zammad's) when the team replies (not
+  internal notes or the system's automatic emails) and when the ticket moves to another stage as the Tickets tab shows
+  them, one notification per change. They say "The team replied", as students may not see staff's full names and the
+  chat shows none. Closing a ticket doesn't mark them read, as that is the news. The page has the app's header and
+  cards (design C1) and replaces Zammad's mobile notification page, whose tests now run on it

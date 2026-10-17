@@ -31,6 +31,18 @@ const messageText = (type: string, authorName: string, metaObject?: Ticket): May
       return i18n.t('Ticket |%s| was merged into another ticket', objectTitle)
     case 'update.received_merge':
       return i18n.t('Another ticket was merged into ticket |%s|', objectTitle)
+    // Student Hub: students' notifications about their tickets (Transaction::StudenthubStudentNotification).
+    // Students may not see staff's full names (UserPolicy), so a reply comes from the team, as in the chat.
+    case 'studenthub_reply':
+      return i18n.t('The team replied to |%s|', objectTitle)
+    case 'studenthub_progress':
+      return i18n.t('Your ticket |%s| is in progress', objectTitle)
+    case 'studenthub_waiting':
+      return i18n.t('Your ticket |%s| is waiting for your reply', objectTitle)
+    case 'studenthub_resolved':
+      return i18n.t('Your ticket |%s| was resolved', objectTitle)
+    case 'studenthub_closed':
+      return i18n.t('Your ticket |%s| was closed', objectTitle)
     default:
       return null
   }

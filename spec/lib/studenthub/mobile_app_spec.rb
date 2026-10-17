@@ -11,6 +11,7 @@ RSpec.describe Studenthub::MobileApp, aggregate_failures: true do
 
       expect(Permission.find_by(name: 'admin.mobile_app')).to be_present
       expect(Setting.get('studenthub_mobile_quick_links')).to eq([])
+      expect(Setting.get('9710_studenthub_student_notification')).to eq('Transaction::StudenthubStudentNotification')
 
       links = [{ 'label' => 'Moodle', 'url' => 'https://moodle.example.ac.uk' }]
       Setting.set('studenthub_mobile_quick_links', links)

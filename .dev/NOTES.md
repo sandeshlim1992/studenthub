@@ -171,6 +171,9 @@ Never put passwords, tokens or keys in this file.
 - Mobile Tickets tab, students with more than 50 tickets (17 Oct): the first page comes in the My Tickets view's
   state-grouped order, so "Latest change" may start without a recently changed ticket until Show more. On the dev
   data 1 of 1,047 customers has more than 50 (70). A list endpoint like `customer_tickets/latest` would fix it
+- Mobile chat, students see no staff names (17 Oct): Zammad's `ArticleBubble.vue` shows the author's `fullname`, which
+  `UserPolicy` hides from customers (they may see first and last names, so only the initials show). The students'
+  notifications say "The team replied" for the same reason. Showing names would need a decision on what students see
 
 ## In progress
 

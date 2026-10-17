@@ -374,3 +374,18 @@ screen readers). The review of the five commits before found no new vulnerabilit
 | Search depth | More hits read from the index | No problem | Still filtered to published answers (students) or the agent's read rights (staff) after Elasticsearch; only more candidates are filtered | — |
 | Merging users | Votes lost or moved to the wrong user | No problem | Only the duplicate's votes on answers the remaining user also voted on are deleted, in `User#merge` before Zammad moves the rest (spec); nothing else is touched | — |
 | Links in answers | Ctrl / Cmd-click now handled by the browser | No problem | The browser opens the same `href` the server wrote (`/mobile/knowledge-base/answers/<id>`) in a new tab | — |
+
+## Mobile app: notifications for students (17 Oct)
+
+`git diff HEAD`: an async transaction backend that creates online notifications for a ticket's customer
+(`Transaction::StudenthubStudentNotification`), Zammad's closing job leaving those unread, and the mobile notification
+page replaced. Full review (server code that decides who is told about a ticket).
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Recipient | A notification about a ticket reaching someone else | No problem | Only the ticket's own customer, active, with `ticket.customer` and without `ticket.agent`; not organisation members (spec). Reading it still goes through `OnlineNotificationPolicy` (owner) and the ticket's `TicketPolicy` for `metaObject`; a ticket that moves to another customer shows "You can no longer see the ticket." | — |
+| What it says | Internal content leaking to the student | No problem | The notification holds only the ticket ID, a fixed type and who acted; replies count only when not internal and from an Agent sender (spec). The actor goes through `UserPolicy`'s field scope (first and last name, image), as in the chat | — |
+| Escalations | The last reply announced again on every escalation | Fixed | Escalation, warning and reminder items carry the ticket's last article; only `create` and `update` items count (spec) | this commit |
+| Ticket titles | XSS through a title in the message (v-html) | No problem | `useActivityMessage` escapes the message before making `|…|` bold (spec with an `<img onerror>` title). Zammad's old mobile card used `markup()`, which also turns `[text](url)` into a link of any scheme; the new card doesn't | — |
+| Closing job | Notifications kept unread | No problem | Only the seen flag of the students' own types; `NOT IN` on the type also skips rows without a type, which Zammad never creates | — |
+| Input | Injection | No problem | No request parameters; types are constants, IDs from the transaction | — |

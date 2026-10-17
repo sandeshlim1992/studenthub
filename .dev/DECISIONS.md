@@ -254,3 +254,9 @@ Never put passwords, tokens or keys in this file.
   the help center and Student Hub's Knowledge Base API is for staff; the choice is stored as answer IDs and Home asks
   the server for those still published, so an answer made internal later never reaches students. Each opens its
   help center page in the same tab (quick links, other websites, open a new one)
+- Students raise a request in the mobile app as a chat (17 Oct; design B "Chat" from five wizard designs, with E's
+  search): a new conversation each time, one question at a time, and typing searches every sub-category so a
+  student who knows what they need skips the category. It asks for the same things as the new UI's wizard and sends
+  the ticket the same way (Zammad's ticket create mutation, the group from Zammad's own ticket form), so the server's
+  checks and the request forms apply unchanged; a request form's questions are asked one by one instead of as a
+  form. Staff keep Zammad's form. The request form types moved to shared code for it

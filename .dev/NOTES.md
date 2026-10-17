@@ -24,7 +24,8 @@ Never put passwords, tokens or keys in this file.
   `ticket-detail-view-hint-note` (3) and `ticket-detail-view-live-users` (5), which fail on their own too (13 Oct).
   `studenthub-talk-to-student-support` ("opens the ticket wizard") and `ticket-detail-view-studenthub-queue` fail now
   and then even on their own (timing; seen on 14 Oct on the code before and after the lint tidy)
-- The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs)
+- The mobile app's `pages/ticket` specs: about 10 of 73 fail even on their own (which files varies between runs);
+  run all at once, `studenthub-request-chat` can time out too (its 6 pass on their own, 17 Oct)
 - The whole mobile app's specs at once (`app/frontend/apps/mobile`, 16 Oct): 9 to 26 fail under load, which ones
   varies between runs. `FieldDateTime` "datetime" (3) and `form-updater.mobile` (2) fail on the code before the light
   theme too; the sign-in, home and layout specs pass when run folder by folder (37, 10 and 14 since the C1 Home and
@@ -148,6 +149,10 @@ Never put passwords, tokens or keys in this file.
   ("First ticket goes to Unassigned Tickets") did that before; the staff form loads fine with it on (checked 7 Oct),
   so the production step to switch it off needs rethinking
 - Student ticket wizard fails silently when a required field (Group, Sub-Category) is empty
+- The mobile app's request chat takes the group the same way as the new UI's wizard (Zammad's ticket form for
+  students: its value, else its first choice), so while `customer_ticket_create_group_ids` is empty and core workflow
+  21 is off its requests go to the first group in the list (Infrastructure on dev); setting that setting (see above)
+  fixes both
 - Classic UI: pasting HTML into a reply runs its scripts (`<img onerror>`): `App.Utils.htmlCleanup` parses it with
   jQuery's `$(html)` in the live page (security-review.md, 15 Oct). Fixed in the new UI's `htmlCleanup`; out of reach
   once `/app` is switched off on a server (on `develop` since 15 Oct), gone with the classic UI's code

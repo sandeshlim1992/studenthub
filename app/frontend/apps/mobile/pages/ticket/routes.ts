@@ -69,6 +69,19 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    // Student Hub: students' New request, a chat; staff keep Zammad's form at /tickets/create.
+    path: '/tickets/request',
+    name: 'StudenthubRequestChat',
+    props: false,
+    component: () => import('./views/StudenthubRequestChat.vue'),
+    meta: {
+      title: __('New request'),
+      requiresAuth: true,
+      requiredPermission: ['ticket.customer'],
+      level: 2,
+    },
+  },
+  {
     path: '/tickets/create',
     name: 'TicketCreate',
     props: false,

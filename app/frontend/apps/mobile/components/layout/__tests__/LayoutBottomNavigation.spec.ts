@@ -30,7 +30,7 @@ describe('bottom navigation in layout', () => {
     expect(view.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/mobile/')
     expect(view.getByRole('link', { name: 'New request' })).toHaveAttribute(
       'href',
-      '/tickets/create',
+      '/tickets/request',
     )
     expect(view.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', '/tickets')
   })
@@ -41,6 +41,10 @@ describe('bottom navigation in layout', () => {
     const view = await renderNavigation()
 
     expect(view.getByRole('link', { name: 'Tickets' })).toHaveAttribute('href', '/tickets/view')
+    expect(view.getByRole('link', { name: 'New request' })).toHaveAttribute(
+      'href',
+      '/tickets/create',
+    )
   })
 
   it('leaves out New request when students may not raise tickets', async () => {

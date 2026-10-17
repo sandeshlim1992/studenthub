@@ -74,7 +74,7 @@ const send = async () => {
       </p>
       <CommonLink
         class="flex h-11 items-center rounded-xl bg-blue px-4 font-bold text-white"
-        link="/tickets/create"
+        link="/tickets/request"
       >
         {{ $t('New ticket') }}
       </CommonLink>

@@ -524,6 +524,19 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     (`lib/studenthub/my_tickets_view.rb`, migration `20261016100000`), which also fixes the new UI's student ticket
     list. Where a ticket stands is read from its state's name and type
     (`entities/ticket/helpers/studenthubTicketStage.ts`, `composables/useStudenthubMyTickets.ts`).
+  - **New request** for students (design B "Chat" with E's search; `/mobile/tickets/request`,
+    `pages/ticket/views/StudenthubRequestChat.vue`): the + in the bottom menu (and New ticket under a closed request)
+    starts a new conversation each time; staff keep Zammad's form at `/tickets/create`. The student types a few words
+    to search every sub-category ("card" → New ID Card · Service Request) or picks a category and then a sub-category
+    (6 shown, "Show all"), then a campus (grouped LSST / FSB / UKBC), then says what happened (at least 10 characters,
+    with photos and files) or, when an admin's request form applies, answers its questions one at a time (lists and
+    yes / no as buttons, dates with a date picker, Skip for optional ones; its notes and headings are said first).
+    Every answer can be changed. A card shows the subject (filled in as on the new UI's wizard, editable), then
+    **Send request** and "Sent as ticket #…" with View ticket. The choices and the form come from the new UI wizard's
+    endpoints (`ticket_wizard_metadata`, `request_forms/applicable`); the ticket goes through Zammad's ticket create
+    mutation like the wizard's (group from Zammad's ticket form for students, its value else its first choice; files
+    through the upload cache; the message starts with the wizard's Category and Campus lines, the student's text
+    escaped) (`composable/useStudenthubRequestChat.ts`, `useStudenthubRequestSend.ts`).
   - Ticket screen for students (design 1 "Chat"): a header with the title, "#number · college · where it stands"
     and an ⓘ button for the ticket's information (`pages/ticket/components/TicketDetailView/`
     `StudenthubChatHeader.vue`), Zammad's message bubbles (theirs on the right in the application colour), "No

@@ -11,6 +11,11 @@ const { isCustomLayout } = useCustomLayout()
 const { ticketCreateEnabled } = useTicketCreateView()
 const session = useSessionStore()
 
+// Students raise a request in the request chat, staff in Zammad's form.
+const newRequestLink = computed(() =>
+  session.hasPermission('ticket.customer') ? '/tickets/request' : '/tickets/create',
+)
+
 const ticketsLink = computed(() => {
   if (session.hasPermission('ticket.customer')) return '/tickets'
   if (session.hasPermission('ticket.agent')) return '/tickets/view'
@@ -41,7 +46,7 @@ const ticketsLink = computed(() => {
       </CommonLink>
       <CommonLink
         v-if="ticketCreateEnabled"
-        link="/tickets/create"
+        :link="newRequestLink"
         size="small"
         class="flex flex-col items-center gap-1"
       >

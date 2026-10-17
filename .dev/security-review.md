@@ -298,3 +298,17 @@ endpoints that read the Knowledge Base, where internal answers must never reach 
 | Who may change the setting | Permissions | No problem | Zammad's settings API with the setting's `admin.mobile_app` (spec: an admin saves published, an internal answer is refused with 422) | — |
 | Links on Home | Open redirect, script in links | No problem | The paths are built by the server with Rails' route helper (`/help/<locale>/<category>/<answer>`) from the records, never from input; the app binds them as `href`, titles as text | — |
 | Input | Injection | No problem | No parameters are read; the IDs come from the setting and go to Active Record `where(id:)` | — |
+
+## Mobile app: New request as a chat (17 Oct)
+
+`git diff HEAD`: the students' request chat in the mobile app (a route, its view and two composables), the bottom
+menu's + and the closed-request link pointing to it, specs, docs. Frontend only: the ticket goes through Zammad's
+ticket create mutation, files through Zammad's upload cache.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Ticket creation | Could a student create a ticket they may not, or for someone else? | No problem | Zammad's `ticketCreate` mutation with the server's customer rules (customer = the student, `customer_ticket_create`, groups); no customer is sent. The group is one Zammad's ticket form offers the student | — |
+| Message body | HTML or script from the student in the first message | No problem | The student's text goes through `textToHtml` (linkify escapes it; spec checks `<b>` arrives as `&lt;b&gt;`), the category and campus through an escape; the server sanitizes article HTML as well | — |
+| Request form answers and fields | Bypassing the form's checks | No problem | Sent as the new UI's wizard sends them; the server cleans the answers (`Questions.clean_answers`), refuses missing required ones and checks the fields through the core workflow | — |
+| Files | Uploads | No problem | Zammad's own upload cache mutations with the chat's form ID, the same checks as Zammad's file field | — |
+| Search and choices | Data exposure | No problem | Read from the new UI wizard's endpoints, which students already use; the search runs in the browser on that list | — |

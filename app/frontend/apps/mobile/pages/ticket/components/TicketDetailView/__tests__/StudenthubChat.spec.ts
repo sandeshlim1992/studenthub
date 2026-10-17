@@ -223,9 +223,10 @@ describe('Student chat on the mobile ticket screen', () => {
         'This request is closed and cannot be reopened. Raise a new ticket if you still need help.',
       ),
     ).toBeInTheDocument()
+    // Students raise a new request in the request chat.
     expect(view.getByRole('link', { name: 'New ticket' })).toHaveAttribute(
       'href',
-      '/tickets/create',
+      '/tickets/request',
     )
     expect(view.queryByRole('textbox', { name: 'Message' })).not.toBeInTheDocument()
   })

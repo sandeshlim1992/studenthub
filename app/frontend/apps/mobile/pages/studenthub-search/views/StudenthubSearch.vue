@@ -58,21 +58,24 @@ watch(
     showAllArticles.value = false
     if (!canSearch.value || !application.config.kb_active) {
       articles.value = []
+      articlesLoading.value = false
       return
     }
 
     articlesLoading.value = true
+    let found: KnowledgeBaseSearchResult[] = []
     try {
-      const found = await studenthubApi<KnowledgeBaseSearchResult[]>(
+      found = await studenthubApi<KnowledgeBaseSearchResult[]>(
         `/api/v1/studenthub/mobile_app/knowledge_base/search?query=${encodeURIComponent(current)}`,
       )
-      // A slower reply to earlier words must not replace the latest.
-      if (current === words.value) articles.value = found
     } catch {
-      articles.value = []
-    } finally {
-      if (current === words.value) articlesLoading.value = false
+      // The other sections still show; no articles for these words.
     }
+
+    // A slower reply to earlier words must not replace the latest.
+    if (current !== words.value) return
+    articles.value = found
+    articlesLoading.value = false
   },
   { immediate: true },
 )
@@ -127,6 +130,10 @@ const tickets = computed(() => {
 })
 
 const isLoading = computed(() => articlesLoading.value || ticketsLoading.value)
+
+const resultCount = computed(
+  () => articles.value.length + requestTypes.value.length + tickets.value.length,
+)
 
 const nothingFound = computed(
   () =>
@@ -241,7 +248,16 @@ const nothingFound = computed(
         </CommonLink>
       </div>
 
-      <div v-if="canSearch && isLoading" role="status" class="flex justify-center py-2">
+      <!-- Screen readers hear how much was found once the search is done. -->
+      <p role="status" class="sr-only">
+        {{
+          canSearch && !isLoading
+            ? $t(resultCount === 1 ? '%s result' : '%s results', resultCount)
+            : ''
+        }}
+      </p>
+
+      <div v-if="canSearch && isLoading" class="flex justify-center py-2">
         <CommonIcon name="loading" animation="spin" :label="$t('Searching…')" />
       </div>
     </div>

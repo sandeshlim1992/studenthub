@@ -2,6 +2,7 @@
 
 import { within } from '@testing-library/vue'
 
+import { getTestRouter } from '#tests/support/components/renderComponent.ts'
 import { visitView } from '#tests/support/components/visitView.ts'
 import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 import { mockGraphQLSubscription } from '#tests/support/mock-graphql-api.ts'
@@ -185,16 +186,61 @@ describe('Student Hub Help articles', () => {
     )
   })
 
-  it('opens links to other answers in the app', async () => {
-    mockApi({ [`${api}/answers/3`]: wifiAnswer, [`${api}/answers/4`]: passwordAnswer })
+  it('opens links to other answers in the app, without the vote given on the first', async () => {
+    mockApi({
+      [`${api}/answers/3`]: wifiAnswer,
+      [`${api}/answers/4`]: passwordAnswer,
+      [`${api}/answers/3/feedback`]: { helpful: true },
+    })
 
     const view = await visitView('/knowledge-base/answers/3')
+    await view.events.click(await view.findByRole('button', { name: 'Yes' }))
+    expect(await view.findByText('Thank you for telling us.')).toBeInTheDocument()
 
-    await view.events.click(await view.findByRole('link', { name: 'Forgot it?' }))
+    await view.events.click(view.getByRole('link', { name: 'Forgot it?' }))
 
     expect(
       await view.findByRole('heading', { level: 1, name: 'Reset your password' }),
     ).toBeInTheDocument()
+    expect(view.queryByText('Thank you for telling us.')).not.toBeInTheDocument()
+  })
+
+  it('keeps the answer opened last when an earlier one answers late', async () => {
+    let answerLate: (response: Response) => void = () => {}
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === `${api}/answers/3`)
+          return new Promise<Response>((resolve) => {
+            answerLate = resolve
+          })
+        return Promise.resolve(new Response(JSON.stringify(passwordAnswer)))
+      }),
+    )
+
+    const view = await visitView('/knowledge-base/answers/3')
+    await getTestRouter().push('/knowledge-base/answers/4')
+    await view.findByRole('heading', { level: 1, name: 'Reset your password' })
+
+    answerLate(new Response(JSON.stringify(wifiAnswer)))
+
+    await vi.waitFor(() =>
+      expect(
+        view.getByRole('heading', { level: 1, name: 'Reset your password' }),
+      ).toBeInTheDocument(),
+    )
+  })
+
+  it('says so when a vote cannot be saved', async () => {
+    mockApi({ [`${api}/answers/3`]: wifiAnswer })
+
+    const view = await visitView('/knowledge-base/answers/3')
+    await view.events.click(await view.findByRole('button', { name: 'No' }))
+
+    expect(
+      await view.findByText('Your answer could not be saved. Please try again.'),
+    ).toHaveAttribute('role', 'alert')
+    expect(view.getByRole('button', { name: 'No' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('asks only students whether an answer helped', async () => {

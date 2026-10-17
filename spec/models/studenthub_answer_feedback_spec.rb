@@ -34,6 +34,19 @@ RSpec.describe StudenthubAnswerFeedback, aggregate_failures: true, type: :model 
     end
   end
 
+  it 'keeps one vote per answer when two students are merged' do
+    other   = create(:knowledge_base_answer, :published)
+    primary = create(:customer)
+    described_class.vote!(answer:, user: primary, helpful: true)
+    described_class.vote!(answer:, user: student, helpful: false)
+    described_class.vote!(answer: other, user: student, helpful: true)
+
+    primary.merge(student.id)
+
+    expect(described_class.where(user: primary).pluck(:answer_id, :helpful)).to contain_exactly([answer.id, true], [other.id, true])
+    expect(described_class.where(user: student)).to be_empty
+  end
+
   it 'goes with the answer and with the student' do
     described_class.vote!(answer:, user: student, helpful: true)
     described_class.vote!(answer: create(:knowledge_base_answer, :published), user: student, helpful: true)

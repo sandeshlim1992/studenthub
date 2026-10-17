@@ -6,6 +6,9 @@
 # and archived answers never show, nor anything while the Knowledge Base is off.
 module Studenthub::MobileApp::KnowledgeBase
   SEARCH_LIMIT = 20
+  # Elasticsearch gives its top hits before drafts, internal answers and other languages of the same
+  # answer are left out, so it is asked for more than are shown (it gives 10 when not told).
+  SEARCH_DEPTH = 100
 
   def self.active
     knowledge_base = KnowledgeBase.first
@@ -81,7 +84,7 @@ module Studenthub::MobileApp::KnowledgeBase
   # refuses to highlight text longer than the index allows (index.highlight.max_analyzed_offset).
   def self.found_translations(knowledge_base, words)
     ids = SearchKnowledgeBaseBackend
-      .new(knowledge_base:, flavor: :public, index: KnowledgeBase::Answer::Translation.name, highlight_enabled: false)
+      .new(knowledge_base:, flavor: :public, index: KnowledgeBase::Answer::Translation.name, highlight_enabled: false, from: 0, limit: SEARCH_DEPTH)
       .search(words, user: nil)
       .pluck(:id)
 

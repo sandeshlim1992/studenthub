@@ -31,20 +31,30 @@ const answer = ref<KnowledgeBaseAnswer | null>(null)
 const loading = ref(true)
 const loadError = ref(false)
 
+const voting = ref(false)
+const voted = ref(false)
+const voteFailed = ref(false)
+
 const load = async () => {
   loading.value = true
+  voted.value = false
+  voteFailed.value = false
+  const { answerId } = props
 
+  let loaded: KnowledgeBaseAnswer | null = null
   try {
-    answer.value = await studenthubApi<KnowledgeBaseAnswer>(
-      `/api/v1/studenthub/mobile_app/knowledge_base/answers/${props.answerId}`,
+    loaded = await studenthubApi<KnowledgeBaseAnswer>(
+      `/api/v1/studenthub/mobile_app/knowledge_base/answers/${answerId}`,
     )
-    loadError.value = false
   } catch {
-    answer.value = null
-    loadError.value = true
-  } finally {
-    loading.value = false
+    // Shown as not available below.
   }
+
+  // A slower reply for an answer left meanwhile must not replace the one shown now.
+  if (answerId !== props.answerId) return
+  answer.value = loaded
+  loadError.value = !loaded
+  loading.value = false
 }
 
 watch(() => props.answerId, load, { immediate: true })
@@ -57,9 +67,6 @@ const context = computed(() =>
 
 const isStudent = computed(() => session.hasPermission('ticket.customer'))
 
-const voting = ref(false)
-const voted = ref(false)
-
 const vote = async (helpful: boolean) => {
   if (!answer.value || voting.value) return
 
@@ -71,15 +78,20 @@ const vote = async (helpful: boolean) => {
     )
     answer.value.helpful = result.helpful
     voted.value = true
+    voteFailed.value = false
   } catch {
-    // The vote stays as it was; the buttons show which one counts.
+    // The buttons keep showing the vote that counts.
+    voteFailed.value = true
   } finally {
     voting.value = false
   }
 }
 
-// Links to other help articles open in the app, not by loading it again.
+// Links to other help articles open in the app, not by loading it again; a click that asks for a
+// new tab or window is left to the browser.
 const openAppLink = (event: MouseEvent) => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
   const link = (event.target as HTMLElement).closest('a')
   const href = link?.getAttribute('href')
   if (!href?.startsWith('/mobile/')) return
@@ -175,7 +187,10 @@ const openAppLink = (event: MouseEvent) => {
                 </button>
               </div>
             </div>
-            <p v-if="voted" role="status" class="text-sm text-gray">
+            <p v-if="voteFailed" role="alert" class="text-sm text-red">
+              {{ $t('Your answer could not be saved. Please try again.') }}
+            </p>
+            <p v-else-if="voted" role="status" class="text-sm text-gray">
               {{ $t('Thank you for telling us.') }}
             </p>
           </section>

@@ -5,6 +5,9 @@
 # it isn't running) with the agent's read rights; one row per answer, newest change first.
 class Service::StudenthubKnowledgeBase::Search < Service::Base
   SNIPPET_LENGTH = 160
+  # Elasticsearch gives its top hits before what the user may not read and other languages of the
+  # same answer are left out, so it is asked for more than are shown (it gives 10 when not told).
+  SEARCH_DEPTH = 100
 
   attr_reader :user, :query, :limit
 
@@ -36,7 +39,7 @@ class Service::StudenthubKnowledgeBase::Search < Service::Base
 
   def translations(knowledge_base)
     ids = SearchKnowledgeBaseBackend
-      .new(knowledge_base:, flavor: :agent, index: KnowledgeBase::Answer::Translation.name, order_by: { updated_at: :desc }, highlight_enabled: false)
+      .new(knowledge_base:, flavor: :agent, index: KnowledgeBase::Answer::Translation.name, order_by: { updated_at: :desc }, highlight_enabled: false, from: 0, limit: SEARCH_DEPTH)
       .search(query, user:)
       .pluck(:id)
 

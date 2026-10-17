@@ -115,6 +115,14 @@ RSpec.describe Studenthub::MobileApp::KnowledgeBase, aggregate_failures: true do
       expect(described_class.search(create(:admin), 'answer')).to be_empty
     end
 
+    it 'asks the search for more hits than it shows, as drafts and other languages drop out after it' do
+      allow(SearchKnowledgeBaseBackend).to receive(:new).and_call_original
+
+      described_class.search(student, 'password')
+
+      expect(SearchKnowledgeBaseBackend).to have_received(:new).with(hash_including(from: 0, limit: described_class::SEARCH_DEPTH))
+    end
+
     it 'finds nothing without words' do
       expect(described_class.search(student, '  ')).to eq([])
     end

@@ -362,3 +362,15 @@ Full review of the endpoint (server code that reads tickets for students).
 | What it gives | Data exposure | No problem | ID, number, title, last change and the state's name and type, all shown on the student's own Tickets tab already; no articles, no internal fields | — |
 | Route | `latest` taken as a ticket ID | No problem | The `latest` route comes before `:id` (spec) | — |
 | Input | Injection | No problem | No parameters are read | — |
+
+## Mobile app: fixes from the review of the day's mobile work (17 Oct)
+
+`git diff HEAD`: the Knowledge Base searches ask Elasticsearch for 100 hits, merging users drops the duplicate's
+votes where both voted, and frontend fixes (late replies, a failed vote is said, modifier clicks, result counts for
+screen readers). The review of the five commits before found no new vulnerability; see the sections above.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Search depth | More hits read from the index | No problem | Still filtered to published answers (students) or the agent's read rights (staff) after Elasticsearch; only more candidates are filtered | — |
+| Merging users | Votes lost or moved to the wrong user | No problem | Only the duplicate's votes on answers the remaining user also voted on are deleted, in `User#merge` before Zammad moves the rest (spec); nothing else is touched | — |
+| Links in answers | Ctrl / Cmd-click now handled by the browser | No problem | The browser opens the same `href` the server wrote (`/mobile/knowledge-base/answers/<id>`) in a new tab | — |

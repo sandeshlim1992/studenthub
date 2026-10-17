@@ -31,19 +31,23 @@ const loadError = ref(false)
 
 const load = async () => {
   loading.value = true
-  const path = props.categoryId
-    ? `/api/v1/studenthub/mobile_app/knowledge_base/categories/${props.categoryId}`
+  const { categoryId } = props
+  const path = categoryId
+    ? `/api/v1/studenthub/mobile_app/knowledge_base/categories/${categoryId}`
     : '/api/v1/studenthub/mobile_app/knowledge_base'
 
+  let loaded: KnowledgeBaseTopic | null = null
   try {
-    topic.value = await studenthubApi<KnowledgeBaseTopic>(path)
-    loadError.value = false
+    loaded = await studenthubApi<KnowledgeBaseTopic>(path)
   } catch {
-    topic.value = null
-    loadError.value = true
-  } finally {
-    loading.value = false
+    // Shown as not available below.
   }
+
+  // A slower reply for a topic left meanwhile must not replace the one shown now.
+  if (categoryId !== props.categoryId) return
+  topic.value = loaded
+  loadError.value = !loaded
+  loading.value = false
 }
 
 watch(() => props.categoryId, load, { immediate: true })
@@ -61,15 +65,17 @@ watch(query, async (words) => {
     return
   }
 
+  let found: KnowledgeBaseSearchResult[] = []
   try {
-    const found = await studenthubApi<KnowledgeBaseSearchResult[]>(
+    found = await studenthubApi<KnowledgeBaseSearchResult[]>(
       `/api/v1/studenthub/mobile_app/knowledge_base/search?query=${encodeURIComponent(words)}`,
     )
-    // A slower reply to earlier words must not replace the latest.
-    if (words === query.value) results.value = found
   } catch {
-    results.value = []
+    // Shown as no matches.
   }
+
+  // A slower reply to earlier words must not replace the latest.
+  if (words === query.value) results.value = found
 })
 
 const title = computed(() => topic.value?.topic?.title ?? i18n.t('Help articles'))
@@ -122,6 +128,9 @@ const answerCount = (count: number) =>
         <h2 id="studenthub-kb-results" class="text-lg font-extrabold">
           {{ $t('Search results') }}
         </h2>
+        <p role="status" class="sr-only">
+          {{ $t(results.length === 1 ? '%s result' : '%s results', results.length) }}
+        </p>
         <ul v-if="results.length" class="flex flex-col gap-2.5">
           <li v-for="result in results" :key="result.id">
             <CommonLink

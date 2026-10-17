@@ -168,6 +168,9 @@ Never put passwords, tokens or keys in this file.
   answer longer than 1,000 characters. Student Hub's two Knowledge Base searches no longer ask for them; Zammad's own
   help center and GraphQL Knowledge Base searches still do. Check the test and production servers' setting (the
   Elasticsearch default is 1,000,000)
+- Mobile Tickets tab, students with more than 50 tickets (17 Oct): the first page comes in the My Tickets view's
+  state-grouped order, so "Latest change" may start without a recently changed ticket until Show more. On the dev
+  data 1 of 1,047 customers has more than 50 (70). A list endpoint like `customer_tickets/latest` would fix it
 
 ## In progress
 

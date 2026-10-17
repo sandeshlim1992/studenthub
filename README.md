@@ -559,7 +559,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     own, `utils/knowledgeBaseTopicIcon.ts`) and how many answers they hold, counting sub-topics'; only topics with
     published answers show. A topic (`/mobile/knowledge-base/:id`) has the topics above it over its title, its
     sub-topics and its answers. Search covers every published answer once two letters are typed (title, topic and
-    the start of the text), answers named after the words before those that only mention them. An answer (`/mobile/knowledge-base/answers/:id`) shows its text in a card with its
+    the start of the text), answers named after the words before those that only mention them; Elasticsearch is asked
+    for its top 100, as drafts, internal answers and other languages drop out after it (Zammad asks for 10). An answer (`/mobile/knowledge-base/answers/:id`) shows its text in a card with its
     images and videos (as in the help center), links to other answers opening in the app, its files, **Was this
     helpful?** (students: Yes / No, which they may change) and **Still need help? Raise a request** (the request chat).
     The header has a back button (`StudenthubAppHeader.vue`: `back-link`, `context`). Endpoints (students and staff;
@@ -568,7 +569,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     (`lib/studenthub/mobile_app/knowledge_base.rb`, `app/controllers/studenthub_mobile_app_controller.rb`). Drafts,
     internal and archived answers are not found, not even for Knowledge Base editors, and nothing while the Knowledge
     Base is off. The votes (`StudenthubAnswerFeedback`, table `studenthub_answer_feedbacks`, migration
-    `20261017110000`; one per student and answer) go with the answer and with the student
+    `20261017110000`; one per student and answer) go with the answer and with the student (merging two students keeps
+    the remaining one's vote where both voted on an answer)
     (`app/models/studenthub_answer_feedback/user_hook.rb`, `config/initializers/studenthub_answer_feedback.rb`); staff
     see the counts on the answer in the new UI's Knowledge Base page.
   - **Search for students** (`/mobile/find`, `pages/studenthub-search/`; Home's search box, staff keep Zammad's

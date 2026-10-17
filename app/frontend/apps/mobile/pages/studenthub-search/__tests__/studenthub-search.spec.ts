@@ -103,6 +103,7 @@ describe('Student Hub search for students', () => {
     await view.findByRole('region', { name: 'Help articles' })
 
     expect(sectionHeadings(view)).toEqual(['Help articles', 'Raise a request', 'Your tickets'])
+    expect(view.getByRole('status')).toHaveTextContent('4 results')
     expect(
       within(view.getByRole('region', { name: 'Help articles' })).getByRole('link', {
         name: /Lost or damaged student ID card/,

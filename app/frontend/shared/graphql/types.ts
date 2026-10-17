@@ -1070,6 +1070,18 @@ export type SearchQuery = { search: { __typename: 'SearchResult', totalCount: nu
       | { __typename: 'User', id: string, internalId: number, firstname: string | null | undefined, lastname: string | null | undefined, image: string | null | undefined, active: boolean | null | undefined, outOfOffice: boolean | null | undefined, outOfOfficeStartAt: string | null | undefined, outOfOfficeEndAt: string | null | undefined, vip: boolean | null | undefined, updatedAt: string, organization: { __typename: 'Organization', id: string, internalId: number, name: string | null | undefined } | null | undefined, updatedBy: { __typename: 'User', id: string, fullname: string | null | undefined } | null | undefined, ticketsCount: { __typename: 'TicketCount', open: number, closed: number } | null | undefined }
     > } };
 
+export type StudenthubTicketSearchQueryVariables = Exact<{
+  search: string;
+  limit?: number | null | undefined;
+}>;
+
+
+export type StudenthubTicketSearchQuery = { search: { __typename: 'SearchResult', items: Array<
+      | { __typename: 'Organization' }
+      | { __typename: 'Ticket', id: string, internalId: number, number: string, title: string, updatedAt: string, customer: { __typename: 'User', id: string, internalId: number }, state: { __typename: 'TicketState', id: string, name: string, stateType: { __typename: 'TicketStateType', id: string, name: string } } }
+      | { __typename: 'User' }
+    > } };
+
 export type TicketLiveUserDeleteMutationVariables = Exact<{
   id: string | number;
   app: Types.EnumTaskbarApp;

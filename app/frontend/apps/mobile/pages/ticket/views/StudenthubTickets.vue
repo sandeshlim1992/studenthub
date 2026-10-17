@@ -3,15 +3,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import CommonDateTime from '#shared/components/CommonDateTime/CommonDateTime.vue'
-
 import CommonLoader from '#mobile/components/CommonLoader/CommonLoader.vue'
 import StudenthubAppHeader from '#mobile/components/layout/StudenthubAppHeader.vue'
+import StudenthubTicketItem from '#mobile/entities/ticket/components/StudenthubTicketItem.vue'
 import { useStudenthubMyTickets } from '#mobile/entities/ticket/composables/useStudenthubMyTickets.ts'
 import {
   isStudenthubTicketDone,
   studenthubTicketStage,
-  studenthubTicketStageLabel,
   type StudenthubTicketStage,
 } from '#mobile/entities/ticket/helpers/studenthubTicketStage.ts'
 
@@ -39,14 +37,6 @@ type Sort = 'latest' | 'state'
 // Sorted by state, tickets follow the way a ticket goes (as Student Hub's state numbers do),
 // latest change first within each.
 const stageOrder: StudenthubTicketStage[] = ['new', 'progress', 'waiting', 'resolved', 'closed']
-
-const stageChip: Record<StudenthubTicketStage, string> = {
-  new: 'bg-gray-400 text-gray-100',
-  progress: 'bg-blue-highlight text-blue',
-  waiting: 'bg-yellow-highlight text-yellow',
-  resolved: 'bg-green-highlight text-green',
-  closed: 'bg-green-highlight text-green',
-}
 
 const { hasMyTickets, tickets, loading, pagination } = useStudenthubMyTickets()
 
@@ -125,27 +115,11 @@ const visibleTickets = computed(() => {
       </label>
       <CommonLoader :loading="loading">
         <section v-if="visibleTickets.length" class="flex flex-col gap-2.5">
-          <CommonLink
-            v-for="{ ticket, stage } in visibleTickets"
+          <StudenthubTicketItem
+            v-for="{ ticket } in visibleTickets"
             :key="ticket.id"
-            :link="`/tickets/${ticket.internalId}`"
-            class="flex flex-col gap-2 rounded-2xl bg-gray-500 px-4 py-3.5"
-          >
-            <span class="flex items-start justify-between gap-3">
-              <span class="text-base leading-snug font-semibold">{{ ticket.title }}</span>
-              <CommonDateTime
-                class="shrink-0 pt-0.5 text-xs text-gray"
-                :date-time="ticket.updatedAt"
-                type="relative"
-              />
-            </span>
-            <span class="flex items-center justify-between gap-3">
-              <span class="text-sm text-gray">#{{ ticket.number }}</span>
-              <span class="rounded-full px-2.5 py-1 text-xs font-bold" :class="stageChip[stage]">
-                {{ $t(studenthubTicketStageLabel[stage]) }}
-              </span>
-            </span>
-          </CommonLink>
+            :ticket="ticket"
+          />
           <button
             v-if="pagination.hasNextPage"
             type="button"

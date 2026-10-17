@@ -48,7 +48,7 @@ const ticketOverview = computed<MenuItem[]>(() => {
     />
     <div class="-mt-7 flex flex-col gap-4.5 px-5 pb-5">
       <CommonLink
-        link="/search"
+        :link="session.hasPermission('ticket.customer') ? '/find' : '/search'"
         class="flex h-14 items-center gap-2.5 rounded-2xl bg-gray-500 px-4 text-base text-gray shadow-[0_6px_18px_rgb(20_35_75/12%)]"
       >
         <CommonIcon name="search" size="small" decorative />

@@ -334,3 +334,17 @@ students and one that writes.
 | Input | Injection | No problem | `:id` goes to Active Record `find`; the search words to Zammad's Elasticsearch query or its SQL fallback with binds (the help center's search, unchanged) | — |
 | Topic IDs | Telling hidden topics from missing ones (403 vs 404) | Accepted | Only the number shows; no title or content | — |
 | Deleting users | Votes blocking or outliving a deleted student | No problem | A `before_destroy` hook deletes the student's votes inside the deletion's transaction; foreign keys cascade for answers and users (spec) | — |
+
+## Mobile app: students' search (17 Oct)
+
+`git diff HEAD`: a search page for students (`pages/studenthub-search/`, a GraphQL query on Zammad's `search`), the
+request chat starting from a request type in its address, the ticket card and the sub-category matching moved to
+shared mobile code, Help article search results named after the words first. Server: only that ordering. Frontend
+otherwise, reading endpoints students already use.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Tickets in the results | Another student's tickets | No problem | Zammad's GraphQL `search` applies the ticket policy for customers on the server; the page also keeps only tickets whose customer is the student (as the Tickets tab), so a shared organisation's tickets do not show | — |
+| Help articles in the results | Drafts or internal answers | No problem | The same published-only endpoint as Help articles; the new ordering only sorts what it found | — |
+| Request type in the chat's address | Starting a request with a made-up category or sub-category | No problem | The chat uses the address only to pick among the wizard's own choices (`studenthubSubCategoryMatch` returns nothing for values not offered); the ticket is still created through Zammad's mutation with the server's checks | — |
+| Search words | Injection | No problem | Sent URL-encoded to the Knowledge Base search endpoint and as a GraphQL variable; shown back as text (`Nothing matches “…”`) through Vue's escaping | — |

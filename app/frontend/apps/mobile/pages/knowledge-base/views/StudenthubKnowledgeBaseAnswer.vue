@@ -13,8 +13,7 @@ import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonLoader from '#mobile/components/CommonLoader/CommonLoader.vue'
 import StudenthubAppHeader from '#mobile/components/layout/StudenthubAppHeader.vue'
-
-import type { KnowledgeBaseAnswer } from '../types.ts'
+import type { KnowledgeBaseAnswer } from '#mobile/entities/knowledge-base/types.ts'
 
 // Student Hub: one help article in the mobile app (design 1 "Topics"): its text and files, "Was
 // this helpful?" for students (StudenthubAnswerFeedback; staff see the counts in the new UI), and

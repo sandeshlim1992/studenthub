@@ -271,3 +271,9 @@ Never put passwords, tokens or keys in this file.
   Student Hub (`studenthub_answer_feedbacks`), as Zammad keeps no such feedback; staff see the counts on the answer in
   the new UI, not who voted. Buttons that stored nothing would be a fake control. Votes go with the student, removed
   before Zammad's own check that refuses to delete a user other records still point at
+- Students' search in the mobile app puts what answers the question first (17 Oct): help articles, then the request
+  types to raise, then their own tickets; a section without matches is hidden, so with no article the request types
+  lead. Request types are always shown when they match, also below articles. Staff keep Zammad's search. Tickets come
+  from Zammad's ticket search (with message text), kept to the student's own as on the Tickets tab. Help article
+  results named after the words come before those that only mention them (Elasticsearch ranks a long answer that
+  mentions a word above a short one named after it)

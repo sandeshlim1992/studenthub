@@ -33,7 +33,7 @@ describe('Student Hub home', () => {
     const view = await visitView('/')
 
     expect(view.getByRole('heading', { name: 'How can we help, Sam?' })).toBeInTheDocument()
-    expect(view.getByRole('link', { name: 'Search…' })).toHaveAttribute('href', '/mobile/search')
+    expect(view.getByRole('link', { name: 'Search…' })).toHaveAttribute('href', '/mobile/find')
 
     const latest = await view.findByRole('link', { name: /Your latest ticket/ })
 

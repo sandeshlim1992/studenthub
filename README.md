@@ -511,7 +511,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     `LoginThirdParty.vue`).
   - Home and Tickets (design C1, with C3's latest ticket): a header in the application colour with the product name,
     Notifications (with the unread count) and the account, then the page's title (`components/layout/`
-    `StudenthubAppHeader.vue`). Home greets the student ("How can we help, Sam?"), then search, their latest ticket
+    `StudenthubAppHeader.vue`). Home greets the student ("How can we help, Sam?"), then search (students: their own
+    search, below; staff: Zammad's), their latest ticket
     with its steps Received, In progress (or Waiting for you) and Resolved (`pages/home/components/`
     `StudenthubLatestTicket.vue`), the admins' **Popular answers** and **Quick links** (below) and **Help articles**
     (the app's own, below, while the Knowledge Base is on); staff keep their favourite overviews below. The bottom
@@ -556,7 +557,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     own, `utils/knowledgeBaseTopicIcon.ts`) and how many answers they hold, counting sub-topics'; only topics with
     published answers show. A topic (`/mobile/knowledge-base/:id`) has the topics above it over its title, its
     sub-topics and its answers. Search covers every published answer once two letters are typed (title, topic and
-    the start of the text). An answer (`/mobile/knowledge-base/answers/:id`) shows its text in a card with its
+    the start of the text), answers named after the words before those that only mention them. An answer (`/mobile/knowledge-base/answers/:id`) shows its text in a card with its
     images and videos (as in the help center), links to other answers opening in the app, its files, **Was this
     helpful?** (students: Yes / No, which they may change) and **Still need help? Raise a request** (the request chat).
     The header has a back button (`StudenthubAppHeader.vue`: `back-link`, `context`). Endpoints (students and staff;
@@ -568,6 +569,16 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     `20261017110000`; one per student and answer) go with the answer and with the student
     (`app/models/studenthub_answer_feedback/user_hook.rb`, `config/initializers/studenthub_answer_feedback.rb`); staff
     see the counts on the answer in the new UI's Knowledge Base page.
+  - **Search for students** (`/mobile/find`, `pages/studenthub-search/`; Home's search box, staff keep Zammad's
+    `/search`): from two letters, what answers the question first. **Help articles** (the Knowledge Base search above,
+    5 shown, "Show all"), then **Raise a request** (sub-categories whose name matches, as the request chat finds them,
+    `entities/ticket/helpers/studenthubSubCategoryMatches.ts`; each opens the request chat with it chosen,
+    `/mobile/tickets/request?category=…&sub_category=…`, so it asks for the campus next), then **Your tickets**
+    (Zammad's ticket search through the query `studenthubTicketSearch.graphql`, title, number and message text; only
+    the student's own, as on the Tickets tab; shown as there, `entities/ticket/components/StudenthubTicketItem.vue`).
+    Sections without matches are hidden, so with no matching article the requests come first; the later sections
+    wait for the articles so nothing moves while the student taps. The words stay in the address (`?search=`), so
+    coming back from a result shows the same results. Nothing at all: "Nothing matches" and Raise a request.
   - **Administration → Manage → Mobile app** (`/manage/mobile-app`, permission `admin.mobile_app`;
     `apps/desktop/pages/manage/views/MobileApp.vue`): what students see on the mobile app's Home.
     - **Quick links:** up to 8 links to other websites (a label and an `https://` or `http://` address), in order,

@@ -1,0 +1,26 @@
+query studenthubTicketSearch($search: String!, $limit: Int = 20) {
+  search(search: $search, onlyIn: Ticket, limit: $limit) {
+    items {
+      __typename
+      ... on Ticket {
+        id
+        internalId
+        number
+        title
+        updatedAt
+        customer {
+          id
+          internalId
+        }
+        state {
+          id
+          name
+          stateType {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+}

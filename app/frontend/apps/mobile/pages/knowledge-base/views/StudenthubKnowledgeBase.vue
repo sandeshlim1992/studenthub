@@ -9,10 +9,12 @@ import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 import CommonLoader from '#mobile/components/CommonLoader/CommonLoader.vue'
 import StudenthubAppHeader from '#mobile/components/layout/StudenthubAppHeader.vue'
+import type {
+  KnowledgeBaseSearchResult,
+  KnowledgeBaseTopic,
+} from '#mobile/entities/knowledge-base/types.ts'
 
 import { knowledgeBaseTopicIcon } from '../utils/knowledgeBaseTopicIcon.ts'
-
-import type { KnowledgeBaseSearchResult, KnowledgeBaseTopic } from '../types.ts'
 
 // Student Hub: Help articles in the mobile app (design 1 "Topics", .dev/DECISIONS.md): the top
 // topics, or one topic with its sub-topics and answers. Searching covers every published answer.

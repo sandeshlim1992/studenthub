@@ -1,7 +1,8 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 // Student Hub: the mobile app's Knowledge Base, as GET /api/v1/studenthub/mobile_app/knowledge_base…
-// sends it (Studenthub::MobileApp::KnowledgeBase). Only what the help center publishes.
+// sends it (Studenthub::MobileApp::KnowledgeBase). Only what the help center publishes. Help
+// articles and the students' search use them.
 
 export interface KnowledgeBaseTopicLink {
   id: number

@@ -131,6 +131,18 @@ describe('Student Hub request chat', () => {
     vi.unstubAllGlobals()
   })
 
+  it('starts with the request type chosen in the search', async () => {
+    mockServer()
+    mockTicketGraphQL()
+
+    const view = await visitView(
+      '/tickets/request?category=Service+Request&sub_category=New+ID+Card',
+    )
+
+    expect(await view.findByText('Which campus are you at?')).toBeInTheDocument()
+    expect(within(conversation(view)).getByText('New ID Card')).toBeInTheDocument()
+  })
+
   it('finds a sub-category by typing and sends the request', async () => {
     mockServer()
     const ticketCreate = mockTicketGraphQL()

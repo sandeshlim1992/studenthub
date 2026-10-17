@@ -104,6 +104,13 @@ RSpec.describe Studenthub::MobileApp::KnowledgeBase, aggregate_failures: true do
       expect(described_class.search(student, 'VPN')).to be_empty
     end
 
+    it 'puts answers named after the words before those that only mention them' do
+      mail = create(:knowledge_base_answer, :published, category: it_accounts, translation_attributes: { title: 'Email on your phone' })
+      mail.translation.content.update!(body: 'Sign in with your college password.')
+
+      expect(described_class.search(student, 'password').pluck(:id)).to eq([password.id, mail.id])
+    end
+
     it 'leaves out drafts and internal answers for staff who edit the Knowledge Base too' do
       expect(described_class.search(create(:admin), 'answer')).to be_empty
     end

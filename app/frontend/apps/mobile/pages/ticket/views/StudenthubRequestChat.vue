@@ -2,25 +2,32 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { useTicketCreateView } from '#shared/entities/ticket/composables/useTicketCreateView.ts'
 import { i18n } from '#shared/i18n.ts'
 import { useSessionStore } from '#shared/stores/session.ts'
 
 import {
+  studenthubSubCategoryMatch,
+  type RequestSearchMatch,
+} from '#mobile/entities/ticket/helpers/studenthubSubCategoryMatches.ts'
+
+import {
   isAnswerValid,
   useStudenthubRequestChat,
   type RequestChatOption,
-  type RequestSearchMatch,
 } from '../composable/useStudenthubRequestChat.ts'
 import { useStudenthubRequestSend } from '../composable/useStudenthubRequestSend.ts'
 
 // Student Hub: New request as a chat (design B with E's search), for students; staff keep
-// Zammad's New ticket form. Every visit starts a new conversation.
+// Zammad's New ticket form. Every visit starts a new conversation; one opened from the students'
+// search with a request type (?category=…&sub_category=…) starts with it chosen.
 
 const FIRST_SUB_CATEGORIES = 6
 const TYPED_INPUTS = ['text', 'longtext', 'number', 'date', 'datetime']
 
+const route = useRoute()
 const session = useSessionStore()
 const { ticketCreateEnabled } = useTicketCreateView()
 const chat = useStudenthubRequestChat(() => session.user?.firstname || undefined)
@@ -39,8 +46,20 @@ const sendError = ref('')
 const sent = ref<{ internalId: number; number: string } | null>(null)
 const fileInput = useTemplateRef<HTMLInputElement>('file-input')
 
-onMounted(() => {
-  if (ticketCreateEnabled.value) chat.load()
+const startFromAddress = () => {
+  const { category, sub_category: subCategory } = route.query
+  if (!chat.metadata.value || typeof category !== 'string' || typeof subCategory !== 'string')
+    return
+
+  const match = studenthubSubCategoryMatch(chat.metadata.value, category, subCategory)
+  if (match) chat.pickMatch(match)
+}
+
+onMounted(async () => {
+  if (!ticketCreateEnabled.value) return
+
+  await chat.load()
+  startFromAddress()
 })
 
 const isSearchStep = computed(

@@ -160,8 +160,9 @@ Never put passwords, tokens or keys in this file.
   still points at them ("Failed deleting references! Check logic for StudenthubManagerSite->user_id", checked 17 Oct
   in a spec). Not fixed yet; the Knowledge Base votes solve the same thing with a `before_destroy` hook
   (`app/models/studenthub_answer_feedback/user_hook.rb`)
-- Dev Elasticsearch (17 Oct): the Knowledge Base answer index had none of the answers in it (indexed by hand on the
-  work PC) and has `index.highlight.max_analyzed_offset` 1000, so any search that asks for highlights fails on an
+- Dev Elasticsearch (17 Oct): the Knowledge Base answer index had none of the answers in it, nor the ticket index
+  student@'s tickets (both indexed by hand on the work PC; `rails searchindex:rebuild` would redo all), and the
+  answer index has `index.highlight.max_analyzed_offset` 1000, so any search that asks for highlights fails on an
   answer longer than 1,000 characters. Student Hub's two Knowledge Base searches no longer ask for them; Zammad's own
   help center and GraphQL Knowledge Base searches still do. Check the test and production servers' setting (the
   Elasticsearch default is 1,000,000)
@@ -253,6 +254,9 @@ Never put passwords, tokens or keys in this file.
   viewport as student@: the topics, a topic, an answer with images, Yes (kept after a reload; one vote stored for
   student@ on answer 2 in the dev DB) and a search ("teams"). Videos, links between answers, files and the staff
   counts on the new UI's answer page only in tests
+- Students' search (17 Oct; README → Mobile app): checked in headless Chromium on a phone viewport as student@:
+  "password" gives Help articles (BNU Login / Reset Password first), Raise a request (Password Reset, which opened
+  the request chat at the campus question) and Your tickets (three of student@'s), in that order
 
 ## Next steps
 

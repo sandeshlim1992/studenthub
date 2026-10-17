@@ -13,20 +13,20 @@ import {
 } from '#shared/types/studenthubRequestForm.ts'
 import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
+import {
+  studenthubSubCategoryMatches,
+  type RequestCategories,
+  type RequestChoice,
+  type RequestSearchMatch,
+} from '#mobile/entities/ticket/helpers/studenthubSubCategoryMatches.ts'
+
 // Student Hub: the conversation of the mobile app's New request (design B, with E's search). The
 // student answers one step at a time: what it is about (a category, or a sub-category found by
 // typing), the sub-category, the campus, then either the questions of the admins' request form for
 // that sub-category or what happened. The choices are the new UI wizard's
 // (/api/v1/studenthub/ticket_wizard_metadata), as is the request form.
 
-export interface RequestChoice {
-  name: string
-  value: string
-}
-
-export interface RequestChatMetadata {
-  categories: RequestChoice[]
-  subcategories_by_category: Record<string, RequestChoice[]>
+export interface RequestChatMetadata extends RequestCategories {
   campuses: RequestChoice[]
 }
 
@@ -70,11 +70,6 @@ export interface RequestChatMessage {
   text: string
   // The step a student's answer belongs to, so it can be changed.
   stepId?: string
-}
-
-export interface RequestSearchMatch {
-  category: RequestChoice
-  subCategory: RequestChoice
 }
 
 const DESCRIPTION_MIN_LENGTH = 10
@@ -357,18 +352,9 @@ export const useStudenthubRequestChat = (firstName: () => string | undefined) =>
   }
 
   const searchMatches = (query: string, inCategory?: string): RequestSearchMatch[] => {
-    const words = query.trim().toLowerCase()
-    if (!words || !metadata.value) return []
+    if (!metadata.value) return []
 
-    const { categories, subcategories_by_category: subsByCategory } = metadata.value
-    return categories
-      .filter((choice) => !inCategory || choice.value === inCategory)
-      .flatMap((choice) =>
-        (subsByCategory[choice.value] ?? [])
-          .filter((sub) => sub.name.toLowerCase().includes(words))
-          .map((sub) => ({ category: choice, subCategory: sub })),
-      )
-      .slice(0, MAX_MATCHES)
+    return studenthubSubCategoryMatches(metadata.value, query, { inCategory, limit: MAX_MATCHES })
   }
 
   // What the ticket is made of, once every step is answered.

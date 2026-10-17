@@ -61,29 +61,41 @@ module Studenthub::MobileApp::KnowledgeBase
     }
   end
 
-  # Zammad's Knowledge Base search without a user: given one, it also finds drafts and internal
-  # answers for staff who edit the Knowledge Base. No highlights, which nothing shows: Elasticsearch
-  # refuses to highlight text longer than the index allows (index.highlight.max_analyzed_offset).
+  # Answers named after the words come before those that only mention them.
   def self.search(user, query)
     knowledge_base = active
     return [] if !knowledge_base || query.blank?
 
+    words     = query.to_s.strip
+    kb_locale = kb_locale(user)
+
+    found_translations(knowledge_base, words)
+      .partition { |translation| translation.title.downcase.include?(words.downcase) }
+      .flatten
+      .first(SEARCH_LIMIT)
+      .map { |translation| search_row(translation, kb_locale) }
+  end
+
+  # Zammad's Knowledge Base search without a user: given one, it also finds drafts and internal
+  # answers for staff who edit the Knowledge Base. No highlights, which nothing shows: Elasticsearch
+  # refuses to highlight text longer than the index allows (index.highlight.max_analyzed_offset).
+  def self.found_translations(knowledge_base, words)
     ids = SearchKnowledgeBaseBackend
       .new(knowledge_base:, flavor: :public, index: KnowledgeBase::Answer::Translation.name, highlight_enabled: false)
-      .search(query.to_s.strip, user: nil)
+      .search(words, user: nil)
       .pluck(:id)
 
     translations = KnowledgeBase::Answer::Translation.where(id: ids).includes(:content, answer: :category).index_by(&:id)
-    kb_locale    = kb_locale(user)
+    ids.filter_map { |id| translations[id] }.uniq(&:answer_id)
+  end
 
-    ids.filter_map { |id| translations[id] }.uniq(&:answer_id).first(SEARCH_LIMIT).map do |translation|
-      {
-        id:      translation.answer_id,
-        title:   translation.title,
-        topic:   title(translation.answer.category, kb_locale),
-        snippet: Service::StudenthubKnowledgeBase::Search.snippet(translation.content&.body.to_s),
-      }
-    end
+  def self.search_row(translation, kb_locale)
+    {
+      id:      translation.answer_id,
+      title:   translation.title,
+      topic:   title(translation.answer.category, kb_locale),
+      snippet: Service::StudenthubKnowledgeBase::Search.snippet(translation.content&.body.to_s),
+    }
   end
 
   # Published answers in each topic, counting its sub-topics'.
@@ -126,5 +138,5 @@ module Studenthub::MobileApp::KnowledgeBase
     ApplicationController.helpers.prepare_rich_text_videos(Loofah.scrub_fragment(html, scrubber).to_s)
   end
 
-  private_class_method :active, :answer_counts, :answers_in, :path, :title, :body
+  private_class_method :active, :found_translations, :search_row, :answer_counts, :answers_in, :path, :title, :body
 end

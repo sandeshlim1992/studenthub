@@ -1,10 +1,17 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-# Student Hub: the student's column on the ticket screen (summary, progress, files, actions).
-# Every action needs read access to the ticket (Zammad's ticket rules); closing, reopening and
-# replying check the ticket rules again in their services.
+# Student Hub: the student's column on the ticket screen (summary, progress, files, actions), and
+# their newest ticket for the mobile app's Home. Every action on a ticket needs read access to it
+# (Zammad's ticket rules); closing, reopening and replying check the ticket rules again in their
+# services. The newest ticket is looked up within the student's own readable tickets.
 class StudenthubCustomerTicketsController < ApplicationController
   prepend_before_action :authenticate_and_authorize!
+
+  # GET /api/v1/studenthub/customer_tickets/latest
+  # The newest ticket the student raised (the mobile app's Home), or nothing.
+  def latest
+    render json: Service::StudenthubCustomerTicket::Latest.with_current_user(current_user).execute
+  end
 
   # GET /api/v1/studenthub/customer_tickets/:id
   def show

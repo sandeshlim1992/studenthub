@@ -348,3 +348,17 @@ otherwise, reading endpoints students already use.
 | Help articles in the results | Drafts or internal answers | No problem | The same published-only endpoint as Help articles; the new ordering only sorts what it found | — |
 | Request type in the chat's address | Starting a request with a made-up category or sub-category | No problem | The chat uses the address only to pick among the wizard's own choices (`studenthubSubCategoryMatch` returns nothing for values not offered); the ticket is still created through Zammad's mutation with the server's checks | — |
 | Search words | Injection | No problem | Sent URL-encoded to the Knowledge Base search endpoint and as a GraphQL variable; shown back as text (`Nothing matches “…”`) through Vue's escaping | — |
+
+## Mobile app: newest ticket on Home, Tickets tab without filter buttons (17 Oct)
+
+`git diff HEAD`: a new endpoint `GET /api/v1/studenthub/customer_tickets/latest` and its service, Home's card
+reading it, the Tickets tab without its All / Open / Waiting for you / Closed buttons and sorting what it loaded.
+Full review of the endpoint (server code that reads tickets for students).
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Whose ticket | Another student's ticket, e.g. in a shared organisation | No problem | Looked up in `TicketPolicy::ReadScope` for the current user (what they may read at all) and then only `customer_id = current user`; spec with a classmate's newer ticket in a shared organisation | — |
+| Who may call | Permissions | No problem | The controller policy is `default_permit!('ticket.customer')`; staff get 403 (spec) | — |
+| What it gives | Data exposure | No problem | ID, number, title, last change and the state's name and type, all shown on the student's own Tickets tab already; no articles, no internal fields | — |
+| Route | `latest` taken as a ticket ID | No problem | The `latest` route comes before `:id` (spec) | — |
+| Input | Injection | No problem | No parameters are read | — |

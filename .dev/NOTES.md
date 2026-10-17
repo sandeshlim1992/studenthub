@@ -98,7 +98,9 @@ Never put passwords, tokens or keys in this file.
   several GraphQL requests together) can leave every request hanging (seen four times on 13 Oct). Fix: kill puma
   (`forego` starts it again), wait until it answers, then open the app. Also without a restart, when the browser tests
   sign in and out many times (`--repeat-each=5`, 14 Oct): a request waited about 60 s in Rails before any app code
-  ran, until the test's browser closed (most likely development code reloading waiting for a live connection)
+  ran, until the test's browser closed (most likely development code reloading waiting for a live connection). Again
+  twice on 17 Oct, each time a mobile page was opened soon after Ruby files had changed (fixed by `kill -9` on puma;
+  a plain `kill` was ignored)
 - A bell notification can outlive its ticket: Zammad's notification job can write it just as the ticket is deleted
   (the browser tests' cleanup did twice, 13 Oct). It shows as "You can no longer see the ticket." (it failed the
   whole bell list in the new UI until 13 Oct); Zammad removes read ones after 8 hours, unread ones after 9 months.

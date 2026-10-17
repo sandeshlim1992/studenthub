@@ -1,7 +1,5 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-import { within } from '@testing-library/vue'
-
 import { visitView } from '#tests/support/components/visitView.ts'
 import { mockGraphQLSubscription } from '#tests/support/mock-graphql-api.ts'
 import { mockPermissions } from '#tests/support/mock-permissions.ts'
@@ -59,32 +57,25 @@ describe('Student Hub Tickets tab', () => {
     expect(ticketTitles(view)).toHaveLength(5)
   })
 
-  it('narrows the list down by where the tickets stand', async () => {
+  it('puts the latest change first, whatever order the My Tickets view gives', async () => {
     mockMyTicketsOverview()
-    mockMyTickets(tickets)
-
-    const view = await visitView('/tickets')
-    await view.findByRole('button', { name: 'All (5)' })
-    const filters = within(view.getByRole('group', { name: 'Show' }))
-
-    expect(filters.getAllByRole('button').map((button) => button.textContent?.trim())).toEqual([
-      'All (5)',
-      'Open (3)',
-      'Waiting for you (1)',
-      'Closed (2)',
+    // A view grouped by state sends them by state first.
+    mockMyTickets([
+      {
+        ...studentTicket(1, 'Older change', '3. In Progress', 'open'),
+        updatedAt: '2026-10-01T10:00:00Z',
+      },
+      {
+        ...studentTicket(2, 'Middle change', '2. Assigned', 'open'),
+        updatedAt: '2026-10-02T10:00:00Z',
+      },
+      { ...studentTicket(3, 'Newest change', '1. New', 'new'), updatedAt: '2026-10-03T10:00:00Z' },
     ])
 
-    await view.events.click(filters.getByRole('button', { name: 'Closed (2)' }))
+    const view = await visitView('/tickets')
+    await view.findByRole('link', { name: /Newest change/ })
 
-    expect(filters.getByRole('button', { name: 'Closed (2)' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
-    expect(ticketTitles(view)).toEqual(['Wi-Fi password reset', 'Library card not scanning'])
-
-    await view.events.click(filters.getByRole('button', { name: 'Waiting for you (1)' }))
-
-    expect(ticketTitles(view)).toEqual(['Moodle login not working'])
+    expect(ticketTitles(view)).toEqual(['Newest change', 'Middle change', 'Older change'])
   })
 
   it('sorts by state, in the order a ticket goes through', async () => {
@@ -92,7 +83,7 @@ describe('Student Hub Tickets tab', () => {
     mockMyTickets(tickets)
 
     const view = await visitView('/tickets')
-    await view.findByRole('button', { name: 'All (5)' })
+    await view.findByRole('link', { name: /Moodle login not working/ })
 
     await view.events.selectOptions(view.getByRole('combobox', { name: 'Sort by' }), 'State')
 

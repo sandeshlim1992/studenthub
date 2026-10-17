@@ -277,3 +277,9 @@ Never put passwords, tokens or keys in this file.
   from Zammad's ticket search (with message text), kept to the student's own as on the Tickets tab. Help article
   results named after the words come before those that only mention them (Elasticsearch ranks a long answer that
   mentions a word above a short one named after it)
+- The mobile Tickets tab has no All / Open / Waiting for you / Closed buttons any more (17 Oct, the user's choice):
+  search and Sort by are enough, and each card already says where the ticket stands. Home's "Your latest ticket"
+  is the newest ticket the student raised, not the one changed last. Zammad's My Tickets view here is grouped by
+  state (an admin's choice, kept for the new UI's list), and its grouping comes before any order asked for, so Home
+  asks a small Student Hub endpoint for the newest (`GET /api/v1/studenthub/customer_tickets/latest`, sorted on the
+  server, correct however many tickets there are) and the Tickets tab sorts the tickets it has loaded itself

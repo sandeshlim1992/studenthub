@@ -8,29 +8,12 @@ import StudenthubAppHeader from '#mobile/components/layout/StudenthubAppHeader.v
 import StudenthubTicketItem from '#mobile/entities/ticket/components/StudenthubTicketItem.vue'
 import { useStudenthubMyTickets } from '#mobile/entities/ticket/composables/useStudenthubMyTickets.ts'
 import {
-  isStudenthubTicketDone,
   studenthubTicketStage,
   type StudenthubTicketStage,
 } from '#mobile/entities/ticket/helpers/studenthubTicketStage.ts'
 
 // Student Hub: the Tickets tab, every ticket the student raised (design C1, .dev/DECISIONS.md),
-// to search and narrow down by where they stand.
-
-type Filter = 'all' | 'open' | 'waiting' | 'closed'
-
-const filterMatches: Record<Filter, (stage: StudenthubTicketStage) => boolean> = {
-  all: () => true,
-  open: (stage) => !isStudenthubTicketDone(stage),
-  waiting: (stage) => stage === 'waiting',
-  closed: isStudenthubTicketDone,
-}
-
-const filterLabels: Record<Filter, string> = {
-  all: __('All'),
-  open: __('Open'),
-  waiting: __('Waiting for you'),
-  closed: __('Closed'),
-}
+// to search and sort.
 
 type Sort = 'latest' | 'state'
 
@@ -40,7 +23,6 @@ const stageOrder: StudenthubTicketStage[] = ['new', 'progress', 'waiting', 'reso
 
 const { hasMyTickets, tickets, loading, pagination } = useStudenthubMyTickets()
 
-const shown = ref<Filter>('all')
 const sort = ref<Sort>('latest')
 const search = ref('')
 
@@ -48,25 +30,17 @@ const ticketsWithStage = computed(() =>
   tickets.value.map((ticket) => ({ ticket, stage: studenthubTicketStage(ticket.state) })),
 )
 
-const filters = computed(() =>
-  (Object.keys(filterLabels) as Filter[]).map((filter) => ({
-    filter,
-    label: filterLabels[filter],
-    count: ticketsWithStage.value.filter(({ stage }) => filterMatches[filter](stage)).length,
-  })),
-)
-
 const visibleTickets = computed(() => {
   const words = search.value.trim().toLowerCase()
 
-  const matching = ticketsWithStage.value.filter(
-    ({ ticket, stage }) =>
-      filterMatches[shown.value](stage) &&
-      `${ticket.title} ${ticket.number}`.toLowerCase().includes(words),
-  )
-  if (sort.value === 'latest') return matching
+  // Sorted here: the My Tickets view may be grouped (by state, say), which comes before the order
+  // the tab asks the server for.
+  const latestFirst = ticketsWithStage.value
+    .filter(({ ticket }) => `${ticket.title} ${ticket.number}`.toLowerCase().includes(words))
+    .toSorted((a, b) => Date.parse(b.ticket.updatedAt) - Date.parse(a.ticket.updatedAt))
+  if (sort.value === 'latest') return latestFirst
 
-  return matching.toSorted((a, b) => stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage))
+  return latestFirst.toSorted((a, b) => stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage))
 })
 </script>
 
@@ -85,19 +59,6 @@ const visibleTickets = computed(() => {
           :placeholder="$t('Search your tickets')"
           :aria-label="$t('Search your tickets')"
         />
-      </div>
-      <div role="group" :aria-label="$t('Show')" class="-mx-5 flex gap-2 overflow-x-auto px-5">
-        <button
-          v-for="{ filter, label, count } in filters"
-          :key="filter"
-          type="button"
-          class="h-9 shrink-0 rounded-full border px-3.5 text-sm font-semibold"
-          :class="shown === filter ? 'border-blue bg-blue' : 'border-gray-300 bg-gray-500'"
-          :aria-pressed="shown === filter"
-          @click="shown = filter"
-        >
-          {{ $t(label) }} ({{ count }})
-        </button>
       </div>
       <label
         for="studenthub-tickets-sort"

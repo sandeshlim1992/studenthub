@@ -3,6 +3,8 @@
 Zammad::Application.routes.draw do
   api_path = Rails.configuration.api_path
 
+  # Before :id, which would take "latest" as an ID.
+  match api_path + '/studenthub/customer_tickets/latest',     to: 'studenthub_customer_tickets#latest', via: :get
   match api_path + '/studenthub/customer_tickets/:id',        to: 'studenthub_customer_tickets#show',   via: :get
   match api_path + '/studenthub/customer_tickets/:id/close',  to: 'studenthub_customer_tickets#close',  via: :post
   match api_path + '/studenthub/customer_tickets/:id/reopen', to: 'studenthub_customer_tickets#reopen', via: :post

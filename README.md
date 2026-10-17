@@ -512,14 +512,16 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
   - Home and Tickets (design C1, with C3's latest ticket): a header in the application colour with the product name,
     Notifications (with the unread count) and the account, then the page's title (`components/layout/`
     `StudenthubAppHeader.vue`). Home greets the student ("How can we help, Sam?"), then search (students: their own
-    search, below; staff: Zammad's), their latest ticket
-    with its steps Received, In progress (or Waiting for you) and Resolved (`pages/home/components/`
+    search, below; staff: Zammad's), their latest ticket (the newest they raised, not the latest changed;
+    `GET /api/v1/studenthub/customer_tickets/latest`, `Service::StudenthubCustomerTicket::Latest`, their own tickets
+    only, not merged ones) with its steps Received, In progress (or Waiting for you) and Resolved (`pages/home/components/`
     `StudenthubLatestTicket.vue`), the admins' **Popular answers** and **Quick links** (below) and **Help articles**
     (the app's own, below, while the Knowledge Base is on); staff keep their favourite overviews below. The bottom
     menu has Home, a raised **New request** button and **Tickets** (`LayoutBottomNavigation.vue`).
   - Tickets tab (`/mobile/tickets`, `pages/ticket/views/StudenthubTickets.vue`): every ticket the student raised, with
-    search (title or number), All / Open / Waiting for you / Closed with counts, and **Sort by** Latest change or
-    State (New, In progress, Waiting for you, Resolved, Closed; latest change first within each). Staff's Tickets opens
+    search (title or number) and **Sort by** Latest change or
+    State (New, In progress, Waiting for you, Resolved, Closed; latest change first within each), sorted in the app,
+    as the My Tickets view may be grouped (by state on the dev server) and its grouping comes first. Staff's Tickets opens
     their overviews. The tickets come from Zammad's "My Tickets" view (customer is the current user), so others'
     tickets in a shared organisation never appear; Student Hub makes it list every state but merged
     (`lib/studenthub/my_tickets_view.rb`, migration `20261016100000`), which also fixes the new UI's student ticket

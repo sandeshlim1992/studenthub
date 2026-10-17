@@ -9,11 +9,26 @@ import { mockUserCurrent } from '#tests/support/mock-userCurrent.ts'
 
 import { OnlineNotificationsCountDocument } from '#shared/entities/online-notification/graphql/subscriptions/onlineNotificationsCount.api.ts'
 
-import {
-  mockMyTickets,
-  mockMyTicketsOverview,
-  studentTicket,
-} from '#mobile/entities/ticket/__tests__/mocks/studenthubMyTickets.ts'
+import { mockMyTicketsOverview } from '#mobile/entities/ticket/__tests__/mocks/studenthubMyTickets.ts'
+
+const latestTicket = (id: number, title: string, state: string, stateType: string) => ({
+  id,
+  number: `8868${id}`,
+  title,
+  updated_at: '2026-10-01T10:00:00Z',
+  state,
+  state_type: stateType,
+})
+
+const mockLatest = (ticket: ReturnType<typeof latestTicket> | null) => {
+  const fetchMock = vi.fn(async (url: string) => {
+    if (url === '/api/v1/studenthub/customer_tickets/latest')
+      return new Response(JSON.stringify(ticket))
+    return new Response('[]')
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
 
 // Student Hub: Home for students (design C1 with C3's latest ticket).
 describe('Student Hub home', () => {
@@ -24,11 +39,14 @@ describe('Student Hub home', () => {
     mockMyTicketsOverview()
   })
 
-  it('greets the student and shows their latest ticket and how far it has come', async () => {
-    mockMyTickets([
-      studentTicket(60, 'Request for New ID Card', '3. In Progress', 'open'),
-      studentTicket(61, 'Wi-Fi password reset', '6. Closed', 'closed'),
-    ])
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('greets the student and shows the newest ticket they raised and how far it has come', async () => {
+    const fetchMock = mockLatest(
+      latestTicket(60, 'Request for New ID Card', '3. In Progress', 'open'),
+    )
 
     const view = await visitView('/')
 
@@ -46,13 +64,14 @@ describe('Student Hub home', () => {
         .map((step) => step.textContent?.trim()),
     ).toEqual(['Received', 'In progress', 'Resolved'])
     expect(within(latest).getByText('In progress')).toHaveAttribute('aria-current', 'step')
-    expect(view.queryByText('Wi-Fi password reset')).not.toBeInTheDocument()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/v1/studenthub/customer_tickets/latest',
+      expect.anything(),
+    )
   })
 
   it('names the step the student is needed at', async () => {
-    mockMyTickets([
-      studentTicket(71, 'Moodle login not working', '4. Awaiting user Response', 'open'),
-    ])
+    mockLatest(latestTicket(71, 'Moodle login not working', '4. Awaiting user Response', 'open'))
 
     const view = await visitView('/')
     const latest = await view.findByRole('link', { name: /Your latest ticket/ })
@@ -61,9 +80,10 @@ describe('Student Hub home', () => {
   })
 
   it('shows no latest ticket to a student without tickets', async () => {
-    mockMyTickets([])
+    mockLatest(null)
 
     const view = await visitView('/')
+    await view.findByRole('link', { name: 'Search…' })
 
     expect(view.queryByRole('link', { name: /Your latest ticket/ })).not.toBeInTheDocument()
     expect(view.queryByText('Ticket overview')).not.toBeInTheDocument()

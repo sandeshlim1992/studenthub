@@ -11,6 +11,54 @@ RSpec.describe 'Student Hub customer ticket column', :aggregate_failures, type: 
     get "/api/v1/studenthub/customer_tickets/#{ticket.id}", as: :json
   end
 
+  describe 'GET /api/v1/studenthub/customer_tickets/latest', authenticated_as: :customer do
+    let(:organization) { create(:organization, shared: true) }
+    let(:customer)     { create(:customer, organization:) }
+
+    it 'gives the newest ticket the student raised, whatever its state and last change' do
+      newest = travel_to(1.hour.from_now) { create(:ticket, customer:, state_name: 'new', title: 'SMS access') }
+      ticket.update!(title: 'Laptop will not start (changed later)')
+      travel_to(2.hours.from_now) { create(:ticket, customer: create(:customer, organization:), title: 'A classmate’s ticket') }
+
+      get '/api/v1/studenthub/customer_tickets/latest', as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(json_response).to include(
+        'id'         => newest.id,
+        'number'     => newest.number,
+        'title'      => 'SMS access',
+        'state'      => 'new',
+        'state_type' => 'new',
+      )
+    end
+
+    it 'leaves out merged tickets' do
+      ticket
+      travel_to(1.hour.from_now) { create(:ticket, customer:, state_name: 'merged') }
+
+      get '/api/v1/studenthub/customer_tickets/latest', as: :json
+
+      expect(json_response['id']).to eq(ticket.id)
+    end
+
+    it 'gives nothing to a student without tickets' do
+      get '/api/v1/studenthub/customer_tickets/latest', as: :json
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to eq('null')
+    end
+
+    context 'with staff', authenticated_as: :agent do
+      let(:agent) { create(:agent) }
+
+      it 'refuses' do
+        get '/api/v1/studenthub/customer_tickets/latest', as: :json
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
+
   describe 'GET /api/v1/studenthub/customer_tickets/:id', authenticated_as: :customer do
     let(:agent_article)    { create(:ticket_article, ticket:, sender_name: 'Agent', internal: false) }
     let(:internal_article) { create(:ticket_article, ticket:, sender_name: 'Agent', internal: true) }

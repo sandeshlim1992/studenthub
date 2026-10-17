@@ -10,9 +10,10 @@ import { edgesToArray } from '#shared/utils/helpers.ts'
 import { useTicketOverviewsStore } from '#mobile/entities/ticket/stores/ticketOverviews.ts'
 import { useTicketsByOverviewSlimQuery } from '#mobile/pages/ticket/graphql/queries/ticketsByOverviewSlim.api.ts'
 
-// Student Hub: the student's own tickets, latest change first, for Home's latest ticket and the
-// Tickets tab. They come from Zammad's "My Tickets" view, whose condition is "the customer is
-// the current user", so tickets of others in a shared organisation never come back.
+// Student Hub: the student's own tickets for the Tickets tab. They come from Zammad's "My Tickets"
+// view, whose condition is "the customer is the current user", so tickets of others in a shared
+// organisation never come back. The view may be grouped (by state, say), which comes before the
+// order asked for here, so the tab sorts what it has loaded itself.
 
 const MY_TICKETS = 'my_tickets'
 const PAGE_SIZE = 50
@@ -23,8 +24,7 @@ export const useStudenthubMyTickets = () => {
     overviews.overviews.find((overview) => overview.link === MY_TICKETS),
   )
 
-  // Home and the Tickets tab share one cache entry (the page size is not part of its key), so
-  // each fetches as well, or the tab would show what Home left there.
+  // Fetches each time as well, so the tab shows changes made since it was last open.
   const ticketsQuery = new QueryHandler(
     useTicketsByOverviewSlimQuery(
       () => ({

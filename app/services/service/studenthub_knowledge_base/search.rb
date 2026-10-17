@@ -29,7 +29,7 @@ class Service::StudenthubKnowledgeBase::Search < Service::Base
 
   def translations(knowledge_base)
     ids = SearchKnowledgeBaseBackend
-      .new(knowledge_base:, flavor: :agent, index: KnowledgeBase::Answer::Translation.name, order_by: { updated_at: :desc })
+      .new(knowledge_base:, flavor: :agent, index: KnowledgeBase::Answer::Translation.name, order_by: { updated_at: :desc }, highlight_enabled: false)
       .search(query, user:)
       .pluck(:id)
 

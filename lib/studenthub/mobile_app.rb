@@ -1,19 +1,23 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 # Student Hub: what admins set for the students' mobile app under Administration → Manage →
-# Mobile app. For now the quick links on its home screen: links to other websites, each a label
-# and an http(s) address, in the admins' order. Only signed-in users get them.
+# Mobile app, both on its home screen and only for signed-in users: the quick links (links to
+# other websites, each a label and an http(s) address) and the popular answers (Knowledge Base
+# answers published in the help center, see PopularAnswers), in the admins' order.
 module Studenthub::MobileApp
-  PERMISSION  = 'admin.mobile_app'.freeze
-  QUICK_LINKS = 'studenthub_mobile_quick_links'.freeze
+  PERMISSION      = 'admin.mobile_app'.freeze
+  QUICK_LINKS     = 'studenthub_mobile_quick_links'.freeze
+  POPULAR_ANSWERS = 'studenthub_mobile_popular_answers'.freeze
 
-  # The new UI's admin page and the mobile app use the same limits (studenthubQuickLinks.ts).
-  MAX_QUICK_LINKS  = 8
-  MAX_LABEL_LENGTH = 40
-  MAX_URL_LENGTH   = 500
+  # The new UI's admin page and the mobile app use the same limits (studenthubQuickLinks.ts,
+  # MobileAppPopularAnswers.vue).
+  MAX_QUICK_LINKS     = 8
+  MAX_LABEL_LENGTH    = 40
+  MAX_URL_LENGTH      = 500
+  MAX_POPULAR_ANSWERS = 5
 
-  # Creates the permission and the quick links setting (no links). Idempotent; used by the
-  # 20261016110000 migration and Studenthub::Setup.ensure_all!.
+  # Creates the permission and the two settings (empty). Idempotent; used by the 20261016110000 and
+  # 20261017100000 migrations and Studenthub::Setup.ensure_all!.
   def self.ensure!
     Permission.create_if_not_exists(
       name:        PERMISSION,
@@ -36,9 +40,26 @@ module Studenthub::MobileApp
       },
       frontend:    true
     )
+    # Not sent with the app config: the mobile app asks for the chosen answers that are still
+    # published (GET /api/v1/studenthub/mobile_app/popular_answers).
+    Setting.create_if_not_exists(
+      title:       __('Mobile app popular answers'),
+      name:        POPULAR_ANSWERS,
+      area:        'Studenthub::MobileApp',
+      description: __('Knowledge Base answers on the home screen of the mobile app.'),
+      options:     {},
+      state:       [],
+      preferences: {
+        permission:  [PERMISSION],
+        validations: ['Setting::Validation::StudenthubMobilePopularAnswers'],
+        hidden:      true,
+      },
+      frontend:    false
+    )
   end
 
   def self.remove!
+    Setting.find_by(name: POPULAR_ANSWERS)&.destroy
     Setting.find_by(name: QUICK_LINKS)&.destroy
     Permission.find_by(name: PERMISSION)&.destroy
   end

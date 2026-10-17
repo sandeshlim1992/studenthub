@@ -20,9 +20,12 @@ import {
 import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import LayoutContent from '#desktop/components/layout/LayoutContent.vue'
 
-// Student Hub: Administration → Manage → Mobile app (Studenthub::MobileApp). For now the quick
-// links on the mobile app's Home, a label and a web address each, in this order. Saved as the
-// setting "studenthub_mobile_quick_links" through Zammad's settings API, which checks them again.
+import MobileAppPopularAnswers from '../components/MobileApp/MobileAppPopularAnswers.vue'
+
+// Student Hub: Administration → Manage → Mobile app (Studenthub::MobileApp): what the mobile app's
+// Home shows. The quick links, a label and a web address each, in this order, are saved as the
+// setting "studenthub_mobile_quick_links" through Zammad's settings API, which checks them again;
+// the popular answers have their own section.
 
 interface SettingRecord {
   id: number
@@ -252,6 +255,8 @@ const labelClass = 'flex min-w-48 flex-1 flex-col gap-1 text-sm font-semibold te
           </CommonButton>
         </div>
       </section>
+
+      <MobileAppPopularAnswers v-if="!loadError" />
     </div>
   </LayoutContent>
 </template>

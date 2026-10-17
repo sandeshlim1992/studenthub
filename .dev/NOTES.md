@@ -238,8 +238,6 @@ Never put passwords, tokens or keys in this file.
 
 ## Next steps
 
-- [ ] Mobile Home (16 Oct): decide where students' topics and "Popular answers" come from (Student Hub's Knowledge
-      Base API is staff-only; Home links to the help center and the admins' quick links for now)
 - [ ] Test and production servers: the next deploy runs the 20261016100000 migration ("My Tickets" lists every state
       but merged); check that a student sees their In Progress and Resolved tickets, and whether an admin had changed
       that view there

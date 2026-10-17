@@ -11,14 +11,15 @@ import StudenthubAppHeader from '#mobile/components/layout/StudenthubAppHeader.v
 import { useTicketOverviews } from '#mobile/entities/ticket/composables/useTicketOverviews.ts'
 
 import StudenthubLatestTicket from '../components/StudenthubLatestTicket.vue'
+import StudenthubPopularAnswers from '../components/StudenthubPopularAnswers.vue'
 import StudenthubQuickLinks from '../components/StudenthubQuickLinks.vue'
 
 const session = useSessionStore()
 
 // Student Hub: Home is design C1 for students: the coloured header, search, their latest
-// ticket, the admins' quick links and the help articles. New request and Tickets are in the
-// bottom menu. Staff, who only reach the mobile app on a computer, keep their favourite
-// overviews below.
+// ticket, the admins' popular answers and quick links, and the help articles. New request and
+// Tickets are in the bottom menu. Staff, who only reach the mobile app on a computer, keep their
+// favourite overviews below.
 
 const overviews = useTicketOverviews()
 
@@ -54,6 +55,7 @@ const ticketOverview = computed<MenuItem[]>(() => {
         {{ $t('Search…') }}
       </CommonLink>
       <StudenthubLatestTicket />
+      <StudenthubPopularAnswers />
       <StudenthubQuickLinks />
       <CommonLink
         v-if="$c.kb_active"

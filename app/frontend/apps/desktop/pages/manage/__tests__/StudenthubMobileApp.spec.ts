@@ -46,7 +46,10 @@ const renderPage = () =>
   renderComponent(MobileApp, {
     router: true,
     store: true,
-    global: { stubs: { LayoutContent: { template: '<div><slot /></div>' } } },
+    // The popular answers section has its own spec (MobileAppPopularAnswers.spec.ts).
+    global: {
+      stubs: { LayoutContent: { template: '<div><slot /></div>' }, MobileAppPopularAnswers: true },
+    },
   })
 
 const rows = (view: ReturnType<typeof renderPage>) =>

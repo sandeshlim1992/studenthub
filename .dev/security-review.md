@@ -282,3 +282,19 @@ permissions.
 | Closed requests the team doesn't reopen | Reopening through the chat box | No problem | Resolved and closed requests go through `Reopen`, which refuses merged tickets and groups with "new ticket" follow-ups (spec "refuses", no message added) | — |
 | CSRF | A third-party page posting a message as the student | No problem | Zammad's session check for JSON requests needs `X-CSRF-Token`; `studenthubApi` sends it (unchanged code, only moved) | — |
 | Message flood | Many messages in a row | Not addressed | Same as Zammad's own customer form (no limit per ticket); the box is disabled while a message is sending | — |
+
+## Mobile app: Popular answers chosen by admins (17 Oct)
+
+`git diff HEAD`: a second Mobile app setting (`studenthub_mobile_popular_answers`, Knowledge Base answer IDs) and its
+validation, two endpoints (`GET /api/v1/studenthub/mobile_app/answer_choices`, `…/popular_answers`) with their
+policy, a migration, the admin page's section and the list on the mobile app's Home, specs, docs. Full review: new
+endpoints that read the Knowledge Base, where internal answers must never reach students.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Internal answers and drafts | Could a student see a staff-only answer or its title? | No problem | Both endpoints read only `KnowledgeBase::Answer.published` in the active Knowledge Base (published is what the help center shows anyone); the setting accepts only published IDs, and Home asks again each time, so an answer made internal later drops off (specs cover internal, draft, archived and unpublished-after-choosing) | — |
+| Who may list the answers to choose from | Permissions | No problem | `answer_choices` needs `admin.mobile_app` (agents and students get 403, spec); it lists published answers only | — |
+| Who may read Home's answers | Permissions | No problem | `popular_answers` needs `ticket.customer` or `ticket.agent`; signed out gets 403. It gives the title and the help center path, both public | — |
+| Who may change the setting | Permissions | No problem | Zammad's settings API with the setting's `admin.mobile_app` (spec: an admin saves published, an internal answer is refused with 422) | — |
+| Links on Home | Open redirect, script in links | No problem | The paths are built by the server with Rails' route helper (`/help/<locale>/<category>/<answer>`) from the records, never from input; the app binds them as `href`, titles as text | — |
+| Input | Injection | No problem | No parameters are read; the IDs come from the setting and go to Active Record `where(id:)` | — |

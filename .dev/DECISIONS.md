@@ -249,3 +249,8 @@ Never put passwords, tokens or keys in this file.
   message to a resolved or closed request reopens it with the same rules as the new UI's "Still not fixed? Reopen".
   "Yes" on a closed request with no rating waiting is not saved, so the card asks again next time. `studenthubApi` and
   the student ticket types moved to `app/frontend/shared/utils/`, as the two apps may not import each other's files
+- The mobile app's Home lists **Popular answers** chosen by admins under Manage → Mobile app (17 Oct), in place of
+  design C1's topics and answers. Only answers published in the help center can be chosen or shown, as students read
+  the help center and Student Hub's Knowledge Base API is for staff; the choice is stored as answer IDs and Home asks
+  the server for those still published, so an answer made internal later never reaches students. Each opens its
+  help center page in the same tab (quick links, other websites, open a new one)

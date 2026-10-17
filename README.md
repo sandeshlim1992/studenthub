@@ -513,8 +513,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     Notifications (with the unread count) and the account, then the page's title (`components/layout/`
     `StudenthubAppHeader.vue`). Home greets the student ("How can we help, Sam?"), then search, their latest ticket
     with its steps Received, In progress (or Waiting for you) and Resolved (`pages/home/components/`
-    `StudenthubLatestTicket.vue`), the admins' **Quick links** (below) and **Help articles** (the help center,
-    `/help`, while the Knowledge Base is on); staff keep their favourite overviews below. The bottom menu has Home, a
+    `StudenthubLatestTicket.vue`), the admins' **Popular answers** and **Quick links** (below) and **Help articles**
+    (the help center, `/help`, while the Knowledge Base is on); staff keep their favourite overviews below. The bottom menu has Home, a
     raised **New request** button and **Tickets** (`LayoutBottomNavigation.vue`).
   - Tickets tab (`/mobile/tickets`, `pages/ticket/views/StudenthubTickets.vue`): every ticket the student raised, with
     search (title or number), All / Open / Waiting for you / Closed with counts, and **Sort by** Latest change or
@@ -538,13 +538,23 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     (`GET /api/v1/studenthub/customer_tickets/:id`; `studenthubApi` and the types are in `app/frontend/shared/utils/`).
     Staff keep Zammad's ticket screen.
   - **Administration → Manage → Mobile app** (`/manage/mobile-app`, permission `admin.mobile_app`;
-    `apps/desktop/pages/manage/views/MobileApp.vue`): what students see in the mobile app. For now **Quick links**:
-    up to 8 links to other websites (a label and an `https://` or `http://` address), in order, shown on Home as
-    cards with the site's name that open in a new tab (`pages/home/components/StudenthubQuickLinks.vue`). Setting
-    `studenthub_mobile_quick_links`, sent only to signed-in users; the server refuses anything but a list of labels
-    (at most 40 characters) and web addresses (`lib/studenthub/mobile_app.rb`,
-    `app/models/setting/validation/studenthub_mobile_quick_links.rb`, migration `20261016110000`,
-    `app/frontend/shared/utils/studenthubQuickLinks.ts`).
+    `apps/desktop/pages/manage/views/MobileApp.vue`): what students see on the mobile app's Home.
+    - **Quick links:** up to 8 links to other websites (a label and an `https://` or `http://` address), in order,
+      shown on Home as cards with the site's name that open in a new tab (`pages/home/components/`
+      `StudenthubQuickLinks.vue`). Setting `studenthub_mobile_quick_links`, sent only to signed-in users; the server
+      refuses anything but a list of labels (at most 40 characters) and web addresses (`lib/studenthub/mobile_app.rb`,
+      `app/models/setting/validation/studenthub_mobile_quick_links.rb`, migration `20261016110000`,
+      `app/frontend/shared/utils/studenthubQuickLinks.ts`).
+    - **Popular answers:** up to 5 Knowledge Base answers, in order, found by searching the answers published in the
+      help center (`manage/components/MobileApp/MobileAppPopularAnswers.vue`); Home lists their titles (in the
+      student's language where the answer has one), each opening its help center page
+      (`pages/home/components/StudenthubPopularAnswers.vue`). Internal answers and drafts are never offered or shown,
+      and an answer that stops being published drops off Home (the admin page says so; saving takes it off). Setting
+      `studenthub_mobile_popular_answers` (answer IDs; the server accepts only published ones), not sent with the app
+      config: `GET /api/v1/studenthub/mobile_app/answer_choices` (permission `admin.mobile_app`) and
+      `…/popular_answers` (students and staff) (`lib/studenthub/mobile_app/popular_answers.rb`,
+      `app/controllers/studenthub_mobile_app_controller.rb`,
+      `app/models/setting/validation/studenthub_mobile_popular_answers.rb`, migration `20261017100000`).
   - Who gets it (`app/frontend/shared/utils/studenthubAppSwitch.ts`, used in both apps' `main.ts` and the mobile
     router guard `studenthubStaffToDesktop.ts`): the mobile app is for students on a phone. A phone opening the new
     UI's home, sign-in page or a ticket goes to the same page in the mobile app (a ticket also after signing in);

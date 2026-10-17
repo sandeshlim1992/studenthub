@@ -5,6 +5,11 @@ import { computed, useId } from 'vue'
 
 import Form from '#shared/components/Form/Form.vue'
 import { useForm } from '#shared/components/Form/useForm.ts'
+import {
+  requestFormItems,
+  type StudenthubRequestFormDefinition,
+  type StudenthubRequestFormResult,
+} from '#shared/types/studenthubRequestForm.ts'
 
 import {
   HEADING_CLASS,
@@ -12,11 +17,6 @@ import {
   requestFormSchema,
   splitRequestFormValues,
 } from './requestFormSchema.ts'
-import {
-  requestFormItems,
-  type StudenthubRequestFormDefinition,
-  type StudenthubRequestFormResult,
-} from './types.ts'
 
 // Student Hub: a request form's part of the student wizard's Details step: its heading, help text,
 // what the page puts in the default slot (the ticket's Subject) and its items in order (the ticket fields it asks for, drawn by Zammad's own form fields, with

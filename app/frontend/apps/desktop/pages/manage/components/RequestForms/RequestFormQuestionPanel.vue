@@ -3,11 +3,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import type {
   StudenthubRequestFormQuestion,
   StudenthubRequestFormQuestionKind,
-} from '#desktop/components/StudenthubRequestForm/types.ts'
+} from '#shared/types/studenthubRequestForm.ts'
+
+import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 
 import { QUESTION_KIND_LABELS } from './types.ts'
 

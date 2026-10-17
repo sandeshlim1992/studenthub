@@ -2,7 +2,6 @@
 
 import type { FormSchemaNode, FormValues } from '#shared/components/Form/types.ts'
 import { EnumObjectManagerObjects } from '#shared/graphql/types.ts'
-
 import {
   QUESTION_FIELD_PREFIX,
   requestFormItems,
@@ -11,7 +10,7 @@ import {
   type StudenthubRequestFormQuestionKind,
   type StudenthubRequestFormResult,
   type StudenthubRequestFormWidth,
-} from './types.ts'
+} from '#shared/types/studenthubRequestForm.ts'
 
 export const HEADING_CLASS = 'col-span-full mt-2 text-sm font-semibold text-slate-900'
 export const NOTE_CLASS = 'col-span-full text-sm leading-relaxed whitespace-pre-line text-slate-600'

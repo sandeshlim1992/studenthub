@@ -1,6 +1,7 @@
 // Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
-// Student Hub: a request form as the person raising a ticket gets it (see StudenthubRequestFormSection).
+// Student Hub: a request form as the person raising a ticket gets it (the new UI's
+// StudenthubRequestFormSection, the mobile app's request chat).
 
 export interface StudenthubRequestFormField {
   name: string
@@ -64,9 +65,15 @@ export interface StudenthubRequestFormResult {
 export const QUESTION_FIELD_PREFIX = 'studenthub_question__'
 
 // The form's items; a form from before items has only its fields.
-export const requestFormItems = (form: StudenthubRequestFormDefinition): StudenthubRequestFormItem[] =>
+export const requestFormItems = (
+  form: StudenthubRequestFormDefinition,
+): StudenthubRequestFormItem[] =>
   form.items ?? form.fields.map((field) => ({ type: 'field', ...field }))
 
 // The Zammad fields of a list of items, as the definition's `fields`.
-export const requestFormFields = (items: StudenthubRequestFormItem[]): StudenthubRequestFormField[] =>
-  items.flatMap((item) => (item.type === 'field' ? [{ name: item.name, required: item.required }] : []))
+export const requestFormFields = (
+  items: StudenthubRequestFormItem[],
+): StudenthubRequestFormField[] =>
+  items.flatMap((item) =>
+    item.type === 'field' ? [{ name: item.name, required: item.required }] : [],
+  )

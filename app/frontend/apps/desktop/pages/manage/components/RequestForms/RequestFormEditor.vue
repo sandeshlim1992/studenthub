@@ -3,12 +3,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
-import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 import {
   requestFormFields,
   type StudenthubRequestFormItem,
   type StudenthubRequestFormQuestion,
-} from '#desktop/components/StudenthubRequestForm/types.ts'
+} from '#shared/types/studenthubRequestForm.ts'
+
+import CommonButton from '#desktop/components/CommonButton/CommonButton.vue'
 
 import RequestFormQuestionPanel from './RequestFormQuestionPanel.vue'
 import {

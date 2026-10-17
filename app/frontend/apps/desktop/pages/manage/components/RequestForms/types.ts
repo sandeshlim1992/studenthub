@@ -4,7 +4,7 @@ import type {
   StudenthubRequestFormField,
   StudenthubRequestFormItem,
   StudenthubRequestFormQuestionKind,
-} from '#desktop/components/StudenthubRequestForm/types.ts'
+} from '#shared/types/studenthubRequestForm.ts'
 
 // Student Hub: request forms (Administration → Request forms), as the
 // /api/v1/studenthub/request_forms endpoints send them.

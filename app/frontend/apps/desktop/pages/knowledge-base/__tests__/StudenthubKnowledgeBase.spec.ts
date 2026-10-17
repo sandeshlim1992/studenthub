@@ -67,6 +67,7 @@ const answer = (state: KnowledgeBaseAnswerDetail['state'] = 'internal', editable
   ],
   attachments: [{ id: 99, filename: 'eduroam.pdf', size: 204800, content_type: 'application/pdf' }],
   tags: ['wifi'],
+  feedback: { helpful: 3, not_helpful: 1 },
   internal_at: '2026-10-05T10:00:00Z',
   published_at: null,
   archived_at: null,
@@ -209,6 +210,7 @@ describe('Student Hub Knowledge Base page', () => {
     expect(article).toHaveTextContent('Internal')
     expect(view.getByRole('link', { name: 'eduroam.pdf' })).toHaveAttribute('href', '/api/v1/attachments/99?disposition=attachment')
     expect(article).toHaveTextContent('wifi')
+    expect(article).toHaveTextContent('Helpful to students: 3 yes, 1 no')
 
     await view.events.click(view.getByRole('button', { name: 'Publish' }))
 

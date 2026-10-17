@@ -81,6 +81,8 @@ export interface KnowledgeBaseAnswerDetail {
   translations: KnowledgeBaseAnswerTranslation[]
   attachments: KnowledgeBaseAttachment[]
   tags: string[]
+  // Students' answers to "Was this helpful?" in the mobile app.
+  feedback: { helpful: number; not_helpful: number }
   internal_at: string | null
   published_at: string | null
   archived_at: string | null

@@ -145,6 +145,9 @@ const fileSize = (bytes: number) =>
             <CommonDateTime :date-time="translation.updated_at" type="relative" />
             <span v-if="translation.updated_by">{{ $t('by %s', translation.updated_by) }}</span>
           </p>
+          <p v-if="answer.feedback.helpful || answer.feedback.not_helpful" class="text-sm text-[var(--sh-muted)]">
+            {{ $t('Helpful to students: %s yes, %s no', answer.feedback.helpful, answer.feedback.not_helpful) }}
+          </p>
         </div>
         <div v-if="answer.editable" class="flex flex-wrap gap-2">
           <CommonButton

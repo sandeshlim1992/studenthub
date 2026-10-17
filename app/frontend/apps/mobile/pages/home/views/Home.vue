@@ -59,8 +59,7 @@ const ticketOverview = computed<MenuItem[]>(() => {
       <StudenthubQuickLinks />
       <CommonLink
         v-if="$c.kb_active"
-        link="/help"
-        external
+        link="/knowledge-base"
         class="flex items-center gap-3 rounded-2xl bg-gray-500 px-4 py-3.5"
       >
         <CommonIcon name="book" size="small" class="text-blue" decorative />

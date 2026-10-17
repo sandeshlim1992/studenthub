@@ -1,7 +1,7 @@
 # Copyright (C) 2012-2026 Zammad Foundation, https://zammad-foundation.org/
 
 # Student Hub: one Knowledge Base answer for the new UI, with its text in each language, its
-# attachments and tags, and whether the user may edit it. The caller checks that the user may see
+# attachments and tags, how students voted on it in the mobile app, and whether the user may edit it. The caller checks that the user may see
 # it (KnowledgeBase::AnswerPolicy#show?).
 class Service::StudenthubKnowledgeBase::AnswerDetail < Service::Base
   attr_reader :user, :answer
@@ -23,6 +23,7 @@ class Service::StudenthubKnowledgeBase::AnswerDetail < Service::Base
       translations:      answer.translations.includes(:content).map { |translation| translation_row(translation) },
       attachments:       answer.attachments.map { |file| attachment_row(file) },
       tags:              answer.tag_list,
+      feedback:          StudenthubAnswerFeedback.counts(answer),
       updated_at:        answer.updated_at,
       **publishing_times,
     }

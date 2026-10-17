@@ -312,3 +312,25 @@ ticket create mutation, files through Zammad's upload cache.
 | Request form answers and fields | Bypassing the form's checks | No problem | Sent as the new UI's wizard sends them; the server cleans the answers (`Questions.clean_answers`), refuses missing required ones and checks the fields through the core workflow | — |
 | Files | Uploads | No problem | Zammad's own upload cache mutations with the chat's form ID, the same checks as Zammad's file field | — |
 | Search and choices | Data exposure | No problem | Read from the new UI wizard's endpoints, which students already use; the search runs in the browser on that list | — |
+
+## Mobile app: Help articles and "Was this helpful?" (17 Oct)
+
+`git diff HEAD`: the mobile app's Knowledge Base (five endpoints on `StudenthubMobileAppController` with their policy,
+`lib/studenthub/mobile_app/knowledge_base.rb`), the votes table, model and user-deletion hook, the vote counts on
+the new UI's answer page, Home's Popular answers without the help center path, the two Knowledge Base searches
+without highlights, the mobile pages, specs, docs. Full review: new endpoints that read the Knowledge Base for
+students and one that writes.
+
+| Finding | Problem | Verdict | Why | Commit |
+|---|---|---|---|---|
+| Internal answers and drafts | Could a student read a staff-only answer, its title or its topic? | No problem | Answers are found only in `KnowledgeBase::Answer.published` of the active Knowledge Base (else 404), then `authorize!(answer, :show?)`; topics and their counts come only from published answers, so a topic without them is never listed and its page is refused (`authorize!(category, :show_public?)`, then 404). Specs: internal answer 404 even for an admin, topic without published answers 403 / 404, Knowledge Base off 404 | — |
+| Search | Drafts and internal answers in results | No problem | Zammad's Knowledge Base search returns them to Knowledge Base editors even in its public flavour, so it is called without a user (published only); spec with an admin | — |
+| Who may call | Permissions | No problem | Reading: `ticket.customer` or `ticket.agent` (signed out 403); voting: `ticket.customer` only (agent 403). Specs | — |
+| Votes | Voting as someone else, on a hidden answer, or with odd values | No problem | The voter is always `current_user`; the answer must be published (404 else); `helpful` must be JSON `true` or `false` (422 else, spec with "yes"); one row per student and answer (unique index), changing it updates the row. Staff see only counts, not who voted | — |
+| CSRF | A third-party page voting as the student | No problem | Zammad's session check for JSON requests needs `X-CSRF-Token`; `studenthubApi` sends it | — |
+| Answer text | Script in the answer shown in the app | No problem | Shown with `v-html` like the new UI's Knowledge Base page and the help center: Zammad cleans the HTML when it is saved (HasRichText). Links to other answers get a fixed `/mobile/knowledge-base/answers/<id>` path from the database, never from the text | — |
+| Video widgets | Attribute injection through `( widget: video, … id: … )` | Low, not fixed (Zammad's code; the user decides) | Zammad's `prepare_rich_text_videos` puts the editor's video `id` into the iframe's `id` and `src` without escaping, in the help center as in the app now. The CSP allows no inline script (`script-src 'self' 'unsafe-eval'`) and frames only from YouTube, Vimeo and admins' video servers, and only Knowledge Base editors (staff) write answers. Possible fix: escape `id`, `provider` and the URL in `KnowledgeBaseRichTextHelper` (a Zammad file, marked `Student Hub:`) | — |
+| Files and images | Attachments of hidden answers | No problem | Downloaded through Zammad's attachments controller, which checks `KnowledgeBase::AnswerPolicy#show?` (published for students) | — |
+| Input | Injection | No problem | `:id` goes to Active Record `find`; the search words to Zammad's Elasticsearch query or its SQL fallback with binds (the help center's search, unchanged) | — |
+| Topic IDs | Telling hidden topics from missing ones (403 vs 404) | Accepted | Only the number shows; no title or content | — |
+| Deleting users | Votes blocking or outliving a deleted student | No problem | A `before_destroy` hook deletes the student's votes inside the deletion's transaction; foreign keys cascade for answers and users (spec) | — |

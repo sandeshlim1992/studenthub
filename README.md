@@ -514,8 +514,8 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     `StudenthubAppHeader.vue`). Home greets the student ("How can we help, Sam?"), then search, their latest ticket
     with its steps Received, In progress (or Waiting for you) and Resolved (`pages/home/components/`
     `StudenthubLatestTicket.vue`), the admins' **Popular answers** and **Quick links** (below) and **Help articles**
-    (the help center, `/help`, while the Knowledge Base is on); staff keep their favourite overviews below. The bottom menu has Home, a
-    raised **New request** button and **Tickets** (`LayoutBottomNavigation.vue`).
+    (the app's own, below, while the Knowledge Base is on); staff keep their favourite overviews below. The bottom
+    menu has Home, a raised **New request** button and **Tickets** (`LayoutBottomNavigation.vue`).
   - Tickets tab (`/mobile/tickets`, `pages/ticket/views/StudenthubTickets.vue`): every ticket the student raised, with
     search (title or number), All / Open / Waiting for you / Closed with counts, and **Sort by** Latest change or
     State (New, In progress, Waiting for you, Resolved, Closed; latest change first within each). Staff's Tickets opens
@@ -550,6 +550,24 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
     share `pages/ticket/composable/useStudenthubCustomerTicket.ts`, which reads the new UI's student column endpoint
     (`GET /api/v1/studenthub/customer_tickets/:id`; `studenthubApi` and the types are in `app/frontend/shared/utils/`).
     Staff keep Zammad's ticket screen.
+  - **Help articles** (the Knowledge Base, design 1 "Topics"; `/mobile/knowledge-base`, `pages/knowledge-base/`):
+    only what the help center publishes, in the student's language where it has one (else the Knowledge Base's main
+    one). The start page has search and the topics as tiles with their icon (the help center's icons as the app's
+    own, `utils/knowledgeBaseTopicIcon.ts`) and how many answers they hold, counting sub-topics'; only topics with
+    published answers show. A topic (`/mobile/knowledge-base/:id`) has the topics above it over its title, its
+    sub-topics and its answers. Search covers every published answer once two letters are typed (title, topic and
+    the start of the text). An answer (`/mobile/knowledge-base/answers/:id`) shows its text in a card with its
+    images and videos (as in the help center), links to other answers opening in the app, its files, **Was this
+    helpful?** (students: Yes / No, which they may change) and **Still need help? Raise a request** (the request chat).
+    The header has a back button (`StudenthubAppHeader.vue`: `back-link`, `context`). Endpoints (students and staff;
+    votes students only): `GET /api/v1/studenthub/mobile_app/knowledge_base`, `…/knowledge_base/categories/:id`,
+    `…/knowledge_base/answers/:id`, `…/knowledge_base/search?query=` and `PUT …/answers/:id/feedback`
+    (`lib/studenthub/mobile_app/knowledge_base.rb`, `app/controllers/studenthub_mobile_app_controller.rb`). Drafts,
+    internal and archived answers are not found, not even for Knowledge Base editors, and nothing while the Knowledge
+    Base is off. The votes (`StudenthubAnswerFeedback`, table `studenthub_answer_feedbacks`, migration
+    `20261017110000`; one per student and answer) go with the answer and with the student
+    (`app/models/studenthub_answer_feedback/user_hook.rb`, `config/initializers/studenthub_answer_feedback.rb`); staff
+    see the counts on the answer in the new UI's Knowledge Base page.
   - **Administration → Manage → Mobile app** (`/manage/mobile-app`, permission `admin.mobile_app`;
     `apps/desktop/pages/manage/views/MobileApp.vue`): what students see on the mobile app's Home.
     - **Quick links:** up to 8 links to other websites (a label and an `https://` or `http://` address), in order,
@@ -560,7 +578,7 @@ application colour, white top bar, Halo-style sign-in page). Work happens on the
       `app/frontend/shared/utils/studenthubQuickLinks.ts`).
     - **Popular answers:** up to 5 Knowledge Base answers, in order, found by searching the answers published in the
       help center (`manage/components/MobileApp/MobileAppPopularAnswers.vue`); Home lists their titles (in the
-      student's language where the answer has one), each opening its help center page
+      student's language where the answer has one), each opening in Help articles
       (`pages/home/components/StudenthubPopularAnswers.vue`). Internal answers and drafts are never offered or shown,
       and an answer that stops being published drops off Home (the admin page says so; saving takes it off). Setting
       `studenthub_mobile_popular_answers` (answer IDs; the server accepts only published ones), not sent with the app
@@ -1124,7 +1142,8 @@ Zammad has none, and saves through Zammad's own REST API, so Zammad's checks and
   the language chosen above the page), publishing (draft → internal → public → archived and back), files, and new,
   renamed, moved and deleted categories (only empty ones). Who sees and edits what follows Zammad's Knowledge Base
   permissions, including per-category ones. Images in answers are kept when an answer is edited (the page gives them
-  back their `cid`, and pasted images are sent embedded so Zammad stores them as attachments).
+  back their `cid`, and pasted images are sent embedded so Zammad stores them as attachments). Under an answer's
+  title, "Helpful to students: 3 yes, 1 no" counts the votes from the mobile app's Help articles (once there are any).
 - **Knowledge Base answers in search:** the top bar's search drop-down lists matching answers under "Found
   knowledge base answers" (title and text; Zammad's own Knowledge Base search, which also works without
   Elasticsearch), and "More in the Knowledge Base" opens all results on the Knowledge Base page.

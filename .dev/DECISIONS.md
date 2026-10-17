@@ -260,3 +260,14 @@ Never put passwords, tokens or keys in this file.
   the ticket the same way (Zammad's ticket create mutation, the group from Zammad's own ticket form), so the server's
   checks and the request forms apply unchanged; a request form's questions are asked one by one instead of as a
   form. Staff keep Zammad's form. The request form types moved to shared code for it
+- The mobile app has its own Knowledge Base, **Help articles** (17 Oct; design 1 "Topics" from five designs, without
+  its Popular answers, which stay on Home): topics as tiles, a topic's sub-topics and answers, search, and the answer
+  in the app. This replaces opening the help center from Home and Popular answers. It shows only what the help
+  center publishes, through its own endpoints (the new UI's Knowledge Base API stays staff-only); its search runs
+  Zammad's Knowledge Base search without a user, as given one it also finds drafts and internal answers for
+  Knowledge Base editors. "Still need help?" opens the request chat without a category, as Knowledge Base topics are
+  not request categories
+- Students say whether an answer helped (17 Oct): one vote per student and answer, which they may change, stored by
+  Student Hub (`studenthub_answer_feedbacks`), as Zammad keeps no such feedback; staff see the counts on the answer in
+  the new UI, not who voted. Buttons that stored nothing would be a fake control. Votes go with the student, removed
+  before Zammad's own check that refuses to delete a user other records still point at

@@ -36,13 +36,13 @@ describe('Student Hub popular answers on Home', () => {
     vi.unstubAllGlobals()
   })
 
-  it('links each answer to its help center page', async () => {
+  it('opens each answer in Help articles', async () => {
     mockPopularAnswers(
       () =>
         new Response(
           JSON.stringify([
-            { id: 2, title: 'Reset your password', url: '/help/en-us/1-accounts/2-reset-your-password' },
-            { id: 1, title: 'Connect to the Wi-Fi', url: '/help/en-us/6-how-to/1-connect-to-the-wi-fi' },
+            { id: 2, title: 'Reset your password' },
+            { id: 1, title: 'Connect to the Wi-Fi' },
           ]),
         ),
     )
@@ -55,7 +55,7 @@ describe('Student Hub popular answers on Home', () => {
       'Reset your password',
       'Connect to the Wi-Fi',
     ])
-    expect(links[0]).toHaveAttribute('href', '/help/en-us/1-accounts/2-reset-your-password')
+    expect(links[0]).toHaveAttribute('href', '/mobile/knowledge-base/answers/2')
   })
 
   it.each([

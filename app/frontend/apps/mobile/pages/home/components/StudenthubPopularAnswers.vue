@@ -6,12 +6,12 @@ import { onMounted, ref } from 'vue'
 import { studenthubApi } from '#shared/utils/studenthubApi.ts'
 
 // Student Hub: the Knowledge Base answers admins chose for Home (Administration → Manage → Mobile
-// app). The server gives only those still published in the help center, where each one opens.
+// app). The server gives only those still published in the help center; each one opens in the
+// app's Help articles.
 
 interface PopularAnswer {
   id: number
   title: string
-  url: string
 }
 
 const answers = ref<PopularAnswer[]>([])
@@ -38,7 +38,10 @@ onMounted(async () => {
     </h2>
     <ul class="overflow-hidden rounded-2xl bg-gray-500">
       <li v-for="answer in answers" :key="answer.id" class="border-b border-gray-400 last:border-0">
-        <CommonLink :link="answer.url" external class="flex items-center gap-3 px-4 py-3.5">
+        <CommonLink
+          :link="`/knowledge-base/answers/${answer.id}`"
+          class="flex items-center gap-3 px-4 py-3.5"
+        >
           <CommonIcon name="book" size="small" class="shrink-0 text-blue" decorative />
           <span class="grow text-base font-medium">{{ answer.title }}</span>
         </CommonLink>

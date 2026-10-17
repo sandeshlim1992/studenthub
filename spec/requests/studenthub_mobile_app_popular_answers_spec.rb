@@ -41,7 +41,7 @@ RSpec.describe 'Student Hub mobile app popular answers', aggregate_failures: tru
       get '/api/v1/studenthub/mobile_app/popular_answers', as: :json
 
       expect(response).to have_http_status(:ok)
-      expect(json_response).to eq([{ 'id' => wifi.id, 'title' => 'Connect to the Wi-Fi', 'url' => "/help/#{wifi.translation.kb_locale.system_locale.locale}/#{category.translation.to_param}/#{wifi.translation.to_param}" }])
+      expect(json_response).to eq([{ 'id' => wifi.id, 'title' => 'Connect to the Wi-Fi' }])
     end
 
     it 'gives nothing before signing in', authenticated_as: false do

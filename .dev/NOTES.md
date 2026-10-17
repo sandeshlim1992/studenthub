@@ -156,6 +156,15 @@ Never put passwords, tokens or keys in this file.
 - Classic UI: pasting HTML into a reply runs its scripts (`<img onerror>`): `App.Utils.htmlCleanup` parses it with
   jQuery's `$(html)` in the live page (security-review.md, 15 Oct). Fixed in the new UI's `htmlCleanup`; out of reach
   once `/app` is switched off on a server (on `develop` since 15 Oct), gone with the classic UI's code
+- Deleting a manager who has sites fails: Zammad's user deletion refuses while `studenthub_manager_sites.user_id`
+  still points at them ("Failed deleting references! Check logic for StudenthubManagerSite->user_id", checked 17 Oct
+  in a spec). Not fixed yet; the Knowledge Base votes solve the same thing with a `before_destroy` hook
+  (`app/models/studenthub_answer_feedback/user_hook.rb`)
+- Dev Elasticsearch (17 Oct): the Knowledge Base answer index had none of the answers in it (indexed by hand on the
+  work PC) and has `index.highlight.max_analyzed_offset` 1000, so any search that asks for highlights fails on an
+  answer longer than 1,000 characters. Student Hub's two Knowledge Base searches no longer ask for them; Zammad's own
+  help center and GraphQL Knowledge Base searches still do. Check the test and production servers' setting (the
+  Elasticsearch default is 1,000,000)
 
 ## In progress
 
@@ -240,6 +249,10 @@ Never put passwords, tokens or keys in this file.
   (sending; the message "Chat box check from the mobile app." was added there). Yes (closing a resolved request, the
   star rating) only in tests: the dev data has no resolved ticket or waiting rating. The paperclip's Zammad reply form
   on a closed ticket is not yet checked
+- Mobile Help articles (17 Oct, design 1 "Topics"; README → Mobile app): checked in headless Chromium on a phone
+  viewport as student@: the topics, a topic, an answer with images, Yes (kept after a reload; one vote stored for
+  student@ on answer 2 in the dev DB) and a search ("teams"). Videos, links between answers, files and the staff
+  counts on the new UI's answer page only in tests
 
 ## Next steps
 

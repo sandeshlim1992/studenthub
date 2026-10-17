@@ -3,6 +3,7 @@
 import { flushPromises } from '@vue/test-utils'
 
 import { renderComponent } from '#tests/support/components/index.ts'
+import { mockApplicationConfig } from '#tests/support/mock-applicationConfig.ts'
 import { mockGraphQLSubscription } from '#tests/support/mock-graphql-api.ts'
 
 import { OnlineNotificationsCountDocument } from '#shared/entities/online-notification/graphql/subscriptions/onlineNotificationsCount.api.ts'
@@ -12,10 +13,11 @@ import type { UserData } from '#shared/types/store.ts'
 
 import StudenthubAppHeader from '../StudenthubAppHeader.vue'
 
-const renderHeader = async () => {
+const renderHeader = async (props: Record<string, string> = { title: 'Your tickets' }) => {
+  mockApplicationConfig({ product_name: 'Student Hub' })
   const subscription = mockGraphQLSubscription(OnlineNotificationsCountDocument)
   const view = renderComponent(StudenthubAppHeader, {
-    props: { title: 'Your tickets' },
+    props,
     store: true,
     router: true,
   })
@@ -42,6 +44,23 @@ describe('Student Hub app header', () => {
     )
     expect(view.getByRole('link', { name: 'Account' })).toHaveAttribute('href', '/account')
     expect(view.getByText('UT')).toBeInTheDocument()
+    expect(view.getByText('Student Hub')).toBeInTheDocument()
+  })
+
+  it('has a back button in place of the product name on pages below Home', async () => {
+    const { view } = await renderHeader({
+      title: 'Wi-Fi & devices',
+      context: 'Help articles › IT & accounts',
+      backLink: '/knowledge-base/7',
+      backLabel: 'Back to IT & accounts',
+    })
+
+    expect(view.getByRole('link', { name: 'Back to IT & accounts' })).toHaveAttribute(
+      'href',
+      '/knowledge-base/7',
+    )
+    expect(view.getByText('Help articles › IT & accounts')).toBeInTheDocument()
+    expect(view.queryByText('Student Hub')).not.toBeInTheDocument()
   })
 
   it('counts the unread notifications', async () => {

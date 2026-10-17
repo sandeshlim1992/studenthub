@@ -38,13 +38,13 @@ RSpec.describe Studenthub::MobileApp::PopularAnswers, aggregate_failures: true d
   end
 
   describe '.for' do
-    it "gives the chosen answers in the admins' order with their help center page" do
+    it "gives the chosen answers in the admins' order" do
       choose(password, wifi)
 
       expect(described_class.for(student)).to eq(
         [
-          { id: password.id, title: 'Reset your password', url: "/help/#{password.translation.kb_locale.system_locale.locale}/#{category.translation.to_param}/#{password.translation.to_param}" },
-          { id: wifi.id, title: 'Connect to the Wi-Fi', url: "/help/#{wifi.translation.kb_locale.system_locale.locale}/#{category.translation.to_param}/#{wifi.translation.to_param}" },
+          { id: password.id, title: 'Reset your password' },
+          { id: wifi.id, title: 'Connect to the Wi-Fi' },
         ]
       )
     end

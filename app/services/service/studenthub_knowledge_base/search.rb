@@ -15,6 +15,13 @@ class Service::StudenthubKnowledgeBase::Search < Service::Base
     @limit = limit.to_i.clamp(1, 50)
   end
 
+  # Plain words: a space between paragraphs and lines, entities such as &nbsp; decoded. Also used for
+  # the mobile app's search (Studenthub::MobileApp::KnowledgeBase).
+  def self.snippet(html)
+    spaced = html.gsub(%r{<(?:br|/p|/div|/li|/h\d)[^>]*>}i, ' \\0')
+    Nokogiri::HTML5.fragment(spaced).text.squish.truncate(SNIPPET_LENGTH)
+  end
+
   def execute
     knowledge_base = KnowledgeBase.first
     return [] if !knowledge_base || query.blank?
@@ -37,12 +44,6 @@ class Service::StudenthubKnowledgeBase::Search < Service::Base
     ids.filter_map { |id| records[id] }
   end
 
-  # Plain words: a space between paragraphs and lines, entities such as &nbsp; decoded.
-  def snippet(html)
-    spaced = html.gsub(%r{<(?:br|/p|/div|/li|/h\d)[^>]*>}i, ' \\0')
-    Nokogiri::HTML5.fragment(spaced).text.squish.truncate(SNIPPET_LENGTH)
-  end
-
   def row(translation)
     answer = translation.answer
 
@@ -50,7 +51,7 @@ class Service::StudenthubKnowledgeBase::Search < Service::Base
       id:           answer.id,
       kb_locale_id: translation.kb_locale_id,
       title:        translation.title,
-      snippet:      snippet(translation.content&.body.to_s),
+      snippet:      self.class.snippet(translation.content&.body.to_s),
       category_id:  answer.category_id,
       state:        Service::StudenthubKnowledgeBase::Tree.state(answer),
       updated_at:   translation.updated_at,
